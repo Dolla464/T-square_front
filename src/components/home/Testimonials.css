@@ -1,0 +1,79 @@
+/* src/components/home/Testimonials.css */
+
+.testimonials-section {
+    padding: 80px 0;
+    background-color: #fff;
+    text-align: center;
+}
+
+.testimonial-card {
+    background: #fff;
+    border-radius: 25px;
+    padding: 40px 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f0f0f0;
+    height: 100%;
+    position: relative;
+    transition: transform 0.3s ease;
+    text-align: left; /* المحاذاة داخل الكارت يسار */
+}
+
+.testimonial-card:hover {
+    transform: translateY(-10px);
+}
+
+/* أيقونة الاقتباس */
+.quote-icon {
+    color: #be1522;
+    font-size: 3rem;
+    font-family: 'Georgia', serif;
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    line-height: 1;
+}
+
+.student-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+
+.student-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #eee;
+}
+
+.student-details h5 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.student-details span {
+    color: #888;
+    font-size: 0.85rem;
+}
+
+/* النجوم */
+.stars-container {
+    color: #ffc107; /* لون النجوم الذهبي */
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+.star-empty {
+    color: #e0e0e0; /* لون النجوم الفاضية */
+}
+
+.testimonial-text {
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    font-style: italic;
+}

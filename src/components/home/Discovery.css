@@ -1,0 +1,127 @@
+/* src/components/home/Discovery.css */
+
+.discovery-section {
+    padding: 100px 0;
+    background-color: #fff;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+
+/* الخلفية المتموجة */
+.discovery-waves {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    transform: translateY(-50%);
+    z-index: 1;
+    opacity: 0.5;
+}
+
+.discovery-container {
+    position: relative;
+    z-index: 2;
+}
+
+/* حاوية الصور */
+.images-arc {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* لضمان أن القوس يبدأ من الأسفل */
+    gap: -30px; /* زيادة التداخل البسيط عشان الـ 5 صور */
+    margin-bottom: 60px; /* زيادة المسافة السفلية */
+    position: relative;
+}
+
+.arc-img {
+    width: 250px; /* تصغير العرض شوية عشان الـ 5 صور ييجوا جنب بعض */
+    height: 160px; /* تصغير الارتفاع شوية */
+    object-fit: cover;
+    border-radius: 18px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    flex-shrink: 0; /* منع الصور من الانضغاط */
+}
+
+/* 1. أقصى اليسار: دوران كبير، نزول كبير */
+.img-outer-left {
+    transform: rotate(-18deg) translateY(45px);
+    z-index: 1;
+}
+
+/* 2. اليسار الداخلي: دوران متوسط، نزول متوسط */
+.img-inner-left {
+    transform: rotate(-9deg) translateY(20px);
+    z-index: 2;
+}
+
+/* 3. المنتصف: بدون دوران، صعود للأعلى */
+.img-center {
+    transform: translateY(-20px);
+    z-index: 5; /* أعلى واحدة في الـ stacking order */
+}
+
+/* 4. اليمين الداخلي: دوران متوسط، نزول متوسط */
+.img-inner-right {
+    transform: rotate(9deg) translateY(20px);
+    z-index: 2;
+}
+
+/* 5. أقصى اليمين: دوران كبير، نزول كبير */
+.img-outer-right {
+    transform: rotate(18deg) translateY(45px);
+    z-index: 1;
+}
+
+/* الـ Floating Badges */
+.floating-badge {
+    position: absolute;
+    background: #ffeeef;
+    color: #be1522;
+    padding: 5px 15px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 5px 15px rgba(190, 21, 34, 0.1);
+    z-index: 6; /* فوق الصور */
+}
+
+.badge-ux { top: -25px; left: 10%; transform: rotate(-15deg); }
+.badge-data { bottom: 5px; left: 45%; }
+.badge-front { top: -15px; right: 10%; transform: rotate(15deg); }
+
+.discovery-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: #1a1a1a;
+}
+
+.discovery-text {
+    max-width: 600px;
+    margin: 0 auto 40px;
+    color: #666;
+    line-height: 1.6;
+}
+
+.explore-btn {
+    background-color: #be1522;
+    color: #fff;
+    border: none;
+    padding: 12px 40px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.explore-btn:hover {
+    background-color: #9a111b;
+    transform: scale(1.05);
+}
+
+/* تظبيط لوسم <a> لو استخدمت Link */
+.explore-btn a {
+    color: #fff;
+    text-decoration: none;
+}

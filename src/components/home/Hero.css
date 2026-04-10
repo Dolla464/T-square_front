@@ -1,0 +1,92 @@
+.hero-section {
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    margin-top: -110px; /* سحب السكشن تحت النافبار */
+    padding-top: 110px;
+    position: relative;
+    color: white;
+}
+
+/* العنوان الكبير */
+.hero-title {
+    line-height: 1.1;
+}
+
+/* التظليل الأحمر (Confidence) */
+.hero-highlight {
+    background-color: transparent;
+    border: 3px solid #c51c24 !important;
+    border-radius: 50px;
+    padding: 0.2rem 1.5rem;
+    display: inline-block;
+    color: white;
+}
+
+/* النص الوصفي */
+.hero-subtitle {
+    max-width: 600px;
+    opacity: 0.9;
+}
+
+/* أزرار الهيرو */
+.btn-hero-primary {
+    background-color: #c51c24 !important;
+    border: none !important;
+}
+
+.btn-hero-outline {
+    border-width: 2px !important;
+}
+
+.hero-highlight-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.hero-vector {
+    position: absolute;
+    /* تشفيت خفيف للخارج عشان الكلام ميبقاش مضغوط */
+    left: 30px; 
+    right: -20px;
+    top: 5px;
+    bottom: -15px;
+
+    /* السمك واللون من الـ CSS اللي أنت بعته */
+    border: 2.1694px solid #BE1522;
+    
+    /* التحويل اللي أنت بعته matrix بيدي الميلان البسيط */
+    transform: matrix(1, -0.04, 1, 1, 0, 0);
+    
+    /* عشان تبقى شبه Ellipse */
+    border-radius: 50%; 
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ال\::after هي ال\Vector الثاني (الدايرة اللي فوقها) */
+.hero-vector::after {
+    content: "";
+    position: absolute;
+    /* تشفيت الدايرة الثانية عن الأولى */
+    left: 2px;
+    top: 2px;
+    right: 2px;
+    bottom: 2px;
+    
+    border: 2.1694px solid #BE1522;
+    /* تحويل مختلف للثانية عشان يديك تأثير الرسم اليدوي (Double-strike) */
+    transform: matrix(1, 0.02, 0.9, 1, 0, 0);
+    
+    border-radius: 50%;
+    opacity: 0.8; /* جعلها شفافة قليلاً لتبدو واقعية */
+}
+
+.highlight-text {
+    position: relative;
+    z-index: 2;
+    color: white; 
+}

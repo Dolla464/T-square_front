@@ -1,0 +1,130 @@
+/* src/components/home/About.css */
+
+.about-section {
+    padding: 100px 0;
+    background-color: #fff;
+}
+
+.about-badge {
+    background-color: #fce8e9;
+    color: #be1522;
+    padding: 5px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.about-title {
+    font-size: 2.5rem;
+    color: #1a1a1a;
+    line-height: 1.2;
+}
+
+.about-text {
+    color: #666;
+    line-height: 1.8;
+}
+
+/* ستايل الصور المنحنية */
+.about-img-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    justify-content: center;
+}
+
+.about-img {
+    border-radius: 40px; /* الـ Border Radius العالي اللي في الصورة */
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+/* الصورة اللي في النص بتكون أطول شوية */
+.img-center {
+    height: 450px;
+    width: 200px;
+}
+
+.img-side {
+    height: 350px;
+    width: 180px;
+}
+
+.about-img:hover {
+    transform: translateY(-10px);
+}
+
+/* النقاط اللي تحت السلايدر */
+.slider-dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ddd;
+}
+
+.dot.active {
+    background-color: #be1522;
+    width: 25px; /* النقطة النشطة بتكون أعرض */
+    border-radius: 10px;
+}
+
+@media (max-width: 991px) {
+    /* 1. الحاوية: هنخليها Flex عشان الصور تترتب تلقائي */
+    .about-img-container {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        gap: -20px; /* تداخل بسيط جداً */
+        height: auto !important; /* نلغي الارتفاع الثابت */
+        margin-top: 40px;
+        padding: 0 10px;
+        position: relative;
+    }
+
+    .about-img {
+        /* نلغي الـ Absolute عشان الـ Flex يشتغل */
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        transform: none !important;
+        
+        /* أبعاد متناسقة للموبايل */
+        width: 30% !important; /* كل صورة تاخد تلت المساحة تقريباً */
+        aspect-ratio: 2/3; /* يحافظ على شكل المستطيل الطولي */
+        border-radius: 20px !important;
+        object-fit: cover;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    /* 2. الصورة اللي في النص: نكبرها شوية ونطلعها فوق */
+    .img-center {
+        width: 35% !important;
+        z-index: 2;
+        transform: translateY(-20px) scale(1.1) !important; /* تطلع لفوق وتكبر */
+        border-radius: 25px !important;
+    }
+
+    /* 3. الصور الجانبية: نديها ميل خفيف (اختياري) */
+    .img-side.left {
+        transform: rotate(-5deg) translateY(10px) !important;
+        z-index: 1;
+    }
+
+    .img-side.right {
+        transform: rotate(5deg) translateY(10px) !important;
+        z-index: 1;
+    }
+
+    /* 4. تظبيط العناوين عشان متتخنقش */
+    .about-title {
+        font-size: 1.8rem !important;
+        margin-top: 20px;
+    }
+}

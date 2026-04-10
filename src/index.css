@@ -1,0 +1,68 @@
+/* 1. تعريف ألوان البراند (T-Square) */
+:root {
+  --primary-red: #c51c24; /* اللون الأحمر اللي في الصورة */
+  --dark-bg: #030303;
+  --light-gray: #f8f9fa;
+  --text-main: #333;
+}
+
+/* 2. تنسيقات عامة لتسهيل الشغل */
+body {
+  margin: 0;
+  font-family: 'Inter', 'Tajawal', sans-serif; /* تأكد من استدعاء الخطوط */
+  background-color: var(--light-gray);
+  color: var(--text-main);
+}
+
+/* 3. تعديل الـ Navbar عشان تشبه الصور بالظبط */
+.navbar {
+  border-bottom: 1px solid #eee;
+  padding-top: 0.8rem !important;
+  padding-bottom: 0.8rem !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.nav-link {
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--primary-red) !important;
+}
+
+/* 4. تنسيق أزرار الدخول والتسجيل */
+.btn-danger {
+  background-color: var(--primary-red) !important;
+  border-color: var(--primary-red) !important;
+}
+
+.btn-outline-dark {
+  border-width: 2px !important;
+}
+
+/* 5. تنسيق دايرة البروفايل (الحالة التانية) */
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  background-color: var(--primary-red);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: bold;
+}
+
+/* 6. إلغاء أي عرض محدد للمحتوى عشان البوتستراب يشتغل صح */
+#root {
+  width: 100%;
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* 7. تحسين المسافات في الـ Container */
+.container {
+  max-width: 1200px;
+}
