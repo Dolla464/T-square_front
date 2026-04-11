@@ -1,24 +1,30 @@
-/* src/components/home/Courses.css */
-
+/* تنسيقات السيكشن ككل */
 .courses-section {
     padding: 80px 0;
+    background-color: #fff; /* أو أي لون خلفية للسيكشن */
 }
 
-/* ستايل الـ Filter Buttons */
+/* ستايل العناوين في الهوم */
+.courses-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+/* تنسيق حاوية الفلاتر في الهوم */
 .filter-container {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
     margin-bottom: 50px;
 }
 
+/* ستايل زرار الفلتر */
 .filter-btn {
     background: #F4F4F4;
-;
     color: #000;
     border: none;
-    padding: 8px 25px;
+    padding: 10px 28px;
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.3s ease;
@@ -27,120 +33,14 @@
 .filter-btn.active, .filter-btn:hover {
     background: #be1522;
     color: #fff;
+    box-shadow: 0 4px 12px rgba(190, 21, 34, 0.2);
 }
 
-/* ستايل الـ Card */
-.course-card {
-    background: #fff;
-    border-radius: 20px;
-    overflow: hidden;
-    color: #000;
-    height: 100%;
-    border: 1px solid #eee;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.148);
-    transition: transform 0.3s ease;
-}
-
-.course-card:hover {
-    transform: translateY(-10px);
-}
-
-.course-img-wrapper {
-    position: relative;
-    height: 200px;
-}
-
-.course-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* Badge (Hybrid, Online, Offline) */
-.course-badge {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    padding: 5px 15px;
-    border-radius: 5px;
-    color: #fff;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.badge-hybrid { background: #1546be; }
-.badge-offline { background: #be1522; }
-.badge-online { background: #15be56; }
-
-.course-body {
-    padding: 20px;
-}
-
-.course-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 15px;
-    line-height: 1.4;
-}
-
-.course-info {
-    display: flex;
-    gap: 15px;
-    font-size: 0.85rem;
-    color: #666;
-    margin-bottom: 15px;
-}
-
-.course-desc {
-    font-size: 0.9rem;
-    color: #444;
-    margin-bottom: 20px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-/* Tags (Firebase, etc) */
-.course-tags {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-}
-
-.tag {
-    background: #ffeeef;
-    color: #be1522;
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.course-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 1px solid #eee;
-    padding-top: 15px;
-}
-
-.course-price {
-    font-weight: 700;
-    font-size: 1.2rem;
-    color: #be1522;
-}
-
-.buy-btn {
-    background: #be1522;
-    color: #fff;
-    border: none;
-    padding: 8px 20px;
+/* زرار "عرض كل الكورسات" اللي تحت الشبكة */
+.view-all-btn {
+    margin-top: 40px;
+    padding: 12px 35px;
     border-radius: 8px;
     font-weight: 600;
     transition: 0.3s;
-}
-
-.buy-btn:hover {
-    background: #9a111b;
 }

@@ -1,4 +1,4 @@
-import { Container } from "react-bootstrap";
+import { Button, Container } from "react-bootstrap";
 import "./Discovery.css";
 // استورد الـ 5 صور الحقيقية هنا
 import img1 from "../../assets/discovery/1.png";
@@ -7,6 +7,7 @@ import img3 from "../../assets/discovery/3.png";
 import img4 from "../../assets/discovery/4.png"; // صورة إضافية
 import img5 from "../../assets/discovery/5.png"; // صورة إضافية
 import wavesBg from "../../assets/discovery/waves.png";
+import { Link } from "react-router-dom";
 
 function Discovery() {
   return (
@@ -52,10 +53,13 @@ function Discovery() {
         <h2 className="discovery-title">Discover Your Ideal Career</h2>
         <p className="discovery-text">
           Answer 5 quick questions and we'll recommend the perfect learning path
-          <br />for you.
+          <br />
+          for you.
         </p>
 
-        <button className="explore-btn">Explore Courses</button>
+        <Button as={Link} to="/courses" className="explore-btn">
+          Explore Courses
+        </Button>
       </Container>
     </section>
   );
