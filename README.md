@@ -1,16 +1,35 @@
-# React + Vite
+# 🎓 T-Square LMS - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Welcome to the **T-Square** Learning Management System frontend repository. This project is built using **React** and integrates with a **Laravel API** to provide a seamless educational experience.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Team Collaboration
+This project is currently being developed by a team of 3 frontend developers. 
+- **Lead Developer:** Adel
+- **Project Goal:** Build a scalable, multi-language LMS platform.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠 Tech Stack
+- **Framework:** React.js
+- **State Management:** (e.g., Redux Toolkit / Context API)
+- **Styling:** CSS / (e.g., Tailwind or Bootstrap)
+- **API Communication:** Axios
+- **Icons & UI:** Custom oval-shaped UI components & feature wrappers.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 📋 Prerequisites
+Before you begin, ensure you have the following installed:
+- **Node.js** (v18 or higher recommended)
+- **NPM** or **Yarn**
+
+---
+
+## ⚙️ Getting Started
+
+1. **Clone the repository:**
+   ```bash
+   git clone git@github.com:Dolla464/T-square_front.git
+   cd t-square-lms-front
