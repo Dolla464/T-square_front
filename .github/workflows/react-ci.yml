@@ -1,4 +1,4 @@
-name: React CI Check
+name: React Professional CI
 
 on:
   push:
@@ -7,8 +7,10 @@ on:
     branches: [ "main", "develop" ]
 
 jobs:
-  build-and-test:
+  quality-check:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
     - name: Checkout code
@@ -18,9 +20,23 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '22'
+        cache: 'npm' # بيسرع الـ Action المرات الجاية
 
     - name: Install dependencies
       run: npm install
 
+    # 1. فحص نظافة الكود (Linting)
+    - name: Run Lint Check
+      run: npm run lint
+
+    # 2. التأكد من قدرة المشروع على الـ Build
     - name: Check for Build Errors
       run: npm run build
+
+    # 3. فحص الأداء (Lighthouse)
+    - name: Lighthouse Check
+      uses: treosh/lighthouse-config-action@v12
+      with:
+        urls: 'http://localhost:3000' # جيت هاب هيحاول يفحص النسخة اللي اتبنت
+        budgetPath: ./lighthouse-budgets.json # اختياري لو عايز تحط حدود للأداء
+        uploadArtifacts: true # عشان يرفع لك التقرير وتشوفه بنفسك
