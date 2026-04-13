@@ -26,15 +26,17 @@ jobs:
       run: npm install
 
     - name: Run Lint Check
-      # الـ CI هينبهك بس مش هيوقف الـ Build لو فيه Warnings بسيطة
       run: npm run lint || echo "Linting issues found, but continuing..."
 
     - name: Check for Build Errors
       run: npm run build
 
+    # تشغيل Lighthouse على ملفات الـ Build بعد ما تخلص
     - name: Lighthouse Check
       uses: treosh/lighthouse-ci-action@v12
       with:
-        # بنقوله افحص فولدر الـ build اللي لسه معمول دلوقتي
-        staticDistDir: ./dist 
+        # بدل staticDistDir هنستخدم الـ configPath أو نخليه يفحص الـ Build مباشرة
+        # الطريقة الأبسط للـ Action ده هو فحص الـ Folder الناتج:
         temporaryPublicStorage: true
+        uploadArtifacts: true
+        runs: 1
