@@ -24,7 +24,7 @@ function App() {
     document.body.dir = dir;
     document.body.lang = i18n.language;
     document.getElementsByTagName('html')[0].setAttribute('dir', dir);
-  }, [i18n.language]);
+  }, [i18n, i18n.language]);
 
   return (
     <Router>
