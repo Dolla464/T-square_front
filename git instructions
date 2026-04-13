@@ -1,0 +1,23 @@
+📝 تعليمات الشغل على Git (للفريق):
+1. أول حاجة تعملها الصبح (تحديث الجهاز):
+
+Bash
+git fetch origin
+git checkout develop
+git pull origin develop
+
+2. لما تبدأ في Task جديدة (افتح فرع خاص بيك):
+محدش يرفع كود على develop مباشرة، ارفع على فرع باسم المهمة:
+
+Bash
+git checkout -b اسم الديفيلوبر
+
+3. بعد ما تخلص شغلك (ارفع الـ Task):
+
+Bash
+git add .
+git commit -m "شرح مختصر للي عملته"
+git push origin اسم الديفيلوبر
+
+4. الخطوة النهائية:
+ادخل على GitHub واعمل Pull Request (PR) من الفرع بتاعك لفرع الـ develop، واستنى مراجعتي (Review).
