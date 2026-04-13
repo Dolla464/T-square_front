@@ -106,18 +106,22 @@
 }
 
 .explore-btn {
-    background-color: #be1522;
-    color: #fff;
-    border: none;
+    background-color: #be1522 !important; /* اللون الأحمر الأساسي من التصميم */
+    color: #ffffff !important; /* التأكيد على اللون الأبيض للنص */
+    border: none !important;
     padding: 12px 40px;
     border-radius: 10px;
     font-weight: 600;
-    transition: 0.3s;
+    text-decoration: none !important; /* إزالة الخط السفلي تماماً */
+    display: inline-block;
+    transition: 0.3s ease;
 }
 
 .explore-btn:hover {
-    background-color: #9a111b;
-    transform: scale(1.05);
+    background-color: #9a111b !important; /* درجة أغمق عند التمرير */
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(190, 21, 34, 0.3);
 }
 
 /* تظبيط لوسم <a> لو استخدمت Link */

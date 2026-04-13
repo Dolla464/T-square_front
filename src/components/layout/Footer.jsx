@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
 import "./Footer.css";
 import logoWhite from "../../assets/logo-white.png"; // اللوجو باللون الأبيض
@@ -22,7 +23,9 @@ function Footer() {
             <h5 className="footer-heading">Academy</h5>
             <ul className="footer-links">
               <li>
-                <a href="#courses">All Courses</a>
+                <Link to="/courses">
+                  All Courses
+                </Link>
               </li>
               <li>
                 <a href="#kids">Kids Programs</a>
