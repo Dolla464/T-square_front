@@ -1,7 +1,7 @@
 import { Container, Button, Row, Col } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import heroImg from "../../assets/hero-bg.png";
+import heroImg from "../../assets/hero-bg-min.webp";
 import "./Hero.css"; // استيراد ملف الـ CSS
 
 function Hero() {

@@ -1,4 +1,4 @@
-name: React CI Check
+name: React Professional CI
 
 on:
   push:
@@ -7,8 +7,10 @@ on:
     branches: [ "main", "develop" ]
 
 jobs:
-  build-and-test:
+  quality-check:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
     - name: Checkout code
@@ -18,9 +20,21 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '22'
+        cache: 'npm'
 
     - name: Install dependencies
       run: npm install
 
+    - name: Run Lint Check
+      run: npm run lint || echo "Linting issues found, but continuing..."
+
     - name: Check for Build Errors
       run: npm run build
+
+    # فحص الأداء باستخدام رابط Vercel الحقيقي
+    - name: Lighthouse Check
+      uses: treosh/lighthouse-ci-action@v12
+      with:
+        urls: 'https://t-square-front.vercel.app/' # حط هنا رابط المشروع بتاعك على فيرسل
+        temporaryPublicStorage: true
+        uploadArtifacts: true
