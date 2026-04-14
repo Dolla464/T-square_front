@@ -1,0 +1,139 @@
+/* Login.css */
+
+/* خلفية الصفحة كاملة وتمركز الكارت */
+.login-wrapper {
+    background-color: #f7f7f7;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* تصميم الكارت (الظلال، الحواف، العرض الأقصى) */
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    border-radius: 12px;
+    background-color: #ffffff;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05) !important;
+}
+
+/* تصميم اللوجو */
+.login-logo {
+    max-width: 180px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* العناوين الأساسية */
+.login-title {
+    color: #1a1a1a;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* النصوص الثانوية والروابط الـ Accent (الأحمر) */
+.login-accent-text {
+    color: #c51c24;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.login-accent-text:hover {
+    color: #a0151a;
+    text-decoration: underline;
+}
+
+/* تنسيق حقول الإدخال */
+.login-input {
+    background-color: #f0f0f0 !important;
+    border: 1px solid transparent !important;
+    padding: 0.8rem 1rem !important;
+    font-size: 0.95rem;
+    border-radius: 8px !important;
+}
+
+.login-input:focus {
+    background-color: #ffffff !important;
+    border-color: #c51c24 !important;
+    box-shadow: 0 0 0 0.2rem rgba(197, 28, 36, 0.15) !important;
+    outline: none;
+}
+
+/* تصميم الزر الأساسي */
+.login-btn {
+    background-color: #c51c24 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 0.8rem !important;
+    transition: transform 0.2s ease, background-color 0.2s ease !important;
+}
+
+.login-btn:hover {
+    background-color: #a0151a !important;
+    transform: translateY(-1px);
+}
+
+/* تنسيق الـ Labels والمحاذاة */
+.login-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #4a4a4a;
+    margin-bottom: 0.5rem;
+}
+
+/* الحل النهائي لمشكلة الـ Checkbox */
+.login-remember-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* لضمان البدء من اليسار */
+    margin-bottom: 1.5rem;
+}
+
+.login-remember-group .form-check {
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 8px; /* مسافة ثابتة بين البوكس والكلمة */
+}
+
+.login-remember-group .form-check-input {
+    float: none !important; /* إلغاء الـ float القديم */
+    margin: 0 !important;
+    width: 1.1em;
+    height: 1.1em;
+    cursor: pointer;
+    border: 1px solid #ccc;
+}
+
+.login-remember-group .form-check-input:checked {
+    background-color: #c51c24;
+    border-color: #c51c24;
+}
+
+.login-remember-group .form-check-label {
+    margin: 0 !important;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #2a2a2a;
+    /* user-select: none; */
+}
+
+/* ضبط المحاذاة العامة للنصوص (LTR) */
+.login-form-group, 
+.login-footer-text {
+    text-align: start; /* يضمن البدء من اليسار في الإنجليزية */
+}
+
+.forgot-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.login-footer-text {
+    font-size: 0.85rem;
+    margin-top: 1rem;
+}
