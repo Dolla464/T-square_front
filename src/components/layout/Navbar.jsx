@@ -22,7 +22,12 @@ function AppNavbar({ isLoggedIn, userName }) {
   const toggleLanguage = () => {
     const newLang = i18n.language === "ar" ? "en" : "ar";
     i18n.changeLanguage(newLang);
-  };
+
+    // تحديث الـ DOM فوراً
+    const newDir = newLang === "ar" ? "rtl" : "ltr";
+    document.documentElement.dir = newDir;
+    document.documentElement.lang = newLang;
+  };;
 
   /**
    * المنطق الجديد بناءً على طلبك:
@@ -91,15 +96,19 @@ function AppNavbar({ isLoggedIn, userName }) {
                 <Button
                   variant="outline-light"
                   className="px-4 fw-bold rounded-3"
+                  as={Link}
+                  to="/login"
                 >
-                  Log in
+                  {t("login")}
                 </Button>
                 <Button
                   variant="danger"
                   className="px-4 fw-bold rounded-3 border-0"
                   style={{ backgroundColor: "#c51c24" }}
+                  as={Link}
+                  to="/signup"
                 >
-                  Sign up
+                  {t("signup")}
                 </Button>
               </div>
             ) : (
