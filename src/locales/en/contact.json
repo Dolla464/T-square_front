@@ -1,0 +1,18 @@
+{
+  "titleBadge": "Contact us",
+  "title": "Do you have a question?",
+  "subtitle": "Our team is ready to answer all your inquiries and provide the support you need.",
+  "hearFromYou": "We would like to hear from you",
+  "hearFromYouDesc": "There were comments on weight changes due to comfort and ease in life.",
+  "phone": "Phone number",
+  "email": "Email",
+  "social": "Social media:",
+  "form": {
+    "name": "Name *",
+    "emailAddress": "Email Address *",
+    "phoneNumber": "Phone Number",
+    "track": "Learning Track",
+    "message": "Leave your message here...",
+    "send": "Send now"
+  }
+}

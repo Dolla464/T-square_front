@@ -1,0 +1,18 @@
+{
+  "description": "Empowering the next generation of tech professionals through hands-on learning, real-world projects, and career-focused mentorship.",
+  "sections": {
+    "academy": "Academy",
+    "services": "Services"
+  },
+  "links": {
+    "allCourses": "All Courses",
+    "kidsPrograms": "Kids Programs",
+    "ourTeam": "Our team",
+    "webDevelopment": "Web Development",
+    "mobileApps": "Mobile Apps",
+    "aiSolutions": "AI Solutions",
+    "uiUxDesign": "UI/UX Design",
+    "supermarkets": "Supermarkets"
+  },
+  "copyright": "© 2026 T-Square , All Rights Reserved"
+}

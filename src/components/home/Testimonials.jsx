@@ -1,9 +1,11 @@
 import { Container, Row, Col } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 import "./Testimonials.css";
 import { MOCK_DATA } from "../../data/mockData";
 import studentImg from "../../assets/student-avatar.jpg";
 
 function Testimonials() {
+  const { t } = useTranslation("testimonials");
   // جلب المراجعات والطلاب من الموك داتا
   const reviews = MOCK_DATA.course_reviews;
   const students = MOCK_DATA.students;
@@ -11,7 +13,7 @@ function Testimonials() {
   return (
     <section className="testimonials-section">
       <Container>
-        <h2 className="fw-bold mb-5 text-center">What Our students Say !</h2>
+        <h2 className="fw-bold mb-5 text-center">{t("title")}</h2>
 
         <Row className="g-4">
           {reviews.map((review) => {

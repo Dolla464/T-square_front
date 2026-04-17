@@ -1,8 +1,12 @@
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 import "./ContactSection.css";
 import classroomImg from "../../../assets/contact.png";
 
 function ContactSection() {
+  const { t, i18n } = useTranslation("contact");
+  const isArabic = i18n.language === "ar";
+
   return (
     <section className="contact-section py-5">
       <Container>
@@ -26,39 +30,36 @@ function ContactSection() {
           {/* الجانب الأيمن: الفورم */}
           <Col lg={6}>
             <div className="contact-card-box">
-              <h3 className="fw-bold mb-3">Do you have a question?</h3>
-              <p className="text-muted mb-4">
-                Our team is ready to answer all your inquiries and provide the
-                support you <br />need.
-              </p>
+              <h3 className="fw-bold mb-3">{t("title")}</h3>
+              <p className="text-muted mb-4">{t("subtitle")}</p>
               <Form>
                 <Form.Control
                   type="text"
-                  placeholder="Name*"
+                  placeholder={t("form.name")}
                   className="mb-3 custom-input"
                 />
                 <Form.Control
                   type="email"
-                  placeholder="Email Address*"
+                  placeholder={t("form.emailAddress")}
                   className="mb-3 custom-input"
                 />
                 <Form.Control
                   type="text"
-                  placeholder="Phone Number"
+                  placeholder={t("form.phoneNumber")}
                   className="mb-3 custom-input"
                 />
                 <Form.Control
                   type="text"
-                  placeholder="Learning Track"
+                  placeholder={t("form.track")}
                   className="mb-3 custom-input"
                 />
                 <Form.Control
                   as="textarea"
                   rows={4}
-                  placeholder="Leave your message here.."
+                  placeholder={t("form.message")}
                   className="mb-4 custom-input"
                 />
-                <Button className="btn-send w-100">Send now</Button>
+                <Button className="btn-send w-100">{t("form.send")}</Button>
               </Form>
             </div>
           </Col>

@@ -1,7 +1,10 @@
 import "./CourseCard.css";
 import courseThumb from "../../../assets/course-temp.png";
+import { useTranslation } from "react-i18next";
 
 const CourseCard = ({ course, tags }) => {
+  const { t } = useTranslation("courses");
+
   return (
     <div className="course-card">
       <div className="course-img-wrapper">
@@ -17,10 +20,10 @@ const CourseCard = ({ course, tags }) => {
         <h3 className="course-title">{course.title}</h3>
         <div className="course-info">
           <span>
-            <i className="bi bi-clock me-1"></i> 16 Weeks
+            <i className="bi bi-clock me-1"></i> {t("card.weeks")}
           </span>
           <span>
-            <i className="bi bi-play-circle me-1"></i> 120 h
+            <i className="bi bi-play-circle me-1"></i> {t("card.hours")}
           </span>
         </div>
         <p className="course-desc">
@@ -39,7 +42,7 @@ const CourseCard = ({ course, tags }) => {
         <div className="course-footer">
           <div className="price-wrapper">
             <span className="course-price">
-              {course.discount_price || course.price} EGP
+              {course.discount_price || course.price} {t("card.priceUnit")}
             </span>
             {course.discount_price && (
               <small className="text-decoration-line-through ms-2 text-muted">
@@ -47,7 +50,7 @@ const CourseCard = ({ course, tags }) => {
               </small>
             )}
           </div>
-          <button className="buy-btn">Buy now</button>
+          <button className="buy-btn">{t("card.buyNow")}</button>
         </div>
       </div>
     </div>

@@ -1,49 +1,69 @@
 /* src/components/home/CourseTicker.css */
 
 .ticker-wrapper {
-    width: 100%;
-    height: 65px;
-    background-color: #BE1522; /* اللون الأحمر اللي في الصورة */
-    overflow: hidden; /* عشان الكلام اللي يخرج بره يختفي */
-    display: flex;
-    align-items: center;
-    position: relative;
-    z-index: 10;
-    margin-top: 10px;
+  width: 100%;
+  height: 65px;
+  background-color: #be1522; /* اللون الأحمر اللي في الصورة */
+  overflow: hidden; /* عشان الكلام اللي يخرج بره يختفي */
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+  margin-top: 10px;
 }
 
 .ticker-content {
-    display: flex;
-    white-space: nowrap;
-    animation: ticker-move 30s linear infinite; /* سرعة الحركة */
+  display: flex;
+  white-space: nowrap;
+  animation: ticker-move 30s linear infinite; /* سرعة الحركة */
+}
+
+/* RTL Animation - scroll right */
+[dir="rtl"] .ticker-content {
+  animation: ticker-move-rtl 30s linear infinite;
 }
 
 /* الأيقونة والنص */
 .ticker-item {
-    display: flex;
-    align-items: center;
-    color: white;
-    font-weight: bold;
-    padding: 0 40px; /* المسافة بين كل كلمة والتانية */
-    font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  padding: 0 40px; /* المسافة بين كل كلمة والتانية */
+  font-size: 1.1rem;
 }
 
 .ticker-icon {
-    height: 25px;
-    margin-right: 10px;
+  height: 25px;
+  margin-inline-end: 10px; /* RTL-aware margin */
 }
 
 /* حركة الـ Animation من اليمين للشمال (أو العكس حسب رغبتك) */
 @keyframes ticker-move {
-    0% {
-        transform: translateX(0);
-    }
-    100% {
-        transform: translateX(-50%); /* بيتحرك نص المسافة عشان النسخة المكررة */
-    }
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%); /* بيتحرك نص المسافة عشان النسخة المكررة */
+  }
+}
+
+/* RTL Animation - scroll right */
+@keyframes ticker-move-rtl {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(50%);
+  }
+}
+
+/* Apply RTL animation when dir=rtl */
+[dir="rtl"] .ticker-content {
+  animation: ticker-move-rtl 30s linear infinite;
 }
 
 /* لو وقفت بالماوس الشريط يثبت (اختياري) */
 .ticker-wrapper:hover .ticker-content {
-    animation-play-state: paused;
+  animation-play-state: paused;
 }
