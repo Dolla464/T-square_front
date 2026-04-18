@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 import "./Footer.css";
 import logoWhite from "../../assets/logo-white.png"; // اللوجو باللون الأبيض
 
 function Footer() {
+  const { t } = useTranslation("footer");
+
   return (
     <footer className="main-footer">
       <Container>
@@ -11,49 +14,43 @@ function Footer() {
           {/* عمود اللوجو والوصف */}
           <Col lg={5} md={12}>
             <img src={logoWhite} alt="T-Square Logo" className="footer-logo" />
-            <p className="footer-desc">
-              Empowering the next generation of tech professionals through
-              hands-on learning, real-world projects, and career-focused
-              mentorship.
-            </p>
+            <p className="footer-desc">{t("description")}</p>
           </Col>
 
           {/* عمود Academy */}
           <Col lg={3} md={6}>
-            <h5 className="footer-heading">Academy</h5>
+            <h5 className="footer-heading">{t("sections.academy")}</h5>
             <ul className="footer-links">
               <li>
-                <Link to="/courses">
-                  All Courses
-                </Link>
+                <Link to="/courses">{t("links.allCourses")}</Link>
               </li>
               <li>
-                <a href="#kids">Kids Programs</a>
+                <a href="#kids">{t("links.kidsPrograms")}</a>
               </li>
               <li>
-                <a href="#team">Our team</a>
+                <a href="#team">{t("links.ourTeam")}</a>
               </li>
             </ul>
           </Col>
 
           {/* عمود Services */}
           <Col lg={4} md={6}>
-            <h5 className="footer-heading">Services</h5>
+            <h5 className="footer-heading">{t("sections.services")}</h5>
             <ul className="footer-links">
               <li>
-                <a href="#web">Web Development</a>
+                <a href="#web">{t("links.webDevelopment")}</a>
               </li>
               <li>
-                <a href="#mobile">Mobile Apps</a>
+                <a href="#mobile">{t("links.mobileApps")}</a>
               </li>
               <li>
-                <a href="#ai">AI Solutions</a>
+                <a href="#ai">{t("links.aiSolutions")}</a>
               </li>
               <li>
-                <a href="#uiux">UI/UX Design</a>
+                <a href="#uiux">{t("links.uiUxDesign")}</a>
               </li>
               <li>
-                <a href="#super">Supermarkets</a>
+                <a href="#super">{t("links.supermarkets")}</a>
               </li>
             </ul>
           </Col>
@@ -61,7 +58,7 @@ function Footer() {
 
         {/* حقوق النشر */}
         <div className="footer-bottom">
-          <p>© 2026 T-Square , All Rights Reserved</p>
+          <p>{t("copyright")}</p>
         </div>
       </Container>
     </footer>

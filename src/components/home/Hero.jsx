@@ -5,7 +5,7 @@ import heroImg from "../../assets/hero-bg-min.webp";
 import "./Hero.css"; // استيراد ملف الـ CSS
 
 function Hero() {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation(["home", "common"]);
   const isAr = i18n.language === "ar";
 
   // الـ Style الوحيد اللي هيفضل هنا هو الخلفية عشان المتغير heroImg
@@ -14,13 +14,16 @@ function Hero() {
   };
 
   return (
-    <section className="hero-section" style={dynamicStyle}>
+    <section
+      className={`hero-section ${isAr ? "rtl-bg" : ""}`}
+      style={dynamicStyle}
+    >
+ 
       <Container>
         <Row>
           <Col md={7} className={isAr ? "text-start" : "text-end"}>
-          
             <h1 className="display-3 fw-bold mb-3 hero-title">
-              {t("hero_title_start")}{" "}
+              {t("hero_title_start")}
               <span className="hero-highlight-wrapper">
                 <span className="highlight-text">
                   {t("hero_title_highlight")}
@@ -41,7 +44,7 @@ function Hero() {
                 to="/contact"
                 className="px-5 py-2 fw-bold btn-hero-primary"
               >
-                {t("contact_us")}
+                {t("common:contact_us")}
               </Button>
               <Button
                 variant="outline-light"
@@ -49,7 +52,7 @@ function Hero() {
                 to="/courses"
                 className="px-5 py-2 fw-bold btn-hero-outline"
               >
-                {t("explore_courses")}
+                {t("common:explore_courses")}
               </Button>
             </div>
           </Col>

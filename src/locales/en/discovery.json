@@ -1,0 +1,24 @@
+{
+  "title": "Discover the right career path for you",
+  "subtitle_line1": "Answer 5 quick questions and we will recommend the perfect learning path",
+  "subtitle_line2": "tailored for you.",
+
+  "badges": {
+    "ux": "UI/UX Design",
+    "data": "Data Analysis",
+    "front": "Frontend Development"
+  },
+
+  "cta": {
+    "button": "Explore Courses"
+  },
+
+  "alt": {
+    "waves": "Wavy background",
+    "img1": "Educational scene",
+    "img2": "Coding session",
+    "img3": "Classroom",
+    "img4": "Team collaboration",
+    "img5": "Students working"
+  }
+}

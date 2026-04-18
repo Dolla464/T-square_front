@@ -1,5 +1,6 @@
 import { Button, Container } from "react-bootstrap";
 import "./Discovery.css";
+import { useTranslation } from "react-i18next";
 // استورد الـ 5 صور الحقيقية هنا
 import img1 from "../../assets/discovery/1.png";
 import img2 from "../../assets/discovery/2.png";
@@ -10,10 +11,11 @@ import wavesBg from "../../assets/discovery/waves.png";
 import { Link } from "react-router-dom";
 
 function Discovery() {
+  const { t } = useTranslation("discovery");
   return (
     <section className="discovery-section">
       {/* Waves Background */}
-      <img src={wavesBg} className="discovery-waves" alt="background waves" />
+      <img src={wavesBg} className="discovery-waves" alt={t("alt.waves")} />
 
       <Container className="discovery-container">
         {/* الصور في شكل قوس أوسع (5 صور) */}
@@ -44,21 +46,23 @@ function Discovery() {
           </div>
 
           {/* Floating Badges */}
-          <span className="floating-badge badge-ux">UX/UI Design</span>
-          <span className="floating-badge badge-data">Data Analysis</span>
-          <span className="floating-badge badge-front">Frontend</span>
+          <span className="floating-badge badge-ux">{t("badges.ux")}</span>
+          <span className="floating-badge badge-data">{t("badges.data")}</span>
+          <span className="floating-badge badge-front">
+            {t("badges.front")}
+          </span>
         </div>
 
         {/* Content */}
-        <h2 className="discovery-title">Discover Your Ideal Career</h2>
+        <h2 className="discovery-title">{t("title")}</h2>
         <p className="discovery-text">
-          Answer 5 quick questions and we'll recommend the perfect learning path
+          {t("subtitle_line1")}
           <br />
-          for you.
+          {t("subtitle_line2")}
         </p>
 
         <Button as={Link} to="/courses" className="explore-btn">
-          Explore Courses
+          {t("cta.button")}
         </Button>
       </Container>
     </section>

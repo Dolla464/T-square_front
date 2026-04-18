@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { Container, Row, Col, Pagination } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { MOCK_DATA } from "../../data/mockData";
 import CourseCard from "../../components/shared/CourseCard/CourseCard";
 import "./AllCourses.css";
+import i18n from "../../i18n";
 
 function AllCourses() {
+  const { t } = useTranslation(["courses", "navbar"]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const coursesPerPage = 6;
-
+  const isArabic = i18n.language === "ar";
   // 1. تصفية الأقسام الرئيسية فقط (اللي الـ parent_id بتاعها null)
   // دي اللي هتظهر في الأزرار فوق
   const mainCategories = MOCK_DATA.categories.filter(
@@ -52,29 +55,35 @@ function AllCourses() {
   };
 
   return (
-    <div className="all-courses-page py-5">
+    <div className="all-courses-page py-5 mt-5">
       <Container>
         {/* Breadcrumbs */}
-        <nav className="breadcrumb-nav mb-4">
+        <nav className="breadcrumb-nav mb-4 flex items-center rtl:flex-row-reverse">
           <Link to="/" className="breadcrumb-item">
-            Home
+            {t("navbar:home")}
           </Link>
+
           <span className="breadcrumb-separator mx-2">
-            <i className="bi bi-chevron-right"></i>
+            <span className="breadcrumb-separator mx-2">
+              {isArabic ? (
+                <i className="bi bi-chevron-left"></i>
+              ) : (
+                <i className="bi bi-chevron-right"></i>
+              )}
+            </span>
           </span>
-          <span className="breadcrumb-item active">Courses</span>
+
+          <span className="breadcrumb-item active">{t("navbar:courses")}</span>
         </nav>
 
         {/* Header */}
         <div className="text-center mb-5">
-          <span className="badge-first-title">T-Square's courses</span>
+          <span className="badge-first-title">{t("titleBadge")}</span>
           <h2 className="fw-bold mt-4 mb-4">
-            Our <span className="text-danger">Courses</span>
+            {t("title1")}
+            <span className="text-danger">{t("title2")}</span>
           </h2>
-          <p className="text-muted fs-5">
-            From beginner-friendly programs to advanced specializations <br /> ,
-            find your perfect course.
-          </p>
+          <p className="text-muted fs-5">{t("subtitle")}</p>
         </div>
 
         {/* الأزرار: بتعرض بس الأقسام اللي الـ parent_id بتاعها null */}
@@ -86,7 +95,7 @@ function AllCourses() {
               setCurrentPage(1);
             }}
           >
-            All
+            {t("all")}
           </button>
           {mainCategories.map((cat) => (
             <button
@@ -112,7 +121,7 @@ function AllCourses() {
             ))
           ) : (
             <div className="text-center py-5 w-100">
-              <h4 className="text-muted">No courses found in this category.</h4>
+              <h4 className="text-muted">{t("notFound")}</h4>
             </div>
           )}
         </Row>

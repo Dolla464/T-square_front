@@ -6,7 +6,7 @@ import about2 from "../../assets/about2.png";
 import about3 from "../../assets/about3.png";
 
 function About() {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation("home");
   const isAr = i18n.language === "ar";
 
   return (
