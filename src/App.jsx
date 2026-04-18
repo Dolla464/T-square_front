@@ -13,14 +13,17 @@ import Home from "./pages/Home";
 import LoginPage from "./pages/Login/LoginPage";
 import SignupPage from "./pages/Signup/SignupPage";
 import Courses from "./pages/CoursesPage";
+import Solutions from "./pages/Solutions";
 
 // استيراد ملفات البوتستراب
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap.rtl.min.css";
+import Team from "./pages/Team";
+import Contact from "./pages/Contact";
 
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
-  const { i18n } = useTranslation();
+  const { i18n } = useTranslation("common");
   const location = useLocation();
 
   // تحديد الصفحات التي سيتم إخفاء النافبار والفوتر فيها
@@ -29,9 +32,16 @@ function AppContent() {
 
   useEffect(() => {
     const dir = i18n.dir();
+    const lang = i18n.language;
+
+    // Update document attributes
+    document.documentElement.dir = dir;
+    document.documentElement.lang = lang;
     document.body.dir = dir;
-    document.body.lang = i18n.language;
-    document.getElementsByTagName("html")[0].setAttribute("dir", dir);
+    document.body.lang = lang;
+
+    // Persist language to localStorage
+    localStorage.setItem("i18nextLng", lang);
   }, [i18n, i18n.language]);
 
   return (
@@ -47,8 +57,13 @@ function AppContent() {
         <Route path="/signup" element={<SignupPage />} />
 
         <Route path="/courses" element={<Courses />} />
-      </Routes>
 
+        <Route path="/solutions" element={<Solutions />} />
+        <Route path="/team" element={<Team />} />
+
+        <Route path="/contact" element={<Contact />} />
+      </Routes>
+      <ScrollToTop />
       {/* إظهار الفوتر فقط إذا لم نكن في صفحة اللوجين */}
       {!hideLayout && <AppFooter />}
     </div>

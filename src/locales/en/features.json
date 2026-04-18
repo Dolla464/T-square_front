@@ -1,0 +1,30 @@
+{
+  "badge": "Why T-Square",
+  "title": "Everything You Need to Succeed",
+  "items": [
+    {
+      "title": "Online & Offline Flexibility",
+      "desc": "Choose in-person, remote, or hybrid learning based on your schedule."
+    },
+    {
+      "title": "Industry-Experienced Instructors",
+      "desc": "Learn from professionals actively working in top tech companies."
+    },
+    {
+      "title": "Accredited Certificates",
+      "desc": "Earn recognized certificates that boost your resume and credibility."
+    },
+    {
+      "title": "Real-World Projects",
+      "desc": "Build actual products, not toy examples. Graduate with a strong portfolio."
+    },
+    {
+      "title": "Strong Tech Community",
+      "desc": "Access alumni network, events, hackathons, and ongoing mentorship."
+    },
+    {
+      "title": "Career Support",
+      "desc": "Resume reviews, mock interviews, and direct connections to hiring partners."
+    }
+  ]
+}

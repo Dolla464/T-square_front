@@ -1,83 +1,100 @@
 /* src/components/home/FAQ.css */
 
 .faq-section {
-    padding: 80px 0;
-    background-color: #fff;
+  padding: 80px 0;
+  background-color: #fff;
 }
 
 /* 1. تحديد عرض الأكورديون وتوسطه */
 .faq-accordion {
-    max-width: 850px; /* ده العرض المثالي عشان يطلع زي الصورة */
-    margin: 0 auto;   /* عشان يجي في نص الصفحة بالظبط */
+  max-width: 850px; /* ده العرض المثالي عشان يطلع زي الصورة */
+  margin: 0 auto; /* عشان يجي في نص الصفحة بالظبط */
 }
 
 .faq-header {
-    text-align: center;
-    margin-bottom: 50px;
+  text-align: center;
+  margin-bottom: 50px;
 }
 
 .faq-header span {
-    color: #be1522;
-    font-weight: 600;
-    font-size: 1rem;
-    text-transform: uppercase;
+  color: #be1522;
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
 }
 
 .faq-header h2 {
-    font-weight: 800;
-    font-size: 2.5rem;
-    margin-top: 10px;
+  font-weight: 800;
+  font-size: 2.5rem;
+  margin-top: 10px;
 }
 
 /* تعديل الـ Accordion بتاع بوتستراب */
 .faq-accordion .accordion-item {
-    border: none;
-    margin-bottom: 20px;
-    border-radius: 15px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
+  border: none;
+  margin-bottom: 20px;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 }
 
 .faq-accordion .accordion-button {
-    padding: 25px 30px;
-    padding-right: 60px; /* بنسيب مساحة في اليمين عشان السهم ميركبش فوق الكلام */
-    font-weight: 700;
-    color: #1a1a1a;
-    background-color: #fff;
-    box-shadow: none !important;
-    position: relative; /* ضروري عشان نحدد مكان السهم بالنسبة للزرار */
-    display: flex;
-    align-items: center;
+  padding: 25px 30px;
+  padding-right: 60px; /* بنسيب مساحة في اليمين عشان السهم ميركبش فوق الكلام */
+  font-weight: 700;
+  color: #1a1a1a;
+  background-color: #fff;
+  box-shadow: none !important;
+  position: relative; /* ضروري عشان نحدد مكان السهم بالنسبة للزرار */
+  display: flex;
+  align-items: center;
+}
+
+/* RTL padding adjustment */
+[dir="rtl"] .faq-accordion .accordion-button {
+  padding-right: 30px;
+  padding-left: 60px;
 }
 
 /* السهم الأحمر */
 .faq-accordion .accordion-button::after {
-    content: ""; /* التأكد من وجود محتوى */
-    position: absolute; /* تثبيت مطلق */
-    right: 25px;      /* مسافة ثابتة من اليمين لكل الأسئلة */
-    top: 50%;         /* في نص الزرار رأسياً */
-    transform: translateY(-50%); /* سنترة دقيقة */
-    margin: 0 !important; /* إلغاء أي مارجن تلقائي */
-    
-    /* شكل السهم الأحمر */
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23be1522'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e") !important;
-    background-size: 1.2rem;
-    width: 1.2rem;
-    height: 1.2rem;
+  content: ""; /* التأكد من وجود محتوى */
+  position: absolute; /* تثبيت مطلق */
+  right: 25px; /* مسافة ثابتة من اليمين لكل الأسئلة */
+  top: 50%; /* في نص الزرار رأسياً */
+  transform: translateY(-50%); /* سنترة دقيقة */
+  margin: 0 !important; /* إلغاء أي مارجن تلقائي */
+
+  /* شكل السهم الأحمر */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23be1522'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e") !important;
+  background-size: 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+/* RTL arrow position */
+[dir="rtl"] .faq-accordion .accordion-button::after {
+  right: auto;
+  left: 25px;
 }
 
 .faq-accordion .accordion-button:not(.collapsed)::after {
-    transform: translateY(-50%) rotate(-180deg); /* يلف في مكانه */
+  transform: translateY(-50%) rotate(-180deg); /* يلف في مكانه */
 }
 
 .faq-accordion .accordion-button:not(.collapsed) {
-    background-color: #fff;
-    color: #be1522;
-    border-bottom: 1px solid #f0f0f0;
+  background-color: #fff;
+  color: #be1522;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .faq-accordion .accordion-body {
-    padding: 30px;
-    text-align: left;
-    color: #666;
+  padding: 30px;
+  text-align: left;
+  color: #666;
+}
+
+/* RTL text alignment */
+[dir="rtl"] .faq-accordion .accordion-body {
+  text-align: right;
 }

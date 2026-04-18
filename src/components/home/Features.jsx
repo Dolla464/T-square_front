@@ -1,43 +1,20 @@
 import { Container, Row, Col } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 import "./Features.css";
 import starIconImg from "../../assets/featureIcon.png";
 import logoFull from "../../assets/logo-dark.png"; // اللوجو الكبير اللي في النص
-
-const featuresData = [
-  {
-    title: "Online & Offline Flexibility",
-    desc: "Choose in-person, remote, or hybrid learning based on your schedule.",
-    icon: starIconImg,
-  },
-  {
-    title: "Industry-Experienced Instructors",
-    desc: "Learn from professionals actively working in top tech companies.",
-    icon: starIconImg,
-  },
-  {
-    title: "Accredited Certificates",
-    desc: "Earn recognized certificates that boost your resume and credibility.",
-    icon: starIconImg,
-  },
-  {
-    title: "Real-World Projects",
-    desc: "Build actual products, not toy examples. Graduate with a strong portfolio.",
-    icon: starIconImg,
-  },
-  {
-    title: "Strong Tech Community",
-    desc: "Access alumni network, events, hackathons, and ongoing mentorship.",
-    icon: starIconImg,
-  },
-  {
-    title: "Career Support",
-    desc: "Resume reviews, mock interviews, and direct connections to hiring partners.",
-    icon: starIconImg,
-  },
-];
+import i18n from "../../i18n";
 
 function Features() {
-//   const { t } = useTranslation();
+  const { t } = useTranslation("features");
+  const isArabic = i18n.language === "ar";
+  const featuresData = t("items", { returnObjects: true });
+
+  // Add icon to each feature
+  const featuresWithIcons = featuresData.map((feature) => ({
+    ...feature,
+    icon: starIconImg,
+  }));
 
   return (
     <section className="features-section">
@@ -45,8 +22,8 @@ function Features() {
 
       <Container>
         <div className="text-center mb-5">
-          <span className="about-badge mb-3 d-inline-block">Why T-Square</span>
-          <h2 className="fw-bold">Everything You Need to Succeed</h2>
+          <span className="about-badge mb-3 d-inline-block">{t("badge")}</span>
+          <h2 className="fw-bold">{t("title")}</h2>
         </div>
 
         <Row className="align-items-center">
@@ -60,8 +37,9 @@ function Features() {
             lg={5}
             className="d-flex flex-column align-items-end mt-4"
             style={{ gap: "30px" }}
+            dir="ltr"
           >
-            {featuresData.slice(0, 3).map((f, i) => (
+            {featuresWithIcons.slice(0, 3).map((f, i) => (
               <div
                 className={`feature-card ${i === 1 ? "ms-5" : ""}`} // الكارت اللي في النص يتشفت يمين (ms-5)
                 key={i}
@@ -93,8 +71,9 @@ function Features() {
             lg={5}
             className="d-flex flex-column align-items-start mt-4"
             style={{ gap: "30px" }}
+            dir="ltr"
           >
-            {featuresData.slice(3, 6).map((f, i) => (
+            {featuresWithIcons.slice(3, 6).map((f, i) => (
               <div
                 className={`feature-card ${i === 1 ? "me-5" : ""}`} // الكارت اللي في النص يتشفت شمال (me-5)
                 key={i}

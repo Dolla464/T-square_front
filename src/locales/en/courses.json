@@ -1,0 +1,23 @@
+{
+  "titleBadge": "T-Square's courses",
+  "title1": "Our ",
+  "title2": "Courses",
+  "subtitle": "From beginner-friendly programs to advanced specializations, find your perfect course.",
+  "all": "All",
+  "notFound": "No courses found in this category.",
+  "level": "Level",
+  "duration": "Duration",
+  "enroll": "Enroll Now",
+  "price": "Price",
+  "instructor": "Instructor",
+  "explore": "Explore our most popular programs.",
+  "card": {
+    "weeks": "Weeks",
+    "hours": "h",
+    "priceUnit": "EGP",
+    "buyNow": "Buy now",
+    "online": "Online",
+    "offline": "Offline",
+    "hybrid": "Hybrid"
+  }
+}

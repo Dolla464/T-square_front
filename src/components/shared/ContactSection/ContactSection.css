@@ -1,91 +1,126 @@
 .contact-section {
-    padding: 80px 0;
-    overflow: hidden;
+  padding: 80px 0;
+  overflow: hidden;
 }
 
 /* حاوية الصورة */
 .custom-image-container {
-    position: relative;
-    width: 120%; /* عشان تخرج بره الشمال شوية */
-    left: -15%;
-    height: 550px;
+  position: relative;
+  width: 120%; /* عشان تخرج بره الشمال شوية */
+  left: -15%;
+  height: 550px;
 }
 
+/* RTL adjustment for image container */
+[dir="rtl"] .custom-image-container {
+  left: auto;
+  right: -15%;
+}
+[dir="rtl"] input,
+[dir="rtl"] textarea {
+  text-align: right;
+}
+
+[dir="rtl"] input::placeholder,
+[dir="rtl"] textarea::placeholder {
+  text-align: right;
+}
 /* الشكل الأحمر اللي ورا */
 .red-bg-shape {
-    position: absolute;
-    top: 50px;
-    left: -80px;
-    width: 100%;
-    height: 100%;
-    background-color: #be1522;
-    /* رسمة الشكل المنحرف */
-    clip-path: polygon(0 15%, 100% 0, 85% 85%, 0% 100%);
-    border-radius: 50px; /* لتنعيم الحواف */
-    z-index: 1;
+  position: absolute;
+  top: 50px;
+  left: -80px;
+  width: 100%;
+  height: 100%;
+  background-color: #be1522;
+  /* رسمة الشكل المنحرف */
+  clip-path: polygon(0 15%, 100% 0, 85% 85%, 0% 100%);
+  border-radius: 50px; /* لتنعيم الحواف */
+  z-index: 1;
+}
+
+/* RTL adjustment for red bg shape */
+[dir="rtl"] .red-bg-shape {
+  left: auto;
+  right: -80px;
+  clip-path: polygon(100% 15%, 0 0, 15% 85%, 100% 100%);
 }
 
 /* الحاوية اللي بتقص الصورة */
 .image-clipper {
-    position: absolute;
-    top: 10px;
-    left: -50px;
-    width: 100%;
-    height: 100%;
-    background-color: #eee;
-    /* دي اللي بتعمل القصة المايلة من غير ما تقلب الصورة */
-    clip-path: polygon(0 15%, 100% 0, 85% 85%, 0% 100%);
-    z-index: 2;
-    border-radius: 50px;
+  position: absolute;
+  top: 10px;
+  left: -50px;
+  width: 100%;
+  height: 100%;
+  background-color: #eee;
+  /* دي اللي بتعمل القصة المايلة من غير ما تقلب الصورة */
+  clip-path: polygon(0 15%, 100% 0, 85% 85%, 0% 100%);
+  z-index: 2;
+  border-radius: 50px;
+}
+
+/* RTL adjustment for image clipper */
+[dir="rtl"] .image-clipper {
+  left: auto;
+  right: -50px;
+  clip-path: polygon(100% 15%, 0 0, 15% 85%, 100% 100%);
 }
 
 .contact-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    /* الصورة جوه الكليبر تفضل معدولة */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* الصورة جوه الكليبر تفضل معدولة */
 }
 
 /* كارت الفورم */
 .contact-card-box {
-    background: #fff;
-    padding: 50px;
-    border-radius: 20px;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.08);
-    position: relative;
-    z-index: 10;
-    margin-left: -40px; /* تداخل بسيط مع الصورة */
+  background: #fff;
+  padding: 50px;
+  border-radius: 20px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 10;
+  margin-left: -40px; /* تداخل بسيط مع الصورة */
+}
+
+/* RTL adjustment for contact card box */
+[dir="rtl"] .contact-card-box {
+  margin-left: 0;
+  margin-right: -40px;
 }
 
 /* تنسيقات الفورم */
 .custom-input {
-    background-color: #fcfcfc !important;
-    border: 1px solid #eee !important;
-    padding: 15px !important;
+  background-color: #fcfcfc !important;
+  border: 1px solid #eee !important;
+  padding: 15px !important;
 }
 
 .btn-send {
-    background-color: #be1522 !important;
-    border: none !important;
-    padding: 15px !important;
-    font-weight: bold !important;
-    border-radius: 8px !important;
+  background-color: #be1522 !important;
+  border: none !important;
+  padding: 15px !important;
+  font-weight: bold !important;
+  border-radius: 8px !important;
 }
 
 /* الموبايل: نلغي القص والتعقيد */
 @media (max-width: 991px) {
-    .custom-image-container {
-        width: 100%;
-        left: 0;
-        height: 300px;
-        margin-bottom: 30px;
-    }
-    .image-clipper, .red-bg-shape {
-        clip-path: none;
-        border-radius: 20px;
-    }
-    .contact-card-box {
-        margin-left: 0;
-        padding: 30px;
-    }
+  .custom-image-container {
+    width: 100%;
+    left: 0;
+    height: 300px;
+    margin-bottom: 30px;
+  }
+  .image-clipper,
+  .red-bg-shape {
+    clip-path: none;
+    border-radius: 20px;
+  }
+  .contact-card-box {
+    margin-left: 0;
+    padding: 30px;
+  }
 }

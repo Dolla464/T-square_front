@@ -1,74 +1,110 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
 
-const resources = {
-  en: {
-    translation: {
-      "home": "Home",
-      "courses": "Courses",
-      "solutions": "Software Solutions",
-      "team": "Our team",
-      "contact": "Contact us",
-      "login": "Log in",
-      "signup": "Sign up",
-      "welcome": "Welcome to T-SQUARE",
-      "hero_title_start": "Start Your Tech Journey with",
-      "hero_title_highlight": "Confidence",
-      "hero_subtitle": "Master programming, design, AI, and more through structured learning paths, hands-on projects, and real mentorship support.",
-      "contact_us": "Contact us",
-      "explore_courses": "Explore Courses",
-      "profile": "My Profile",
-      "About_T-Square": "About T-Square",
-      "We_Don't_Just_Teach_Code": "We Don't Just Teach Code.",
-      "We_Build_Careers": "We Build Careers.",
-      "tsquare_info": "T-Square is a software academy and solutions company on a mission to bridge the gap between education and industry. Our programs combine cutting-edge curriculum with real project experience,preparing students for immediate impact in the tech world.",
-      "tsquare_info2": "Whether you're 6 or 60, a student or a career shifter — there's a path for you at T-Square.",
-      "my_courses": "My Courses",
-      "course_details": "Course Details",
-      "watch_video": "Watch Video",
-      "logout": "Logout"
-    }
-  },
-  ar: {
-    translation: {
-      "home": "الرئيسية",
-      "courses": "الكورسات",
-      "solutions": "حلول البرمجيات",
-      "team": "فريقنا",
-      "contact": "تواصل معنا",
-      "login": "تسجيل الدخول",
-      "signup": "إنشاء حساب",
-      "welcome": "أهلاً بك في تي سكوير",
-      "hero_title_start": "ابدأ رحلتك التقنية بـ",
-      "hero_title_highlight": "ثقة",
-      "hero_subtitle": "احترف البرمجة، التصميم، الذكاء الاصطناعي، والمزيد من خلال مسارات تعليمية منظمة، مشاريع عملية، ودعم إرشادي حقيقي.",
-      "contact_us": "تواصل معنا",
-      "explore_courses": "اكتشف الكورسات",
-      "profile": "ملفي الشخصي",
-      "About_T-Square": "نبذه عن T-Square",
-      "We_Don't_Just_Teach_Code": "نحن لا نعلم الكود فقط.", 
-      "We_Build_Careers": "نحن نبني مسيرة مهنية.",
-      "tsquare_info": "T-square هي أكاديمية برمجيات وشركة حلول تهدف إلى سد الفجوة بين التعليم والصناعة. تجمع برامجنا بين منهجية متطورة وتجربة مشاريع حقيقية، مما يجهز الطلاب لتأثير فوري في عالم التكنولوجيا.",
-      "tsquare_info2": "سواء كنت في السادسة من عمرك أو الستين، طالبًا أو محولًا مهنيًا - هناك مسار لك في T-Square.",
-      "my_courses": "كورساتي",
-      "course_details": "تفاصيل الكورس",
-      "watch_video": "مشاهدة الفيديو",
-      "logout": "تسجيل الخروج"
-    }
-  }
-};
+// English namespaces
+import enNavbar from "./locales/en/navbar.json";
+import enHome from "./locales/en/home.json";
+import enDiscovery from "./locales/en/discovery.json";
+import enCourses from "./locales/en/courses.json";
+import enCoursesCard from "./locales/en/coursesCard.json";
+import enContact from "./locales/en/contact.json";
+import enSolutions from "./locales/en/solutions.json";
+import enTeam from "./locales/en/team.json";
+import enCTA from "./locales/en/cta.json";
+import enCommon from "./locales/en/common.json";
+import enAuth from "./locales/en/auth.json";
+import enUser from "./locales/en/user.json";
+import enTestimonials from "./locales/en/testimonials.json";
+import enFeatures from "./locales/en/features.json";
+import enFaq from "./locales/en/faq.json";
+import enFooter from "./locales/en/footer.json";
+
+// Arabic namespaces
+import arNavbar from "./locales/ar/navbar.json";
+import arHome from "./locales/ar/home.json";
+import arDiscovery from "./locales/ar/discovery.json";
+import arCourses from "./locales/ar/courses.json";
+import arCoursesCard from "./locales/ar/coursesCard.json";
+import arContact from "./locales/ar/contact.json";
+import arSolutions from "./locales/ar/solutions.json";
+import arTeam from "./locales/ar/team.json";
+import arCTA from "./locales/ar/cta.json";
+import arCommon from "./locales/ar/common.json";
+import arAuth from "./locales/ar/auth.json";
+import arUser from "./locales/ar/user.json";
+import arTestimonials from "./locales/ar/testimonials.json";
+import arFeatures from "./locales/ar/features.json";
+import arFaq from "./locales/ar/faq.json";
+import arFooter from "./locales/ar/footer.json";
 
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources,
-    lang: "en",
-    fallBackLng: "en",
+    resources: {
+      en: {
+        navbar: enNavbar,
+        home: enHome,
+        discovery: enDiscovery,
+        courses: enCourses,
+        coursesCard: enCoursesCard,
+        contact: enContact,
+        solutions: enSolutions,
+        team: enTeam,
+        cta: enCTA,
+        common: enCommon,
+        auth: enAuth,
+        user: enUser,
+        testimonials: enTestimonials,
+        features: enFeatures,
+        faq: enFaq,
+        footer: enFooter,
+      },
+      ar: {
+        navbar: arNavbar,
+        home: arHome,
+        discovery: arDiscovery,
+        courses: arCourses,
+        coursesCard: arCoursesCard,
+        contact: arContact,
+        solutions: arSolutions,
+        team: arTeam,
+        cta: arCTA,
+        common: arCommon,
+        auth: arAuth,
+        user: arUser,
+        testimonials: arTestimonials,
+        features: arFeatures,
+        faq: arFaq,
+        footer: arFooter,
+      },
+    },
+
+    lng: localStorage.getItem("i18nextLng") || "en",
+    fallbackLng: "en",
+
+    ns: [
+      "navbar",
+      "home",
+      "courses",
+      "contact",
+      "solutions",
+      "team",
+      "cta",
+      "common",
+      "auth",
+      "user",
+      "testimonials",
+      "features",
+      "faq",
+      "footer",
+    ],
+    defaultNS: "common",
+
     interpolation: {
-      escapeValue: false 
-    }
+      escapeValue: false,
+    },
   });
 
 export default i18n;

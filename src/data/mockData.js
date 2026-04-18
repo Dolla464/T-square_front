@@ -4,7 +4,7 @@ export const MOCK_DATA = {
     { id: 1, email: "student@example.com", role: "student" },
     { id: 2, email: "instructor@example.com", role: "instructor" }
   ],
-  
+
   instructors: [
     { id: 1, user_id: 2, full_name: "د. أحمد علي", phone: "0100000000", bio: "خبير برمجة", status: "active" }
   ],
@@ -34,6 +34,73 @@ export const MOCK_DATA = {
     { id: 3, name: "Python", slug: "python" },
     { id: 4, name: "Machine Learning", slug: "machine-learning" },
     { id: 5, name: "iOS", slug: "ios" }
+  ],
+
+  // دي داتا صفحة السوليوشن
+  solutionsData: [
+    {
+      id: 1,
+      title: 'Web Development',
+      description: 'Custom websites and landing pages built with modern frameworks for speed, SEO, and scalability.',
+      tags: ['CRM systems', 'Admin panels', 'Booking platforms'],
+    },
+    {
+      id: 2,
+      title: 'Web Applications',
+      description: 'Full-featured SaaS platforms, dashboards, and internal tools tailored to your business needs.',
+      tags: ['CRM systems', 'Admin panels', 'Booking platforms'],
+    },
+    {
+      id: 3,
+      title: 'Mobile Applications',
+      description: 'Cross-platform iOS and Android apps with native-like performance using Flutter.',
+      tags: ['Firebase', 'React Native', 'Flutter'],
+    },
+    {
+      id: 4,
+      title: 'UI/UX Design',
+      description: 'User-centered design that converts. From wireframes to polished, pixel-perfect interfaces.',
+      tags: ['CRM systems', 'Admin panels', 'Booking platforms'],
+    },
+    {
+      id: 5,
+      title: 'AI Solutions',
+      description: 'Intelligent automation, chatbots, recommendation engines, and data-driven decision tools.',
+      tags: ['CRM systems', 'Admin panels', 'Booking platforms'],
+    },
+    {
+      id: 6,
+      title: 'E-commerce Solutions',
+      description: 'End-to-end online stores with payment integration, inventory management, and analytics.',
+      tags: ['Shopify custom', 'Custom stores', 'Marketplace'],
+    },
+  ],
+
+  testimonialsData: [
+    {
+      id: 1,
+      name: 'Salwa Alaa',
+      role: 'Full Stack Developer @ TechCorp',
+      image: 'https://ui-avatars.com/api/?name=Salwa+Alaa&background=eee&color=333',
+      stars: 4,
+      text: 'T-Square transformed my career. I went from zero coding experience to a full-time developer role in just 6 months. The hands-on projects and mentorship were invaluable.',
+    },
+    {
+      id: 2,
+      name: 'Salwa Alaa',
+      role: 'Full Stack Developer @ TechCorp',
+      image: 'https://ui-avatars.com/api/?name=Salwa+Alaa&background=eee&color=333',
+      stars: 4,
+      text: 'T-Square transformed my career. I went from zero coding experience to a full-time developer role in just 6 months. The hands-on projects and mentorship were invaluable.',
+    },
+    {
+      id: 3,
+      name: 'Salwa Alaa',
+      role: 'Full Stack Developer @ TechCorp',
+      image: 'https://ui-avatars.com/api/?name=Salwa+Alaa&background=eee&color=333',
+      stars: 4,
+      text: 'T-Square transformed my career. I went from zero coding experience to a full-time developer role in just 6 months. The hands-on projects and mentorship were invaluable.',
+    },
   ],
 
   // 3. الكورسات وملحقاتها (Courses, Learnings, Previews, Learning Groups)
@@ -130,6 +197,87 @@ export const MOCK_DATA = {
       is_free: false
     },
   ],
+  teamData: [
+    {
+      id: 1,
+      name: "Salwa Alaa",
+      role: "Team Lead",
+
+      socials: { email: "#", instagram: "#", linkedin: "#", facebook: "#" }
+    },
+    {
+      id: 2,
+      name: "Salwa Alaa",
+      role: "Team Lead",
+
+      socials: { email: "#", instagram: "#", linkedin: "#", facebook: "#" }
+    },
+    {
+      id: 3,
+      name: "Salwa Alaa",
+      role: "Team Lead",
+
+      socials: { email: "#", instagram: "#", linkedin: "#", facebook: "#" }
+    },
+    {
+      id: 4,
+      name: "Salwa Alaa",
+      role: "Team Lead",
+
+      socials: { email: "#", instagram: "#", linkedin: "#", facebook: "#" }
+    },
+    {
+      id: 5,
+      name: "Salwa Alaa",
+      role: "Team Lead",
+
+      socials: { email: "#", instagram: "#", linkedin: "#", facebook: "#" }
+    },
+    {
+      id: 6,
+      name: "Salwa Alaa",
+      role: "Team Lead",
+
+      socials: { email: "#", instagram: "#", linkedin: "#", facebook: "#" }
+    },
+    {
+      id: 7,
+      name: "Salwa Alaa",
+      role: "Team Lead",
+
+      socials: { email: "#", instagram: "#", linkedin: "#", facebook: "#" }
+    },
+    {
+      id: 8,
+      name: "Salwa Alaa",
+      role: "Team Lead",
+
+      socials: { email: "#", instagram: "#", linkedin: "#", facebook: "#" }
+    }
+  ], teamTestimonialsData: [
+    {
+      id: 1,
+      name: 'Salwa Alaa',
+      role: 'Full Stack Developer @ TechCorp',
+      stars: 4,
+      text: 'T-Square transformed my career. I went from zero coding experience to a full-time developer role in just 6 months. The hands-on projects and mentorship were invaluable.',
+    },
+    {
+      id: 2,
+      name: 'Salwa Alaa',
+      role: 'Full Stack Developer @ TechCorp',
+      stars: 4,
+      text: 'T-Square transformed my career. I went from zero coding experience to a full-time developer role in just 6 months. The hands-on projects and mentorship were invaluable.',
+    },
+    {
+      id: 3,
+      name: 'Salwa Alaa',
+      role: 'Full Stack Developer @ TechCorp',
+      stars: 4,
+      text: 'T-Square transformed my career. I went from zero coding experience to a full-time developer role in just 6 months. The hands-on projects and mentorship were invaluable.',
+    }
+  ],
+
 
   course_learnings: [
     { id: 1, course_id: 1, title: "بناء واجهات مستخدم متفاعلة" },
