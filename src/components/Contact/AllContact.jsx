@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { MOCK_DATA } from "../../data/mockData";
 import studentImg from "../../assets/student-avatar.jpg";
 import "./AllContact.css";
-import i18next from "i18next";
 import i18n from "../../i18n";
 
 

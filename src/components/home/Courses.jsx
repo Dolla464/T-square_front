@@ -11,7 +11,6 @@ function Courses() {
   const { t } = useTranslation("courses");
   const categories = MOCK_DATA.categories;
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
-  const [mode, setMode] = useState("all");
   // all | category | children
   const allCourses = MOCK_DATA.courses;
   const tags = MOCK_DATA.tags.slice(0, 3);
