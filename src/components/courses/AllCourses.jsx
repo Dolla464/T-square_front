@@ -9,7 +9,7 @@ import i18n from "../../i18n";
 
 function AllCourses() {
   const { t } = useTranslation(["courses", "navbar"]);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const coursesPerPage = 6;
   const isArabic = i18n.language === "ar";
@@ -21,7 +21,7 @@ function AllCourses() {
 
   // 2. منطق الفلترة الذكي (بناءً على الـ parent_id والـ category_id)
   const filteredCourses =
-    selectedCategory === "All"
+    selectedCategoryId === null
       ? MOCK_DATA.courses
       : MOCK_DATA.courses.filter((course) => {
           // البحث عن القسم المربوط به الكورس حالياً
@@ -31,13 +31,9 @@ function AllCourses() {
           if (!currentCat) return false;
 
           // حالة 1: الكورس مربوط مباشرة بالقسم المختار (مثلاً مربوط بـ Kids Courses)
-          if (currentCat.name === selectedCategory) return true;
-
+          if (currentCat.id === selectedCategoryId) return true;
           // حالة 2: الكورس مربوط بقسم فرعي (مثلاً Web) والأب بتاعه هو المختار (Adult)
-          const parentCat = MOCK_DATA.categories.find(
-            (cat) => cat.id === currentCat.parent_id,
-          );
-          return parentCat?.name === selectedCategory;
+          return currentCat.parent_id === selectedCategoryId;
         });
 
   // 3. Pagination Logic
@@ -89,9 +85,9 @@ function AllCourses() {
         {/* الأزرار: بتعرض بس الأقسام اللي الـ parent_id بتاعها null */}
         <div className="filter-container d-flex justify-content-center gap-2 mb-5">
           <button
-            className={`filter-btn ${selectedCategory === "All" ? "active" : ""}`}
+            className={`filter-btn ${selectedCategoryId === null ? "active" : ""}`}
             onClick={() => {
-              setSelectedCategory("All");
+              setSelectedCategoryId(null);
               setCurrentPage(1);
             }}
           >
@@ -100,9 +96,9 @@ function AllCourses() {
           {mainCategories.map((cat) => (
             <button
               key={cat.id}
-              className={`filter-btn ${selectedCategory === cat.name ? "active" : ""}`}
+              className={`filter-btn ${selectedCategoryId === cat.id ? "active" : ""}`}
               onClick={() => {
-                setSelectedCategory(cat.name);
+                setSelectedCategoryId(cat.id);
                 setCurrentPage(1);
               }}
             >
@@ -140,7 +136,7 @@ function AllCourses() {
                   active={i + 1 === currentPage}
                   onClick={() => handlePageChange(i + 1)}
                 >
-                  {i + 1}
+                  <span> {i + 1} </span>
                 </Pagination.Item>
               ))}
               <Pagination.Next

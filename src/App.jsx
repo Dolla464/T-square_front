@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import {
-  BrowserRouter as Router,
+  HashRouter as Router,
   Routes,
   Route,
   useLocation,
@@ -63,7 +63,6 @@ function AppContent() {
 
         <Route path="/contact" element={<Contact />} />
       </Routes>
-      <ScrollToTop />
       {/* إظهار الفوتر فقط إذا لم نكن في صفحة اللوجين */}
       {!hideLayout && <AppFooter />}
     </div>
@@ -73,8 +72,8 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <ScrollToTop />
       <AppContent />
+      <ScrollToTop />
     </Router>
   );
 }

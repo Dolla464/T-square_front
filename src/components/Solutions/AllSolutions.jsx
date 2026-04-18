@@ -5,10 +5,12 @@ import { useTranslation } from "react-i18next";
 import "./AllSolutions.css";
 import { MOCK_DATA } from "../../data/mockData";
 import studentImg from "../../assets/student-avatar.jpg";
+import i18n from "../../i18n";
 
 function AllSolutions() {
   const { t } = useTranslation(["solutions", "navbar", "testimonials"]);
   const { solutionsData, testimonialsData } = MOCK_DATA;
+  const isArabic = i18n.language === "ar";
 
   return (
     <div className="solutions-page">
@@ -16,13 +18,21 @@ function AllSolutions() {
       <div className="py-5 mt-5">
         <Container>
           {/* Breadcrumbs */}
-          <nav className="breadcrumb-nav mb-4">
+          <nav className="breadcrumb-nav mb-4 flex items-center rtl:flex-row-reverse">
             <Link to="/" className="breadcrumb-item">
               {t("navbar:home")}
             </Link>
-            <span className="breadcrumb-separator mx-2" dir="ltr">
-              <i className="bi bi-chevron-right"></i>
+
+            <span className="breadcrumb-separator mx-2">
+              <span className="breadcrumb-separator mx-2">
+                {isArabic ? (
+                  <i className="bi bi-chevron-left"></i>
+                ) : (
+                  <i className="bi bi-chevron-right"></i>
+                )}
+              </span>
             </span>
+
             <span className="breadcrumb-item active">
               {t("navbar:solutions")}
             </span>

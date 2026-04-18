@@ -5,10 +5,13 @@ import { useTranslation } from "react-i18next";
 import { MOCK_DATA } from "../../data/mockData";
 import studentImg from "../../assets/student-avatar.jpg";
 import "./AllContact.css";
+import i18n from "../../i18n";
+
 
 function AllContact() {
   const { t } = useTranslation(["contact", "cta", "testimonials", "navbar"]);
   const { teamTestimonialsData } = MOCK_DATA;
+  const isArabic = i18n.language === "ar";
 
   // Contact Form State
   const [formData, setFormData] = useState({
@@ -38,13 +41,21 @@ function AllContact() {
       <div className="py-5 mt-5">
         <Container>
           {/* Breadcrumbs */}
-          <nav className="breadcrumb-nav mb-4">
+          <nav className="breadcrumb-nav mb-4 flex items-center rtl:flex-row-reverse">
             <Link to="/" className="breadcrumb-item">
               {t("navbar:home")}
             </Link>
+
             <span className="breadcrumb-separator mx-2">
-              <i className="bi bi-chevron-right"></i>
+              <span className="breadcrumb-separator mx-2">
+                {isArabic ? (
+                  <i className="bi bi-chevron-left"></i>
+                ) : (
+                  <i className="bi bi-chevron-right"></i>
+                )}
+              </span>
             </span>
+
             <span className="breadcrumb-item active">
               {t("contact:titleBadge")}
             </span>
