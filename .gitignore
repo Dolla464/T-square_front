@@ -38,3 +38,9 @@ Thumbs.db
 # Misc
 
 coverage/
+
+.vercel
+
+# =====
+frontend_agent_context_Tsquare.md
+how to use.md

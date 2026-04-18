@@ -31,6 +31,9 @@ jobs:
     - name: Check for Build Errors
       run: npm run build
 
+    - name: Wait for Vercel Deployment
+      run: sleep 60
+
     # فحص الأداء باستخدام رابط Vercel الحقيقي
     - name: Lighthouse Check
       uses: treosh/lighthouse-ci-action@v12
