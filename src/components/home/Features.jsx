@@ -2,12 +2,10 @@ import { Container, Row, Col } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import "./Features.css";
 import starIconImg from "../../assets/featureIcon.png";
-import logoFull from "../../assets/logo-dark.png"; // اللوجو الكبير اللي في النص
-import i18n from "../../i18n";
+import logoFull from "../../assets/logo-dark.png";
 
 function Features() {
   const { t } = useTranslation("features");
-  const isArabic = i18n.language === "ar";
   const featuresData = t("items", { returnObjects: true });
 
   // Add icon to each feature
