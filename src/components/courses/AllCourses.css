@@ -1,72 +1,74 @@
 .breadcrumb-nav .breadcrumb-item.active {
-    color: #be1522 !important; /* اللون الأحمر بتاع T-Square */
-    font-weight: 500; /* خليه medium زي التصميم */
-    text-decoration: none;
+  color: #be1522 !important; /* اللون الأحمر بتاع T-Square */
+  font-weight: 500; /* خليه medium زي التصميم */
+  text-decoration: none;
 }
 
 .breadcrumb-nav .breadcrumb-item {
-    color: #666; /* لون كلمة Home الرمادي */
-    text-decoration: none;
-    font-size: 0.9rem;
+  color: #666; /* لون كلمة Home الرمادي */
+  text-decoration: none;
+  font-size: 0.9rem;
 }
 
 .breadcrumb-separator {
-    color: #666;
-    font-size: 0.8rem;
-    display: inline-flex;
-    align-items: center;
-} 
-
-.badge-first-title {
-font-weight: 500;
-font-size: 15px;
-line-height: 100%;
-letter-spacing: 0.5%;
-vertical-align: middle;
-color: #B90311;
-background-color: #FFDCDC87;
-padding: 10px;
-border-radius: 10px;
+  color: #666;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
 }
 
-.courses-section, .all-courses-page {
-    padding: 80px 0;
+.badge-first-title {
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 100%;
+  letter-spacing: 0.5%;
+  vertical-align: middle;
+  color: #b90311;
+  background-color: #ffdcdc87;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.courses-section,
+.all-courses-page {
+  padding: 80px 0;
 }
 
 /* ستايل الـ Filter Buttons */
 .filter-container {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 50px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 50px;
 }
 
 .filter-btn {
-    background: #F4F4F4;
-    color: #000;
-    border: none;
-    padding: 8px 25px;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: all 0.3s ease;
+  background: #f4f4f4;
+  color: #000;
+  border: none;
+  padding: 8px 25px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
-.filter-btn.active, .filter-btn:hover {
-    background: #be1522;
-    color: #fff;
+.filter-btn.active,
+.filter-btn:hover {
+  background: #be1522;
+  color: #fff;
 }
 
 /* إضافة ستايل الـ Pagination اللي طلبته */
 .custom-pagination .page-link {
-    color: #be1522;
-    border: none;
-    margin: 0 4px;
-    border-radius: 8px;
-    font-weight: 600;
+  color: #be1522;
+  border: none;
+  margin: 0 4px;
+  border-radius: 8px;
+  font-weight: 600;
 }
 
 .custom-pagination .page-item.active .page-link {
-    background-color: #be1522;
-    color: white;
+  background-color: #be1522;
+  color: white;
 }

@@ -5,26 +5,36 @@ import { useTranslation } from "react-i18next";
 import { MOCK_DATA } from "../../data/mockData";
 import "./AllTeam.css";
 import studentImg from "../../assets/student-avatar.jpg";
+import i18n from "../../i18n";
 
 // مكون فرعي عشان نعرض الكارت بتاع كل عضو بشكل نضيف بدون ما نزحم الكود الرئيسي
 
 function AllTeam() {
   const { t } = useTranslation(["team", "navbar", "cta", "testimonials"]);
   const { teamData, teamTestimonialsData } = MOCK_DATA;
+  const isArabic = i18n.language === "ar";
 
   return (
     <div className="team-page">
       {/* الجزء الأساسي اللي فوق للمسار والعنوان الرئيسي */}
       <div className="py-5 mt-5">
         <Container>
-          {/* شريط المسار (Breadcrumbs) */}
-          <nav className="breadcrumb-nav mb-4">
+          {/* Breadcrumbs */}
+          <nav className="breadcrumb-nav mb-4 flex items-center rtl:flex-row-reverse">
             <Link to="/" className="breadcrumb-item">
               {t("navbar:home")}
             </Link>
+
             <span className="breadcrumb-separator mx-2">
-              <i className="bi bi-chevron-right"></i>
+              <span className="breadcrumb-separator mx-2">
+                {isArabic ? (
+                  <i className="bi bi-chevron-left"></i>
+                ) : (
+                  <i className="bi bi-chevron-right"></i>
+                )}
+              </span>
             </span>
+
             <span className="breadcrumb-item active">{t("navbar:team")}</span>
           </nav>
 
