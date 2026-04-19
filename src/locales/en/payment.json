@@ -1,0 +1,48 @@
+{
+  "breadcrumb": {
+    "courses": "Courses",
+    "payment": "Payment"
+  },
+  "studentInfo": {
+    "title": "Student Information",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "John Doe",
+    "emailAddress": "Email Address",
+    "emailPlaceholder": "john@example.com",
+    "phoneNumber": "Phone Number",
+    "phonePlaceholder": "+20 10X XXX XXXX",
+    "country": "Country",
+    "optionalNotes": "Optional Notes",
+    "notesPlaceholder": "Any special requirements or questions..."
+  },
+  "orderSummary": {
+    "title": "Order Summary",
+    "instructor": "Instructor",
+    "duration": "Duration",
+    "hours": "hours",
+    "total": "Total",
+    "termsText": "By completing this purchase, you agree to our",
+    "termsOfService": "Terms of Service",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy"
+  },
+  "submitSection": {
+    "submitRequest": "Submit Payment Request",
+    "successTitle": "Payment Request Submitted!",
+    "successDesc": "Your payment request has been successfully submitted. Our team will review your order and get back to you shortly.",
+    "emailNotice": "You will receive a confirmation email with payment details.",
+    "processingTime": "Your request will be processed within 24 hours.",
+    "whatsappHint": "To speed up your enrollment, send your details via WhatsApp!",
+    "copyData": "Copy Data",
+    "copied": "Copied!",
+    "sendWhatsApp": "Send via WhatsApp",
+    "paymentRequestLabel": "Payment Request",
+    "courseLabel": "Course",
+    "backToCourses": "Back to Courses"
+  },
+  "securityBadges": {
+    "securePayment": "Secure Payment",
+    "sslEncrypted": "SSL Encrypted",
+    "moneyBackGuarantee": "30-Day Money Back Guarantee"
+  }
+}

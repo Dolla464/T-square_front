@@ -19,6 +19,7 @@ import enTestimonials from "./locales/en/testimonials.json";
 import enFeatures from "./locales/en/features.json";
 import enFaq from "./locales/en/faq.json";
 import enFooter from "./locales/en/footer.json";
+import enPayment from "./locales/en/payment.json";
 
 // Arabic namespaces
 import arNavbar from "./locales/ar/navbar.json";
@@ -37,6 +38,7 @@ import arTestimonials from "./locales/ar/testimonials.json";
 import arFeatures from "./locales/ar/features.json";
 import arFaq from "./locales/ar/faq.json";
 import arFooter from "./locales/ar/footer.json";
+import arPayment from "./locales/ar/payment.json";
 
 i18n
   .use(LanguageDetector)
@@ -60,6 +62,7 @@ i18n
         features: enFeatures,
         faq: enFaq,
         footer: enFooter,
+        payment: enPayment,
       },
       ar: {
         navbar: arNavbar,
@@ -78,6 +81,7 @@ i18n
         features: arFeatures,
         faq: arFaq,
         footer: arFooter,
+        payment: arPayment,
       },
     },
 
@@ -99,6 +103,7 @@ i18n
       "features",
       "faq",
       "footer",
+      "payment",
     ],
     defaultNS: "common",
 
