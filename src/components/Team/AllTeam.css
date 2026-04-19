@@ -9,31 +9,61 @@
 
 /* --- مسار التنقل (Breadcrumbs) --- */
 .breadcrumb-nav .breadcrumb-item.active {
-  color: #be1522 !important; 
-  font-weight: 500; 
+  color: #be1522 !important;
+  font-weight: 500;
   text-decoration: none;
 }
 
 .breadcrumb-nav .breadcrumb-item {
-  color: #666; 
+  color: #666;
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.8rem; /* Mobile-first */
 }
 
 .breadcrumb-separator {
   color: #666;
-  font-size: 0.8rem;
+  font-size: 0.7rem; /* Mobile-first */
 }
 
 /* --- الكلمة البارزة فوق العنوان --- */
 .badge-first-title {
   font-weight: 500;
-  font-size: 15px;
-  color: #B90311;
-  background-color: #FFDCDC87;
+  font-size: 0.85rem; /* Mobile-first */
+  color: #b90311;
+  background-color: #ffdcdc87;
   padding: 10px 15px;
   border-radius: 10px;
   display: inline-block;
+}
+
+/* Tablet and above */
+@media (min-width: 768px) {
+  .breadcrumb-nav .breadcrumb-item {
+    font-size: 0.85rem;
+  }
+
+  .breadcrumb-separator {
+    font-size: 0.75rem;
+  }
+
+  .badge-first-title {
+    font-size: 0.9rem;
+  }
+}
+
+/* Desktop and above */
+@media (min-width: 1200px) {
+  .breadcrumb-nav .breadcrumb-item {
+    font-size: 0.9rem;
+  }
+
+  .breadcrumb-separator {
+    font-size: 0.8rem;
+  }
+
+  .badge-first-title {
+    font-size: 1rem;
+  }
 }
 
 .text-danger {
@@ -47,7 +77,9 @@
   padding: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
   border: 1px solid #f9f9f9;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
   height: 100%;
 }
 
@@ -62,7 +94,7 @@
   overflow: hidden;
   border-radius: 12px;
   margin-bottom: 20px;
-  aspect-ratio: 4/3; 
+  aspect-ratio: 4/3;
   background: #5b5b5b; /* لون رمادي للاحتياط كخلفية للصورة لو مفيش صورة */
 }
 
@@ -73,12 +105,34 @@
 }
 
 .member-name {
-  font-size: 1.25rem;
+  font-size: 1.05rem; /* Mobile-first */
   color: #222;
 }
 
 .member-role {
-  font-size: 0.9rem;
+  font-size: 0.8rem; /* Mobile-first */
+}
+
+/* Tablet and above */
+@media (min-width: 768px) {
+  .member-name {
+    font-size: 1.15rem;
+  }
+
+  .member-role {
+    font-size: 0.85rem;
+  }
+}
+
+/* Desktop and above */
+@media (min-width: 1200px) {
+  .member-name {
+    font-size: 1.25rem;
+  }
+
+  .member-role {
+    font-size: 0.9rem;
+  }
 }
 
 /* الزراير بتاعة السوشيال ميديا */
@@ -109,21 +163,21 @@
 
 /* دي أمواج وهمية بالـ CSS، ممكن تتشال ويتحط مكانها الصورة اللي انتوا حاطينها في باقي الصفحات */
 .cta-journey-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    
-    /* استبدل المسار بمسار صورتك الحقيقي */
-    background-image: url('../../assets/waves2.png'); 
-    
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    opacity: 1; /* شفافية الأمواج */
-    z-index: 1;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  /* استبدل المسار بمسار صورتك الحقيقي */
+  background-image: url("../../assets/waves2.png");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 1; /* شفافية الأمواج */
+  z-index: 1;
 }
 
 .cta-title {
@@ -136,14 +190,16 @@
 }
 
 .btn-cta-enroll {
-  background-color: #e52b38; 
+  background-color: #e52b38;
   color: white;
   border: none;
   padding: 12px 30px;
   border-radius: 8px;
   font-weight: 600;
   font-size: 1rem;
-  transition: background-color 0.3s, transform 0.2s;
+  transition:
+    background-color 0.3s,
+    transform 0.2s;
 }
 
 .btn-cta-enroll:hover {
@@ -153,14 +209,14 @@
 
 /* --- آراء العملاء --- */
 .testimonials-section {
-  background-color: #f7f9fa; 
+  background-color: #f7f9fa;
 }
 
 .testimonial-card {
   background: white;
   border-radius: 16px;
   padding: 30px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   height: 100%;
 }
 

@@ -1,7 +1,7 @@
 /* src/components/home/Features.css */
 
 .features-section {
-  padding: 0px 0;
+  padding: 80px 0;
   background-color: #fff;
   position: relative;
   overflow: hidden; /* مهم جداً عشان الدوائر متخرجش بره */
@@ -133,16 +133,38 @@
 
 .feature-title {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.95rem; /* Mobile-first */
   margin-bottom: 5px;
   color: #1a1a1a;
 }
 
 .feature-desc {
-  font-size: 0.9rem;
+  font-size: 0.8rem; /* Mobile-first */
   color: #666;
   margin: 0;
   line-height: 1.5;
+}
+
+/* Tablet and above */
+@media (min-width: 768px) {
+  .feature-title {
+    font-size: 1rem;
+  }
+
+  .feature-desc {
+    font-size: 0.85rem;
+  }
+}
+
+/* Desktop and above */
+@media (min-width: 1200px) {
+  .feature-title {
+    font-size: 1.1rem;
+  }
+
+  .feature-desc {
+    font-size: 0.9rem;
+  }
 }
 
 .center-logo-wrapper {
@@ -165,4 +187,15 @@
 /* لمسة جمالية: تكبير خفيف جداً لما المستخدم يقف بالماوس على السيكشن */
 .features-section:hover .center-logo {
   transform: scale(1.03); /* تكبير بنسبة 3% */
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 991px) {
+  .features-section {
+    padding: 60px 0;
+  }
+
+  .feature-card {
+    margin-bottom: 15px;
+  }
 }

@@ -17,23 +17,53 @@
 .breadcrumb-nav .breadcrumb-item {
   color: #666;
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.8rem; /* Mobile-first */
 }
 
 .breadcrumb-separator {
   color: #666;
-  font-size: 0.8rem;
+  font-size: 0.7rem; /* Mobile-first */
 }
 
 /* --- Badge Title --- */
 .badge-first-title {
   font-weight: 500;
-  font-size: 15px;
+  font-size: 0.85rem; /* Mobile-first */
   color: #b90311;
   background-color: #ffdcdc87;
   padding: 10px 15px;
   border-radius: 10px;
   display: inline-block;
+}
+
+/* Tablet and above */
+@media (min-width: 768px) {
+  .breadcrumb-nav .breadcrumb-item {
+    font-size: 0.85rem;
+  }
+
+  .breadcrumb-separator {
+    font-size: 0.75rem;
+  }
+
+  .badge-first-title {
+    font-size: 0.9rem;
+  }
+}
+
+/* Desktop and above */
+@media (min-width: 1200px) {
+  .breadcrumb-nav .breadcrumb-item {
+    font-size: 0.9rem;
+  }
+
+  .breadcrumb-separator {
+    font-size: 0.8rem;
+  }
+
+  .badge-first-title {
+    font-size: 1rem;
+  }
 }
 
 /* --- Contact Info Column --- */

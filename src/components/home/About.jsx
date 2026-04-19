@@ -10,7 +10,7 @@ function About() {
   const isAr = i18n.language === "ar";
 
   return (
-    <section className="about-section">
+    <section className="about-section  py-md-5 my-3 py-2">
       <Container>
         {/* التعديل هنا: flex-column-reverse بيخلي النص يسبق الصور في الموبايل */}
         <Row
@@ -21,9 +21,26 @@ function About() {
           {/* الجانب الأيمن (الصور): هيظهر تحت في الموبايل */}
           <Col
             lg={6}
-            className={`about-text-content mb-5 mb-lg-0 ${isAr ? "text-start" : "text-end"}`}
+            className={` about-text-content   mb-0  ${isAr ? "text-start" : "text-end"}`}
           >
-            <span className="about-badge mb-3 d-inline-block">
+            <div className="d-md-block d-none">
+              <span className="about-badge mb-3 d-inline-block">
+                {t("About_T-Square")}
+              </span>
+              <h2 className="about-title fw-bold mb-4">
+                {t("We_Don't_Just_Teach_Code")}
+                <br />
+                <span style={{ color: "#be1522" }}>
+                  {t("We_Build_Careers")}
+                </span>
+              </h2>
+            </div>
+
+            <p className="about-text mb-4 fs-5">{t("tsquare_info")}</p>
+            <p className="about-text mb-5 fs-5">{t("tsquare_info2")}</p>
+          </Col>{" "}
+          <div className="d-md-none d-block text-center mt-5">
+            <span className="about-badge mb-1 d-inline-block">
               {t("About_T-Square")}
             </span>
             <h2 className="about-title fw-bold mb-4">
@@ -31,10 +48,7 @@ function About() {
               <br />
               <span style={{ color: "#be1522" }}>{t("We_Build_Careers")}</span>
             </h2>
-
-            <p className="about-text mb-4 fs-5">{t("tsquare_info")}</p>
-            <p className="about-text mb-5 fs-5">{t("tsquare_info2")}</p>
-          </Col>
+          </div>
           {/* الجانب الأيسر (النصوص): هيظهر فوق في الموبايل */}
           <Col lg={6}>
             <div className="about-img-container">

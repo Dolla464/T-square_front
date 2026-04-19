@@ -8,20 +8,20 @@
 
 /* --- Breadcrumbs --- */
 .breadcrumb-nav .breadcrumb-item.active {
-  color: #be1522 !important; 
-  font-weight: 500; 
+  color: #be1522 !important;
+  font-weight: 500;
   text-decoration: none;
 }
 
 .breadcrumb-nav .breadcrumb-item {
-  color: #666; 
+  color: #666;
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.8rem; /* Mobile-first */
 }
 
 .breadcrumb-separator {
   color: #666;
-  font-size: 0.8rem;
+  font-size: 0.7rem; /* Mobile-first */
   display: inline-flex;
   align-items: center;
 }
@@ -29,15 +29,45 @@
 /* --- Header Section --- */
 .badge-first-title {
   font-weight: 500;
-  font-size: 15px;
+  font-size: 0.85rem; /* Mobile-first */
   line-height: 100%;
   letter-spacing: 0.5%;
   vertical-align: middle;
-  color: #B90311;
-  background-color: #FFDCDC87;
+  color: #b90311;
+  background-color: #ffdcdc87;
   padding: 10px 15px;
   border-radius: 10px;
   display: inline-block;
+}
+
+/* Tablet and above */
+@media (min-width: 768px) {
+  .breadcrumb-nav .breadcrumb-item {
+    font-size: 0.85rem;
+  }
+
+  .breadcrumb-separator {
+    font-size: 0.75rem;
+  }
+
+  .badge-first-title {
+    font-size: 0.9rem;
+  }
+}
+
+/* Desktop and above */
+@media (min-width: 1200px) {
+  .breadcrumb-nav .breadcrumb-item {
+    font-size: 0.9rem;
+  }
+
+  .breadcrumb-separator {
+    font-size: 0.8rem;
+  }
+
+  .badge-first-title {
+    font-size: 1rem;
+  }
 }
 
 .text-danger {
@@ -54,7 +84,9 @@
   flex-direction: column;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
   border: 1px solid #f9f9f9;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .solution-card:hover {
@@ -64,13 +96,13 @@
 
 .solution-title {
   font-weight: 700;
-  font-size: 1.35rem;
+  font-size: 1.1rem; /* Mobile-first */
   margin-bottom: 12px;
   color: #222;
 }
 
 .solution-desc {
-  font-size: 0.95rem;
+  font-size: 0.85rem; /* Mobile-first */
   line-height: 1.6;
   flex-grow: 1;
   margin-bottom: 25px;
@@ -81,8 +113,38 @@
   color: #be1522;
   padding: 6px 12px;
   border-radius: 6px;
-  font-size: 0.75rem;
+  font-size: 0.65rem; /* Mobile-first */
   font-weight: 600;
+}
+
+/* Tablet and above */
+@media (min-width: 768px) {
+  .solution-title {
+    font-size: 1.2rem;
+  }
+
+  .solution-desc {
+    font-size: 0.9rem;
+  }
+
+  .solution-tag {
+    font-size: 0.7rem;
+  }
+}
+
+/* Desktop and above */
+@media (min-width: 1200px) {
+  .solution-title {
+    font-size: 1.35rem;
+  }
+
+  .solution-desc {
+    font-size: 0.95rem;
+  }
+
+  .solution-tag {
+    font-size: 0.75rem;
+  }
 }
 
 .btn-solution-contact {
@@ -110,21 +172,21 @@
 /* Abstract wave approximation using CSS radial gradients */
 
 .cta-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    
-    /* استبدل المسار بمسار صورتك الحقيقي */
-    background-image: url('../../assets/waves2.png'); 
-    
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    opacity: 1; /* شفافية الأمواج */
-    z-index: 1;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  /* استبدل المسار بمسار صورتك الحقيقي */
+  background-image: url("../../assets/waves2.png");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 1; /* شفافية الأمواج */
+  z-index: 1;
 }
 .cta-title {
   font-size: 2.2rem;
@@ -137,14 +199,16 @@
 }
 
 .btn-cta {
-  background-color: #e52b38; 
+  background-color: #e52b38;
   color: white;
   border: none;
   padding: 12px 30px;
   border-radius: 8px;
   font-weight: 600;
   font-size: 1rem;
-  transition: background-color 0.3s, transform 0.2s;
+  transition:
+    background-color 0.3s,
+    transform 0.2s;
 }
 
 .btn-cta:hover {
@@ -154,14 +218,14 @@
 
 /* --- Testimonials Section --- */
 .testimonials-section {
-  background-color: #f7f9fa; 
+  background-color: #f7f9fa;
 }
 
 .testimonial-card {
   background: white;
   border-radius: 16px;
   padding: 30px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   height: 100%;
   position: relative;
 }

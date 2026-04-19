@@ -7,19 +7,19 @@
 .breadcrumb-nav .breadcrumb-item {
   color: #666; /* لون كلمة Home الرمادي */
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.8rem; /* Mobile-first */
 }
 
 .breadcrumb-separator {
   color: #666;
-  font-size: 0.8rem;
+  font-size: 0.7rem; /* Mobile-first */
   display: inline-flex;
   align-items: center;
 }
 
 .badge-first-title {
   font-weight: 500;
-  font-size: 15px;
+  font-size: 0.85rem; /* Mobile-first */
   line-height: 100%;
   letter-spacing: 0.5%;
   vertical-align: middle;
@@ -27,6 +27,36 @@
   background-color: #ffdcdc87;
   padding: 10px;
   border-radius: 10px;
+}
+
+/* Tablet and above */
+@media (min-width: 768px) {
+  .breadcrumb-nav .breadcrumb-item {
+    font-size: 0.85rem;
+  }
+
+  .breadcrumb-separator {
+    font-size: 0.75rem;
+  }
+
+  .badge-first-title {
+    font-size: 0.9rem;
+  }
+}
+
+/* Desktop and above */
+@media (min-width: 1200px) {
+  .breadcrumb-nav .breadcrumb-item {
+    font-size: 0.9rem;
+  }
+
+  .breadcrumb-separator {
+    font-size: 0.8rem;
+  }
+
+  .badge-first-title {
+    font-size: 1rem;
+  }
 }
 
 .courses-section,
