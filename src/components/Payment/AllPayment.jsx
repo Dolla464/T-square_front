@@ -57,7 +57,9 @@ function AllPayment() {
       ` ${t("payment:studentInfo.emailAddress")}: ${formData.email}`,
       ` ${t("payment:studentInfo.phoneNumber")}: ${formData.phone}`,
       ` ${t("payment:studentInfo.country")}: ${formData.country}`,
-      formData.notes ? ` ${t("payment:studentInfo.optionalNotes")}: ${formData.notes}` : null,
+      formData.notes
+        ? ` ${t("payment:studentInfo.optionalNotes")}: ${formData.notes}`
+        : null,
       `━━━━━━━━━━━━━━━━━━`,
       ` ${t("payment:submitSection.courseLabel")}: ${courseTitle}`,
       ` ${t("payment:orderSummary.total")}: ${coursePrice} ${priceUnit}`,
@@ -178,9 +180,7 @@ function AllPayment() {
                         type="tel"
                         name="phone"
                         className="payment-input shadow-none"
-                        placeholder={t(
-                          "payment:studentInfo.phonePlaceholder"
-                        )}
+                        placeholder={t("payment:studentInfo.phonePlaceholder")}
                         value={formData.phone}
                         onChange={handleChange}
                         required
@@ -239,7 +239,9 @@ function AllPayment() {
                         </div>
                         <div className="success-info-item">
                           <i className="bi bi-clock-history"></i>
-                          <span>{t("payment:submitSection.processingTime")}</span>
+                          <span>
+                            {t("payment:submitSection.processingTime")}
+                          </span>
                         </div>
                       </div>
 
