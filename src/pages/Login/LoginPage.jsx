@@ -55,7 +55,7 @@ function LoginPage() {
                   </Form.Label>
                   <Nav.Link
                     as={Link}
-                    to="/forgot-password"
+                    to="/forgot_password"
                     className="forgot-link p-0 login-accent-text"
                   >
                     {t("login_form.forgot_password")}
