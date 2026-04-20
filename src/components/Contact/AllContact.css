@@ -5,6 +5,7 @@
 .contact-page {
   font-family: inherit;
   background-color: #ffffff;
+  overflow-x: hidden;
 }
 
 /* --- Breadcrumbs --- */
@@ -48,6 +49,18 @@
 
   .badge-first-title {
     font-size: 0.9rem;
+  }
+
+  .contact-form-card {
+    padding: 40px;
+  }
+
+  .cta-title {
+    font-size: 2.2rem;
+  }
+
+  .cta-desc {
+    font-size: 1.1rem;
   }
 }
 
@@ -120,7 +133,7 @@
 .contact-form-card {
   background-color: #ffffff;
   border-radius: 20px;
-  padding: 40px;
+  padding: 20px; /* Mobile-first: reduced for small screens */
   box-shadow: 0 15px 45px rgba(0, 0, 0, 0.219);
   border: 1px solid #f9f9f9;
 }
@@ -189,11 +202,11 @@
 }
 
 .cta-title {
-  font-size: 2.2rem;
+  font-size: 1.8rem; /* Mobile-first: reduced from 2.2rem */
 }
 
 .cta-desc {
-  font-size: 1.1rem;
+  font-size: 0.95rem; /* Mobile-first: reduced from 1.1rem */
   opacity: 0.9;
 }
 
@@ -259,5 +272,12 @@
   margin-bottom: 0;
 }
 .desc-padding {
-  padding-inline-end: 3rem; /* بدل pe-lg-5 */
+  padding-inline-end: 0; /* Mobile-first: no extra padding */
+}
+
+/* Tablet and above - add padding back */
+@media (min-width: 768px) {
+  .desc-padding {
+    padding-inline-end: 3rem;
+  }
 }
