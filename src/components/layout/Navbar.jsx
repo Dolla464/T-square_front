@@ -14,6 +14,15 @@ function AppNavbar({ isLoggedIn, userName }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+
+
+
+  // Reset mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setScrolled(false);
+  }, [location.pathname]);
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
@@ -102,22 +111,18 @@ function AppNavbar({ isLoggedIn, userName }) {
             : "";
 
   const navVariant = getBgColor() === "transparent" ? "dark" : "light";
-  const handleToggle = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
+  const handleToggle = (expanded) => {
+    setMobileMenuOpen(expanded);
   };
 
   const handleNavLinkClick = () => {
     setMobileMenuOpen(false);
-
-    // force collapse close (important fix)
-    const navbar = document.getElementById("basic-navbar-nav");
-    if (navbar) {
-      navbar.classList.remove("show");
-    }
   };
   return (
     <Navbar
       expand="lg"
+      expanded={mobileMenuOpen}
+      onToggle={handleToggle}
       fixed="top"
       variant={navVariant}
       className={`py-1 transition-all ${scrolled || isLoggedIn ? "shadow-sm" : ""}`}
@@ -135,7 +140,6 @@ function AppNavbar({ isLoggedIn, userName }) {
 
         <Navbar.Toggle
           aria-controls="basic-navbar-nav"
-          onClick={handleToggle}
           className="custom-toggler"
         >
           <span className={`hamburger ${Tbtn} `}>☰</span>
@@ -168,9 +172,8 @@ function AppNavbar({ isLoggedIn, userName }) {
 
           <div className="d-flex align-items-center gap-3">
             <div
-              className={`d-flex align-items-center cursor-pointer lang-switch ${
-                Tbtn
-              }`}
+              className={`d-flex align-items-center cursor-pointer lang-switch ${Tbtn
+                }`}
               onClick={toggleLanguage}
             >
               <HiOutlineGlobeAlt size={20} className="me-1" />
@@ -202,9 +205,8 @@ function AppNavbar({ isLoggedIn, userName }) {
               </div>
             ) : (
               <div
-                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${
-                  isDarkMode ? "border-dark" : "border-light"
-                }`}
+                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${isDarkMode ? "border-dark" : "border-light"
+                  }`}
               >
                 <div
                   className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold"
