@@ -39,6 +39,7 @@ function AppNavbar({ isLoggedIn, userName }) {
     localStorage.setItem("i18nextLng", newLang);
 
     // Update DOM immediately
+
     const newDir = newLang === "ar" ? "rtl" : "ltr";
     document.documentElement.dir = newDir;
     document.documentElement.lang = newLang;

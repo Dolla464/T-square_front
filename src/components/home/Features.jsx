@@ -65,7 +65,7 @@ function Features() {
           {/* العمود الثالث: 3 كروت يمين */}
           <Col
             lg={5}
-            className="d-flex flex-column align-items-end mt-4"
+            className="d-flex flex-column align-items-start mt-4"
             style={{ gap: "30px" }}
             dir="ltr"
           >

@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import {
-  HashRouter as Router,
+  /* HashRouter */ BrowserRouter as Router,
   Routes,
   Route,
   useLocation,
+  Navigate,
 } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ScrollToTop from "./components/shared/ScrollToTop";
@@ -22,6 +23,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap.rtl.min.css";
 import Team from "./pages/Team";
 import Contact from "./pages/Contact";
+import Payment from "./pages/Payment";
 
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
@@ -30,7 +32,10 @@ function AppContent() {
 
   // تحديد الصفحات التي سيتم إخفاء النافبار والفوتر فيها
   const hideLayout =
-    location.pathname === "/login" || location.pathname === "/signup" || location.pathname === "/forgot_password" || location.pathname === "/update_password";
+    location.pathname === "/login" ||
+    location.pathname === "/signup" ||
+    location.pathname === "/forgot_password" ||
+    location.pathname === "/update_password";
 
   useEffect(() => {
     const dir = i18n.dir();
@@ -65,9 +70,13 @@ function AppContent() {
         <Route path="/courses" element={<Courses />} />
 
         <Route path="/solutions" element={<Solutions />} />
+
         <Route path="/team" element={<Team />} />
 
         <Route path="/contact" element={<Contact />} />
+        
+        <Route path="/payment" element={<Navigate to="/courses" replace />} />
+        <Route path="/payment/:slug" element={<Payment />} />
       </Routes>
       {/* إظهار الفوتر فقط إذا لم نكن في صفحة اللوجين */}
       {!hideLayout && <AppFooter />}
