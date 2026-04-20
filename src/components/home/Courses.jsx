@@ -31,7 +31,7 @@ function Courses() {
         });
 
   return (
-    <section className="courses-section py-5">
+    <section className="courses-section  py-md-5 my-3 py-5">
       <Container>
         <div className="text-center mb-5">
           <span className="badge-first-title">{t("titleBadge")}</span>
@@ -75,7 +75,7 @@ function Courses() {
           ))}
         </Row>
       </Container>
-      <div className="text-center mt-4 ">
+      <div className="text-center mt-4 py-4">
         <button
           className="filter-btn active px-4 py-2"
           onClick={() => navigate("/courses")}

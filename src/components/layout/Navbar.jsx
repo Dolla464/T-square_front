@@ -12,6 +12,7 @@ import logoDark from "../../assets/logo-dark.png";
 function AppNavbar({ isLoggedIn, userName }) {
   const { t, i18n } = useTranslation(["navbar", "common", "user"]);
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   useEffect(() => {
     const handleScroll = () => {
@@ -36,11 +37,6 @@ function AppNavbar({ isLoggedIn, userName }) {
     document.body.lang = newLang;
   };
 
-  /**
-   * المنطق الجديد بناءً على طلبك:
-   * 1. لو مسجل دخول (isLoggedIn) -> الخلفية دائماً بيضاء (White) واللوجو دائماً ملون (logoDark).
-   * 2. لو زائر (Logout) -> الخلفية شفافة (Transparent) وتتحول لأسود (Black) عند السكرول.
-   */
   const isHome = location.pathname === "/";
   const isHomeLoggedIn = isLoggedIn && isHome;
   const isGuest = !isLoggedIn;
@@ -49,12 +45,18 @@ function AppNavbar({ isLoggedIn, userName }) {
     ? scrolled
     : isLoggedIn || (!isHome && !isLoggedIn);
 
-  const textColorClass = isDarkMode ? "text-dark" : "text-light";
-  // 1. تحديد لون الخلفية
+  const textColorClass =
+    isHomeLoggedIn && !scrolled
+      ? "light"
+      : mobileMenuOpen && !scrolled && isHomeLoggedIn
+        ? "text-dark"
+        : isDarkMode
+          ? "text-dark"
+          : "text-light"; // 1. تحديد لون الخلفية
   const getBgColor = () => {
     // Home + Logged in
     if (isHomeLoggedIn) {
-      return scrolled ? "white" : "transparent";
+      return mobileMenuOpen || scrolled ? "white" : "transparent";
     }
 
     // Logged in + any page else
@@ -67,11 +69,11 @@ function AppNavbar({ isLoggedIn, userName }) {
     }
 
     if (!isHomeLoggedIn) {
-      return scrolled ? "black" : "transparent";
+      return mobileMenuOpen || scrolled ? "black" : "transparent";
     }
   };
   const navTextColor = isHomeLoggedIn
-    ? scrolled
+    ? mobileMenuOpen || scrolled
       ? "text-dark"
       : "text-light"
     : isLoggedIn
@@ -81,13 +83,38 @@ function AppNavbar({ isLoggedIn, userName }) {
   const logo = isGuest
     ? logoWhite
     : isHomeLoggedIn
-      ? scrolled
+      ? mobileMenuOpen || scrolled
         ? logoDark
         : logoWhite
       : isLoggedIn
         ? logoDark
         : logoDark;
-  const navVariant = isLoggedIn ? "light" : "dark";
+
+  const Tbtn =
+    isLoggedIn && !scrolled && mobileMenuOpen
+      ? "dark"
+      : isLoggedIn && scrolled
+        ? "dark"
+        : !scrolled && isHome
+          ? "light"
+          : scrolled || isGuest
+            ? "light"
+            : "";
+
+  const navVariant = getBgColor() === "transparent" ? "dark" : "light";
+  const handleToggle = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const handleNavLinkClick = () => {
+    setMobileMenuOpen(false);
+
+    // force collapse close (important fix)
+    const navbar = document.getElementById("basic-navbar-nav");
+    if (navbar) {
+      navbar.classList.remove("show");
+    }
+  };
   return (
     <Navbar
       expand="lg"
@@ -106,16 +133,23 @@ function AppNavbar({ isLoggedIn, userName }) {
           <img src={logo} alt="Square Logo" height="60" />
         </Navbar.Brand>
 
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-
+        <Navbar.Toggle
+          aria-controls="basic-navbar-nav"
+          onClick={handleToggle}
+          className="custom-toggler"
+        >
+          <span className={`hamburger ${Tbtn} `}>☰</span>
+        </Navbar.Toggle>
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="mx-auto fw-medium">
+          <Nav className="mx-lg-auto fw-medium text-center">
+            {" "}
             {["home", "courses", "solutions", "team", "contact"].map((item) => (
               <Nav.Link
                 key={item}
                 as={NavLink}
                 to={item === "home" ? "/" : `/${item}`}
                 className="nav-link"
+                onClick={handleNavLinkClick}
                 style={({ isActive }) => ({
                   color: isActive
                     ? "red"
@@ -134,14 +168,14 @@ function AppNavbar({ isLoggedIn, userName }) {
 
           <div className="d-flex align-items-center gap-3">
             <div
-              className={`d-flex align-items-center cursor-pointer ${
-                isGuest ? "text-light" : textColorClass
+              className={`d-flex align-items-center cursor-pointer lang-switch ${
+                Tbtn
               }`}
               onClick={toggleLanguage}
-              style={{ cursor: "pointer" }}
             >
-              <HiOutlineGlobeAlt size={17} className="mx-1" />
-              <span className="fw-normal">
+              <HiOutlineGlobeAlt size={20} className="me-1" />
+
+              <span className="fw-semibold fs-6">
                 {i18n.language === "ar" ? "EN" : "AR"}
               </span>
             </div>
@@ -168,11 +202,10 @@ function AppNavbar({ isLoggedIn, userName }) {
               </div>
             ) : (
               <div
-                className={`d-flex align-items-center gap-2 border-start ps-3 ${
+                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${
                   isDarkMode ? "border-dark" : "border-light"
                 }`}
               >
-                {" "}
                 <div
                   className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold"
                   style={{ width: "35px", height: "35px" }}
@@ -180,10 +213,10 @@ function AppNavbar({ isLoggedIn, userName }) {
                   {userName ? userName.charAt(0).toUpperCase() : "U"}
                 </div>
                 <NavDropdown
-                  title={<span className={textColorClass}>{userName}</span>}
+                  title={<span className={Tbtn}>{userName}</span>}
                   id="user-dropdown"
                   align="end"
-                  className={`fw-bold ${textColorClass}`}
+                  className={`fw-bold ${Tbtn}`}
                 >
                   <NavDropdown.Item as={Link} to="/profile">
                     {t("user:profile")}

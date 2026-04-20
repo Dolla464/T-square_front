@@ -1,58 +1,88 @@
 /* src/components/layout/Footer.css */
 
 .main-footer {
-    background-color: #8a020c; /* اللون الأحمر بتاع البراند */
-    color: #ffffff;
-    padding: 60px 0 20px;
-    font-size: 0.95rem;
+  background-color: #8a020c; /* اللون الأحمر بتاع البراند */
+  color: #ffffff;
+  padding: 60px 0 20px;
+  font-size: 0.9rem; /* Mobile-first */
 }
 
 .footer-logo {
-    width: 220px;
-    margin-bottom: 25px;
+  width: 220px;
+  margin-bottom: 25px;
 }
 
 .footer-desc {
-    max-width: 400px;
-    line-height: 1.7;
-    opacity: 0.9;
-    margin-bottom: 30px;
+  max-width: 400px;
+  line-height: 1.7;
+  opacity: 0.9;
+  margin-bottom: 30px;
 }
 
 .footer-heading {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 25px;
-    color: #fff;
+  font-size: 1rem; /* Mobile-first */
+  font-weight: 700;
+  margin-bottom: 25px;
+  color: #fff;
 }
 
 .footer-links {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .footer-links li {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 .footer-links a {
-    color: #fff;
-    text-decoration: none;
-    opacity: 0.8;
-    transition: 0.3s ease;
+  color: #fff;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: 0.3s ease;
 }
 
 .footer-links a:hover {
-    opacity: 1;
-    padding-left: 5px; /* حركة بسيطة عند الهوفر */
+  opacity: 1;
+  padding-left: 5px; /* حركة بسيطة عند الهوفر */
 }
 
 .footer-bottom {
-    margin-top: 50px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.3); /* الخط الرفيع */
-    text-align: center;
+  margin-top: 50px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3); /* الخط الرفيع */
+  text-align: center;
+  font-size: 0.75rem; /* Mobile-first */
+  opacity: 0.8;
+}
+
+/* Tablet and above */
+@media (min-width: 768px) {
+  .main-footer {
+    font-size: 0.93rem;
+  }
+
+  .footer-heading {
+    font-size: 1.1rem;
+  }
+
+  .footer-bottom {
+    font-size: 0.8rem;
+  }
+}
+
+/* Desktop and above */
+@media (min-width: 1200px) {
+  .main-footer {
+    font-size: 0.95rem;
+  }
+
+  .footer-heading {
+    font-size: 1.2rem;
+  }
+
+  .footer-bottom {
     font-size: 0.85rem;
-    opacity: 0.8;
+  }
 }

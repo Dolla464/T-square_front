@@ -30,7 +30,21 @@
   color: white;
   font-weight: bold;
   padding: 0 40px; /* المسافة بين كل كلمة والتانية */
-  font-size: 1.1rem;
+  font-size: 0.95rem; /* Mobile-first */
+}
+
+/* Tablet and above */
+@media (min-width: 768px) {
+  .ticker-item {
+    font-size: 1rem;
+  }
+}
+
+/* Desktop and above */
+@media (min-width: 1200px) {
+  .ticker-item {
+    font-size: 1.1rem;
+  }
 }
 
 .ticker-icon {

@@ -11,7 +11,7 @@ function Testimonials() {
   const students = MOCK_DATA.students;
 
   return (
-    <section className="testimonials-section">
+    <section className="testimonials-section" dir="ltr">
       <Container>
         <h2 className="fw-bold mb-5 text-center">{t("title")}</h2>
 
