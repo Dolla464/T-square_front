@@ -1,3 +1,125 @@
 .navbar .nav-link.active-link {
   color: #8a020c !important;
 }
+.lang-switch {
+  transition: 0.2s;
+}
+
+.lang-switch:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.navbar .custom-toggler {
+  border: none;
+  box-shadow: none;
+}
+
+/* default (light bg) */
+.navbar-light .custom-toggler .navbar-toggler-icon {
+  filter: invert(1);
+}
+
+/* dark bg */
+.navbar-dark .custom-toggler .navbar-toggler-icon {
+  filter: invert(0);
+}
+.hamburger {
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* على خلفية غامقة */
+.hamburger.light {
+  color: #fff !important;
+}
+.light {
+  color: #fff !important;
+}
+
+/* على خلفية فاتحة */
+.dark {
+  color: #000 !important;
+}
+/* على خلفية غامقة */
+
+/* ======================= 
+   Mobile responsiveness
+   ========================= */
+
+@media (max-width: 991px) {
+  .navbar .d-flex.gap-3 {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 12px !important;
+  }
+
+  .lang-switch {
+    justify-content: center;
+  }
+
+  .lang-switch.auth-mode {
+    border-right: none;
+    margin-right: 0;
+    padding-right: 0;
+  }
+
+  .navbar .border-start {
+    border: none !important;
+    padding-left: 0 !important;
+    justify-content: center;
+  }
+}
+/* =========================
+   Mobile Collapse Styling
+   ========================= */
+
+@media (max-width: 991px) {
+  .lang-switch {
+    padding: 18px 12px 5px;
+    transition: 0.2s;
+    transform: scale(1.5);
+  }
+  /* collapse container */
+  .navbar-collapse {
+    padding: 12px 0;
+  }
+
+  /* nav links */
+  .navbar-nav {
+    text-align: center;
+  }
+
+  .navbar-nav .nav-link {
+    padding: 10px 0;
+    font-size: 17px;
+  }
+
+  /* language switch */
+  .navbar .cursor-pointer {
+    justify-content: center;
+    margin: 10px 0;
+  }
+
+  /* auth buttons container */
+  .navbar .d-flex.gap-2 {
+    flex-direction: column;
+    width: 100%;
+    margin-top: 12px;
+    gap: 10px !important;
+  }
+
+  /* buttons */
+  .navbar .d-flex.gap-2 .btn {
+    width: 100%;
+    padding: 10px;
+  }
+
+  /* user section */
+  .navbar .border-start {
+    border: none !important;
+    justify-content: center;
+    padding-left: 0 !important;
+    margin-top: 12px;
+  }
+}

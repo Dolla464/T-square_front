@@ -1,116 +1,168 @@
 /* ستايل الـ Card المشترك */
 .course-card {
-    background: #fff;
-    border-radius: 20px;
-    overflow: hidden;
-    color: #000;
-    height: 100%;
-    border: 1px solid #eee;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.148);
-    transition: transform 0.3s ease;
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  color: #000;
+  height: 100%;
+  border: 1px solid #eee;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.148);
+  transition: transform 0.3s ease;
 }
 
 .course-card:hover {
-    transform: translateY(-10px);
+  transform: translateY(-10px);
 }
 
 .course-img-wrapper {
-    position: relative;
-    height: 200px;
+  position: relative;
+  height: 200px;
 }
 
 .course-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Badge (Hybrid, Online, Offline) */
 .course-badge {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    padding: 5px 15px;
-    border-radius: 5px;
-    color: #fff;
-    font-size: 0.8rem;
-    font-weight: 600;
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  padding: 5px 15px;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 /* الألوان بناءً على نوع الكورس */
-.badge-hybrid { background: #1546be; }
-.badge-offline { background: #be1522; }
-.badge-online { background: #15be56; }
+.badge-hybrid {
+  background: #1546be;
+}
+.badge-offline {
+  background: #be1522;
+}
+.badge-online {
+  background: #15be56;
+}
 
 .course-body {
-    padding: 20px;
+  padding: 20px;
 }
 
 .course-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 15px;
-    line-height: 1.4;
+  font-size: 1.05rem; /* Mobile-first */
+  font-weight: 700;
+  margin-bottom: 15px;
+  line-height: 1.4;
 }
 
 .course-info {
-    display: flex;
-    gap: 15px;
-    font-size: 0.85rem;
-    color: #666;
-    margin-bottom: 15px;
+  display: flex;
+  gap: 15px;
+  font-size: 0.75rem; /* Mobile-first */
+  color: #666;
+  margin-bottom: 15px;
 }
 
 .course-desc {
-    font-size: 0.9rem;
-    color: #444;
-    margin-bottom: 20px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  font-size: 0.8rem; /* Mobile-first */
+  color: #444;
+  margin-bottom: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Tags (Firebase, etc) */
 .course-tags {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
 .tag {
-    background: #ffeeef;
-    color: #be1522;
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
+  background: #ffeeef;
+  color: #be1522;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.65rem; /* Mobile-first */
+  font-weight: 600;
 }
 
 .course-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 1px solid #eee;
-    padding-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #eee;
+  padding-top: 15px;
 }
 
 .course-price {
-    font-weight: 700;
+  font-weight: 700;
+  font-size: 1rem; /* Mobile-first */
+  color: #be1522;
+}
+
+/* Tablet and above */
+@media (min-width: 768px) {
+  .course-title {
+    font-size: 1.15rem;
+  }
+
+  .course-info {
+    font-size: 0.8rem;
+  }
+
+  .course-desc {
+    font-size: 0.85rem;
+  }
+
+  .tag {
+    font-size: 0.7rem;
+  }
+
+  .course-price {
+    font-size: 1.1rem;
+  }
+}
+
+/* Desktop and above */
+@media (min-width: 1200px) {
+  .course-title {
+    font-size: 1.25rem;
+  }
+
+  .course-info {
+    font-size: 0.85rem;
+  }
+
+  .course-desc {
+    font-size: 0.9rem;
+  }
+
+  .tag {
+    font-size: 0.75rem;
+  }
+
+  .course-price {
     font-size: 1.2rem;
-    color: #be1522;
+  }
 }
 
 .buy-btn {
-    background: #be1522;
-    color: #fff;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: 0.3s;
+  background: #be1522;
+  color: #fff;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: 0.3s;
 }
 
 .buy-btn:hover {
-    background: #9a111b;
+  background: #9a111b;
 }

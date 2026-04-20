@@ -1,0 +1,48 @@
+{
+  "breadcrumb": {
+    "courses": "الكورسات",
+    "payment": "الدفع"
+  },
+  "studentInfo": {
+    "title": "بيانات الطالب",
+    "fullName": "الاسم الكامل",
+    "fullNamePlaceholder": "محمد أحمد",
+    "emailAddress": "البريد الإلكتروني",
+    "emailPlaceholder": "example@email.com",
+    "phoneNumber": "رقم الهاتف",
+    "phonePlaceholder": "+20 100 000 0000",
+    "country": "الدولة",
+    "optionalNotes": "ملاحظات إضافية",
+    "notesPlaceholder": "أي متطلبات أو أسئلة خاصة..."
+  },
+  "orderSummary": {
+    "title": "ملخص الطلب",
+    "instructor": "المحاضر",
+    "duration": "المدة",
+    "hours": "ساعة",
+    "total": "الإجمالي",
+    "termsText": "بإتمام عملية الشراء، أنت توافق على",
+    "termsOfService": "شروط الخدمة",
+    "and": "و",
+    "privacyPolicy": "سياسة الخصوصية"
+  },
+  "submitSection": {
+    "submitRequest": "إرسال طلب الدفع",
+    "successTitle": "تم إرسال طلب الدفع!",
+    "successDesc": "تم إرسال طلب الدفع بنجاح. سيقوم فريقنا بمراجعة طلبك والرد عليك قريبًا.",
+    "emailNotice": "ستصلك رسالة تأكيد عبر البريد الإلكتروني تتضمن تفاصيل الدفع.",
+    "processingTime": "سيتم معالجة طلبك خلال 24 ساعة.",
+    "whatsappHint": "لتسريع عملية تسجيلك، أرسل بياناتك عبر الواتساب!",
+    "copyData": "نسخ البيانات",
+    "copied": "تم النسخ!",
+    "sendWhatsApp": "إرسال عبر واتساب",
+    "paymentRequestLabel": "طلب دفع",
+    "courseLabel": "الكورس",
+    "backToCourses": "العودة إلى الكورسات"
+  },
+  "securityBadges": {
+    "securePayment": "دفع آمن",
+    "sslEncrypted": "تشفير SSL",
+    "moneyBackGuarantee": "ضمان استرداد خلال 30 يوم"
+  }
+}

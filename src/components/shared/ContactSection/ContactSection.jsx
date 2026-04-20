@@ -4,8 +4,7 @@ import "./ContactSection.css";
 import classroomImg from "../../../assets/contact.png";
 
 function ContactSection() {
-  const { t, i18n } = useTranslation("contact");
-  const isArabic = i18n.language === "ar";
+  const { t } = useTranslation("contact");
 
   return (
     <section className="contact-section py-5">

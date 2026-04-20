@@ -20,6 +20,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap.rtl.min.css";
 import Team from "./pages/Team";
 import Contact from "./pages/Contact";
+import Payment from "./pages/Payment";
 
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
@@ -59,7 +60,10 @@ function AppContent() {
         <Route path="/courses" element={<Courses />} />
 
         <Route path="/solutions" element={<Solutions />} />
+
         <Route path="/team" element={<Team />} />
+
+        <Route path="/payment/:id" element={<Payment />} />
 
         <Route path="/contact" element={<Contact />} />
       </Routes>

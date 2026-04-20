@@ -19,14 +19,36 @@
 .faq-header span {
   color: #be1522;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.85rem; /* Mobile-first */
   text-transform: uppercase;
 }
 
 .faq-header h2 {
   font-weight: 800;
-  font-size: 2.5rem;
+  font-size: 1.75rem; /* Mobile-first */
   margin-top: 10px;
+}
+
+/* Tablet and above */
+@media (min-width: 768px) {
+  .faq-header span {
+    font-size: 0.95rem;
+  }
+
+  .faq-header h2 {
+    font-size: 2rem;
+  }
+}
+
+/* Desktop and above */
+@media (min-width: 1200px) {
+  .faq-header span {
+    font-size: 1rem;
+  }
+
+  .faq-header h2 {
+    font-size: 2.5rem;
+  }
 }
 
 /* تعديل الـ Accordion بتاع بوتستراب */

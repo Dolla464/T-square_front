@@ -7,7 +7,6 @@ import studentImg from "../../assets/student-avatar.jpg";
 import "./AllContact.css";
 import i18n from "../../i18n";
 
-
 function AllContact() {
   const { t } = useTranslation(["contact", "cta", "testimonials", "navbar"]);
   const { teamTestimonialsData } = MOCK_DATA;
@@ -66,6 +65,12 @@ function AllContact() {
             <span className="badge-first-title">{t("contact:titleBadge")}</span>
             <h2 className="fw-bold mt-4 mb-3">{t("contact:title")}</h2>
             <p className="text-muted fs-5">{t("contact:subtitle")}</p>
+            <div className="d-md-none d-block">
+              <h3 className="fw-bold mb-3">{t("contact:hearFromYou")}</h3>
+              <p className="text-muted mb-5  fw-bold">
+                {t("contact:hearFromYouDesc")}
+              </p>
+            </div>
           </div>
 
           {/* Contact Content Split Section */}
@@ -73,10 +78,12 @@ function AllContact() {
             <Row className="g-5 align-items-center">
               {/* Left Col: Info Block */}
               <Col lg={5} className="pe-lg-4">
-                <h3 className="fw-bold mb-3">{t("contact:hearFromYou")}</h3>
-                <p className="text-muted mb-5 desc-padding">
-                  {t("contact:hearFromYouDesc")}
-                </p>
+                <Col lg={12} className="d-md-block d-none">
+                  <h3 className="fw-bold mb-3">{t("contact:hearFromYou")}</h3>
+                  <p className="text-muted mb-5 desc-padding">
+                    {t("contact:hearFromYouDesc")}
+                  </p>
+                </Col>
 
                 <Row className="g-3 mb-5">
                   <Col sm={6} xs={12}>

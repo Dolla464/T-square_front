@@ -1,6 +1,6 @@
 import React from "react";
 import { Container, Row, Col } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "./AllSolutions.css";
 import { MOCK_DATA } from "../../data/mockData";
@@ -8,6 +8,10 @@ import studentImg from "../../assets/student-avatar.jpg";
 import i18n from "../../i18n";
 
 function AllSolutions() {
+  const navigate = useNavigate();
+  const handleContact = () => {
+    navigate("/contact");
+  };
   const { t } = useTranslation(["solutions", "navbar", "testimonials"]);
   const { solutionsData, testimonialsData } = MOCK_DATA;
   const isArabic = i18n.language === "ar";
@@ -64,7 +68,7 @@ function AllSolutions() {
                       </span>
                     ))}
                   </div>
-                  <button className="btn-solution-contact w-100 mt-auto">
+                  <button onClick={handleContact} className="btn-solution-contact w-100 mt-auto">
                     {t("contactUs")}
                   </button>
                 </div>

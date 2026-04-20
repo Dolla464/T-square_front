@@ -13,14 +13,14 @@ import { Link } from "react-router-dom";
 function Discovery() {
   const { t } = useTranslation("discovery");
   return (
-    <section className="discovery-section">
+    <section className="discovery-section  py-md-5 my-3 py-5">
       {/* Waves Background */}
       <img src={wavesBg} className="discovery-waves" alt={t("alt.waves")} />
 
-      <Container className="discovery-container">
+      <Container className="discovery-container pt-1">
         {/* الصور في شكل قوس أوسع (5 صور) */}
         <div className="position-relative">
-          <div className="images-arc">
+          <div className="images-arc" dir="ltr">
             {/* أقصى اليسار */}
             <img
               src={img1}
@@ -30,7 +30,7 @@ function Discovery() {
             {/* اليسار الداخلي */}
             <img src={img2} className="arc-img img-inner-left" alt="coding 2" />
             {/* المنتصف - الأعلى */}
-            <img src={img3} className="arc-img img-center" alt="classroom 3" />
+            <img src={img3} className="arc-img img-centerX" alt="classroom 3" />
             {/* اليمين الداخلي */}
             <img
               src={img4}

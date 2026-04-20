@@ -1,8 +1,14 @@
 import "./CourseCard.css";
 import courseThumb from "../../../assets/course-temp.png";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 const CourseCard = ({ course, tags }) => {
+  const navigate = useNavigate();
+
+  const handleBuyNow = (courseId) => {
+    navigate(`/payment/${courseId}`);
+  };
   const { t } = useTranslation("courses");
 
   return (
@@ -50,7 +56,9 @@ const CourseCard = ({ course, tags }) => {
               </small>
             )}
           </div>
-          <button className="buy-btn">{t("card.buyNow")}</button>
+          <button onClick={() => handleBuyNow(course.id)} className="buy-btn">
+            {t("card.buyNow")}
+          </button>
         </div>
       </div>
     </div>
