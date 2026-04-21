@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
 import { HiOutlineGlobeAlt } from "react-icons/hi";
-import { Link } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import "./Navbar.css";
 
 import logoWhite from "../../assets/logo-white.png";
@@ -14,6 +14,13 @@ function AppNavbar({ isLoggedIn, userName }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
 
 
@@ -221,15 +228,15 @@ function AppNavbar({ isLoggedIn, userName }) {
                   align="end"
                   className={`fw-bold ${Tbtn}`}
                 >
-                  <NavDropdown.Item as={Link} to="/profile">
+                  <NavDropdown.Item as={Link} to="/student">
                     {t("user:profile")}
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
-                  <NavDropdown.Item as={Link} to="/courses">
+                  <NavDropdown.Item as={Link} to="/student">
                     {t("user:my_courses")}
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
-                  <NavDropdown.Item className="text-danger">
+                  <NavDropdown.Item className="text-danger" onClick={handleLogout}>
                     {t("user:logout")}
                   </NavDropdown.Item>
                 </NavDropdown>

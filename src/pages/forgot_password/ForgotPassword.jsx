@@ -1,12 +1,28 @@
-import { Container, Card, Form, Button, Nav } from "react-bootstrap";
+import { useState } from "react";
+import { Container, Card, Form, Button, Alert, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import tsquareLogo from "../../assets/logo-dark.webp"; 
+import tsquareLogo from "../../assets/logo-dark.webp";
 import "../../pages/forgot_password/forgot.css";  // css
+import { useForgotPassword } from "../../hooks/useForgotPassword";
 
 function ForgotPassword() {
   const { t, i18n } = useTranslation("auth");
   const isArabic = i18n.language === "ar";
+
+  const [email, setEmail] = useState("");
+  const { executeForgotPassword, loading, error, successMsg } = useForgotPassword();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email) return;
+    try {
+      await executeForgotPassword(email);
+      setEmail(""); // clear email after success
+    } catch (err) {
+      // error handled in hook
+    }
+  };
   return (
     <div className="forgot-wrapper" dir={isArabic ? "rtl" : "ltr"}>
       <Container className="d-flex justify-content-center align-items-center h-100">
@@ -27,7 +43,10 @@ function ForgotPassword() {
               {t("forgot_form.reset_password")}
             </Card.Title>
 
-            <Form>
+            {error && <Alert variant="danger">{isArabic ? "البريد الإلكتروني غير صحيح" : "Invalid email"}</Alert>}
+            {successMsg && <Alert variant="success">{isArabic ? "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني" : "Password reset link sent to your email"}</Alert>}
+
+            <Form onSubmit={handleSubmit}>
               {/* حقل الإيميل */}
               <Form.Group
                 className={`mb-3 forgot-form-group ${isArabic ? "text-end" : "text-start"}`}
@@ -43,6 +62,8 @@ function ForgotPassword() {
                   required
                   placeholder={t("forgot_form.email_placeholder")}
                   className="forgot-input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </Form.Group>
 
@@ -50,8 +71,9 @@ function ForgotPassword() {
               <Button
                 type="submit"
                 className="forgot-btn btn-lg w-100 fs-6 fw-bold"
+                disabled={loading}
               >
-                {t("forgot_form.send_email")}
+                {loading ? <Spinner animation="border" size="sm" /> : t("forgot_form.send_email")}
               </Button>
             </Form>
 

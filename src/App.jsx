@@ -25,17 +25,25 @@ import Team from "./pages/Team";
 import Contact from "./pages/Contact";
 import Payment from "./pages/Payment";
 
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/shared/ProtectedRoute";
+import AdminDashboard from "./pages/admin/Dashboard";
+import StudentDashboard from "./pages/student/Dashboard";
+
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
   const { i18n } = useTranslation("common");
   const location = useLocation();
+  const { user } = useAuth();
 
   // تحديد الصفحات التي سيتم إخفاء النافبار والفوتر فيها
   const hideLayout =
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
     location.pathname === "/forgot_password" ||
-    location.pathname === "/update_password";
+    location.pathname === "/update_password" ||
+    location.pathname.startsWith("/admin") ||
+    location.pathname.startsWith("/student");
 
   useEffect(() => {
     const dir = i18n.dir();
@@ -54,7 +62,7 @@ function AppContent() {
   return (
     <div className="min-h-screen">
       {/* إظهار النافبار فقط إذا لم نكن في صفحة اللوجين */}
-      {!hideLayout && <AppNavbar isLoggedIn={false} userName="Ahmed Hassan" />}
+      {!hideLayout && <AppNavbar isLoggedIn={!!user} userName={user?.name} role={user?.role} />}
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -77,6 +85,15 @@ function AppContent() {
         
         <Route path="/payment" element={<Navigate to="/courses" replace />} />
         <Route path="/payment/:slug" element={<Payment />} />
+
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
+          <Route path="/student" element={<StudentDashboard />} />
+        </Route>
       </Routes>
       {/* إظهار الفوتر فقط إذا لم نكن في صفحة اللوجين */}
       {!hideLayout && <AppFooter />}
@@ -86,10 +103,12 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-      <ScrollToTop />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+        <ScrollToTop />
+      </Router>
+    </AuthProvider>
   );
 }
 
