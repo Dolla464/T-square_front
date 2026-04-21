@@ -22,7 +22,7 @@ function AllCourses() {
   //  FILTER LOGIC
   const filteredCourses =
     selectedCategoryId === null
-      ? allCourses.slice(0, 6)
+      ? allCourses
       : allCourses.filter((course) => {
           const cat = categories.find((c) => c.name === course.category);
 
