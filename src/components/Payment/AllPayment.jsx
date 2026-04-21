@@ -1,22 +1,23 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Form } from "react-bootstrap";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { MOCK_DATA } from "../../data/mockData";
 import i18n from "../../i18n";
 import courseTempImg from "../../assets/course-temp.png";
 import "./AllPayment.css";
+import { useCourseSlug } from "../../hooks/useCousrsesSlug";
 
 function AllPayment() {
-  const { t } = useTranslation(["payment", "navbar", "courses"]);
-  const { id } = useParams();
-  const isArabic = i18n.language === "ar";
+  const { slug } = useParams();
+  const { courseData, loading, error } = useCourseSlug(slug);
 
+  const { t } = useTranslation(["payment", "navbar", "courses"]);
+  const isArabic = i18n.language === "ar";
+  if (!slug || slug == null) {
+    return <Navigate to="/courses" replace />;
+  }
   // Find course from mock data
-  const course = MOCK_DATA.courses.find((c) => c.id === Number(id));
-  const instructor = course
-    ? MOCK_DATA.instructors.find((i) => i.id === course.instructor_id)
-    : null;
+  const course = courseData;
 
   const WHATSAPP_NUMBER = "201021327600";
 
@@ -43,7 +44,7 @@ function AllPayment() {
     e.preventDefault();
     console.log("Payment Request Submitted:", {
       ...formData,
-      courseId: id,
+      courseId: course.id,
     });
     setSubmitted(true);
   };
@@ -61,8 +62,8 @@ function AllPayment() {
         ? ` ${t("payment:studentInfo.optionalNotes")}: ${formData.notes}`
         : null,
       `━━━━━━━━━━━━━━━━━━`,
-      ` ${t("payment:submitSection.courseLabel")}: ${courseTitle}`,
-      ` ${t("payment:orderSummary.total")}: ${coursePrice} ${priceUnit}`,
+      ` ${t("payment:submitSection.courseLabel")}: ${course.title}`,
+      ` ${t("payment:orderSummary.total")}: ${course.price.final} ${t("courses:card.priceUnit")}`,
       `━━━━━━━━━━━━━━━━━━`,
     ].filter(Boolean);
     return lines.join("\n");
@@ -80,15 +81,6 @@ function AllPayment() {
     const message = encodeURIComponent(data);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank");
   };
-
-  // Fallback values if course not found
-  const courseTitle = course?.title || "Complete Web Development Bootcamp 2026";
-  const courseDescription =
-    "Master modern web development with hands-on projects and real-world applications.";
-  const instructorName = instructor?.full_name || "Dr. Sarah Johnson";
-  const courseDuration = "42";
-  const coursePrice = course?.discount_price || course?.price || 250;
-  const priceUnit = t("courses:card.priceUnit");
 
   return (
     <div className="payment-page">
@@ -306,29 +298,65 @@ function AllPayment() {
 
                   {/* Course Image */}
                   <img
-                    src={courseTempImg}
-                    alt={courseTitle}
+                    src={courseTempImg || course.image}
+                    alt={course?.title}
                     className="order-summary-image"
                   />
 
                   {/* Course Title */}
-                  <h6 className="order-summary-title">{courseTitle}</h6>
+                  <h6 className="order-summary-title" dir="ltr">
+                    {course?.title}
+                  </h6>
 
                   {/* Course Description */}
-                  <p className="order-summary-desc">{courseDescription}</p>
+                  <p className="order-summary-desc overflow-hidden " dir="ltr">
+                    {course?.short_description}
+                  </p>
 
                   {/* Meta Info */}
-                  <div className="order-summary-meta">
+                  <div className="order-summary-meta" dir="ltr">
                     <div className="order-summary-meta-item">
                       <i className="bi bi-person"></i>
-                      <span>{instructorName}</span>
-                    </div>
-                    <div className="order-summary-meta-item">
-                      <i className="bi bi-clock"></i>
                       <span>
-                        {courseDuration} {t("payment:orderSummary.hours")}
+                        ENG /{" "}
+                        <span className="fw-bold">
+                          {course?.instructor?.name}
+                        </span>
                       </span>
                     </div>
+                    <div className="order-summary-meta-item">
+                      <i className="bi bi-translate"></i>
+                      <span className="fw-bold">{course?.language}</span>
+                    </div>
+                    <div className="order-summary-meta-item">
+                      <i className="bi bi-calendar-event"></i>
+                      <span>
+                        Course created at :{" "}
+                        <span className="text-capitalize fw-bold">
+                          {course?.created_at}
+                        </span>
+                      </span>
+                    </div>
+                    {/* <div className="order-summary-meta-item">
+                      <i className="bi bi-calendar-event"></i>
+                      <span>{course?.attendance_type}</span>
+
+                      <span>
+                        <i className="bi bi-clock me-1"></i>{course?.duration_weeks} {t("courses:card.weeks")}
+                      </span>
+                      <span>
+                        <i className="bi bi-play-circle me-1"></i>{course?.duration_hours} {t("courses:card.hours")}
+                      </span>
+
+                    </div> */}
+                  </div>
+                  {/* Course Tags */}
+                  <div className="course-tags" dir="ltr">
+                    {course?.tags?.map((tag) => (
+                      <span key={tag.id} className="tag">
+                        {tag.name}
+                      </span>
+                    ))}
                   </div>
 
                   {/* Total */}
@@ -337,7 +365,7 @@ function AllPayment() {
                       {t("payment:orderSummary.total")}
                     </span>
                     <span className="total-price">
-                      {coursePrice} {priceUnit}
+                      {course?.price?.final} {t("courses:card.priceUnit")}
                     </span>
                   </div>
 

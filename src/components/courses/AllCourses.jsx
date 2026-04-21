@@ -2,38 +2,35 @@ import { useState } from "react";
 import { Container, Row, Col, Pagination } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { MOCK_DATA } from "../../data/mockData";
 import CourseCard from "../../components/shared/CourseCard/CourseCard";
 import "./AllCourses.css";
 import i18n from "../../i18n";
+import { useCourses } from "../../hooks/useCourses";
+import { useCategories } from "../../hooks/useCategories";
 
 function AllCourses() {
+  const { courses, loading, error } = useCourses();
+  const { categories } = useCategories();
+  const allCourses = courses;
+
   const { t } = useTranslation(["courses", "navbar"]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const coursesPerPage = 6;
   const isArabic = i18n.language === "ar";
-  // 1. تصفية الأقسام الرئيسية فقط (اللي الـ parent_id بتاعها null)
-  // دي اللي هتظهر في الأزرار فوق
-  const mainCategories = MOCK_DATA.categories.filter(
-    (cat) => cat.parent_id === null,
-  );
 
-  // 2. منطق الفلترة الذكي (بناءً على الـ parent_id والـ category_id)
+  //  FILTER LOGIC
   const filteredCourses =
     selectedCategoryId === null
-      ? MOCK_DATA.courses
-      : MOCK_DATA.courses.filter((course) => {
-          // البحث عن القسم المربوط به الكورس حالياً
-          const currentCat = MOCK_DATA.categories.find(
-            (cat) => cat.id === course.category_id,
-          );
-          if (!currentCat) return false;
+      ? allCourses.slice(0, 6)
+      : allCourses.filter((course) => {
+          const cat = categories.find((c) => c.name === course.category);
 
-          // حالة 1: الكورس مربوط مباشرة بالقسم المختار (مثلاً مربوط بـ Kids Courses)
-          if (currentCat.id === selectedCategoryId) return true;
-          // حالة 2: الكورس مربوط بقسم فرعي (مثلاً Web) والأب بتاعه هو المختار (Adult)
-          return currentCat.parent_id === selectedCategoryId;
+          if (!cat) return false;
+
+          if (cat.id === selectedCategoryId) return true;
+
+          return cat.parent_id === selectedCategoryId;
         });
 
   // 3. Pagination Logic
@@ -81,38 +78,42 @@ function AllCourses() {
           </h2>
           <p className="text-muted fs-5">{t("subtitle")}</p>
         </div>
-
-        {/* الأزرار: بتعرض بس الأقسام اللي الـ parent_id بتاعها null */}
-        <div className="filter-container d-flex justify-content-center gap-2 mb-5">
-          <button
-            className={`filter-btn ${selectedCategoryId === null ? "active" : ""}`}
-            onClick={() => {
-              setSelectedCategoryId(null);
-              setCurrentPage(1);
-            }}
+        {courses && courses.length > 0 && (
+          /* الأزرار: بتعرض بس الأقسام اللي الـ parent_id بتاعها null */
+          <div
+            className="filter-container d-flex justify-content-center gap-2 mb-5"
+            dir="ltr"
           >
-            {t("all")}
-          </button>
-          {mainCategories.map((cat) => (
             <button
-              key={cat.id}
-              className={`filter-btn ${selectedCategoryId === cat.id ? "active" : ""}`}
+              className={`filter-btn ${selectedCategoryId === null ? "active" : ""}`}
               onClick={() => {
-                setSelectedCategoryId(cat.id);
+                setSelectedCategoryId(null);
                 setCurrentPage(1);
               }}
             >
-              {cat.name}
+              {t("all")}
             </button>
-          ))}
-        </div>
-
+            {categories
+              .filter((c) => c.parent_id === null)
+              .map((cat) => (
+                <button
+                  key={cat.id}
+                  className={`filter-btn ${
+                    selectedCategoryId === cat.id ? "active" : ""
+                  }`}
+                  onClick={() => setSelectedCategoryId(cat.id)}
+                >
+                  {cat.name}
+                </button>
+              ))}
+          </div>
+        )}
         {/* Courses Grid */}
         <Row className="g-4">
           {currentCourses.length > 0 ? (
             currentCourses.map((course) => (
               <Col lg={4} md={6} key={course.id}>
-                <CourseCard course={course} tags={MOCK_DATA.tags.slice(0, 2)} />
+                <CourseCard course={course} />
               </Col>
             ))
           ) : (

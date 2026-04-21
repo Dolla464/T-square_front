@@ -18,6 +18,10 @@
     "buyNow": "Buy now",
     "online": "Online",
     "offline": "Offline",
-    "hybrid": "Hybrid"
+    "hybrid": "Hybrid",
+        "error1":"No courses to view",
+            "error2":"Try again latter"
+
+
   }
 }
