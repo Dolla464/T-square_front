@@ -9,5 +9,7 @@
   "phone": "Phone",
   "bio": "Bio",
   "save": "Save",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "not_activated": "Account not activated",
+  "not_activated_msg": "Your account is not activated yet. Please verify your email."
 }

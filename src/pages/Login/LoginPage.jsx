@@ -1,12 +1,29 @@
-import { Container, Card, Form, Button, Nav } from "react-bootstrap";
+import { useState } from "react";
+import { Container, Card, Form, Button, Nav, Alert, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import tsquareLogo from "../../assets/logo-dark.webp"; // تأكد من مسار اللوجو
 import "./Login.css"; // ملف الـ CSS المرفق في الأسفل
+import { useLogin } from "../../hooks/useLogin";
 
 function LoginPage() {
   const { t, i18n } = useTranslation("auth");
   const isArabic = i18n.language === "ar";
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const { executeLogin, loading, error } = useLogin();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email || !password) return;
+    try {
+      await executeLogin({ email, password }, rememberMe);
+    } catch (err) {
+      // Error state is managed by the hook
+    }
+  };
   return (
     <div className="login-wrapper" dir={isArabic ? "rtl" : "ltr"}>
       <Container className="d-flex justify-content-center align-items-center h-100">
@@ -27,7 +44,9 @@ function LoginPage() {
               {t("login_form.title")}
             </Card.Title>
 
-            <Form>
+            {error && <Alert variant="danger">{isArabic ? "البريد الإلكتروني أو كلمة المرور غير صحيحة" : "Invalid email or password"}</Alert>}
+
+            <Form onSubmit={handleSubmit}>
               {/* حقل الإيميل */}
               <Form.Group
                 className={`mb-3 login-form-group ${isArabic ? "text-end" : "text-start"}`}
@@ -42,6 +61,9 @@ function LoginPage() {
                   type="email"
                   placeholder={t("login_form.email_placeholder")}
                   className="login-input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
               </Form.Group>
 
@@ -65,6 +87,9 @@ function LoginPage() {
                   type="password"
                   placeholder={t("login_form.password_placeholder")}
                   className="login-input"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
               </Form.Group>
 
@@ -77,6 +102,8 @@ function LoginPage() {
                   id="remember-me"
                   label={t("login_form.remember_me")}
                   className="d-flex align-items-center gap-2 login-remember-group"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                 />
               </Form.Group>
 
@@ -84,8 +111,9 @@ function LoginPage() {
               <Button
                 type="submit"
                 className="login-btn btn-lg w-100 fs-6 fw-bold"
+                disabled={loading}
               >
-                {t("login_form.sign_in_btn")}
+                {loading ? <Spinner animation="border" size="sm" /> : t("login_form.sign_in_btn")}
               </Button>
             </Form>
 

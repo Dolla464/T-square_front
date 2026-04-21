@@ -3,7 +3,7 @@ import courseThumb from "../../../assets/course-temp.png";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-const CourseCard = ({ course, tags }) => {
+const CourseCard = ({ course }) => {
   const navigate = useNavigate();
 
   const handleBuyNow = (courseId) => {
@@ -14,7 +14,8 @@ const CourseCard = ({ course, tags }) => {
   return (
     <div className="course-card">
       <div className="course-img-wrapper">
-        <img src={courseThumb} alt={course.title} className="course-img" />
+        {/* لما يكون عندنا صور الكورسات هنشيل courseThumb */}
+        <img src={courseThumb || course.image} alt={course.title} className="course-img" />
         <span
           className={`course-badge badge-${course.attendance_type.toLowerCase()}`}
         >
@@ -23,22 +24,22 @@ const CourseCard = ({ course, tags }) => {
       </div>
 
       <div className="course-body">
-        <h3 className="course-title">{course.title}</h3>
+        <h3 className="course-title" dir="ltr">{course.title}</h3>
         <div className="course-info">
           <span>
-            <i className="bi bi-clock me-1"></i> {t("card.weeks")}
+            <i className="bi bi-clock me-1"></i>{course.duration_weeks} {t("card.weeks")}
           </span>
           <span>
-            <i className="bi bi-play-circle me-1"></i> {t("card.hours")}
+            <i className="bi bi-play-circle me-1"></i>{course.duration_hours} {t("card.hours")}
           </span>
         </div>
-        <p className="course-desc">
-          Master {course.title} with hands-on projects and professional
-          mentorship.
+        <p className="course-desc" dir="ltr">
+          {course.short_description}
+
         </p>
 
-        <div className="course-tags">
-          {tags.map((tag) => (
+        <div className="course-tags" dir="ltr">
+          {course.tags?.map((tag) => (
             <span key={tag.id} className="tag">
               {tag.name}
             </span>
@@ -48,15 +49,16 @@ const CourseCard = ({ course, tags }) => {
         <div className="course-footer">
           <div className="price-wrapper">
             <span className="course-price">
-              {course.discount_price || course.price} {t("card.priceUnit")}
+              {course.price?.final} {t("card.priceUnit")}
             </span>
-            {course.discount_price && (
+
+            {course.price?.discount > 0 && (
               <small className="text-decoration-line-through ms-2 text-muted">
-                {course.price}
+                {course.price?.original}
               </small>
             )}
           </div>
-          <button onClick={() => handleBuyNow(course.id)} className="buy-btn">
+          <button onClick={() => handleBuyNow(course.slug)} className="buy-btn">
             {t("card.buyNow")}
           </button>
         </div>

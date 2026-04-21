@@ -77,7 +77,6 @@ function UpdatePassword() {
                 />
               </Form.Group>
 
-
               {/* زر الدخول */}
               <Button
                 type="submit"
@@ -86,9 +85,6 @@ function UpdatePassword() {
                 {t("update_password.update_password")}
               </Button>
             </Form>
-
-
-
           </Card.Body>
         </Card>
       </Container>
