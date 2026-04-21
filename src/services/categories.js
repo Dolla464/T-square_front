@@ -1,5 +1,5 @@
 import axiosClient from "../api/axios";
 
-export const getCategories = () => {
-    return axiosClient.get("/student/categories");
+export const getCategories = (type = "") => {
+    return axiosClient.get(`/student/categories${type ? `?type=${type}` : ""}`);
 };

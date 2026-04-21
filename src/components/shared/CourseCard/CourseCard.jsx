@@ -39,7 +39,7 @@ const CourseCard = ({ course }) => {
         </p>
 
         <div className="course-tags" dir="ltr">
-          {course.tags?.map((tag) => (
+          {course?.tags?.map((tag) => (
             <span key={tag.id} className="tag">
               {tag.name}
             </span>
