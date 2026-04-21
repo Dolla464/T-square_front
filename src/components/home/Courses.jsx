@@ -10,7 +10,7 @@ import i18n from "../../i18n";
 
 function Courses() {
   const { courses, loading, error } = useCourses();
-  const { categories } = useCategories();
+  const { categories } = useCategories("sub");
 
   const navigate = useNavigate();
   const { t } = useTranslation("courses");
@@ -57,7 +57,6 @@ function Courses() {
             </button>
 
             {categories
-              .filter((c) => c.parent_id === null)
               .map((cat) => (
                 <button
                   key={cat.id}

@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { getCategories } from "../services/categories";
 
-export const useCategories = () => {
+export const useCategories = (type = "") => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchCategories = async () => {
+            setLoading(true);
             try {
-                const res = await getCategories();
+                const res = await getCategories(type);
                 setCategories(res.data.data || []);
             } catch (err) {
                 setError(err);
@@ -19,7 +20,7 @@ export const useCategories = () => {
         };
 
         fetchCategories();
-    }, []);
+    }, [type]);
 
     return { categories, loading, error };
 };

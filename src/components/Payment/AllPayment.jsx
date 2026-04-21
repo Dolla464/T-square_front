@@ -6,6 +6,7 @@ import i18n from "../../i18n";
 import courseTempImg from "../../assets/course-temp.png";
 import "./AllPayment.css";
 import { useCourseSlug } from "../../hooks/useCousrsesSlug";
+import { useAuth } from "../../contexts/AuthContext";
 
 function AllPayment() {
   const { slug } = useParams();
@@ -20,12 +21,13 @@ function AllPayment() {
   const course = courseData;
 
   const WHATSAPP_NUMBER = "201021327600";
+  const { user } = useAuth();
 
   // Student form state
   const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
+    fullName: user?.name || user?.student?.full_name || "",
+    email: user?.email || "",
+    phone: user?.student?.phone || user?.phone || "",
     country: isArabic ? "مصر" : "Egypt",
     notes: "",
   });
@@ -318,7 +320,7 @@ function AllPayment() {
                     <div className="order-summary-meta-item">
                       <i className="bi bi-person"></i>
                       <span>
-                        ENG /{" "}
+                        Course instructor :
                         <span className="fw-bold">
                           {course?.instructor?.name}
                         </span>
@@ -326,29 +328,18 @@ function AllPayment() {
                     </div>
                     <div className="order-summary-meta-item">
                       <i className="bi bi-translate"></i>
-                      <span className="fw-bold">{course?.language}</span>
+                      Course language :<span className="fw-bold"> {course?.language}</span>
                     </div>
                     <div className="order-summary-meta-item">
                       <i className="bi bi-calendar-event"></i>
                       <span>
-                        Course created at :{" "}
+                        Course created at :
                         <span className="text-capitalize fw-bold">
                           {course?.created_at}
                         </span>
                       </span>
                     </div>
-                    {/* <div className="order-summary-meta-item">
-                      <i className="bi bi-calendar-event"></i>
-                      <span>{course?.attendance_type}</span>
 
-                      <span>
-                        <i className="bi bi-clock me-1"></i>{course?.duration_weeks} {t("courses:card.weeks")}
-                      </span>
-                      <span>
-                        <i className="bi bi-play-circle me-1"></i>{course?.duration_hours} {t("courses:card.hours")}
-                      </span>
-
-                    </div> */}
                   </div>
                   {/* Course Tags */}
                   <div className="course-tags" dir="ltr">
@@ -359,12 +350,29 @@ function AllPayment() {
                     ))}
                   </div>
 
+                  {/* Price Details */}
+                  <div className="order-price-details mt-4 mb-3 border-top pt-3" dir={isArabic ? "rtl" : "ltr"}>
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="text-muted">{isArabic ? "السعر الأصلي" : "Original Price"}</span>
+                      <span className="text-decoration-line-through text-muted">
+                        {course?.price?.original} {t("courses:card.priceUnit")}
+                      </span>
+                    </div>
+
+                    {course?.price?.discount > 0 && (
+                      <div className="d-flex justify-content-between mb-2 text-success">
+                        <span>{isArabic ? "الخصم" : "Discount"}</span>
+                        <span>- {course?.price?.discount} {t("courses:card.priceUnit")}</span>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Total */}
-                  <div className="order-total-row">
-                    <span className="total-label">
+                  <div className="order-total-row border-top pt-2 mt-2" dir={isArabic ? "rtl" : "ltr"}>
+                    <span className="total-label fw-bold">
                       {t("payment:orderSummary.total")}
                     </span>
-                    <span className="total-price">
+                    <span className="total-price fw-bold text-danger fs-4">
                       {course?.price?.final} {t("courses:card.priceUnit")}
                     </span>
                   </div>
