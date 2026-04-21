@@ -15,7 +15,7 @@ function AppNavbar({ isLoggedIn, userName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -222,6 +222,15 @@ function AppNavbar({ isLoggedIn, userName }) {
                 >
                   {userName ? userName.charAt(0).toUpperCase() : "U"}
                 </div>
+                
+                {/* الإشعار لو الحساب مش متفعل */}
+                {user && !user.email_verified_at && (
+                  <i 
+                    className="bi bi-exclamation-circle-fill text-warning fs-5" 
+                    title={t("user:not_activated")}
+                    style={{ cursor: "help" }}
+                  ></i>
+                )}
                 <NavDropdown
                   title={<span className={Tbtn}>{userName}</span>}
                   id="user-dropdown"
