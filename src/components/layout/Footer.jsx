@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import "./Footer.css";
-import logoWhite from "../../assets/logo-white.png"; // اللوجو باللون الأبيض
+import logoWhite from "../../assets/logo-white.webp"; // اللوجو باللون الأبيض
 
 function Footer() {
   const { t } = useTranslation("footer");
@@ -19,7 +19,7 @@ function Footer() {
 
           {/* عمود Academy */}
           <Col lg={3} md={6}>
-            <h5 className="footer-heading">{t("sections.academy")}</h5>
+            <h1 className="footer-heading">{t("sections.academy")}</h1>
             <ul className="footer-links">
               <li>
                 <Link to="/courses">{t("links.allCourses")}</Link>

@@ -1,125 +1,102 @@
-.navbar .nav-link.active-link {
-  color: #8a020c !important;
+/* =========================================
+   الأساسيات والـ Transitions
+   ========================================= */
+.navbar {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+
+/* 1. حالة الضيف - شفاف (Guest + No Scroll) */
+.nav-transparent {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.nav-transparent .nav-link-custom,
+.nav-transparent .lang-switch,
+.nav-transparent .hamburger {
+  color: #ffffff !important; /* كلام أبيض في الشفافية */
+}
+
+/* 2. حالة الضيف - سكرول (Guest + Scrolled) */
+.nav-black-bg {
+  background-color: #000000 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.nav-black-bg .nav-link-custom,
+.nav-black-bg .lang-switch,
+.nav-black-bg .hamburger {
+  color: #ffffff !important; /* كلام أبيض على خلفية سوداء */
+}
+
+/* 3. حالة المشترك - دايماً (Authed Theme) */
+.nav-white-bg {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #eee;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.nav-white-bg .nav-link-custom,
+.nav-white-bg .lang-switch,
+.nav-white-bg .hamburger,
+.nav-white-bg #user-dropdown {
+  color: #000000 !important; /* كلام أسود على خلفية بيضاء */
+}
+
+/* =========================================
+   اللينكات والـ Active State
+   ========================================= */
+.nav-link-custom {
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+/* لون الـ Active للأبيض والأسود */
+.nav-white-bg .nav-link-custom.active {
+  color: #c51c24 !important; /* أحمر ع الأبيض */
+}
+
+.nav-transparent .nav-link-custom.active,
+.nav-black-bg .nav-link-custom.active {
+  color: #ff4d4d !important; /* أحمر فاتح ع الأسود عشان يبان */
+}
+
+/* =========================================
+   مفتاح تبديل اللغة (Language Switcher)
+   ========================================= */
 .lang-switch {
+  padding: 4px 8px;
+  border-radius: 6px;
   transition: 0.2s;
 }
 
-.lang-switch:hover {
-  background: rgba(0, 0, 0, 0.06);
-}
-.navbar .custom-toggler {
-  border: none;
-  box-shadow: none;
+.nav-white-bg .lang-switch:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
-/* default (light bg) */
-.navbar-light .custom-toggler .navbar-toggler-icon {
-  filter: invert(1);
+.nav-transparent .lang-switch:hover,
+.nav-black-bg .lang-switch:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
-/* dark bg */
-.navbar-dark .custom-toggler .navbar-toggler-icon {
-  filter: invert(0);
-}
-.hamburger {
-  font-size: 28px;
-  font-weight: bold;
-  line-height: 1;
-}
-
-/* على خلفية غامقة */
-.hamburger.light {
-  color: #fff !important;
-}
-.light {
-  color: #fff !important;
-}
-
-/* على خلفية فاتحة */
-.dark {
-  color: #000 !important;
-}
-/* على خلفية غامقة */
-
-/* ======================= 
-   Mobile responsiveness
-   ========================= */
-
+/* =========================================
+   تنسيقات الموبايل (Mobile)
+   ========================================= */
 @media (max-width: 991px) {
-  .navbar .d-flex.gap-3 {
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    gap: 12px !important;
-  }
-
-  .lang-switch {
-    justify-content: center;
-  }
-
-  .lang-switch.auth-mode {
-    border-right: none;
-    margin-right: 0;
-    padding-right: 0;
-  }
-
-  .navbar .border-start {
-    border: none !important;
-    padding-left: 0 !important;
-    justify-content: center;
-  }
-}
-/* =========================
-   Mobile Collapse Styling
-   ========================= */
-
-@media (max-width: 991px) {
-  .lang-switch {
-    padding: 18px 12px 5px;
-    transition: 0.2s;
-    transform: scale(1.5);
-  }
-  /* collapse container */
   .navbar-collapse {
-    padding: 12px 0;
+    background: #ffffff; /* المنيو دايماً بيضاء في الموبايل للوضوح */
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   }
 
-  /* nav links */
-  .navbar-nav {
-    text-align: center;
+  .nav-link-custom, .lang-switch {
+    color: #000000 !important; /* الكلام جوه المنيو لازم يبقى أسود */
+    padding: 10px 0 !important;
   }
-
-  .navbar-nav .nav-link {
-    padding: 10px 0;
-    font-size: 17px;
-  }
-
-  /* language switch */
-  .navbar .cursor-pointer {
-    justify-content: center;
-    margin: 10px 0;
-  }
-
-  /* auth buttons container */
-  .navbar .d-flex.gap-2 {
-    flex-direction: column;
-    width: 100%;
-    margin-top: 12px;
-    gap: 10px !important;
-  }
-
-  /* buttons */
-  .navbar .d-flex.gap-2 .btn {
-    width: 100%;
-    padding: 10px;
-  }
-
-  /* user section */
+  
   .navbar .border-start {
-    border: none !important;
-    justify-content: center;
-    padding-left: 0 !important;
-    margin-top: 12px;
+    border: none !important; /* شيل الخط الفاصل في الموبايل */
   }
 }
