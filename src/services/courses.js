@@ -1,4 +1,4 @@
 import axiosClient from "../api/axios";
 
-export const getCourses = (params = {}) =>
-    axiosClient.get("/student/courses", { params });
+export const getCourses = () =>
+    axiosClient.get("/student/courses");

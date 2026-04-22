@@ -24,14 +24,14 @@ function AllCourses() {
     selectedCategoryId === null
       ? allCourses
       : allCourses.filter((course) => {
-          const cat = categories.find((c) => c.name === course.category);
+        const cat = categories.find((c) => c.name === course.category);
 
-          if (!cat) return false;
+        if (!cat) return false;
 
-          if (cat.id === selectedCategoryId) return true;
+        if (cat.id === selectedCategoryId) return true;
 
-          return cat.parent_id === selectedCategoryId;
-        });
+        return cat.parent_id === selectedCategoryId;
+      });
 
   // 3. Pagination Logic
   const indexOfLastCourse = currentPage * coursesPerPage;
@@ -98,9 +98,8 @@ function AllCourses() {
               .map((cat) => (
                 <button
                   key={cat.id}
-                  className={`filter-btn ${
-                    selectedCategoryId === cat.id ? "active" : ""
-                  }`}
+                  className={`filter-btn ${selectedCategoryId === cat.id ? "active" : ""
+                    }`}
                   onClick={() => setSelectedCategoryId(cat.id)}
                 >
                   {cat.name}

@@ -82,7 +82,7 @@ function AppContent() {
         <Route path="/team" element={<Team />} />
 
         <Route path="/contact" element={<Contact />} />
-        
+
         <Route path="/payment" element={<Navigate to="/courses" replace />} />
         <Route path="/payment/:slug" element={<Payment />} />
 
