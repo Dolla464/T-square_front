@@ -13,7 +13,7 @@ export const useCourses = () => {
 
     // فانكشن تجيب الداتا لأول مرة (كورسات وأقسام)
     const loadInitialData = async (
-      params = { per_page: 6, type: "parent" },
+      params = { per_page: 6, type: "sub" },
     ) => {
       setLoading(true);
       try {
@@ -23,6 +23,7 @@ export const useCourses = () => {
         ]);
         setCategories(catRes.data.data);
         setCourses(courseRes.data.data);
+        console.log("catRes:", catRes);
         const meta = courseRes.data.meta;
         setPagination({
           currentPage: meta.current_page,
