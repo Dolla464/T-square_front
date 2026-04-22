@@ -32,7 +32,7 @@ import StudentDashboard from "./pages/student/Dashboard";
 
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
-  const { i18n } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const location = useLocation();
   const { user } = useAuth();
 
@@ -55,9 +55,11 @@ function AppContent() {
     document.body.dir = dir;
     document.body.lang = lang;
 
+    document.title = t("site_title") || "T-Square";
+
     // Persist language to localStorage
     localStorage.setItem("i18nextLng", lang);
-  }, [i18n, i18n.language]);
+  }, [i18n, i18n.language, t]);
 
   return (
     <div className="min-h-screen">
