@@ -6,6 +6,7 @@ import {
   useLocation,
   Navigate,
 } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import ScrollToTop from "./components/shared/ScrollToTop";
 import AppNavbar from "./components/layout/Navbar";
@@ -27,12 +28,36 @@ import Payment from "./pages/Payment";
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
-import AdminDashboard from "./pages/admin/Dashboard";
-import StudentDashboard from "./pages/student/Dashboard";
+import { Toaster } from "react-hot-toast";
+import "./components/shared/ConfirmDialog/confirmDialog.css";
+
+// ── وحدة داشبورد الطالب ──
+import DashboardLayout from "./modules/student-dashboard/layouts/DashboardLayout";
+import DashboardHome from "./modules/student-dashboard/pages/DashboardHome/DashboardHome";
+import DashboardCertificates from "./modules/student-dashboard/pages/DashboardCertificates/DashboardCertificates";
+import DashboardQuizzes from "./modules/student-dashboard/pages/DashboardQuizzes/DashboardQuizzes";
+import DashboardProfile from "./modules/student-dashboard/pages/DashboardProfile/DashboardProfile";
+
+// ── وحدة داشبورد الأدمن ──
+import AdminLayout from "./modules/admin-dashboard/layouts/AdminLayout";
+import AdminOverview from "./modules/admin-dashboard/pages/Overview/AdminOverview";
+import AdminCourses from "./modules/admin-dashboard/pages/Courses/AdminCourses";
+import AdminStudents from "./modules/admin-dashboard/pages/Students/AdminStudents";
+import AdminInstructor from "./modules/admin-dashboard/pages/Instructor/AdminInstructor";
+import AdminInstructors from "./modules/admin-dashboard/pages/Instructors/AdminInstructors";
+import AdminOrders from "./modules/admin-dashboard/pages/Orders/AdminOrders";
+import AdminAnalytics from "./modules/admin-dashboard/pages/Analytics/AdminAnalytics";
+import AdminCertificates from "./modules/admin-dashboard/pages/Certificates/AdminCertificates";
+import AdminReviews from "./modules/admin-dashboard/pages/Reviews/AdminReviews";
+import AdminSettings from "./modules/admin-dashboard/pages/Settings/AdminSettings";
 
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
-  const { t, i18n } = useTranslation("common");
+
+
+
+
+  const { i18n } = useTranslation("common");
   const location = useLocation();
   const { user } = useAuth();
 
@@ -59,54 +84,169 @@ function AppContent() {
 
     // Persist language to localStorage
     localStorage.setItem("i18nextLng", lang);
-  }, [i18n, i18n.language, t]);
+  }, [i18n, i18n.language]);
+  const isArabic = i18n.language === "ar";
+
+
+
 
   return (
-    <div className="min-h-screen">
-      {/* إظهار النافبار فقط إذا لم نكن في صفحة اللوجين */}
-      {!hideLayout && <AppNavbar isLoggedIn={!!user} userName={user?.name} role={user?.role} />}
+    <>
+      <Helmet>
+        {/* Primary Meta */}
+        <title>
+          T-Square
+        </title>
 
-      <Routes>
-        <Route path="/" element={<Home />} />
+        <meta
+          name="description"
+          content="منصة تعليمية متخصصة في الكورسات التقنية والحلول الرقمية في مصر والسعودية. نقدم مسارات تدريبية عملية، تطوير مواقع وتطبيقات، وحلول برمجية تساعد الأفراد والشركات على النمو الرقمي بثقة. | A professional LMS platform providing technical courses and digital solutions in Egypt and Saudi Arabia."
+        />
 
-        <Route path="/login" element={<LoginPage />} />
+        <meta
+          name="keywords"
+          content="
+    LMS Egypt,
+    LMS Saudi Arabia,
+    منصة تعليمية,
+    كورسات برمجة اونلاين,
+    تعلم البرمجة من الصفر,
+    software solutions Egypt,
+    digital solutions Saudi Arabia,
+    web development courses,
+    frontend courses,
+    backend courses,
+    full stack courses,
+    programming learning platform
+    "
+        />
 
-        <Route path="/signup" element={<SignupPage />} />
+        <meta name="author" content="T-Square" />
+        <link rel="icon" href="/public/favicon.png" />
 
-        <Route path="/forgot_password" element={<ForgotPassword />} />
+        {/* Theme Color (Mobile UI) */}
+        <meta name="theme-color" content="#000000" />
 
-        <Route path="/update_password" element={<UpdatePassword />} />
+        {/* Safari iOS Support */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
-        <Route path="/courses" element={<Courses />} />
+        {/* Open Graph (Facebook / WhatsApp / LinkedIn) */}
+        <meta
+          property="og:title"
+          content="Professional LMS & Digital Solutions Platform"
+        />
 
-        <Route path="/solutions" element={<Solutions />} />
+        <meta
+          property="og:description"
+          content="Learn modern tech skills and build real-world projects. نقدم كورسات تقنية وحلول رقمية للأفراد والشركات في مصر والسعودية."
+        />
 
-        <Route path="/team" element={<Team />} />
+        <meta property="og:type" content="website" />
 
-        <Route path="/contact" element={<Contact />} />
-        
-        <Route path="/payment" element={<Navigate to="/courses" replace />} />
-        <Route path="/payment/:slug" element={<Payment />} />
+        <meta
+          property="og:url"
+        // content="https://yourdomain.com"
+        />
 
-        {/* Protected Routes */}
-        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-          <Route path="/admin" element={<AdminDashboard />} />
-        </Route>
+        <meta
+          property="og:image"
+        // content="https://yourdomain.com/preview.png"
+        />
 
-        <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
-          <Route path="/student" element={<StudentDashboard />} />
-        </Route>
-      </Routes>
-      {/* إظهار الفوتر فقط إذا لم نكن في صفحة اللوجين */}
-      {!hideLayout && <AppFooter />}
-    </div>
-  );
+        {/* Twitter Preview */}
+        <meta
+          name="twitter:card"
+          content="summary_large_image"
+        />
+
+        <meta
+          name="twitter:title"
+        // content="LMS Platform | Programming Courses & Digital Solutions"
+        />
+
+        <meta
+          name="twitter:description"
+          content="Tech learning paths and digital transformation solutions for students and companies in Egypt & Saudi Arabia."
+        />
+
+        <meta
+          name="twitter:image"
+        // content="https://yourdomain.com/preview.png"
+        />
+      </Helmet>
+
+      <div className="min-h-screen">
+        {/* إظهار النافبار فقط فاللاندينج بيدج */}
+        {!hideLayout && <AppNavbar isLoggedIn={!!user} userName={user?.name} role={user?.role} />}
+
+        <Routes>
+          <Route path="/" element={<Home />} />
+
+          <Route path="/login" element={<LoginPage />} />
+
+          <Route path="/signup" element={<SignupPage />} />
+
+          <Route path="/forgot_password" element={<ForgotPassword />} />
+
+          <Route path="/update_password" element={<UpdatePassword />} />
+
+          <Route path="/courses" element={<Courses />} />
+
+          <Route path="/solutions" element={<Solutions />} />
+
+          <Route path="/team" element={<Team />} />
+
+          <Route path="/contact" element={<Contact />} />
+
+          <Route path="/payment" element={<Navigate to="/courses" replace />} />
+          <Route path="/payment/:slug" element={<Payment />} />
+
+          {/* Protected Routes — Admin Dashboard */}
+          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminOverview />} />
+              <Route path="courses" element={<AdminCourses />} />
+              <Route path="students" element={<AdminStudents />} />
+              <Route path="instructor" element={<AdminInstructor />} />
+              <Route path="instructors" element={<AdminInstructors />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="certificates" element={<AdminCertificates />} />
+              <Route path="reviews" element={<AdminReviews />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
+          </Route>
+
+          {/* Protected Routes — Student Dashboard (nested) */}
+          <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
+            <Route path="/student" element={<DashboardLayout />}>
+              {/* الصفحة الرئيسية */}
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<DashboardHome />} />
+              {/* Flat sub-pages — بدون /dashboard في المسار */}
+              <Route path="certificates" element={<DashboardCertificates />} />
+              <Route path="quizzes" element={<DashboardQuizzes />} />
+              <Route path="profile" element={<DashboardProfile />} />
+              {/* Aliases — لو جه من رابط قديم بـ /dashboard/xxx */}
+              <Route path="dashboard/certificates" element={<Navigate to="/student/certificates" replace />} />
+              <Route path="dashboard/quizzes" element={<Navigate to="/student/quizzes" replace />} />
+              <Route path="dashboard/profile" element={<Navigate to="/student/profile" replace />} />
+            </Route>
+          </Route>
+        </Routes>
+        {/* إظهار الفوتر فقط إذا لم نكن في صفحة اللوجين */}
+        {!hideLayout && <AppFooter />}
+      </div>
+    </>);
 }
 
 function App() {
   return (
     <AuthProvider>
       <Router>
+        {/* مكون الإشعارات العالمي - يجب أن يكون على مستوى الـ App */}
+        <Toaster position="top-center" reverseOrder={false} />
         <AppContent />
         <ScrollToTop />
       </Router>

@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
 import { HiOutlineGlobeAlt } from "react-icons/hi";
 import { useAuth } from "../../contexts/AuthContext";
+import { showLogoutConfirm } from "../shared/ConfirmDialog/confirmDialog";
+import { toastCustom } from "../shared/Toaster/toaster";
 import "./Navbar.css";
 
 import logoWhite from "../../assets/logo-white.webp";
@@ -15,11 +17,28 @@ function AppNavbar({ isLoggedIn, userName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+
+  // تم الإبقاء على هذا التعريف لأنه يحتوي على الـ UX الأفضل
+  const handleLogout = async () => {
+    // عرض نافذة التأكيد قبل تسجيل الخروج
+    const confirmed = await showLogoutConfirm();
+    if (!confirmed) return;
+
+    // تسجيل الخروج وعرض إشعار الوداع
+    await logout();
+    toastCustom({
+      message: i18n.language === "ar" ? "تم تسجيل الخروج بنجاح" : "Logged out successfully",
+      type: "info",
+      bsIcon: "bi-box-arrow-right",
+      duration: 3000,
+    });
+    navigate('/');
+  };
 
   const isHome = location.pathname === "/";
 
-  // 1. حساب حالة الشفافية (صححنا الخطأ هنا)
+  // 1. حساب حالة الشفافية 
   const isTransparent = useMemo(() => {
     return isHome && !scrolled && !mobileMenuOpen && !isLoggedIn;
   }, [isHome, scrolled, mobileMenuOpen, isLoggedIn]);
@@ -43,11 +62,6 @@ function AppNavbar({ isLoggedIn, userName }) {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  const handleLogout = async () => {
-      await logout();
-    navigate("/");
-  };
-
   const toggleLanguage = () => {
     const newLang = i18n.language === "ar" ? "en" : "ar";
     i18n.changeLanguage(newLang);
@@ -68,7 +82,6 @@ function AppNavbar({ isLoggedIn, userName }) {
       <Container>
         <Navbar.Brand as={Link} to="/">
           <img
-            // تبديل اللوجو: أبيض للمشترك، أسود للضيف (في الشفافية فقط)
             src={isLoggedIn ? logoDark : logoWhite}
             alt="T-Square Logo"
             height="55"
@@ -145,6 +158,13 @@ function AppNavbar({ isLoggedIn, userName }) {
                   {userName ? userName.charAt(0).toUpperCase() : "U"}
                 </div>
 
+                {user && !user.email_verified_at && (
+                  <i
+                    className="bi bi-exclamation-circle-fill text-warning fs-5"
+                    title={t("user:not_activated")}
+                    style={{ cursor: "help" }}
+                  ></i>
+                )}
                 <NavDropdown
                   title={
                     <span

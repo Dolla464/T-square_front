@@ -328,44 +328,19 @@ function AllPayment() {
                     </div>
                     <div className="order-summary-meta-item">
                       <i className="bi bi-translate"></i>
-                      Course language :<span className="fw-bold"> {course?.language}</span>
+                      Course level :<span className="fw-bold"> {course?.level}</span>
                     </div>
                     <div className="order-summary-meta-item">
                       <i className="bi bi-calendar-event"></i>
                       <span>
-                        Course created at :
-                        <span className="text-capitalize fw-bold">
-                          {course?.created_at}
-                        </span>
+                        Course duration : <span className="fw-bold"> {course?.duration_hours} h </span>
                       </span>
                     </div>
 
                   </div>
-                  {/* Course Tags */}
-                  <div className="course-tags" dir="ltr">
-                    {course?.tags?.map((tag) => (
-                      <span key={tag.id} className="tag">
-                        {tag.name}
-                      </span>
-                    ))}
-                  </div>
 
-                  {/* Price Details */}
-                  <div className="order-price-details mt-4 mb-3 border-top pt-3" dir={isArabic ? "rtl" : "ltr"}>
-                    <div className="d-flex justify-content-between mb-2">
-                      <span className="text-muted">{isArabic ? "السعر الأصلي" : "Original Price"}</span>
-                      <span className="text-decoration-line-through text-muted">
-                        {course?.price?.original} {t("courses:card.priceUnit")}
-                      </span>
-                    </div>
 
-                    {course?.price?.discount > 0 && (
-                      <div className="d-flex justify-content-between mb-2 text-success">
-                        <span>{isArabic ? "الخصم" : "Discount"}</span>
-                        <span>- {course?.price?.discount} {t("courses:card.priceUnit")}</span>
-                      </div>
-                    )}
-                  </div>
+
 
                   {/* Total */}
                   <div className="order-total-row border-top pt-2 mt-2" dir={isArabic ? "rtl" : "ltr"}>

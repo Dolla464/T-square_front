@@ -1,6 +1,6 @@
 import AllCourses from "../components/courses/AllCourses";
 import CallToAction from "../components/courses/CallToAction";
-import ContactSection from "../components/shared/ContactSection/ContactSection";
+import ContactSection from "../components/courses/ContactSection";
 
 const CoursesPage = () => (
   <>

@@ -1,0 +1,23 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "courses": "Courses",
+    "students": "Students",
+    "instructor": "Instructor",
+    "instructors": "Instructors",
+    "orders": "Orders / Payments",
+    "analytics": "Analytics",
+    "certificates": "Certificates",
+    "reviews": "Reviews",
+    "settings": "Settings"
+  },
+  "topbar": {
+    "search_placeholder": "Search courses, students, orders...",
+    "notifications": "Notifications",
+    "role": "Administrator"
+  },
+  "coming_soon": {
+    "title": "Coming Soon",
+    "subtitle": "This section is under development and will be available soon."
+  }
+}

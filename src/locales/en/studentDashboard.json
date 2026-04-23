@@ -1,0 +1,63 @@
+{
+  "welcome": "Welcome back, {{name}} ",
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "quiz": "Quiz",
+    "certificates": "Certificates",
+    "profile": "Profile"
+  },
+  "stats": {
+    "all_courses": "All Courses",
+    "in_progress": "In Progress",
+    "completed_courses": "Completed Courses",
+    "purchased_courses": "Purchased Courses",
+    "certificates_earned": "Certificates Earned",
+    "courses_enrolled": "Courses Enrolled"
+  },
+  "continue_learning": {
+    "title": "CONTINUE WHERE YOU LEFT OFF",
+    "button": "Continue Learning",
+    "complete": "{{percentage}}% complete"
+  },
+  "active_courses": {
+    "title": "My Active Courses",
+    "continue": "Continue",
+    "review": "Review",
+    "filter": {
+      "all": "All",
+      "in_progress": "In Progress",
+      "completed": "Completed"
+    }
+  },
+  "certificates_page": {
+    "title": "My Certificates",
+    "download_pdf": "Download PDF",
+    "completed_on": "Completed: {{date}}"
+  },
+  "profile_page": {
+    "title": "Profile & Settings",
+    "personal_info": "Personal Information",
+    "edit_photo": "Edit Photo",
+    "full_name": "Full Name",
+    "email_address": "Email Address",
+    "phone_number": "Phone Number",
+    "change_password": "Change Password",
+    "current_password": "Current Password",
+    "new_password": "New Password",
+    "confirm_new_password": "Confirm New Password",
+    "update_password": "Update Password",
+    "account_settings": "Account Settings",
+    "language": "Language",
+    "notification_prefs": "Notification Preferences",
+    "new_lessons": "New lessons & course updates",
+    "cert_earned": "Certificate earned alerts",
+    "weekly_reminders": "Weekly learning reminders",
+    "promo_emails": "Promotional emails",
+    "save_preferences": "Save Preferences"
+  },
+  "quizzes": {
+    "title": "My Quizzes",
+    "placeholder": "Quizzes list will be available soon."
+  },
+  "activation_warning": "Your account is not activated for email: {{email}}"
+}

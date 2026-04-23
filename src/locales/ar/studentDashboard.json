@@ -1,0 +1,63 @@
+{
+  "welcome": "مرحباً بعودتك، {{name}} ",
+  "sidebar": {
+    "dashboard": "لوحة التحكم",
+    "quiz": "الاختبارات",
+    "certificates": "الشهادات",
+    "profile": "الملف الشخصي"
+  },
+  "stats": {
+    "all_courses": "كل الكورسات",
+    "in_progress": "قيد التنفيذ",
+    "completed_courses": "الكورسات المكتملة",
+    "purchased_courses": "الكورسات المشتراة",
+    "certificates_earned": "الشهادات المكتسبة",
+    "courses_enrolled": "الكورسات المسجل بها"
+  },
+  "continue_learning": {
+    "title": "اكمل من حيث توقفت",
+    "button": "متابعة التعلم",
+    "complete": "اكتمل بنسبة {{percentage}}%"
+  },
+  "active_courses": {
+    "title": "كورساتي النشطة",
+    "continue": "متابعة",
+    "review": "مراجعة",
+    "filter": {
+      "all": "الكل",
+      "in_progress": "قيد التنفيذ",
+      "completed": "مكتملة"
+    }
+  },
+  "certificates_page": {
+    "title": "شهاداتي",
+    "download_pdf": "تحميل PDF",
+    "completed_on": "اكتمل في: {{date}}"
+  },
+  "profile_page": {
+    "title": "الملف الشخصي والإعدادات",
+    "personal_info": "المعلومات الشخصية",
+    "edit_photo": "تعديل الصورة",
+    "full_name": "الاسم الكامل",
+    "email_address": "البريد الإلكتروني",
+    "phone_number": "رقم الهاتف",
+    "change_password": "تغيير كلمة المرور",
+    "current_password": "كلمة المرور الحالية",
+    "new_password": "كلمة المرور الجديدة",
+    "confirm_new_password": "تأكيد كلمة المرور الجديدة",
+    "update_password": "تحديث كلمة المرور",
+    "account_settings": "إعدادات الحساب",
+    "language": "اللغة",
+    "notification_prefs": "تفضيلات الإشعارات",
+    "new_lessons": "دروس جديدة وتحديثات الكورسات",
+    "cert_earned": "تنبيهات الحصول على الشهادات",
+    "weekly_reminders": "تذكيرات تعلم أسبوعية",
+    "promo_emails": "رسائل برامج ترويجية",
+    "save_preferences": "حفظ التفضيلات"
+  },
+  "quizzes": {
+    "title": "اختباراتي",
+    "placeholder": "قائمة الاختبارات ستكون متاحة قريباً."
+  },
+  "activation_warning": "حسابك غير مفعل للبريد الإلكتروني: {{email}}"
+}

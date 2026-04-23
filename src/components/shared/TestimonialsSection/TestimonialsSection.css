@@ -1,0 +1,72 @@
+/* ================================================================
+   تنسيق سكشن التقييمات المشترك — TestimonialsSection
+   ================================================================ */
+
+.testimonials-section {
+  background-color: #fff;
+  text-align: center;
+}
+
+/* ── كارت التقييم ── */
+.testimonial-card {
+  background: #fff;
+  border-radius: 25px;
+  padding: 40px 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+  height: 100%;
+  position: relative;
+  transition: transform 0.3s ease;
+  text-align: start;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-10px);
+}
+
+/* ── أيقونة الاقتباس ── */
+.quote-icon {
+  color: #be1522;
+  font-size: 3rem;
+  font-family: "Georgia", serif;
+  position: absolute;
+  top: 10px;
+  inset-inline-start: 20px;
+  line-height: 1;
+}
+
+/* ── صورة الشخص ── */
+.testimonial-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #eee;
+}
+
+/* ── النص ── */
+.testimonial-text {
+  color: #555;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  font-style: italic;
+}
+
+/* ── لون النجوم الفاضية ── */
+.text-light-gray {
+  color: #e0e0e0 !important;
+}
+
+/* Tablet+ */
+@media (min-width: 768px) {
+  .testimonial-text {
+    font-size: 0.92rem;
+  }
+}
+
+/* Desktop+ */
+@media (min-width: 1200px) {
+  .testimonial-text {
+    font-size: 0.95rem;
+  }
+}

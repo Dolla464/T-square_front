@@ -20,6 +20,8 @@ import enFeatures from "./locales/en/features.json";
 import enFaq from "./locales/en/faq.json";
 import enFooter from "./locales/en/footer.json";
 import enPayment from "./locales/en/payment.json";
+import enStudentDashboard from "./locales/en/studentDashboard.json";
+import enAdminDashboard from "./locales/en/adminDashboard.json";
 
 // Arabic namespaces
 import arNavbar from "./locales/ar/navbar.json";
@@ -39,6 +41,8 @@ import arFeatures from "./locales/ar/features.json";
 import arFaq from "./locales/ar/faq.json";
 import arFooter from "./locales/ar/footer.json";
 import arPayment from "./locales/ar/payment.json";
+import arStudentDashboard from "./locales/ar/studentDashboard.json";
+import arAdminDashboard from "./locales/ar/adminDashboard.json";
 
 i18n
   .use(LanguageDetector)
@@ -63,6 +67,8 @@ i18n
         faq: enFaq,
         footer: enFooter,
         payment: enPayment,
+        studentDashboard: enStudentDashboard,
+        adminDashboard: enAdminDashboard,
       },
       ar: {
         navbar: arNavbar,
@@ -82,6 +88,8 @@ i18n
         faq: arFaq,
         footer: arFooter,
         payment: arPayment,
+        studentDashboard: arStudentDashboard,
+        adminDashboard: arAdminDashboard,
       },
     },
 
@@ -104,6 +112,8 @@ i18n
       "faq",
       "footer",
       "payment",
+      "studentDashboard",
+      "adminDashboard",
     ],
     defaultNS: "common",
 
@@ -111,5 +121,11 @@ i18n
       escapeValue: false,
     },
   });
+
+/**
+ * دالة مساعدة موحدة للتأكد من اللغة الحالية
+ * تدعم حالات مثل ar أو ar-SA
+ */
+export const isArabic = () => i18n.language && i18n.language.startsWith("ar");
 
 export default i18n;
