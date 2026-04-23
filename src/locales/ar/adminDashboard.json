@@ -1,0 +1,23 @@
+{
+  "sidebar": {
+    "dashboard": "لوحة التحكم",
+    "courses": "الكورسات",
+    "students": "الطلاب",
+    "instructor": "المحاضر",
+    "instructors": "المحاضرون",
+    "orders": "الطلبات / المدفوعات",
+    "analytics": "التحليلات",
+    "certificates": "الشهادات",
+    "reviews": "التقييمات",
+    "settings": "الإعدادات"
+  },
+  "topbar": {
+    "search_placeholder": "ابحث عن كورسات، طلاب، طلبات...",
+    "notifications": "الإشعارات",
+    "role": "مسؤول النظام"
+  },
+  "coming_soon": {
+    "title": "قريباً",
+    "subtitle": "هذا القسم تحت التطوير وسيكون متاحاً قريباً."
+  }
+}

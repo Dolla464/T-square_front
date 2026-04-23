@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginService } from '../services/login';
 import { useAuth } from '../contexts/AuthContext';
+import { toastWelcome } from '../components/shared/Toaster/toaster';
 
 export const useLogin = () => {
   const [loading, setLoading] = useState(false);
@@ -16,8 +17,11 @@ export const useLogin = () => {
     try {
       const { data } = await loginService(credentials);
       
-      // Save token and user in context + localStorage/sessionStorage
+      // حفظ بيانات المستخدم في الـ Context
       login(data, rememberMe);
+
+      // عرض رسالة ترحيب بعد تسجيل الدخول بنجاح
+      toastWelcome(data.user?.name || data.user?.email);
 
       // Role-based routing
       if (data.user.role === 'admin') {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Container, Card, Form, Button, Nav, Alert, Spinner } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import tsquareLogo from "../../assets/logo-dark.webp"; // تأكد من مسار اللوجو
 import "./Login.css"; // ملف الـ CSS المرفق في الأسفل
@@ -14,6 +15,40 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const { executeLogin, loading, error } = useLogin();
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  // ── زر مؤقت للدخول بـ Role Admin للمعاينة ──
+  const handleAdminBypass = () => {
+    const mockAdminData = {
+      token: "mock-token-admin",
+      user: {
+        id: 1,
+        name: "Admin User",
+        email: "admin@tsquare.com",
+        role: "admin",
+        is_active: true,
+        email_verified_at: "2026-04-22T13:54:21.000000Z"
+      }
+    };
+    login(mockAdminData, true);
+    navigate("/admin");
+  };
+  const handleStudentBypass = () => {
+    const mockAdminData = {
+      token: "mock-token-admin",
+      user: {
+        id: 1,
+        name: "Student User",
+        email: "student@tsquare.com",
+        role: "student",
+        is_active: true,
+        email_verified_at: null
+      }
+    };
+    login(mockAdminData, true);
+    navigate("/student/dashboard");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -114,6 +149,24 @@ function LoginPage() {
                 disabled={loading}
               >
                 {loading ? <Spinner animation="border" size="sm" /> : t("login_form.sign_in_btn")}
+              </Button>
+
+              {/* زر مؤقت للمطور للدخول كمسؤول */}
+              <Button
+                variant="outline-dark"
+                className="w-100 mt-3 border-secondary"
+                onClick={handleAdminBypass}
+                style={{ borderStyle: 'dashed' }}
+              >
+                {isArabic ? "دخول سريع (Admin)" : "Quick Login (Admin)"}
+              </Button>
+              <Button
+                variant="outline-dark"
+                className="w-100 mt-3 border-secondary"
+                onClick={handleStudentBypass}
+                style={{ borderStyle: 'dashed' }}
+              >
+                {isArabic ? "دخول سريع (Student)" : "Quick Login (Student)"}
               </Button>
             </Form>
 

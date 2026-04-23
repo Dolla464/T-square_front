@@ -14,6 +14,14 @@ body {
   color: var(--text-main);
 }
 
+/* 2.1 إلغاء الخط تحت اللينكات بشكل عام */
+a, 
+.nav-link, 
+.btn-continue, 
+.sidebar-link {
+  text-decoration: none !important;
+}
+
 /* 3. تعديل الـ Navbar عشان تشبه الصور بالظبط */
 .navbar {
   border-bottom: 1px solid #eee;

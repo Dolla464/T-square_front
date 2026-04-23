@@ -40,7 +40,7 @@ function SignupPage() {
   };
 
   return (
-    <div className="signup-wrapper  " dir={isArabic ? "rtl" : "ltr"}>
+    <div className="signup-wrapper" dir={isArabic ? "rtl" : "ltr"}>
       <Container className="d-flex justify-content-center align-items-center h-100">
         <Card className="signup-card shadow border-0 p-4">
           <Card.Body className="text-center p-0">

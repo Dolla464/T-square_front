@@ -1,0 +1,346 @@
+/* ================================================================
+   Shared Dashboard Layout CSS 
+   ================================================================ */
+
+.shared-dashboard-wrapper {
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: #f4f5f7;
+  font-family: inherit;
+}
+
+/* ══════════════ Sidebar ══════════════ */
+.shared-dashboard-sidebar {
+  width: 230px;
+  height: 100vh;
+  height: 100dvh;         
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  flex-shrink: 0;
+  overflow-y: auto;      
+  z-index: 100;
+  transition: transform 0.3s ease;
+  box-sizing: border-box;
+  background-color: rgb(26, 26, 26);
+}
+
+/* اللوجو */
+.sidebar-logo {
+  display: block;
+  text-decoration: none;
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 8px;
+}
+
+.sidebar-logo img {
+  height: 48px;
+  filter: brightness(0) invert(1); /* جعل اللوجو الدارك يظهر كأنه أبيض ليناسب الخلفية الغامقة */
+}
+
+/* روابط التنقل */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 14px;
+  flex: 1 1 auto;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #9ca3af;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.sidebar-link:hover {
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+}
+
+.sidebar-link-active {
+  background-color: #be1522 !important;
+  color: #fff !important;
+}
+
+.sidebar-link-icon {
+  font-size: 1.1rem;
+  width: 20px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+/* Footer & Logout */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 8px 12px calc(24px + env(safe-area-inset-bottom, 0px));
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.sidebar-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background 0.2s, color 0.2s;
+  text-align: start;
+}
+
+.sidebar-logout-btn:hover {
+  background: rgba(190, 21, 34, 0.12);
+  color: #be1522;
+}
+
+
+/* ══════════════ Main Area ══════════════ */
+.shared-dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* ══════════════ Topbar ══════════════ */
+.shared-dashboard-topbar {
+  height: 64px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-sizing: border-box;
+}
+
+.sidebar-toggle-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #333;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.sidebar-toggle-btn:hover {
+  background: #f4f5f7;
+}
+
+/* Center Wrap (e.g. search) */
+.topbar-center-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 480px;
+}
+
+/* Topbar Right Side */
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-inline-start: auto;
+}
+
+/* Activation Badge */
+.topbar-activation-badge {
+  background-color: #fff8e1;
+  border: 1px solid #ffcc00;
+  color: #856404;
+  padding: 6px 14px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-inline-end: 8px;
+}
+
+.topbar-activation-badge i {
+  font-size: 1rem;
+  color: #ff9800;
+}
+
+/* Notifications Button */
+.topbar-notif-btn {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #555;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.topbar-notif-btn:hover {
+  background: #f4f5f7;
+}
+
+.notif-dot {
+  position: absolute;
+  top: 7px;
+  inset-inline-end: 7px;
+  width: 8px;
+  height: 8px;
+  background: #be1522;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+/* User Info */
+.topbar-user-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 10px;
+  transition: background 0.2s;
+  text-align: start;
+}
+
+.topbar-user-btn.clickable {
+  cursor: pointer;
+}
+
+.topbar-user-btn.clickable:hover {
+  background: #f4f5f7;
+}
+
+.topbar-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #be1522;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.topbar-user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.topbar-user-name {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+
+.topbar-user-role {
+  font-size: 0.74rem;
+  color: #888;
+}
+
+/* ══════════════ Content Area ══════════════ */
+.shared-dashboard-content {
+  flex: 1;
+  padding: 28px;
+  overflow-y: auto;
+  height: 0;
+  box-sizing: border-box;
+}
+
+/* ══════════════ Overlay (Mobile) ══════════════ */
+.shared-dashboard-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99;
+}
+
+/* ══════════════ Responsive ══════════════ */
+@media (max-width: 991px) {
+  .shared-dashboard-sidebar {
+    position: fixed;
+    top: 0;
+    inset-inline-start: 0;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+  }
+
+  [dir="rtl"] .shared-dashboard-sidebar {
+    transform: translateX(100%);
+  }
+  
+  .shared-dashboard-sidebar.sidebar-open {
+    transform: translateX(0) !important;
+  }
+
+  .sidebar-toggle-btn {
+    display: flex;
+  }
+  
+  .shared-dashboard-overlay {
+    display: block;
+  }
+  
+  .shared-dashboard-content {
+    padding: 20px 16px;
+  }
+
+  .topbar-center-wrap {
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .activation-text {
+    display: none; 
+  }
+  .topbar-activation-badge {
+    padding: 4px 7px;
+    border-radius: 50%;
+    aspect-ratio: 1;
+    justify-content: center;
+  }
+  .topbar-user-info {
+    display: none;
+  }
+}

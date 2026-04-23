@@ -2,17 +2,14 @@ import React, { useState } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { MOCK_DATA } from "../../data/mockData";
-import studentImg from "../../assets/student-avatar.jpg";
 import ContactForm from "../shared/ContactForm/ContactForm";
-import { postContactMessage } from "../../services/contact";
+import TestimonialsSection from "../shared/TestimonialsSection/TestimonialsSection";
 import "./AllContact.css";
 import i18n from "../../i18n";
 import CtaEnroll from "../shared/ctaEntroll/CtaEnroll";
 
 function AllContact() {
   const { t } = useTranslation(["contact", "cta", "testimonials", "navbar"]);
-  const { teamTestimonialsData } = MOCK_DATA;
   const isArabic = i18n.language === "ar";
 
   return (
@@ -126,49 +123,8 @@ function AllContact() {
       {/* General Call-To-Action Banner */}
       <CtaEnroll />
 
-      {/* Testimonials Reused Block */}
-      <div className="testimonials-section py-5">
-        <Container className="py-5">
-          <h2 className="text-center fw-bold mb-5">
-            {t("testimonials:title")}
-          </h2>
-          <Row className="g-4">
-            {teamTestimonialsData &&
-              teamTestimonialsData.map((testimonial) => (
-                <Col lg={4} md={6} key={testimonial.id}>
-                  <div className="testimonial-card">
-                    <div className="quote-icon mb-3">
-                      <span className="quote-mark">“</span>
-                    </div>
-                    <div className="d-flex align-items-center mb-4">
-                      <img
-                        src={studentImg}
-                        alt={testimonial.name}
-                        className="testimonial-avatar me-3"
-                      />
-                      <div>
-                        <h6 className="mb-0 fw-bold">{testimonial.name}</h6>
-                        <small className="text-muted">{testimonial.role}</small>
-                        <div className="mt-1 d-flex gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <i
-                              key={i}
-                              className={`bi bi-star-fill ${i < testimonial.stars ? "text-warning" : "text-light-gray"}`}
-                              style={{ fontSize: "14px" }}
-                            ></i>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-muted testimonial-text">
-                      "{testimonial.text}"
-                    </p>
-                  </div>
-                </Col>
-              ))}
-          </Row>
-        </Container>
-      </div>
+      {/* سكشن التقييمات المشترك */}
+      <TestimonialsSection />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { postContactMessage } from "../services/contact";
+import { toastContactSent, toastError } from "../components/shared/Toaster/toaster";
 
 export const useContact = () => {
     // حالة التحميل
@@ -16,9 +17,11 @@ export const useContact = () => {
 
         try {
             const res = await postContactMessage(formData);
-            
+
             if (res.data.status === "success") {
                 setSuccess(res.data.message || "Message sent successfully!");
+                // عرض إشعار إرسال الرسالة بنجاح
+                toastContactSent();
                 return res.data;
             } else {
                 throw new Error(res.data.message || "Submission failed");

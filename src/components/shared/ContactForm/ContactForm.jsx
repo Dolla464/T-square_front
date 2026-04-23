@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Alert } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { useContact } from "../../../hooks/useContact";
@@ -12,13 +12,26 @@ function ContactForm({ title, subtitle, onSubmit, submitText, externalLoading })
   const isArabic = i18n.language === "ar";
   const loading = externalLoading || hookLoading;
 
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    learning_track: "",
-    message: "",
+    title: "",   // Was learning_track
+    content: "", // Was message
   });
+
+  // Pre-fill form if user is logged in
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || ""
+      }));
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     setFormData({
@@ -26,20 +39,21 @@ function ContactForm({ title, subtitle, onSubmit, submitText, externalLoading })
       [e.target.name]: e.target.value,
     });
   };
-  const { user } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // If a custom onSubmit is provided (e.g. for analytics or parent logic), use it
     if (onSubmit) {
       onSubmit(formData);
     } else {
-      // Default behavior: use the hook to connect to API
       try {
         await submitContact(formData);
-        // Clear form on success
-        setFormData({ name: "", email: "", phone: "", learning_track: "", message: "" });
+        // Clear form (except pre-filled fields) on success
+        setFormData(prev => ({
+          ...prev,
+          title: "",
+          content: ""
+        }));
       } catch (err) {
         // Error handled by hook
       }
@@ -55,8 +69,8 @@ function ContactForm({ title, subtitle, onSubmit, submitText, externalLoading })
         </div>
       )}
 
-      {error && <Alert variant="danger" className="mb-4">{isArabic ? "هذا البريد الإلكتروني تم إرساله مسبقاً" : "This email has already been submitted"}</Alert>}
-      {success && <Alert variant="success" className="mb-4">{isArabic ? "تم إرسال رسالتك بنجاح" : "Message sent successfully"}</Alert>}
+      {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
+      {success && <Alert variant="success" className="mb-4">{success}</Alert>}
 
       {/* Reusable Form */}
       <Form onSubmit={handleSubmit}>
@@ -66,7 +80,7 @@ function ContactForm({ title, subtitle, onSubmit, submitText, externalLoading })
             name="name"
             placeholder={t("contact:form.name")}
             className="custom-input shadow-none"
-            value={user?.name || formData.name}
+            value={formData.name}
             onChange={handleChange}
             required
             disabled={loading}
@@ -78,7 +92,7 @@ function ContactForm({ title, subtitle, onSubmit, submitText, externalLoading })
             name="email"
             placeholder={t("contact:form.emailAddress")}
             className="custom-input shadow-none"
-            value={user?.email || formData.email}
+            value={formData.email}
             onChange={handleChange}
             required
             disabled={loading}
@@ -90,30 +104,30 @@ function ContactForm({ title, subtitle, onSubmit, submitText, externalLoading })
             name="phone"
             placeholder={t("contact:form.phoneNumber")}
             className="custom-input shadow-none"
-            value={user?.phone || formData.phone}
+            value={formData.phone}
             onChange={handleChange}
             disabled={loading}
           />
         </Form.Group>
-        <Form.Group className="mb-4" controlId="contactTrack">
+        <Form.Group className="mb-4" controlId="contactTitle">
           <Form.Control
             type="text"
-            name="learning_track"
+            name="title"
             placeholder={t("contact:form.track")}
             className="custom-input shadow-none"
-            value={formData.learning_track}
+            value={formData.title}
             onChange={handleChange}
             disabled={loading}
           />
         </Form.Group>
-        <Form.Group className="mb-4" controlId="contactMessage">
+        <Form.Group className="mb-4" controlId="contactContent">
           <Form.Control
             as="textarea"
-            name="message"
+            name="content"
             rows={4}
             placeholder={t("contact:form.message")}
             className="custom-textarea custom-input shadow-none"
-            value={formData.message}
+            value={formData.content}
             onChange={handleChange}
             disabled={loading}
           />

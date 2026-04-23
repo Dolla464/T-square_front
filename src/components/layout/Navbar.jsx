@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
 import { HiOutlineGlobeAlt } from "react-icons/hi";
 import { useAuth } from "../../contexts/AuthContext";
+import { showLogoutConfirm } from "../shared/ConfirmDialog/confirmDialog";
+import { toastCustom } from "../shared/Toaster/toaster";
 import "./Navbar.css";
 
 import logoWhite from "../../assets/logo-white.png";
@@ -17,8 +19,19 @@ function AppNavbar({ isLoggedIn, userName }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // عرض نافذة التأكيد قبل تسجيل الخروج
+    const confirmed = await showLogoutConfirm();
+    if (!confirmed) return;
+
+    // تسجيل الخروج وعرض إشعار الوداع
     logout();
+    toastCustom({
+      message: i18n.language === "ar" ? "تم تسجيل الخروج بنجاح" : "Logged out successfully",
+      type: "info",
+      bsIcon: "bi-box-arrow-right",
+      duration: 3000,
+    });
     navigate('/');
   };
 
@@ -222,11 +235,11 @@ function AppNavbar({ isLoggedIn, userName }) {
                 >
                   {userName ? userName.charAt(0).toUpperCase() : "U"}
                 </div>
-                
+
                 {/* الإشعار لو الحساب مش متفعل */}
                 {user && !user.email_verified_at && (
-                  <i 
-                    className="bi bi-exclamation-circle-fill text-warning fs-5" 
+                  <i
+                    className="bi bi-exclamation-circle-fill text-warning fs-5"
                     title={t("user:not_activated")}
                     style={{ cursor: "help" }}
                   ></i>
