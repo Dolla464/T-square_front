@@ -80,6 +80,8 @@ function AppContent() {
     document.body.dir = dir;
     document.body.lang = lang;
 
+    document.title = t("site_title") || "T-Square";
+
     // Persist language to localStorage
     localStorage.setItem("i18nextLng", lang);
   }, [i18n, i18n.language]);

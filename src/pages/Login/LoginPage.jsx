@@ -56,7 +56,7 @@ function LoginPage() {
     try {
       await executeLogin({ email, password }, rememberMe);
     } catch (err) {
-      // Error state is managed by the hook
+      // Error state is managed by the 
     }
   };
   return (
