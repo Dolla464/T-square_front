@@ -19,13 +19,14 @@ function AppNavbar({ isLoggedIn, userName }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
+  // تم الإبقاء على هذا التعريف لأنه يحتوي على الـ UX الأفضل
   const handleLogout = async () => {
     // عرض نافذة التأكيد قبل تسجيل الخروج
     const confirmed = await showLogoutConfirm();
     if (!confirmed) return;
 
     // تسجيل الخروج وعرض إشعار الوداع
-    logout();
+    await logout();
     toastCustom({
       message: i18n.language === "ar" ? "تم تسجيل الخروج بنجاح" : "Logged out successfully",
       type: "info",
@@ -37,7 +38,7 @@ function AppNavbar({ isLoggedIn, userName }) {
 
   const isHome = location.pathname === "/";
 
-  // 1. حساب حالة الشفافية (صححنا الخطأ هنا)
+  // 1. حساب حالة الشفافية 
   const isTransparent = useMemo(() => {
     return isHome && !scrolled && !mobileMenuOpen && !isLoggedIn;
   }, [isHome, scrolled, mobileMenuOpen, isLoggedIn]);
@@ -61,11 +62,6 @@ function AppNavbar({ isLoggedIn, userName }) {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  const handleLogout = async () => {
-      await logout();
-    navigate("/");
-  };
-
   const toggleLanguage = () => {
     const newLang = i18n.language === "ar" ? "en" : "ar";
     i18n.changeLanguage(newLang);
@@ -86,7 +82,6 @@ function AppNavbar({ isLoggedIn, userName }) {
       <Container>
         <Navbar.Brand as={Link} to="/">
           <img
-            // تبديل اللوجو: أبيض للمشترك، أسود للضيف (في الشفافية فقط)
             src={isLoggedIn ? logoDark : logoWhite}
             alt="T-Square Logo"
             height="55"
@@ -163,7 +158,6 @@ function AppNavbar({ isLoggedIn, userName }) {
                   {userName ? userName.charAt(0).toUpperCase() : "U"}
                 </div>
 
-                {/* الإشعار لو الحساب مش متفعل */}
                 {user && !user.email_verified_at && (
                   <i
                     className="bi bi-exclamation-circle-fill text-warning fs-5"
