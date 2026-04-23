@@ -120,6 +120,7 @@ function AppContent() {
         />
 
         <meta name="author" content="T-Square" />
+        <link rel="icon" href="/public/favicon.png" />
 
         {/* Theme Color (Mobile UI) */}
         <meta name="theme-color" content="#000000" />
