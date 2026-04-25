@@ -23,7 +23,7 @@ export const useCourses = () => {
         ]);
         setCategories(catRes.data.data);
         setCourses(courseRes.data.data);
-        console.log("catRes:", catRes);
+        
         const meta = courseRes.data.meta;
         setPagination({
           currentPage: meta.current_page,

@@ -131,7 +131,7 @@ function AppNavbar({ isLoggedIn, userName }) {
               <div className="d-flex gap-2">
                 <Button
                   variant={isTransparent ? "outline-light" : "outline-light"}
-                  className="px-4 fw-bold rounded-3"
+                  className="px-4 fw-bold rounded-3 login-custom"
                   as={Link}
                   to="/login"
                 >
@@ -139,7 +139,7 @@ function AppNavbar({ isLoggedIn, userName }) {
                 </Button>
                 <Button
                   variant="danger"
-                  className="px-4 fw-bold rounded-3 border-0"
+                  className="px-4 fw-bold rounded-3 border-0 "
                   style={{ backgroundColor: "#c51c24" }}
                   as={Link}
                   to="/signup"
