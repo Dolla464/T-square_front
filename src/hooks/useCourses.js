@@ -11,30 +11,31 @@ export const useCourses = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  // فانكشن تجيب الداتا لأول مرة (كورسات وأقسام)
-  const loadInitialData = async (
-    params = { per_page: 6, type: "sub" },
-  ) => {
-    setLoading(true);
-    try {
-      const [catRes, courseRes] = await Promise.all([
-        fetchUserCategories({ type: params.type }),
-        fetchUserCourses(params),
-      ]);
-      setCategories(catRes.data.data);
-      setCourses(courseRes.data.data);
-      const meta = courseRes.data.meta;
-      setPagination({
-        currentPage: meta.current_page,
-        lastPage: meta.last_page,
-        total: meta.total,
-      });
-    } catch (error) {
-      console.error("Error loading initial data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // فانكشن تجيب الداتا لأول مرة (كورسات وأقسام)
+    const loadInitialData = async (
+      params = { per_page: 6, type: "sub" },
+    ) => {
+      setLoading(true);
+      try {
+        const [catRes, courseRes] = await Promise.all([
+          fetchUserCategories({ type: params.type }),
+          fetchUserCourses(params),
+        ]);
+        setCategories(catRes.data.data);
+        setCourses(courseRes.data.data);
+        
+        const meta = courseRes.data.meta;
+        setPagination({
+          currentPage: meta.current_page,
+          lastPage: meta.last_page,
+          total: meta.total,
+        });
+      } catch (error) {
+        console.error("Error loading initial data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
   // فانكشن للفلترة فقط
   const filterCourses = async (params) => {

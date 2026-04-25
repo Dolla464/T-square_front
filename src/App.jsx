@@ -55,7 +55,11 @@ import { t } from "i18next";
 
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
-  const { i18n } = useTranslation("common");
+
+
+
+
+  const { t, i18n } = useTranslation("common");
   const location = useLocation();
   const { user } = useAuth();
 
@@ -82,7 +86,7 @@ function AppContent() {
 
     // Persist language to localStorage
     localStorage.setItem("i18nextLng", lang);
-  }, [i18n, i18n.language]);
+  }, [i18n, i18n.language, t]);
   const isArabic = i18n.language === "ar";
 
   return (
@@ -115,7 +119,7 @@ function AppContent() {
         />
 
         <meta name="author" content="T-Square" />
-        <link rel="icon" href="/public/favicon.png" />
+        <link rel="icon" href="/favicon-32x32.png" />
 
         {/* Theme Color (Mobile UI) */}
         <meta name="theme-color" content="#000000" />

@@ -90,9 +90,16 @@
     text-align: center;
   }
 
-  .navbar-nav .nav-link {
-    padding: 10px 0;
-    font-size: 17px;
+  .login-custom {
+    border: #000000 1px solid !important; /* أزرار دايماً لها حدود سوداء في الموبايل */
+    color: #000000 !important; /* كلام الأزرار أسود في الموبايل */
+  }
+
+  /* تمت إضافة .navbar .navbar-collapse لرفع أولوية الكود وإجبار المتصفح على تنفيذه */
+  .navbar .navbar-collapse .nav-link-custom, 
+  .navbar .navbar-collapse .lang-switch {
+    color: #000000 !important; 
+    padding: 10px 0 !important;
   }
 
   /* language switch */
