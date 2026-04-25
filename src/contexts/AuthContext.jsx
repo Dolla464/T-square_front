@@ -8,18 +8,39 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const storedToken =
-      localStorage.getItem("token") || sessionStorage.getItem("token");
-    const storedUser =
-      localStorage.getItem("user") || sessionStorage.getItem("user");
+  // دالة مساعدة لتحديد نوع التخزين
+  const getStorage = (rememberMe) => {
+    return rememberMe ? localStorage : sessionStorage;
+  };
 
-    if (storedToken && storedUser) {
-      setToken(storedToken);
+  // دالة مساعدة لمسح البيانات من كلا النوعين
+  const clearAllStorage = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+  };
+
+  useEffect(() => {
+    // الأولوية للـ localStorage (Remember Me)
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
+    // إذا مفيش في localStorage، نجرب sessionStorage
+    const sessionToken = !storedToken ? sessionStorage.getItem("token") : null;
+    const sessionUser = !storedUser ? sessionStorage.getItem("user") : null;
+
+    const finalToken = storedToken || sessionToken;
+    const finalUser = storedUser || sessionUser;
+
+    if (finalToken && finalUser) {
+      setToken(finalToken);
       try {
-        setUser(JSON.parse(storedUser));
+        setUser(JSON.parse(finalUser));
       } catch (e) {
-        console.error("Failed to parse user data from localStorage", e);
+        console.error("Failed to parse user data from storage", e);
+        // تنظيف البيانات التالفة
+        clearAllStorage();
       }
     }
     setLoading(false);
@@ -29,7 +50,11 @@ export const AuthProvider = ({ children }) => {
     setToken(data.token);
     setUser(data.user);
 
-    const storage = rememberMe ? localStorage : sessionStorage;
+    // مسح أي بيانات قديمة قبل حفظ الجديدة
+    clearAllStorage();
+
+    // حفظ البيانات في نوع التخزين المحدد
+    const storage = getStorage(rememberMe);
     storage.setItem("token", data.token);
     storage.setItem("user", JSON.stringify(data.user));
   };
@@ -40,7 +65,7 @@ export const AuthProvider = ({ children }) => {
       // نبعت طلب للباك إيند لإلغاء التوكن
       // ملاحظة: تأكد إن مسار الـ API صح (مثلاً /api/logout)
       await axios.post(
-        "http://127.0.0.1:8000/api/logout",
+        `${import.meta.env.VITE_API_URL}/logout`,
         {},
         {
           headers: {
@@ -55,10 +80,7 @@ export const AuthProvider = ({ children }) => {
       // تنظيف كل شيء من الجهاز (الفرونت إيند)
       setToken(null);
       setUser(null);
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("user");
+      clearAllStorage();
     }
   };
 
