@@ -5,10 +5,12 @@ import { useTranslation } from "react-i18next"; // التعديل هنا
 import CourseCard from "../../components/shared/CourseCard/CourseCard";
 import { useCourses } from "../../hooks/useCourses";
 import "./AllCourses.css";
+import i18n from "../../i18n";
 
 function AllCourses() {
   // تعريف الـ Hook بتاع الترجمة
-  const { t } = useTranslation("courses"); // "all_courses" هو اسم ملف الـ JSON بتاعك
+  const { t } = useTranslation(["courses", "navbar", "testimonials"]);
+  const isArabic = i18n.language === "ar";
 
   const {
     courses,
@@ -47,18 +49,26 @@ function AllCourses() {
   };
 
   return (
-    <div className="all-courses-page py-5">
+    <div className="all-courses-page py-5 mt-5">
       <Container>
-        {/* Breadcrumbs - مترجمة */}
-        <nav className="breadcrumb-nav mb-4">
+        {/* Breadcrumbs */}
+        <nav className="breadcrumb-nav mb-4 flex items-center rtl:flex-row-reverse">
           <Link to="/" className="breadcrumb-item">
-            {t("breadcrumbHome")}
+            {t("navbar:home")}
           </Link>
+
           <span className="breadcrumb-separator mx-2">
-            <i className="bi bi-chevron-right"></i>
+            <span className="breadcrumb-separator mx-2">
+              {isArabic ? (
+                <i className="bi bi-chevron-left"></i>
+              ) : (
+                <i className="bi bi-chevron-right"></i>
+              )}
+            </span>
           </span>
+
           <span className="breadcrumb-item active">
-            {t("breadcrumbCourses")}
+            {t("navbar:solutions")}
           </span>
         </nav>
 
