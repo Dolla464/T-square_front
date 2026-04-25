@@ -19,10 +19,20 @@ dist-ssr/
 build/
 
 # Environment variables
+# Ignore local environment files (contain secrets)
+.env.local
+.env.*.local
 
-.env
-.env.*
-*.local
+# Allow template environment files (safe to commit)
+!.env
+!.env.example
+!.env.template
+
+# Ignore actual environment configuration files
+.env.development
+.env.production
+.env.staging
+.env.test
 
 # Editor directories and files
 

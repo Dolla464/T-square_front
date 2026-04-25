@@ -30,6 +30,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import "./components/shared/ConfirmDialog/confirmDialog.css";
+import ErrorBoundary from "./components/shared/ErrorBoundary";
 
 // ── وحدة داشبورد الطالب ──
 import DashboardLayout from "./modules/student-dashboard/layouts/DashboardLayout";
@@ -54,10 +55,6 @@ import { t } from "i18next";
 
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
-
-
-
-
   const { i18n } = useTranslation("common");
   const location = useLocation();
   const { user } = useAuth();
@@ -88,16 +85,11 @@ function AppContent() {
   }, [i18n, i18n.language]);
   const isArabic = i18n.language === "ar";
 
-
-
-
   return (
     <>
       <Helmet>
         {/* Primary Meta */}
-        <title>
-          T-Square
-        </title>
+        <title>T-Square</title>
 
         <meta
           name="description"
@@ -147,23 +139,20 @@ function AppContent() {
 
         <meta
           property="og:url"
-        // content="https://yourdomain.com"
+          // content="https://yourdomain.com"
         />
 
         <meta
           property="og:image"
-        // content="https://yourdomain.com/preview.png"
+          // content="https://yourdomain.com/preview.png"
         />
 
         {/* Twitter Preview */}
-        <meta
-          name="twitter:card"
-          content="summary_large_image"
-        />
+        <meta name="twitter:card" content="summary_large_image" />
 
         <meta
           name="twitter:title"
-        // content="LMS Platform | Programming Courses & Digital Solutions"
+          // content="LMS Platform | Programming Courses & Digital Solutions"
         />
 
         <meta
@@ -173,13 +162,19 @@ function AppContent() {
 
         <meta
           name="twitter:image"
-        // content="https://yourdomain.com/preview.png"
+          // content="https://yourdomain.com/preview.png"
         />
       </Helmet>
 
       <div className="min-h-screen">
         {/* إظهار النافبار فقط فاللاندينج بيدج */}
-        {!hideLayout && <AppNavbar isLoggedIn={!!user} userName={user?.name} role={user?.role} />}
+        {!hideLayout && (
+          <AppNavbar
+            isLoggedIn={!!user}
+            userName={user?.name}
+            role={user?.role}
+          />
+        )}
 
         <Routes>
           <Route path="/" element={<Home />} />
@@ -230,26 +225,38 @@ function AppContent() {
               <Route path="quizzes" element={<DashboardQuizzes />} />
               <Route path="profile" element={<DashboardProfile />} />
               {/* Aliases — لو جه من رابط قديم بـ /dashboard/xxx */}
-              <Route path="dashboard/certificates" element={<Navigate to="/student/certificates" replace />} />
-              <Route path="dashboard/quizzes" element={<Navigate to="/student/quizzes" replace />} />
-              <Route path="dashboard/profile" element={<Navigate to="/student/profile" replace />} />
+              <Route
+                path="dashboard/certificates"
+                element={<Navigate to="/student/certificates" replace />}
+              />
+              <Route
+                path="dashboard/quizzes"
+                element={<Navigate to="/student/quizzes" replace />}
+              />
+              <Route
+                path="dashboard/profile"
+                element={<Navigate to="/student/profile" replace />}
+              />
             </Route>
           </Route>
         </Routes>
         {/* إظهار الفوتر فقط إذا لم نكن في صفحة اللوجين */}
         {!hideLayout && <AppFooter />}
       </div>
-    </>);
+    </>
+  );
 }
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        {/* مكون الإشعارات العالمي - يجب أن يكون على مستوى الـ App */}
-        <Toaster position="top-center" reverseOrder={false} />
-        <AppContent />
-        <ScrollToTop />
+        <ErrorBoundary>
+          {/* مكون الإشعارات العالمي - يجب أن يكون على مستوى الـ App */}
+          <Toaster position="top-center" reverseOrder={false} />
+          <AppContent />
+          <ScrollToTop />
+        </ErrorBoundary>
       </Router>
     </AuthProvider>
   );
