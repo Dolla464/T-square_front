@@ -50,6 +50,7 @@ import AdminAnalytics from "./modules/admin-dashboard/pages/Analytics/AdminAnaly
 import AdminCertificates from "./modules/admin-dashboard/pages/Certificates/AdminCertificates";
 import AdminReviews from "./modules/admin-dashboard/pages/Reviews/AdminReviews";
 import AdminSettings from "./modules/admin-dashboard/pages/Settings/AdminSettings";
+import { t } from "i18next";
 
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
