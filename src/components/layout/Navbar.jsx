@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
@@ -8,8 +8,8 @@ import { showLogoutConfirm } from "../shared/ConfirmDialog/confirmDialog";
 import { toastCustom } from "../shared/Toaster/toaster";
 import "./Navbar.css";
 
-import logoWhite from "../../assets/logo-white.webp";
-import logoDark from "../../assets/logo-dark.webp";
+import logoWhite from "../../assets/logo-white.png";
+import logoDark from "../../assets/logo-dark.png";
 
 function AppNavbar({ isLoggedIn, userName }) {
   const { t, i18n } = useTranslation(["navbar", "common", "user"]);
@@ -19,14 +19,13 @@ function AppNavbar({ isLoggedIn, userName }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  // تم الإبقاء على هذا التعريف لأنه يحتوي على الـ UX الأفضل
   const handleLogout = async () => {
     // عرض نافذة التأكيد قبل تسجيل الخروج
     const confirmed = await showLogoutConfirm();
     if (!confirmed) return;
 
     // تسجيل الخروج وعرض إشعار الوداع
-    await logout();
+    logout();
     toastCustom({
       message: i18n.language === "ar" ? "تم تسجيل الخروج بنجاح" : "Logged out successfully",
       type: "info",
@@ -36,19 +35,13 @@ function AppNavbar({ isLoggedIn, userName }) {
     navigate('/');
   };
 
-  const isHome = location.pathname === "/";
 
-  // 1. حساب حالة الشفافية 
-  const isTransparent = useMemo(() => {
-    return isHome && !scrolled && !mobileMenuOpen && !isLoggedIn;
-  }, [isHome, scrolled, mobileMenuOpen, isLoggedIn]);
 
-  // 2. تحديد الثيم (ضيف أو مشترك)
-  const navThemeClass = isLoggedIn
-    ? "nav-white-bg"
-    : isTransparent
-      ? "nav-transparent"
-      : "nav-black-bg";
+  // Reset mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setScrolled(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -58,71 +51,155 @@ function AppNavbar({ isLoggedIn, userName }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [location.pathname]);
-
   const toggleLanguage = () => {
     const newLang = i18n.language === "ar" ? "en" : "ar";
     i18n.changeLanguage(newLang);
+
+    // Persist language selection to localStorage
     localStorage.setItem("i18nextLng", newLang);
+
+    // Update DOM immediately
+
     const newDir = newLang === "ar" ? "rtl" : "ltr";
     document.documentElement.dir = newDir;
     document.documentElement.lang = newLang;
+    document.body.dir = newDir;
+    document.body.lang = newLang;
   };
 
+  const isHome = location.pathname === "/";
+  const isHomeLoggedIn = isLoggedIn && isHome;
+  const isGuest = !isLoggedIn;
+  const isGuestHome = isGuest && isHome;
+  const isDarkMode = isHomeLoggedIn
+    ? scrolled
+    : isLoggedIn || (!isHome && !isLoggedIn);
+
+  const textColorClass =
+    isHomeLoggedIn && !scrolled
+      ? "light"
+      : mobileMenuOpen && !scrolled && isHomeLoggedIn
+        ? "text-dark"
+        : isDarkMode
+          ? "text-dark"
+          : "text-light"; // 1. تحديد لون الخلفية
+  const getBgColor = () => {
+    // Home + Logged in
+    if (isHomeLoggedIn) {
+      return mobileMenuOpen || scrolled ? "white" : "transparent";
+    }
+
+    // Logged in + any page else
+    if (isLoggedIn) {
+      return "white";
+    }
+
+    if (!isHome) {
+      return "black";
+    }
+
+    if (!isHomeLoggedIn) {
+      return mobileMenuOpen || scrolled ? "black" : "transparent";
+    }
+  };
+  const navTextColor = isHomeLoggedIn
+    ? mobileMenuOpen || scrolled
+      ? "text-dark"
+      : "text-light"
+    : isLoggedIn
+      ? "text-dark"
+      : "text-light";
+  // 2. تحديد اللوجو والـ Variant
+  const logo = isGuest
+    ? logoWhite
+    : isHomeLoggedIn
+      ? mobileMenuOpen || scrolled
+        ? logoDark
+        : logoWhite
+      : isLoggedIn
+        ? logoDark
+        : logoDark;
+
+  const Tbtn =
+    isLoggedIn && !scrolled && mobileMenuOpen
+      ? "dark"
+      : isLoggedIn && scrolled
+        ? "dark"
+        : !scrolled && isHome
+          ? "light"
+          : scrolled || isGuest
+            ? "light"
+            : "";
+
+  const navVariant = getBgColor() === "transparent" ? "dark" : "light";
+  const handleToggle = (expanded) => {
+    setMobileMenuOpen(expanded);
+  };
+
+  const handleNavLinkClick = () => {
+    setMobileMenuOpen(false);
+  };
   return (
     <Navbar
       expand="lg"
       expanded={mobileMenuOpen}
-      onToggle={setMobileMenuOpen}
+      onToggle={handleToggle}
       fixed="top"
-      className={`py-1 transition-all ${navThemeClass} ${!isTransparent && "shadow-sm"}`}
+      variant={navVariant}
+      className={`py-1 transition-all ${scrolled || isLoggedIn ? "shadow-sm" : ""}`}
+      style={{
+        backgroundColor: getBgColor(),
+        transition: "background-color 0.4s ease-in-out, padding 0.4s ease",
+        borderBottom: isLoggedIn ? "1px solid #eee" : "none",
+        // خط خفيف في حالة الأبيض عشان يفصل عن الصفحة
+      }}
     >
       <Container>
         <Navbar.Brand as={Link} to="/">
-          <img
-            src={isLoggedIn ? logoDark : logoWhite}
-            alt="T-Square Logo"
-            height="55"
-            fetchPriority="high"
-            loading="eager"
-          />
+          <img src={logo} alt="Square Logo" height="60" />
         </Navbar.Brand>
 
         <Navbar.Toggle
           aria-controls="basic-navbar-nav"
-          className="custom-toggler border-0 shadow-none"
+          className="custom-toggler"
         >
-          <span
-            className={`hamburger ${isLoggedIn ? "text-dark" : "text-white"}`}
-          >
-            ☰
-          </span>
+          <span className={`hamburger ${Tbtn} `}>☰</span>
         </Navbar.Toggle>
-
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mx-lg-auto fw-medium text-center">
+            {" "}
             {["home", "courses", "solutions", "team", "contact"].map((item) => (
               <Nav.Link
                 key={item}
                 as={NavLink}
                 to={item === "home" ? "/" : `/${item}`}
-                className="nav-link-custom px-3"
-                onClick={() => setMobileMenuOpen(false)}
+                className="nav-link"
+                onClick={handleNavLinkClick}
+                style={({ isActive }) => ({
+                  color: isActive
+                    ? "red"
+                    : isGuestHome
+                      ? "white"
+                      : navTextColor === "text-dark"
+                        ? "black"
+                        : "white",
+                  fontWeight: isActive ? "700" : "500",
+                })}
               >
                 {t(`navbar:${item}`)}
               </Nav.Link>
             ))}
           </Nav>
 
-          <div className="d-flex align-items-center justify-content-center gap-3">
+          <div className="d-flex align-items-center gap-3">
             <div
-              className={`d-flex align-items-center cursor-pointer lang-switch ${isTransparent ? (isLoggedIn ? "text-white" : "text-dark") : "text-dark"}`}
+              className={`d-flex align-items-center cursor-pointer lang-switch ${Tbtn
+                }`}
               onClick={toggleLanguage}
             >
               <HiOutlineGlobeAlt size={20} className="me-1" />
-              <span className="fw-semibold">
+
+              <span className="fw-semibold fs-6">
                 {i18n.language === "ar" ? "EN" : "AR"}
               </span>
             </div>
@@ -149,15 +226,17 @@ function AppNavbar({ isLoggedIn, userName }) {
               </div>
             ) : (
               <div
-                className={`d-flex align-items-center gap-2 border-start ps-lg-3 ${isTransparent ? "border-light" : "border-dark"}`}
+                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${isDarkMode ? "border-dark" : "border-light"
+                  }`}
               >
                 <div
-                  className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold shadow-sm"
-                  style={{ width: "38px", height: "38px" }}
+                  className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold"
+                  style={{ width: "35px", height: "35px" }}
                 >
                   {userName ? userName.charAt(0).toUpperCase() : "U"}
                 </div>
 
+                {/* الإشعار لو الحساب مش متفعل */}
                 {user && !user.email_verified_at && (
                   <i
                     className="bi bi-exclamation-circle-fill text-warning fs-5"
@@ -166,29 +245,20 @@ function AppNavbar({ isLoggedIn, userName }) {
                   ></i>
                 )}
                 <NavDropdown
-                  title={
-                    <span
-                      className={isTransparent ? "text-white" : "text-dark"}
-                    >
-                      {userName}
-                    </span>
-                  }
+                  title={<span className={Tbtn}>{userName}</span>}
                   id="user-dropdown"
                   align="end"
-                  className="fw-bold"
+                  className={`fw-bold ${Tbtn}`}
                 >
                   <NavDropdown.Item as={Link} to="/student">
                     {t("user:profile")}
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
-                  <NavDropdown.Item as={Link} to="/student/my-courses">
+                  <NavDropdown.Item as={Link} to="/student">
                     {t("user:my_courses")}
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
-                  <NavDropdown.Item
-                    className="text-danger"
-                    onClick={handleLogout}
-                  >
+                  <NavDropdown.Item className="text-danger" onClick={handleLogout}>
                     {t("user:logout")}
                   </NavDropdown.Item>
                 </NavDropdown>
