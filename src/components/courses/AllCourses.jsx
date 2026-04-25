@@ -68,7 +68,7 @@ function AllCourses() {
           </span>
 
           <span className="breadcrumb-item active">
-            {t("navbar:solutions")}
+            {t("navbar:courses")}
           </span>
         </nav>
 
