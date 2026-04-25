@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { HelmetProvider } from "react-helmet-async";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./index.css";
 import App from "./App.jsx";
@@ -9,7 +10,9 @@ import("./i18n")
   .then(() => {
     createRoot(document.getElementById("root")).render(
       <StrictMode>
-        <App />
+        <HelmetProvider>
+          <App />
+        </HelmetProvider>
       </StrictMode>,
     );
   })
@@ -18,7 +21,9 @@ import("./i18n")
     // Fallback: render app anyway
     createRoot(document.getElementById("root")).render(
       <StrictMode>
-        <App />
+        <HelmetProvider>
+          <App />
+        </HelmetProvider>
       </StrictMode>,
     );
   });
