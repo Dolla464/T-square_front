@@ -53,6 +53,11 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
 }
+.stats-grid-quizzes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
 
 .stat-card {
   background: #fff;
@@ -249,11 +254,11 @@
   font-size: 4rem;
   opacity: 0.8;
 }
-.quiz-icon-complet{
-    color: #14532d;
+.quiz-icon-complet {
+  color: #14532d;
 }
 
-.quiz-icon-incomplet{
+.quiz-icon-incomplet {
   color: #be1522;
 }
 
@@ -412,6 +417,9 @@
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .stats-grid-quizzes {
+    grid-template-columns: repeat(2, 1fr);
+  }
   .courses-grid,
   .quizzes-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -420,6 +428,9 @@
 
 @media (max-width: 640px) {
   .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stats-grid-quizzes {
     grid-template-columns: repeat(2, 1fr);
   }
   .courses-grid,

@@ -53,14 +53,7 @@ function DashboardQuizzes() {
       key: "completed",
       label: t("quizzes.stats.completed"),
     },
-    {
-      icon: "bi-trophy",
-      iconBg: "#fffbee",
-      iconColor: "#f59e0b",
-      key: "avgScore",
-      label: t("quizzes.stats.avg_score"),
-      valueSuffix: "%",
-    },
+  
   ];
 
   return (
@@ -89,7 +82,7 @@ function DashboardQuizzes() {
           )}
 
           {/* إحصائيات */}
-          <div className="stats-grid">
+          <div className="stats-grid-quizzes">
             {STAT_CARDS.map(({ key, valueSuffix, ...cardProps }) => (
               <StatCard
                 key={key}
