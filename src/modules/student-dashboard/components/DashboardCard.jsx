@@ -124,32 +124,9 @@ function DashboardCard({ item, type, t }) {
         {isQuiz && (
           <p className="quiz-card-meta" style={{ fontSize: "0.72rem" }}>
             <i className="bi bi-calendar3 me-1"></i>
-            {new Date(item.createdAt).toLocaleDateString("ar-EG", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
+            {item.createdAt}
           </p>
         )}
-
-        {/* شريط التقدم */}
-        <div
-          className={`${isCourse ? "course-progress-row" : "quiz-progress-row"}`}
-        >
-          <div
-            className={`${isCourse ? "course-progress-bar-wrap" : "quiz-progress-bar-wrap"}`}
-          >
-            <div
-              className={`${isCourse ? "course-progress-bar" : "quiz-progress-bar"}`}
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <span
-            className={`${isCourse ? "course-progress-pct" : "quiz-progress-pct"}`}
-          >
-            {progress}%
-          </span>
-        </div>
 
         {/* معلومات الكويز/النتيجة */}
         {isCourse ? (
@@ -171,16 +148,17 @@ function DashboardCard({ item, type, t }) {
               {item.score}%
             </span>
             <span style={{ fontSize: "0.72rem", color: "#888" }}>
-              {item.score >= 90 ? "ممتاز" : item.score >= 75 ? "جيد" : "متوسط"}
+              {item.score >= 90
+                ? "Excellent"
+                : item.score >= 75
+                  ? "Good"
+                  : "Average"}
             </span>
           </div>
         )}
 
         {/* زر الإجراء — الانتقال للكورس أو الكويز */}
-        <button
-          onClick={handleClick}
-          className={buttonClass}
-        >
+        <button onClick={handleClick} className={buttonClass}>
           <i
             className={`${isCourse && !isCompleted ? "bi bi-play-fill" : "bi bi-eye"} me-1`}
           ></i>

@@ -37,7 +37,7 @@ function QuizCard({ quiz, t }) {
     <div className="quiz-card">
       {/* أيقونة الكويز */}
       <div className="quiz-card-icon-wrapper">
-        <i className="bi bi-pencil-square quiz-card-icon"></i>
+        <i className="bi bi-pencil-square quiz-card-icon cardIcon"></i>
         <span
           className={`quiz-badge ${isCompleted ? "badge-completed" : "badge-progress"}`}
         >
