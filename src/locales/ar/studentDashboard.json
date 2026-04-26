@@ -57,7 +57,28 @@
   },
   "quizzes": {
     "title": "اختباراتي",
-    "placeholder": "قائمة الاختبارات ستكون متاحة قريباً."
+    "placeholder": "قائمة الاختبارات ستكون متاحة قريباً.",
+    "page_title": "كويزات {{name}}",
+    "my_quizzes": "كويزاتي",
+    "stats": {
+      "total": "إجمالي الكويزات",
+      "in_progress": "قيد التنفيذ",
+      "completed": "المكتملة",
+      "avg_score": "متوسط النتيجة"
+    }
   },
-  "activation_warning": "حسابك غير مفعل للبريد الإلكتروني: {{email}}"
+  "activation_warning": "حسابك غير مفعل للبريد الإلكتروني: {{email}}",
+  "course": {
+    "continue": "متابعة",
+    "details_title": "تفاصيل الكورس",
+    "back_to_courses": "كورساتي",
+    "continue_learning": "متابعة التعلم",
+    "complete": "مكتمل",
+    "lessons": "درس",
+    "hours": "ساعة",
+    "students": "طالب",
+    "of": "من",
+    "lessons_lowercase": "درس",
+    "about_instructor": "عن المدرب"
+  }
 }

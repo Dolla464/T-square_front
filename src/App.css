@@ -5,3 +5,30 @@ body {
 * {
   font-family: "Cairo", sans-serif !important;
 }
+/* ===== Global Scrollbar Styling ===== */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #be1522 #f0f0f0;
+}
+
+/* Chrome, Edge, Safari */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #be1522;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #8b0f1a;
+}

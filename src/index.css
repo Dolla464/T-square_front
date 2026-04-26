@@ -9,15 +9,15 @@
 /* 2. تنسيقات عامة لتسهيل الشغل */
 body {
   margin: 0;
-  font-family: 'Inter', 'Tajawal', sans-serif; /* تأكد من استدعاء الخطوط */
+  font-family: "Inter", "Tajawal", sans-serif; /* تأكد من استدعاء الخطوط */
   background-color: var(--light-gray);
   color: var(--text-main);
 }
 
 /* 2.1 إلغاء الخط تحت اللينكات بشكل عام */
-a, 
-.nav-link, 
-.btn-continue, 
+a,
+.nav-link,
+.btn-continue,
 .sidebar-link {
   text-decoration: none !important;
 }
@@ -73,4 +73,42 @@ a,
 /* 7. تحسين المسافات في الـ Container */
 .container {
   max-width: 1200px;
+} /* ===== Global Scrollbar Styling ===== */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #be1522 #f0f0f0;
+}
+
+/* Chrome, Edge, Safari */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #be1522;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #8b0f1a;
+}
+/* ===== Global Text Selection ===== */
+
+::selection {
+  background: #be1522; /* الخلفية الحمراء */
+  color: #ffffff; /* النص الأبيض */
+}
+
+/* Firefox */
+::-moz-selection {
+  background: #be1522;
+  color: #ffffff;
 }

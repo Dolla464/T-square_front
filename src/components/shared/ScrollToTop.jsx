@@ -14,7 +14,7 @@ const ScrollToTop = () => {
   // يراقب السكرول ويظهر الزر
   useEffect(() => {
     const handleScroll = () => {
-      setVisible(window.scrollY > 300);
+      setVisible(window.scrollY > 270);
     };
 
     window.addEventListener("scroll", handleScroll);

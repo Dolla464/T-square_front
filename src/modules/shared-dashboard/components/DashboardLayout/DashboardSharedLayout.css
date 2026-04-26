@@ -126,6 +126,14 @@
 }
 
 /* ══════════════ Topbar ══════════════ */
+
+.dash-page-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
 .shared-dashboard-topbar {
   height: 64px;
   background: #fff;
@@ -275,6 +283,34 @@
 .topbar-user-role {
   font-size: 0.74rem;
   color: #888;
+}
+
+/* ══════════════ Back Button (Course Details) ══════════════ */
+.topbar-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 7px 18px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #1f1f1f;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 9px 19px rgba(190, 21, 35, 0.24);
+}
+
+.topbar-back-btn:hover {
+  border-color: #be1522;
+  color: #be1522;
+  background: #fff5f5;
+}
+
+.topbar-back-btn i {
+  font-size: 0.9rem;
 }
 
 /* ══════════════ Content Area ══════════════ */
