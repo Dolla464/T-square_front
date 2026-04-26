@@ -57,7 +57,28 @@
   },
   "quizzes": {
     "title": "My Quizzes",
-    "placeholder": "Quizzes list will be available soon."
+    "placeholder": "Quizzes list will be available soon.",
+    "page_title": "{{name}}'s Quizzes",
+    "my_quizzes": "My Quizzes",
+    "stats": {
+      "total": "Total Quizzes",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "avg_score": "Avg Score"
+    }
   },
-  "activation_warning": "Your account is not activated for email: {{email}}"
+  "activation_warning": "Your account is not activated for email: {{email}}",
+  "course": {
+    "continue": "Continue",
+    "details_title": "Course Details",
+    "back_to_courses": "My Courses",
+    "continue_learning": "Continue Learning",
+    "complete": "Complete",
+    "lessons": "Lessons",
+    "hours": "hours",
+    "students": "Students",
+    "of": "of",
+    "lessons_lowercase": "lessons",
+    "about_instructor": "About Your Instructor"
+  }
 }

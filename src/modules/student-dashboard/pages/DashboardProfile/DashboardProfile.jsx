@@ -49,7 +49,7 @@ function DashboardProfile() {
 
   return (
     <div className="dash-profile">
-      <h4 className="dash-page-title">{t("profile_page.title")}</h4>
+      <h4 className="dash-page-title d-md-none d-block">{t("profile_page.title")}</h4>
 
       <div className="profile-grid">
         {/* ── العمود الأيسر ── */}

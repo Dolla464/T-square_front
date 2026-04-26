@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useCertificates } from "../../hooks/useCertificates";
 import "./DashboardCertificates.css";
+import StatCard from "../../components/StatCard";
 
 // ── كارت إحصائية الشهادات ──
 function CertStatCard({ icon, iconBg, value, label }) {
@@ -25,10 +26,35 @@ function DashboardCertificates() {
     // TODO: ربط بـ API لتحميل الشهادة كـ PDF
     alert(`Download: ${cert.certificateNum}`);
   };
+  const STAT_CARDS = [
+    {
+      icon: "bi-award-fill",
+      iconBg: "#fffbf0",
+      iconColor: "#be1522",
 
+      label: t("stats.certificates_earned"),
+      key: "earned",
+    },
+    {
+      icon: "bi-clock-history",
+      iconBg: "#f0f4ff",
+      iconColor: "#be1522",
+
+      label: t("stats.in_progress"),
+      key: "inProgress",
+    },
+    {
+      icon: "bi-mortarboard-fill",
+      iconBg: "#fff0f0",
+      iconColor: "#be1522",
+
+      label: t("stats.courses_enrolled"),
+      key: "enrolled",
+    },
+  ];
   return (
     <div className="dash-certs">
-      <h4 className="dash-page-title">{t("certificates_page.title")}</h4>
+      <h4 className="dash-page-title d-md-none d-block ">{t("certificates_page.title")}</h4>
 
       {loading ? (
         <div className="dash-loading">
@@ -38,24 +64,13 @@ function DashboardCertificates() {
         <>
           {/* ── إحصائيات ── */}
           <div className="cert-stats-row">
-            <CertStatCard
-              icon="bi-award-fill"
-              iconBg="#fffbf0"
-              value={certStats?.earned ?? 0}
-              label={t("stats.certificates_earned")}
-            />
-            <CertStatCard
-              icon="bi-shield-fill"
-              iconBg="#f0f4ff"
-              value={certStats?.inProgress ?? 0}
-              label={t("stats.in_progress")}
-            />
-            <CertStatCard
-              icon="bi-mortarboard-fill"
-              iconBg="#fff0f0"
-              value={certStats?.enrolled ?? 0}
-              label={t("stats.courses_enrolled")}
-            />
+            {STAT_CARDS.map(({ key, ...cardProps }) => (
+              <StatCard
+                key={key}
+                {...cardProps}
+                value={certStats?.[key] ?? 0}
+              />
+            ))}
           </div>
 
           {/* ── شبكة الشهادات ── */}
@@ -74,7 +89,9 @@ function DashboardCertificates() {
                 <div className="cert-card-body">
                   <h6 className="cert-course-title">{cert.courseTitle}</h6>
                   <p className="cert-date">
-                    {t("certificates_page.completed_on", { date: cert.completedDate })}
+                    {t("certificates_page.completed_on", {
+                      date: cert.completedDate,
+                    })}
                   </p>
                   <button
                     className="btn-download-pdf"
