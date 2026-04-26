@@ -208,7 +208,7 @@ function AppNavbar({ isLoggedIn, userName }) {
               <div className="d-flex gap-2">
                 <Button
                   variant={"outline-light"}
-                  className="px-4 fw-bold rounded-3 login-custom"
+                  className="px-4 fw-bold rounded-3"
                   as={Link}
                   to="/login"
                 >
