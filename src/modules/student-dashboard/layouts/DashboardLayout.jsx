@@ -5,7 +5,12 @@ import { useLocation } from "react-router-dom";
 import i18next from "i18next";
 
 const STUDENT_NAV = [
-  { key: "dashboard", path: "/student/dashboard", icon: "bi-grid-fill", end: true },
+  {
+    key: "dashboard",
+    path: "/student/dashboard",
+    icon: "bi-grid-fill",
+    end: true,
+  },
   { key: "quiz", path: "/student/quizzes", icon: "bi-pencil-square" },
   { key: "certificates", path: "/student/certificates", icon: "bi-award-fill" },
   { key: "profile", path: "/student/profile", icon: "bi-person-fill" },
@@ -19,16 +24,22 @@ function DashboardLayout() {
 
   const HomePageTitle =
     user.role === "student"
-      ? isArabic ? `مرحبا ${user.name}` : `Welcome Back ${user.name}`
+      ? isArabic
+        ? `مرحبا ${user.name}`
+        : `Welcome Back ${user.name}`
       : user.role === "instructor"
-        ? isArabic ? `مرحبا ${user.name}` : `Welcome Back ${user.name}`
-        : isArabic ? `مرحبا ${user.name}` : `Welcome Back ${user.name}`;
+        ? isArabic
+          ? `مرحبا ${user.name}`
+          : `Welcome Back ${user.name}`
+        : isArabic
+          ? `مرحبا ${user.name}`
+          : `Welcome Back ${user.name}`;
   const getPageTitle = (path) => {
     switch (path) {
       case "/student/dashboard":
         return HomePageTitle;
       case "/student/quizzes":
-        return isArabic ? "الكويزات" : "Quizzes";
+        return isArabic ? "الأختبارات" : "Quizzes";
       case "/student/certificates":
         return isArabic ? "الشهادات" : "Certificates";
       case "/student/profile":
@@ -39,7 +50,6 @@ function DashboardLayout() {
   };
 
   const pageTitle = getPageTitle(location.pathname);
-
 
   return (
     <DashboardSharedLayout
