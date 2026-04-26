@@ -247,8 +247,14 @@
 
 .quiz-card-icon {
   font-size: 4rem;
-  color: #be1522;
   opacity: 0.8;
+}
+.quiz-icon-complet{
+    color: #14532d;
+}
+
+.quiz-icon-incomplet{
+  color: #be1522;
 }
 
 /* ── Card Badge ── */

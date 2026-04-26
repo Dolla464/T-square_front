@@ -89,7 +89,9 @@ function DashboardCard({ item, type, t }) {
         </div>
       ) : (
         <div className="quiz-card-icon-wrapper">
-          <i className="bi bi-pencil-square quiz-card-icon"></i>
+          <i
+            className={`bi bi-pencil-square quiz-card-icon ${isCompleted ? "quiz-icon-complet" : "quiz-icon-incomplet"}`}
+          ></i>
           <span
             className={`quiz-badge ${isCompleted ? "badge-completed" : "badge-progress"}`}
           >
