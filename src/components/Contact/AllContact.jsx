@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+//import React, { useState } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -13,10 +13,10 @@ function AllContact() {
   const isArabic = i18n.language === "ar";
 
   return (
-    <div className="contact-page">
+    <div className="contact-page ">
       {/* Main Header & Form Section */}
-      <div className="py-5 mt-5">
-        <Container>
+      <div className="py-5 px-2 mt-5">
+        <Container >
           {/* Breadcrumbs */}
           <nav className="breadcrumb-nav mb-4 flex items-center rtl:flex-row-reverse">
             <Link to="/" className="breadcrumb-item">
@@ -42,10 +42,10 @@ function AllContact() {
           <div className="text-center mb-5 contact-header pt-3">
             <span className="badge-first-title">{t("contact:titleBadge")}</span>
             <h2 className="fw-bold mt-4 mb-3">{t("contact:title")}</h2>
-            <p className="text-muted fs-5">{t("contact:subtitle")}</p>
+            <p className="text-muted ">{t("contact:subtitle")}</p>
             <div className="d-md-none d-block">
               <h3 className="fw-bold mb-3">{t("contact:hearFromYou")}</h3>
-              <p className="text-muted mb-5  fw-bold">
+              <p className="text-muted mb-5  ">
                 {t("contact:hearFromYouDesc")}
               </p>
             </div>
@@ -58,7 +58,7 @@ function AllContact() {
               <Col lg={5} className="pe-lg-4">
                 <Col lg={12} className="d-md-block d-none">
                   <h3 className="fw-bold mb-3">{t("contact:hearFromYou")}</h3>
-                  <p className="text-muted mb-5 desc-padding">
+                  <p className="text-muted mb-5 ">
                     {t("contact:hearFromYouDesc")}
                   </p>
                 </Col>
@@ -71,7 +71,9 @@ function AllContact() {
                       </div>
                       <div>
                         <h6 className="mb-0 fw-bold">{t("contact:phone")}</h6>
-                        <small className="text-muted">+20 1234 33213</small>
+                        <small className="text-muted" dir="ltr">
+                          +20 1234 33213
+                        </small>
                       </div>
                     </div>
                   </Col>
@@ -88,7 +90,7 @@ function AllContact() {
                   </Col>
                 </Row>
 
-                <div className="social-media-block d-flex align-items-center gap-4">
+                <div className="social-media-block d-flex align-items-center ps-md-0 ps-2 gap-4">
                   <span className="text-muted">{t("contact:social")}</span>
                   <div className="social-links d-flex gap-2">
                     <a href="#" className="social-icon" aria-label="Email">
@@ -110,9 +112,7 @@ function AllContact() {
               {/* Right Col: Form Block */}
               <Col lg={7}>
                 <div className="contact-form-card">
-                  <ContactForm
-                    submitText={t("contact:form.send")}
-                  />
+                  <ContactForm submitText={t("contact:form.send")} />
                 </div>
               </Col>
             </Row>

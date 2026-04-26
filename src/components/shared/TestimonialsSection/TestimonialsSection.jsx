@@ -24,9 +24,7 @@ function TestimonialsSection({ data, className = "" }) {
     <div className={`testimonials-section py-5 ${className}`}>
       <Container className="py-5">
         {/* عنوان القسم */}
-        <h2 className="text-center fw-bold mb-5">
-          {t("title")}
-        </h2>
+        <h2 className="text-center fw-bold mb-5">{t("title")}</h2>
 
         {/* حالة التحميل */}
         {!data && loading && (
@@ -46,32 +44,40 @@ function TestimonialsSection({ data, className = "" }) {
 
         {/* عرض الكاردات */}
         {(!loading || data) && (
-          <Row className="g-4">
-            {testimonials.map((testimonial) => (
-              <Col lg={4} md={6} key={testimonial.id}>
-                <div className="testimonial-card">
+          <div className="testimonials-scroll-container">
+            <div className="testimonials-scroll-wrapper">
+              {testimonials.map((testimonial) => (
+                <div
+                  className="testimonial-card-horizontal"
+                  key={testimonial.id}
+                >
                   {/* أيقونة الاقتباس */}
-                  <div className="quote-icon mb-3">
+                  <div className="quote-icon-horizontal">
                     <span className="quote-mark">&ldquo;</span>
                   </div>
 
                   {/* معلومات الشخص */}
-                  <div className="d-flex align-items-center mb-4">
+                  <div className="d-flex align-items-center mb-3">
                     <img
-                      src={testimonial.image || studentImg}
-                      alt={testimonial.name}
-                      className="testimonial-avatar"
+                      src={studentImg || testimonial.student?.avatar}
+                      alt={testimonial.student?.full_name}
+                      className="testimonial-avatar-horizontal"
                       style={{ marginInlineEnd: "12px" }}
                     />
                     <div>
-                      <h6 className="mb-0 fw-bold">{testimonial.name}</h6>
-                      <small className="text-muted">{testimonial.role}</small>
+                      <h6 className="mb-0 fw-bold">
+                        {testimonial.student?.full_name}
+                      </h6>
+                      <small className="text-muted">
+                        {testimonial.course?.title ||
+                          testimonial.instructor?.full_name}
+                      </small>
                       {/* النجوم */}
                       <div className="mt-1 d-flex gap-1">
                         {[...Array(5)].map((_, i) => (
                           <i
                             key={i}
-                            className={`bi bi-star-fill ${i < testimonial.stars ? "text-warning" : "text-light-gray"}`}
+                            className={`bi bi-star-fill ${i < Math.round(testimonial.rating) ? "text-warning" : "text-light-gray"}`}
                             style={{ fontSize: "14px" }}
                           ></i>
                         ))}
@@ -80,13 +86,13 @@ function TestimonialsSection({ data, className = "" }) {
                   </div>
 
                   {/* نص التقييم */}
-                  <p className="text-muted testimonial-text">
-                    &ldquo;{testimonial.text}&rdquo;
+                  <p className="text-muted text-start fw-bolder">
+                    {testimonial.overall_comment}
                   </p>
                 </div>
-              </Col>
-            ))}
-          </Row>
+              ))}
+            </div>
+          </div>
         )}
       </Container>
     </div>
