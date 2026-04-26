@@ -62,16 +62,7 @@ function QuizCard({ quiz, t }) {
           {quiz.createdAt}
         </p>
 
-        {/* Progress bar */}
-        <div className="quiz-progress-row">
-          <div className="quiz-progress-bar-wrap">
-            <div
-              className="quiz-progress-bar"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <span className="quiz-progress-pct">{progress}%</span>
-        </div>
+        
 
         {/* عدد الأسئلة */}
         <div className="quiz-score-meta">

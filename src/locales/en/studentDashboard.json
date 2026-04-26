@@ -9,6 +9,7 @@
   "stats": {
     "all_courses": "All Courses",
     "in_progress": "In Progress",
+    "Pending": "Pending",
     "completed_courses": "Completed Courses",
     "purchased_courses": "Purchased Courses",
     "certificates_earned": "Certificates Earned",
@@ -25,6 +26,7 @@
     "review": "Review",
     "filter": {
       "all": "All",
+      "Pending": "Pending",
       "in_progress": "In Progress",
       "completed": "Completed"
     }
@@ -55,13 +57,16 @@
     "promo_emails": "Promotional emails",
     "save_preferences": "Save Preferences"
   },
-  "quizzes": {
+  "quizzes": {      
+      "continue": "Enter the quiz",
+
     "title": "My Quizzes",
     "placeholder": "Quizzes list will be available soon.",
     "page_title": "{{name}}'s Quizzes",
     "my_quizzes": "My Quizzes",
     "stats": {
       "total": "Total Quizzes",
+      "Pending": "Pending",
       "in_progress": "In Progress",
       "completed": "Completed",
       "avg_score": "Avg Score"

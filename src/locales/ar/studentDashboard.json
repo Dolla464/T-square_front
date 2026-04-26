@@ -26,6 +26,7 @@
     "filter": {
       "all": "الكل",
       "in_progress": "قيد التنفيذ",
+      "Pending": "لم يتم البداء",
       "completed": "مكتملة"
     }
   },
@@ -56,6 +57,8 @@
     "save_preferences": "حفظ التفضيلات"
   },
   "quizzes": {
+        "continue": "الدخول للاختبار",
+
     "title": "اختباراتي",
     "placeholder": "قائمة الاختبارات ستكون متاحة قريباً.",
     "page_title": "كويزات {{name}}",
@@ -63,6 +66,7 @@
     "stats": {
       "total": "إجمالي الكويزات",
       "in_progress": "قيد التنفيذ",
+      "Pending": "لم يتم البداء ",
       "completed": "المكتملة",
       "avg_score": "متوسط النتيجة"
     }

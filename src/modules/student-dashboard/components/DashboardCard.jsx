@@ -60,7 +60,7 @@ function DashboardCard({ item, type, t }) {
       buttonClass += " btn-review";
     } else {
       linkTo = `/student/quizzes/${item.id}`;
-      buttonText = t("active_courses.continue");
+      buttonText = t("quizzes.continue");
     }
   }
 
@@ -97,13 +97,16 @@ function DashboardCard({ item, type, t }) {
           >
             {isCompleted
               ? t("active_courses.filter.completed")
-              : t("active_courses.filter.in_progress")}
+              : t("active_courses.filter.Pending")}
           </span>
         </div>
       )}
 
       {/* جسم الكارد */}
-      <div className={`${isCourse ? "course-card-body" : "quiz-card-body"}`}>
+      <div
+        className={`${isCourse ? "course-card-body" : "quiz-card-body"}`}
+        dir="ltr"
+      >
         {/* العنوان */}
         <h6 className={`${isCourse ? "course-card-title" : "quiz-card-title"}`}>
           {item.title}
