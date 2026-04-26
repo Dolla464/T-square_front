@@ -53,7 +53,6 @@ function DashboardQuizzes() {
       key: "completed",
       label: t("quizzes.stats.completed"),
     },
-  
   ];
 
   return (
@@ -123,7 +122,7 @@ function DashboardQuizzes() {
 
           {/* مكون مشترك لعرض الكويزات */}
           <DashboardItemsSection
-            title={t("quizzes.my_quizzes")}
+            title={isArabic ? "اختباراتي" : "My Quizzes"}
             items={filtered}
             type="quiz"
             t={t}
