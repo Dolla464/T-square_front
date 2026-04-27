@@ -60,7 +60,7 @@ function DashboardCard({ item, type, t }) {
       buttonClass += " btn-review";
     } else {
       linkTo = `/student/quizzes/${item.id}`;
-      buttonText = t("active_courses.continue");
+      buttonText = t("quizzes.continue");
     }
   }
 
@@ -89,19 +89,24 @@ function DashboardCard({ item, type, t }) {
         </div>
       ) : (
         <div className="quiz-card-icon-wrapper">
-          <i className="bi bi-pencil-square quiz-card-icon"></i>
+          <i
+            className={`bi bi-pencil-square quiz-card-icon ${isCompleted ? "quiz-icon-complet" : "quiz-icon-incomplet"}`}
+          ></i>
           <span
             className={`quiz-badge ${isCompleted ? "badge-completed" : "badge-progress"}`}
           >
             {isCompleted
               ? t("active_courses.filter.completed")
-              : t("active_courses.filter.in_progress")}
+              : t("active_courses.filter.Pending")}
           </span>
         </div>
       )}
 
       {/* جسم الكارد */}
-      <div className={`${isCourse ? "course-card-body" : "quiz-card-body"}`}>
+      <div
+        className={`${isCourse ? "course-card-body" : "quiz-card-body"}`}
+        dir="ltr"
+      >
         {/* العنوان */}
         <h6 className={`${isCourse ? "course-card-title" : "quiz-card-title"}`}>
           {item.title}
@@ -124,32 +129,9 @@ function DashboardCard({ item, type, t }) {
         {isQuiz && (
           <p className="quiz-card-meta" style={{ fontSize: "0.72rem" }}>
             <i className="bi bi-calendar3 me-1"></i>
-            {new Date(item.createdAt).toLocaleDateString("ar-EG", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
+            {item.createdAt}
           </p>
         )}
-
-        {/* شريط التقدم */}
-        <div
-          className={`${isCourse ? "course-progress-row" : "quiz-progress-row"}`}
-        >
-          <div
-            className={`${isCourse ? "course-progress-bar-wrap" : "quiz-progress-bar-wrap"}`}
-          >
-            <div
-              className={`${isCourse ? "course-progress-bar" : "quiz-progress-bar"}`}
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <span
-            className={`${isCourse ? "course-progress-pct" : "quiz-progress-pct"}`}
-          >
-            {progress}%
-          </span>
-        </div>
 
         {/* معلومات الكويز/النتيجة */}
         {isCourse ? (
@@ -171,16 +153,17 @@ function DashboardCard({ item, type, t }) {
               {item.score}%
             </span>
             <span style={{ fontSize: "0.72rem", color: "#888" }}>
-              {item.score >= 90 ? "ممتاز" : item.score >= 75 ? "جيد" : "متوسط"}
+              {item.score >= 90
+                ? "Excellent"
+                : item.score >= 75
+                  ? "Good"
+                  : "Average"}
             </span>
           </div>
         )}
 
         {/* زر الإجراء — الانتقال للكورس أو الكويز */}
-        <button
-          onClick={handleClick}
-          className={buttonClass}
-        >
+        <button onClick={handleClick} className={buttonClass}>
           <i
             className={`${isCourse && !isCompleted ? "bi bi-play-fill" : "bi bi-eye"} me-1`}
           ></i>

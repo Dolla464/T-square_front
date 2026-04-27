@@ -22,7 +22,7 @@ function DashboardQuizzes() {
   const filtered = (quizzes || []).filter((q) => {
     const matchesFilter =
       filter === "all" ||
-      (filter === "in_progress" && q.status === "in_progress") ||
+      (filter === "Pending" && q.status === "in_progress") ||
       (filter === "completed" && q.status === "completed");
     const matchesSearch =
       q.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -44,7 +44,7 @@ function DashboardQuizzes() {
       iconBg: "#eef3ff",
       iconColor: "#4a6cf7",
       key: "inProgress",
-      label: t("quizzes.stats.in_progress"),
+      label: t("quizzes.stats.Pending"),
     },
     {
       icon: "bi-check2-circle",
@@ -52,14 +52,6 @@ function DashboardQuizzes() {
       iconColor: "#22c55e",
       key: "completed",
       label: t("quizzes.stats.completed"),
-    },
-    {
-      icon: "bi-trophy",
-      iconBg: "#fffbee",
-      iconColor: "#f59e0b",
-      key: "avgScore",
-      label: t("quizzes.stats.avg_score"),
-      valueSuffix: "%",
     },
   ];
 
@@ -89,7 +81,7 @@ function DashboardQuizzes() {
           )}
 
           {/* إحصائيات */}
-          <div className="stats-grid">
+          <div className="stats-grid-quizzes">
             {STAT_CARDS.map(({ key, valueSuffix, ...cardProps }) => (
               <StatCard
                 key={key}
@@ -113,7 +105,7 @@ function DashboardQuizzes() {
             <div className="filter-tabs">
               {[
                 { key: "all", icon: "bi-grid-3x3-gap" },
-                { key: "in_progress", icon: "bi-clock-history" },
+                { key: "Pending", icon: "bi-clock-history" },
                 { key: "completed", icon: "bi-check2-circle" },
               ].map(({ key, icon }) => (
                 <button
@@ -130,7 +122,7 @@ function DashboardQuizzes() {
 
           {/* مكون مشترك لعرض الكويزات */}
           <DashboardItemsSection
-            title={t("quizzes.my_quizzes")}
+            title={isArabic ? "اختباراتي" : "My Quizzes"}
             items={filtered}
             type="quiz"
             t={t}
