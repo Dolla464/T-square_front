@@ -29,6 +29,7 @@ function DashboardSharedLayout({
   const isArabic = i18n.language?.startsWith("ar");
 
   const isCourseDetailsPage = location.pathname.includes("/student/course/");
+  const isExmam = location.pathname.includes("/student/quizzes/");
 
   const unreadCount = NOTIFICATIONS_MOCK.filter((n) => !n.is_read).length;
 
@@ -195,7 +196,9 @@ function DashboardSharedLayout({
         </header>
 
         {/* محتوى الصفحة */}
-        <main className="shared-dashboard-content">
+        <main
+          className={`shared-dashboard-content ${isExmam ? "py-1 pt-3" : ""} `}
+        >
           <Outlet />
         </main>
       </div>

@@ -55,7 +55,7 @@
 }
 .stats-grid-quizzes {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 14px;
 }
 
@@ -262,7 +262,7 @@
   color: #be1522;
 }
 .quiz-icon-pending {
-  color: rgb(107, 114, 128);
+  color: #be1522;
 }
 
 /* ── Card Badge ── */
@@ -291,7 +291,7 @@
   color: #fff;
 }
 .badge-pending {
-  background: rgba(136, 136, 136, 0.9);
+  background: rgba(190, 21, 34, 0.9);
   color: #fff;
 }
 

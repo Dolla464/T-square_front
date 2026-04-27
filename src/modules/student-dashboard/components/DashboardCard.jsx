@@ -59,10 +59,6 @@ function DashboardCard({ item, type, t }) {
       linkTo = `/student/quizzes/`;
       buttonText = t("active_courses.review");
       buttonClass += " btn-review";
-    } else if (isPending) {
-      linkTo = `/student/quizzes`;
-      buttonText = t("quizzes.pending");
-      buttonClass += " btn-disabled";
     } else {
       linkTo = `/student/quizzes/${item.id}`;
       buttonText = t("quizzes.continue");
@@ -75,9 +71,7 @@ function DashboardCard({ item, type, t }) {
   };
 
   return (
-    <div
-      className={`${isCourse ? "course-card" : isPending && isQuiz ? "quiz-card-disabled" : "quiz-card"}`}
-    >
+    <div className={`${isCourse ? "course-card" : "quiz-card"}`}>
       {/* الصورة أو الأيقونة */}
       {isCourse ? (
         <div className="course-card-img-wrapper">
@@ -97,10 +91,10 @@ function DashboardCard({ item, type, t }) {
       ) : (
         <div className="quiz-card-icon-wrapper">
           <i
-            className={`bi bi-pencil-square quiz-card-icon ${isCompleted ? "quiz-icon-complet" : isPending ? "quiz-icon-pending" : "quiz-icon-open"}`}
+            className={`bi bi-pencil-square quiz-card-icon ${isCompleted ? "quiz-icon-complet" : "quiz-icon-open"}`}
           ></i>
           <span
-            className={`quiz-badge ${isCompleted ? "badge-completed" : isPending ? "badge-pending" : "badge-progress "}`}
+            className={`quiz-badge ${isCompleted ? "badge-completed" : "badge-progress "}`}
           >
             {isCompleted
               ? t("active_courses.filter.completed")
