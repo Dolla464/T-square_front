@@ -6,8 +6,8 @@ import DashboardSharedLayout from "../../shared-dashboard/components/DashboardLa
 const ADMIN_NAV = [
   { key: "dashboard", path: "/admin", icon: "bi-grid-1x2", end: true },
   { key: "courses", path: "/admin/courses", icon: "bi-mortarboard" },
+  { key: "solutions", path: "/admin/solutions", icon: "bi-laptop" },
   { key: "students", path: "/admin/students", icon: "bi-people" },
-  { key: "instructor", path: "/admin/instructor", icon: "bi-person-badge" },
   { key: "instructors", path: "/admin/instructors", icon: "bi-person-lines-fill" },
   { key: "orders", path: "/admin/orders", icon: "bi-cart3" },
   { key: "analytics", path: "/admin/analytics", icon: "bi-bar-chart-line" },

@@ -46,8 +46,8 @@ import QuizExamPage from "./modules/student-dashboard/pages/QuizExam/QuizExamPag
 import AdminLayout from "./modules/admin-dashboard/layouts/AdminLayout";
 import AdminOverview from "./modules/admin-dashboard/pages/Overview/AdminOverview";
 import AdminCourses from "./modules/admin-dashboard/pages/Courses/AdminCourses";
+import AdminSolutions from "./modules/admin-dashboard/pages/Solutions/AdminSolutions";
 import AdminStudents from "./modules/admin-dashboard/pages/Students/AdminStudents";
-import AdminInstructor from "./modules/admin-dashboard/pages/Instructor/AdminInstructor";
 import AdminInstructors from "./modules/admin-dashboard/pages/Instructors/AdminInstructors";
 import AdminOrders from "./modules/admin-dashboard/pages/Orders/AdminOrders";
 import AdminAnalytics from "./modules/admin-dashboard/pages/Analytics/AdminAnalytics";
@@ -204,8 +204,8 @@ function AppContent() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminOverview />} />
               <Route path="courses" element={<AdminCourses />} />
+              <Route path="solutions" element={<AdminSolutions />} />
               <Route path="students" element={<AdminStudents />} />
-              <Route path="instructor" element={<AdminInstructor />} />
               <Route path="instructors" element={<AdminInstructors />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="analytics" element={<AdminAnalytics />} />

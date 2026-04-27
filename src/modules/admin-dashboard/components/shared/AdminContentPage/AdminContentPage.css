@@ -1,0 +1,286 @@
+/* Admin Content Page General */
+.admin-content-page {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Header */
+.ac-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.ac-subtitle {
+  font-size: 0.9rem;
+  color: #8a8d93;
+}
+
+.ac-add-btn {
+  background-color: #d32f2f;
+  border-color: #d32f2f;
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 8px 16px;
+  box-shadow: 0 4px 6px rgba(211, 47, 47, 0.2);
+  transition: all 0.2s;
+}
+
+.ac-add-btn:hover {
+  background-color: #b71c1c;
+  border-color: #b71c1c;
+}
+
+/* Table Container & Filters */
+.ac-table-card {
+  background: transparent;
+}
+
+.ac-filters-bar {
+  background-color: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.ac-search-input-wrapper {
+  position: relative;
+}
+
+.ac-search-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 12px;
+  color: #a0a4ab;
+}
+
+[dir="rtl"] .ac-search-icon {
+  left: auto;
+  right: 12px;
+}
+
+.ac-search-input {
+  padding-left: 36px;
+  border-radius: 8px;
+  border: 1px solid #eaeaea;
+  background-color: #f9f9fb;
+  font-size: 0.9rem;
+}
+
+[dir="rtl"] .ac-search-input {
+  padding-left: 12px;
+  padding-right: 36px;
+}
+
+.ac-search-input:focus {
+  background-color: #fff;
+  border-color: #d32f2f;
+  box-shadow: 0 0 0 0.2rem rgba(211, 47, 47, 0.25);
+}
+
+.ac-filter-select {
+  border-radius: 8px;
+  border: 1px solid #eaeaea;
+  background-color: #f9f9fb;
+  font-size: 0.9rem;
+  color: #4b5563;
+  min-width: 150px;
+}
+
+/* Table Styles */
+.ac-rounded-table {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  overflow: hidden;
+}
+
+.ac-table th {
+  background-color: #ffffff;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-bottom: 2px solid #eaeaea;
+  padding: 16px;
+}
+
+.ac-table td {
+  padding: 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.9rem;
+}
+
+.ac-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ac-truncate-text {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Status Badge */
+.ac-status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+.bg-success-subtle {
+  background-color: #e6f4ea !important;
+}
+
+.text-success {
+  color: #137333 !important;
+}
+
+.bg-secondary-subtle {
+  background-color: #f1f3f4 !important;
+}
+
+.text-secondary {
+  color: #5f6368 !important;
+}
+
+/* Form Styles */
+.ac-back-btn {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  transition: opacity 0.2s;
+}
+
+.ac-back-btn:hover {
+  opacity: 0.7;
+}
+
+.ac-draft-btn {
+  color: #4b5563;
+  border-radius: 8px;
+}
+
+.ac-publish-btn {
+  background-color: #d32f2f;
+  border-color: #d32f2f;
+  border-radius: 8px;
+}
+
+.ac-publish-btn:hover {
+  background-color: #b71c1c;
+  border-color: #b71c1c;
+}
+
+.ac-tabs-menu {
+  background-color: #f3f4f6;
+  padding: 6px;
+  border-radius: 12px;
+  display: inline-flex;
+}
+
+.ac-tab-btn {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #4b5563;
+  transition: all 0.2s;
+}
+
+.ac-tab-btn.active {
+  background: #ffffff;
+  color: #1a1a1a;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  font-weight: 600;
+}
+
+.ac-tab-btn:hover:not(.active) {
+  color: #1a1a1a;
+}
+
+.ac-form-body {
+  background-color: #ffffff;
+}
+
+/* Miscellaneous Form Details */
+.ac-curriculum-section {
+  border-color: #e5e7eb !important;
+}
+
+.ac-btn-view {
+  color: #1a1a1a !important;
+  background-color: #f3f4f6 !important;
+  transition: all 0.2s;
+}
+
+.ac-btn-view:hover {
+  background-color: #e5e7eb !important;
+  color: #0d6efd !important;
+}
+
+.ac-btn-edit {
+  color: #1a1a1a !important;
+  background-color: #f3f4f6 !important;
+  transition: all 0.2s;
+}
+
+.ac-btn-edit:hover {
+  background-color: #e5e7eb !important;
+  color: #be1522 !important;
+}
+
+.ac-btn-delete {
+  color: #be1522 !important;
+  background-color: #fff1f2 !important;
+  transition: all 0.2s;
+}
+
+.ac-btn-delete:hover {
+  background-color: #be1522 !important;
+  color: #ffffff !important;
+}
+
+.ac-tag-option {
+  transition: all 0.2s ease;
+  min-height: 40px;
+}
+
+.ac-tag-option:hover {
+  border-color: #be1522 !important;
+  background-color: #fff1f2 !important;
+}
+
+.bg-danger-subtle {
+  background-color: #fff1f2 !important;
+}
+
+/* Fix for Select Arrows in RTL/LTR */
+.ac-form-select {
+  padding-right: 1rem !important;
+  padding-left: 1rem !important;
+  background-position: right 1rem center !important;
+}
+
+[dir="rtl"] .ac-form-select {
+  background-position: left 1rem center !important;
+  padding-left: 3rem !important; /* reserve space for arrow */
+}
+
+[dir="ltr"] .ac-form-select {
+  background-position: right 1rem center !important;
+  padding-right: 3rem !important; /* reserve space for arrow */
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
