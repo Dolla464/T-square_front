@@ -374,12 +374,97 @@ export const NOTIFICATIONS_MOCK = [
     created_at: "2026-04-24T20:10:00",
     is_read: true,
   },
-  {
+{
     id: 15,
     title: " Feature Update",
     message:
-      "We’ve added new dashboard features to improve your learning experience.",
+      "Weve added new dashboard features to improve your learning experience.",
     created_at: "2026-04-23T17:00:00",
     is_read: true,
   },
 ];
+
+// Exam questions for each quiz (by quiz id)
+// quizId: { id, title, courseName, totalQuestions } exists in quizzes array
+export const QUIZ_EXAMS = {
+  3: {
+    quizId: 3,
+    title: "UI/UX Principles Quiz",
+    courseName: "UI/UX Design Fundamentals",
+    questions: [
+      {
+        id: 1,
+        question: "What does UX stand for?",
+        options: ["User Experience", "User Exchange", "Universal Experience", "Unified Experience"],
+        correctAnswerIndex: 0,
+      },
+      {
+        id: 2,
+        question: "Which of these is a core principle of UX design?",
+        options: ["Accessibility", "Complexity", "Inconsistency", "Speed"],
+        correctAnswerIndex: 0,
+      },
+      {
+        id: 3,
+        question: "What is a user persona?",
+        options: ["A fictional character representing target users", "A real user", "A developer", "A manager"],
+        correctAnswerIndex: 0,
+      },
+      {
+        id: 4,
+        question: "What is the purpose of wireframing?",
+        options: ["To plan layout and structure", "To add colors", "To write code", "To test performance"],
+        correctAnswerIndex: 0,
+      },
+      {
+        id: 5,
+        question: "What does heuristic evaluation assess?",
+        options: ["Usability principles", "Code quality", "Server speed", "Database design"],
+        correctAnswerIndex: 0,
+      },
+    ],
+  },
+  4: {
+    quizId: 4,
+    title: "Laravel MVC Quiz",
+    courseName: "Laravel Backend Development",
+    questions: [
+      {
+        id: 1,
+        question: "What does MVC stand for in Laravel?",
+        options: ["Model View Controller", "Main View Code", "Module View Component", "Multiple View Controller"],
+        correctAnswerIndex: 0,
+      },
+      {
+        id: 2,
+        question: "Where are Laravel routes defined?",
+        options: ["routes/web.php", "app/models", "database/migrations", "config/app.php"],
+        correctAnswerIndex: 0,
+      },
+      {
+        id: 3,
+        question: "What is Eloquent in Laravel?",
+        options: ["ORM for database", "Routing system", "Template engine", "Cache system"],
+        correctAnswerIndex: 0,
+      },
+      {
+        id: 4,
+        question: "Which command creates a new controller?",
+        options: ["php artisan make:controller", "php artisan create controller", "php new controller", "php make controller"],
+        correctAnswerIndex: 0,
+      },
+      {
+        id: 5,
+        question: "What is a migration in Laravel?",
+        options: ["Database schema version control", "Code backup", "File transfer", "Cache clear"],
+        correctAnswerIndex: 0,
+      },
+      {
+        id: 6,
+        question: "What is Blade in Laravel?",
+        options: ["Template engine", "Database", "Router", "Middleware"],
+        correctAnswerIndex: 0,
+      },
+],
+  },
+};
