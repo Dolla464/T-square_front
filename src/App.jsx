@@ -39,6 +39,8 @@ import DashboardCertificates from "./modules/student-dashboard/pages/DashboardCe
 import DashboardQuizzes from "./modules/student-dashboard/pages/DashboardQuizzes/DashboardQuizzes";
 import DashboardProfile from "./modules/student-dashboard/pages/DashboardProfile/DashboardProfile";
 import CourseDetails from "./modules/student-dashboard/pages/CourseDetails/CourseDetails";
+import NotificationsPage from "./modules/student-dashboard/pages/Notifications/NotificationsPage";
+import QuizExamPage from "./modules/student-dashboard/pages/QuizExam/QuizExamPage";
 
 // ── وحدة داشبورد الأدمن ──
 import AdminLayout from "./modules/admin-dashboard/layouts/AdminLayout";
@@ -222,7 +224,9 @@ function AppContent() {
               {/* Flat sub-pages — بدون /dashboard في المسار */}
               <Route path="certificates" element={<DashboardCertificates />} />
               <Route path="quizzes" element={<DashboardQuizzes />} />
+              <Route path="quizzes/:quizId" element={<QuizExamPage />} />
               <Route path="profile" element={<DashboardProfile />} />
+              <Route path="notifications" element={<NotificationsPage />} />
               <Route path="course/:id" element={<CourseDetails />} />
               {/* Aliases — لو جه من رابط قديم بـ /dashboard/xxx */}
               <Route

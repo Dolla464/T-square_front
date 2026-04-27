@@ -1,10 +1,17 @@
 import { useState } from "react";
-import { Link, NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { showLogoutConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastCustom } from "../../../../components/shared/Toaster/toaster";
 import logoDark from "../../../../assets/logo-dark.png";
+import { NOTIFICATIONS_MOCK } from "../../../../modules/student-dashboard/data/dashboardMockData";
 import "./DashboardSharedLayout.css";
 
 function DashboardSharedLayout({
@@ -23,9 +30,20 @@ function DashboardSharedLayout({
 
   const isCourseDetailsPage = location.pathname.includes("/student/course/");
 
+  const unreadCount = NOTIFICATIONS_MOCK.filter((n) => !n.is_read).length;
+
   const initials = user?.name
-    ? user.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
+    ? user.name
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
     : "US";
+
+  const handleNotificationsClick = () => {
+    navigate("/student/notifications");
+  };
 
   const handleLogout = async () => {
     const confirmed = await showLogoutConfirm();
@@ -53,8 +71,9 @@ function DashboardSharedLayout({
       {/* ── Sidebar ── */}
       {!isCourseDetailsPage && (
         <aside
-          className={`shared-dashboard-sidebar ${sidebarOpen ? "sidebar-open" : ""
-            }`}
+          className={`shared-dashboard-sidebar ${
+            sidebarOpen ? "sidebar-open" : ""
+          }`}
         >
           {/* اللوجو */}
           <Link to="/" className="sidebar-logo text-decoration-none">
@@ -100,7 +119,9 @@ function DashboardSharedLayout({
                 className="topbar-back-btn"
                 onClick={() => navigate("/student/dashboard")}
               >
-                <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}></i>
+                <i
+                  className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
+                ></i>
                 {t(`${translationNs}:course.back_to_courses`)}
               </button>
             ) : (
@@ -141,15 +162,22 @@ function DashboardSharedLayout({
             )}
 
             {/* الإشعارات */}
-            <button className="topbar-notif-btn" aria-label="Notifications">
+            <button
+              className="topbar-notif-btn"
+              onClick={handleNotificationsClick}
+              aria-label="Notifications"
+            >
               <i className="bi bi-bell"></i>
-              <span className="notif-dot"></span>
+              {unreadCount > 0 && (
+                <span className="notif-badge-count">{unreadCount}</span>
+              )}
             </button>
 
             {/* أيقونة المستخدم */}
             <button
-              className={`topbar-user-btn ${userRoleName === "Student" ? "clickable" : ""
-                }`}
+              className={`topbar-user-btn ${
+                userRoleName === "Student" ? "clickable" : ""
+              }`}
               onClick={() =>
                 userRoleName === "Student"
                   ? navigate("/student/profile")
@@ -159,9 +187,7 @@ function DashboardSharedLayout({
             >
               <div className="topbar-avatar">{initials}</div>
               <div className="topbar-user-info">
-                <span className="topbar-user-name">
-                  {user?.name || "User"}
-                </span>
+                <span className="topbar-user-name">{user?.name || "User"}</span>
                 <span className="topbar-user-role">{userRoleName}</span>
               </div>
             </button>

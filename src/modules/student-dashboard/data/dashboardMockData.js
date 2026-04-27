@@ -29,9 +29,11 @@ export const DASHBOARD_MOCK = {
       instructor: "Eng. Ahmed Hatem",
       instructorInitials: "AH",
       instructorRole: "Expert Full-Stack Engineer",
-      instructorBio: "10+ years of experience in Full-Stack development, worked with top tech companies, passionate about teaching and mentoring aspiring developers.",
+      instructorBio:
+        "10+ years of experience in Full-Stack development, worked with top tech companies, passionate about teaching and mentoring aspiring developers.",
       category: "Full-Stack",
-      description: "Master React from scratch including hooks, state management, and building production-ready applications.",
+      description:
+        "Master React from scratch including hooks, state management, and building production-ready applications.",
       progress: 42,
       quizzesCompleted: 5,
       totalQuizzes: 12,
@@ -48,9 +50,11 @@ export const DASHBOARD_MOCK = {
       instructor: "Sara Ahmed",
       instructorInitials: "SA",
       instructorRole: "Expert UX Designer",
-      instructorBio: "10+ years of experience in UX design, worked with top tech companies, passionate about teaching and mentoring aspiring designers.",
+      instructorBio:
+        "10+ years of experience in UX design, worked with top tech companies, passionate about teaching and mentoring aspiring designers.",
       category: "Design",
-      description: "Master the fundamentals of UI/UX design and learn to create user-centered digital experiences.",
+      description:
+        "Master the fundamentals of UI/UX design and learn to create user-centered digital experiences.",
       progress: 8,
       quizzesCompleted: 7,
       totalQuizzes: 10,
@@ -67,9 +71,11 @@ export const DASHBOARD_MOCK = {
       instructor: "Eng. Ahmed Hatem",
       instructorInitials: "AH",
       instructorRole: "Expert Full-Stack Engineer",
-      instructorBio: "10+ years of experience in Full-Stack development, worked with top tech companies, passionate about teaching and mentoring aspiring developers.",
+      instructorBio:
+        "10+ years of experience in Full-Stack development, worked with top tech companies, passionate about teaching and mentoring aspiring developers.",
       category: "Full-Stack",
-      description: "Learn the core concepts of JavaScript including ES6+, async programming, and DOM manipulation.",
+      description:
+        "Learn the core concepts of JavaScript including ES6+, async programming, and DOM manipulation.",
       progress: 100,
       quizzesCompleted: 8,
       totalQuizzes: 8,
@@ -86,9 +92,11 @@ export const DASHBOARD_MOCK = {
       instructor: "Eng. Ahmed Hatem",
       instructorInitials: "AH",
       instructorRole: "Expert Backend Engineer",
-      instructorBio: "10+ years of experience in backend development with PHP and Laravel, building scalable enterprise applications.",
+      instructorBio:
+        "10+ years of experience in backend development with PHP and Laravel, building scalable enterprise applications.",
       category: "Backend",
-      description: "Build robust backend applications with Laravel including REST APIs, authentication, and database management.",
+      description:
+        "Build robust backend applications with Laravel including REST APIs, authentication, and database management.",
       progress: 30,
       quizzesCompleted: 3,
       totalQuizzes: 10,
@@ -105,9 +113,11 @@ export const DASHBOARD_MOCK = {
       instructor: "Eng. Nour El-Din",
       instructorInitials: "NE",
       instructorRole: "Data Science Lead",
-      instructorBio: "8+ years in data science and machine learning, published researcher, passionate about making AI accessible to everyone.",
+      instructorBio:
+        "8+ years in data science and machine learning, published researcher, passionate about making AI accessible to everyone.",
       category: "Data Science",
-      description: "Explore data science with Python including pandas, numpy, matplotlib, and machine learning fundamentals.",
+      description:
+        "Explore data science with Python including pandas, numpy, matplotlib, and machine learning fundamentals.",
       progress: 100,
       quizzesCompleted: 10,
       totalQuizzes: 10,
@@ -124,9 +134,11 @@ export const DASHBOARD_MOCK = {
       instructor: "Eng. Ahmed Hatem",
       instructorInitials: "AH",
       instructorRole: "Expert Backend Engineer",
-      instructorBio: "10+ years of experience in backend development, expert in Node.js, Express, and microservices architecture.",
+      instructorBio:
+        "10+ years of experience in backend development, expert in Node.js, Express, and microservices architecture.",
       category: "Backend",
-      description: "Learn to build scalable RESTful APIs with Node.js, Express, and MongoDB from zero to deployment.",
+      description:
+        "Learn to build scalable RESTful APIs with Node.js, Express, and MongoDB from zero to deployment.",
       progress: 15,
       quizzesCompleted: 1,
       totalQuizzes: 8,
@@ -190,7 +202,7 @@ export const DASHBOARD_MOCK = {
       id: 3,
       title: "UI/UX Principles Quiz",
       courseName: "UI/UX Design Fundamentals",
-      status: "in_progress",
+      status: "open",
       score: null,
       totalQuestions: 10,
       correctAnswers: 6,
@@ -200,7 +212,7 @@ export const DASHBOARD_MOCK = {
       id: 4,
       title: "Laravel MVC Quiz",
       courseName: "Laravel Backend Development",
-      status: "in_progress",
+      status: "open",
       score: null,
       totalQuestions: 10,
       correctAnswers: 2,
@@ -220,21 +232,21 @@ export const DASHBOARD_MOCK = {
       id: 6,
       title: "Node.js REST API Quiz",
       courseName: "Node.js API Development",
-      status: "in_progress",
+      status: "pending",
       score: null,
       totalQuestions: 8,
-      correctAnswers: 1,
-      createdAt: "2026-04-10",
+      correctAnswers: 0,
+      createdAt: "2026-04-20",
     },
     {
       id: 7,
       title: "React Hooks Advanced Quiz",
       courseName: "React Professional Course",
-      status: "in_progress",
+      status: "pending",
       score: null,
       totalQuestions: 15,
-      correctAnswers: 8,
-      createdAt: "2026-04-15",
+      correctAnswers: 0,
+      createdAt: "2026-04-25",
     },
     {
       id: 8,
@@ -248,3 +260,126 @@ export const DASHBOARD_MOCK = {
     },
   ],
 };
+
+// بيانات وهمية للإشعارات
+export const NOTIFICATIONS_MOCK = [
+  {
+    id: 1,
+    title: " Course Completed Successfully",
+    message:
+      "Congratulations! You have successfully completed the JavaScript Essentials course and earned your certificate.",
+    created_at: "2026-04-27T10:30:00",
+    is_read: false,
+  },
+  {
+    id: 2,
+    title: " New Course Available",
+    message:
+      "A new course has been added: Advanced React Patterns. Enroll now and start learning!",
+    created_at: "2026-04-26T14:15:00",
+    is_read: false,
+  },
+  {
+    id: 3,
+    title: " Resume Your Learning",
+    message:
+      "You haven’t completed the Component Lifecycle lesson in the React course. Continue learning now!",
+    created_at: "2026-04-25T09:00:00",
+    is_read: true,
+  },
+  {
+    id: 4,
+    title: " Quiz Result",
+    message: "You scored 92% in the React Components quiz. Excellent work!",
+    created_at: "2026-04-24T16:45:00",
+    is_read: true,
+  },
+  {
+    id: 5,
+    title: " Top 10 Achievement",
+    message:
+      "Great job! You're now ranked among the top 10 students this month. Keep pushing!",
+    created_at: "2026-04-23T11:20:00",
+    is_read: true,
+  },
+  {
+    id: 6,
+    title: " New Instructor Reply",
+    message:
+      "Eng. Ahmed Hatem has replied to your question in the React course.",
+    created_at: "2026-04-22T13:30:00",
+    is_read: true,
+  },
+  {
+    id: 7,
+    title: " Upcoming Live Session",
+    message:
+      "There is a live session on 'Advanced Hooks' tomorrow at 8 PM. Don’t miss it!",
+    created_at: "2026-04-21T19:00:00",
+    is_read: true,
+  },
+  {
+    id: 8,
+    title: " Certificate Ready",
+    message:
+      "Your certificate for Python for Data Science is now ready for download.",
+    created_at: "2026-04-20T10:00:00",
+    is_read: true,
+  },
+
+  //  New Notifications
+  {
+    id: 9,
+    title: " New Assignment Available",
+    message:
+      "A new assignment has been added to your React course. Submit it before the deadline.",
+    created_at: "2026-04-27T12:00:00",
+    is_read: false,
+  },
+  {
+    id: 10,
+    title: " Deadline Reminder",
+    message:
+      "Your assignment deadline is approaching. Make sure to submit it on time.",
+    created_at: "2026-04-27T08:00:00",
+    is_read: false,
+  },
+  {
+    id: 11,
+    title: " Recommended for You",
+    message:
+      "Based on your progress, we recommend the 'Node.js Fundamentals' course.",
+    created_at: "2026-04-26T18:30:00",
+    is_read: false,
+  },
+  {
+    id: 12,
+    title: " Weekly Progress Report",
+    message:
+      "You’ve completed 5 lessons this week. Keep up the great momentum!",
+    created_at: "2026-04-26T09:00:00",
+    is_read: true,
+  },
+  {
+    id: 13,
+    title: " New Quiz Available",
+    message: "A new quiz is available in your course. Test your knowledge now.",
+    created_at: "2026-04-25T15:45:00",
+    is_read: false,
+  },
+  {
+    id: 14,
+    title: " Security Alert",
+    message: "A new login to your account was detected from a new device.",
+    created_at: "2026-04-24T20:10:00",
+    is_read: true,
+  },
+  {
+    id: 15,
+    title: " Feature Update",
+    message:
+      "We’ve added new dashboard features to improve your learning experience.",
+    created_at: "2026-04-23T17:00:00",
+    is_read: true,
+  },
+];

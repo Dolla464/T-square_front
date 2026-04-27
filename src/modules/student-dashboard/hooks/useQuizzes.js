@@ -34,13 +34,14 @@ export const useQuizzes = () => {
       setQuizzes(DASHBOARD_MOCK.quizzes);
 
       // حساب الإحصائيات من الكويزات
-      const completed = DASHBOARD_MOCK.quizzes.filter(
+      //pending: لم يفتح بعد | open: متاح | completed: مكتمل
+      const quizzesData = DASHBOARD_MOCK.quizzes;
+      const completed = quizzesData.filter(
         (q) => q.status === "completed",
       ).length;
-      const inProgress = DASHBOARD_MOCK.quizzes.filter(
-        (q) => q.status === "in_progress",
-      ).length;
-      const total = DASHBOARD_MOCK.quizzes.length;
+      const pending = quizzesData.filter((q) => q.status === "pending").length;
+      const open = quizzesData.filter((q) => q.status === "open").length;
+      const total = quizzesData.length;
 
       // حساب متوسط النتيجة
       const completedQuizzes = DASHBOARD_MOCK.quizzes.filter(
@@ -55,9 +56,10 @@ export const useQuizzes = () => {
           : 0;
 
       setStats({
-        total,
-        completed,
-        inProgress,
+        total: 8,
+        completed: 4,
+        pending: 2,
+        open: 2,
         avgScore,
       });
 

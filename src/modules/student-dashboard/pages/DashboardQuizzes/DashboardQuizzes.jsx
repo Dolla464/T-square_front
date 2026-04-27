@@ -22,7 +22,8 @@ function DashboardQuizzes() {
   const filtered = (quizzes || []).filter((q) => {
     const matchesFilter =
       filter === "all" ||
-      (filter === "Pending" && q.status === "in_progress") ||
+      (filter === "open" && q.status === "open") ||
+      (filter === "Pending" && q.status === "pending") ||
       (filter === "completed" && q.status === "completed");
     const matchesSearch =
       q.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -40,10 +41,17 @@ function DashboardQuizzes() {
       label: t("quizzes.stats.total"),
     },
     {
+      icon: "bi-play-circle",
+      iconBg: "#e0f2fe",
+      iconColor: "#0ea5e9",
+      key: "open",
+      label: t("active_courses.filter.open"),
+    },
+    {
       icon: "bi-clock-history",
-      iconBg: "#eef3ff",
-      iconColor: "#4a6cf7",
-      key: "inProgress",
+      iconBg: "#f3f4f6",
+      iconColor: "#6b7280",
+      key: "pending",
       label: t("quizzes.stats.Pending"),
     },
     {
@@ -105,6 +113,7 @@ function DashboardQuizzes() {
             <div className="filter-tabs">
               {[
                 { key: "all", icon: "bi-grid-3x3-gap" },
+                { key: "open", icon: "bi-play-circle" },
                 { key: "Pending", icon: "bi-clock-history" },
                 { key: "completed", icon: "bi-check2-circle" },
               ].map(({ key, icon }) => (

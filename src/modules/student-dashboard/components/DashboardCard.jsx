@@ -18,6 +18,7 @@ function DashboardCard({ item, type, t }) {
 
   // تحديد حالة الاكتمال
   const isCompleted = item.status === "completed";
+  const isPending = item.status === "pending";
 
   // حساب التقدم للكورسات أو الكويزات
   let progress = 0;
@@ -55,9 +56,13 @@ function DashboardCard({ item, type, t }) {
     }
   } else if (isQuiz) {
     if (isCompleted) {
-      linkTo = `/student/quizzes/${item.id}/review`;
+      linkTo = `/student/quizzes/`;
       buttonText = t("active_courses.review");
       buttonClass += " btn-review";
+    } else if (isPending) {
+      linkTo = `/student/quizzes`;
+      buttonText = t("quizzes.pending");
+      buttonClass += " btn-disabled";
     } else {
       linkTo = `/student/quizzes/${item.id}`;
       buttonText = t("quizzes.continue");
@@ -70,7 +75,9 @@ function DashboardCard({ item, type, t }) {
   };
 
   return (
-    <div className={`${isCourse ? "course-card" : "quiz-card"}`}>
+    <div
+      className={`${isCourse ? "course-card" : isPending && isQuiz ? "quiz-card-disabled" : "quiz-card"}`}
+    >
       {/* الصورة أو الأيقونة */}
       {isCourse ? (
         <div className="course-card-img-wrapper">
@@ -90,14 +97,16 @@ function DashboardCard({ item, type, t }) {
       ) : (
         <div className="quiz-card-icon-wrapper">
           <i
-            className={`bi bi-pencil-square quiz-card-icon ${isCompleted ? "quiz-icon-complet" : "quiz-icon-incomplet"}`}
+            className={`bi bi-pencil-square quiz-card-icon ${isCompleted ? "quiz-icon-complet" : isPending ? "quiz-icon-pending" : "quiz-icon-open"}`}
           ></i>
           <span
-            className={`quiz-badge ${isCompleted ? "badge-completed" : "badge-progress"}`}
+            className={`quiz-badge ${isCompleted ? "badge-completed" : isPending ? "badge-pending" : "badge-progress "}`}
           >
             {isCompleted
               ? t("active_courses.filter.completed")
-              : t("active_courses.filter.Pending")}
+              : isPending
+                ? t("active_courses.filter.Pending")
+                : t("active_courses.filter.open")}
           </span>
         </div>
       )}
@@ -142,7 +151,7 @@ function DashboardCard({ item, type, t }) {
         ) : (
           <div className="quiz-score-meta">
             <i className="bi bi-question-circle me-1"></i>
-            {item.correctAnswers}/{item.totalQuestions} questions
+            {item.totalQuestions} questions
           </div>
         )}
 
