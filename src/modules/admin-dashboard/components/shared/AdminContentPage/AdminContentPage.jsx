@@ -43,14 +43,14 @@ function AdminContentPage({ type, useDataHook }) {
   // Dummy data for courses until API is ready
   const dummyCourse = {
     id: "dummy-1",
-    title: "Advanced React Mastering",
+    title: "Full Stack React Laravel",
     instructor: { name: "Ahmed Hatem", id: "1" },
     instructor_id: "1",
     revenue: "450.00 EGY",
     students_count: 120,
     image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
     description: "Learn React from scratch to pro with hooks, context, and performance optimization secrets. This course covers everything you need to build production-ready apps.",
-    tags: [{ id: 1, name: "React" }, { id: 2, name: "Frontend" }],
+    tags: [{ id: 1, name: "React" }, { id: 2, name: "Frontend" }, { id: 3, name: "Laravel" }],
     price: "450",
     discount: "399",
     category: "1",
