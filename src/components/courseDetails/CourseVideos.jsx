@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import placeholderVideo from "../../assets/video/1625-148614367.mp4";
 
 const CourseVideos = () => {
   const { t, i18n } = useTranslation("coursesDetails");
@@ -13,7 +14,7 @@ const CourseVideos = () => {
         <div className="col-md-6">
           <div className="ratio ratio-16x9">
             <video
-              src="public/videos/WhatsApp Video 2026-04-22 at 8.10.16 PM.mp4"
+              src={placeholderVideo}
               alt="course"
               className="w-100 rounded"
               controls
@@ -24,7 +25,7 @@ const CourseVideos = () => {
         <div className="col-md-6">
           <div className="ratio ratio-16x9">
             <video
-              src="public/videos/WhatsApp Video 2026-04-22 at 8.10.16 PM.mp4"
+              src={placeholderVideo}
               alt="course"
               className="w-100 rounded"
               controls
