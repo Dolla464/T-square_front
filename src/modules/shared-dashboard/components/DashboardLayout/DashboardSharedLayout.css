@@ -221,6 +221,24 @@
   background: #f4f5f7;
 }
 
+.notif-badge-count {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 4px;
+  min-width: 18px;
+  height: 18px;
+  background: #be1522;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 4px;
+  border: 2px solid #fff;
+}
+
 .notif-dot {
   position: absolute;
   top: 7px;

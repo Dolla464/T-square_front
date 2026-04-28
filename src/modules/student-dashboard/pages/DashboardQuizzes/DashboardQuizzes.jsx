@@ -22,7 +22,7 @@ function DashboardQuizzes() {
   const filtered = (quizzes || []).filter((q) => {
     const matchesFilter =
       filter === "all" ||
-      (filter === "Pending" && q.status === "in_progress") ||
+      (filter === "Pending" && q.status === "pending") ||
       (filter === "completed" && q.status === "completed");
     const matchesSearch =
       q.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -40,12 +40,13 @@ function DashboardQuizzes() {
       label: t("quizzes.stats.total"),
     },
     {
-      icon: "bi-clock-history",
-      iconBg: "#eef3ff",
-      iconColor: "#4a6cf7",
-      key: "inProgress",
-      label: t("quizzes.stats.Pending"),
+      icon: "bi-play-circle",
+      iconBg: "#e0f2fe",
+      iconColor: "#0ea5e9",
+      key: "open",
+      label: t("active_courses.filter.Pending"),
     },
+
     {
       icon: "bi-check2-circle",
       iconBg: "#efffef",
