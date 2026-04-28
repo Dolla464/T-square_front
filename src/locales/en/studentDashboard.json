@@ -4,6 +4,7 @@
     "dashboard": "Dashboard",
     "quiz": "Quiz",
     "certificates": "Certificates",
+    "notifications": "Notifications",
     "profile": "Profile"
   },
   "stats": {
@@ -27,6 +28,7 @@
     "filter": {
       "all": "All",
       "Pending": "Pending",
+      "open": "Open",
       "in_progress": "In Progress",
       "completed": "Completed"
     }
@@ -59,6 +61,7 @@
   },
   "quizzes": {      
       "continue": "Enter the quiz",
+      "pending": "Soon",
 
     "title": "My Quizzes",
     "placeholder": "Quizzes list will be available soon.",

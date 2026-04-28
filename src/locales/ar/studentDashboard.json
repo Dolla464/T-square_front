@@ -4,6 +4,7 @@
     "dashboard": "لوحة التحكم",
     "quiz": "الاختبارات",
     "certificates": "الشهادات",
+    "notifications": "الإشعارات",
     "profile": "الملف الشخصي"
   },
   "stats": {
@@ -26,6 +27,7 @@
     "filter": {
       "all": "الكل",
       "in_progress": "قيد التنفيذ",
+      "open": "مفتوح",
       "Pending": "لم يتم البداء",
       "completed": "مكتملة"
     }
@@ -58,6 +60,7 @@
   },
   "quizzes": {
         "continue": "الدخول للاختبار",
+      "pending": "قريباً",
 
     "title": "اختباراتي",
     "placeholder": "قائمة الاختبارات ستكون متاحة قريباً.",

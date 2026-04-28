@@ -2,6 +2,7 @@
   "sidebar": {
     "dashboard": "لوحة التحكم",
     "courses": "الكورسات",
+    "solutions": "الحلول",
     "students": "الطلاب",
     "instructor": "المحاضر",
     "instructors": "المحاضرون",
@@ -19,5 +20,81 @@
   "coming_soon": {
     "title": "قريباً",
     "subtitle": "هذا القسم تحت التطوير وسيكون متاحاً قريباً."
+  },
+  "content": {
+    "edit_course": "تعديل الكورس",
+    "course_title": "الكورسات",
+    "course_subtitle": "إدارة جميع الكورسات على المنصة",
+    "solution_title": "الحلول",
+    "solution_subtitle": "إدارة جميع الحلول البرمجية على المنصة",
+    "add_course": "+ إضافة كورس",
+    "add_solution": "+ إضافة حل",
+    "edit_solution": "تعديل الحل",
+    "update_solution": "تحديث الحل",
+    "add_new_course": "إضافة كورس جديد",
+    "add_new_solution": "إضافة حل جديد",
+    "view_solution": "عرض الحل",
+    "view_course": "عرض الكورس",
+    "search_courses": "ابحث عن كورسات...",
+    "search_solutions": "ابحث عن حلول...",
+    "table": {
+      "course": "الكورس",
+      "solution": "الحل البرمجي",
+      "instructor": "المحاضر",
+      "revenue": "الإيرادات",
+      "students": "الطلاب",
+      "description": "الوصف",
+      "tags": "العلامات",
+      "status": "الحالة",
+      "actions": "الإجراءات"
+    },
+    "filter": {
+      "all_courses": "كل الكورسات",
+      "all_solutions": "كل الحلول",
+      "categories": "الأقسام",
+      "tags": "العلامات"
+    },
+    "status": {
+      "published": "منشور",
+      "draft": "مسودة"
+    },
+    "form": {
+      "save_draft": "حفظ كمسودة",
+      "publish": "نشر",
+      "tabs": {
+        "basic_info": "المعلومات الأساسية",
+        "curriculum": "المنهج",
+        "pricing": "التسعير",
+        "settings": "الإعدادات"
+      },
+      "fields": {
+        "title": "العنوان",
+        "title_placeholder": "أدخل العنوان",
+        "description": "الوصف",
+        "description_placeholder": "أدخل الوصف...",
+        "category": "القسم",
+        "category_placeholder": "اختر القسم",
+        "difficulty": "مستوى الصعوبة",
+        "difficulty_placeholder": "اختر المستوى",
+        "instructor": "المحاضر",
+        "instructor_placeholder": "اختر المحاضر",
+        "thumbnail": "الصورة الرمزية",
+        "thumbnail_hint": "انقر للرفع أو اسحب وأفلت",
+        "thumbnail_sub_hint": "PNG, JPG أو GIF (بحد أقصى 1920×1080 بكسل)",
+        "tags": "العلامات",
+        "tags_placeholder": "اختر العلامات"
+      }
+    }
+  },
+  "success": {
+    "created": "تم الإنشاء بنجاح",
+    "updated": "تم التحديث بنجاح",
+    "deleted": "تم الحذف بنجاح"
+  },
+  "errors": {
+    "fetch_failed": "فشل جلب البيانات",
+    "create_failed": "فشل في الإنشاء",
+    "update_failed": "فشل في التعديل",
+    "delete_failed": "فشل في الحذف"
   }
 }

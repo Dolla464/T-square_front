@@ -2,6 +2,7 @@
   "sidebar": {
     "dashboard": "Dashboard",
     "courses": "Courses",
+    "solutions": "Solutions",
     "students": "Students",
     "instructor": "Instructor",
     "instructors": "Instructors",
@@ -19,5 +20,81 @@
   "coming_soon": {
     "title": "Coming Soon",
     "subtitle": "This section is under development and will be available soon."
+  },
+  "content": {
+    "edit_course": "Edit Course",
+    "course_title": "Courses",
+    "course_subtitle": "Manage all courses on the platform",
+    "solution_title": "Solutions",
+    "solution_subtitle": "Manage all software solutions on the platform",
+    "add_course": "+ Add Course",
+    "add_solution": "+ Add Solution",
+    "edit_solution": "Edit Solution",
+    "update_solution": "Update Solution",
+    "add_new_course": "Add New Course",
+    "add_new_solution": "Add New Solution",
+    "view_solution": "View Solution",
+    "view_course": "View Course",
+    "search_courses": "Search courses...",
+    "search_solutions": "Search solutions...",
+    "table": {
+      "course": "Course",
+      "solution": "Solution",
+      "instructor": "Instructor",
+      "revenue": "Revenue",
+      "students": "Students",
+      "description": "Description",
+      "tags": "Tags",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "filter": {
+      "all_courses": "All Courses",
+      "all_solutions": "All Solutions",
+      "categories": "Categories",
+      "tags": "Tags"
+    },
+    "status": {
+      "published": "Published",
+      "draft": "Draft"
+    },
+    "form": {
+      "save_draft": "Save as Draft",
+      "publish": "Publish",
+      "tabs": {
+        "basic_info": "Basic Info",
+        "curriculum": "Curriculum",
+        "pricing": "Pricing",
+        "settings": "Settings"
+      },
+      "fields": {
+        "title": "Title",
+        "title_placeholder": "Enter title",
+        "description": "Description",
+        "description_placeholder": "Describe what students will learn...",
+        "category": "Category",
+        "category_placeholder": "Select category",
+        "difficulty": "Difficulty Level",
+        "difficulty_placeholder": "Select level",
+        "instructor": "Instructor",
+        "instructor_placeholder": "Select instructor",
+        "thumbnail": "Thumbnail",
+        "thumbnail_hint": "Click to upload or drag and drop",
+        "thumbnail_sub_hint": "PNG, JPG or GIF (max. 1920x1080px)",
+        "tags": "Tags",
+        "tags_placeholder": "Select tags"
+      }
+    }
+  },
+  "success": {
+    "created": "Created successfully",
+    "updated": "Updated successfully",
+    "deleted": "Deleted successfully"
+  },
+  "errors": {
+    "fetch_failed": "Failed to fetch data",
+    "create_failed": "Failed to create",
+    "update_failed": "Failed to update",
+    "delete_failed": "Failed to delete"
   }
 }

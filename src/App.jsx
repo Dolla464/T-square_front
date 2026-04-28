@@ -39,13 +39,15 @@ import DashboardCertificates from "./modules/student-dashboard/pages/DashboardCe
 import DashboardQuizzes from "./modules/student-dashboard/pages/DashboardQuizzes/DashboardQuizzes";
 import DashboardProfile from "./modules/student-dashboard/pages/DashboardProfile/DashboardProfile";
 import CourseDetails from "./modules/student-dashboard/pages/CourseDetails/CourseDetails";
+import NotificationsPage from "./modules/student-dashboard/pages/Notifications/NotificationsPage";
+import QuizExamPage from "./modules/student-dashboard/pages/QuizExam/QuizExamPage";
 
 // ── وحدة داشبورد الأدمن ──
 import AdminLayout from "./modules/admin-dashboard/layouts/AdminLayout";
 import AdminOverview from "./modules/admin-dashboard/pages/Overview/AdminOverview";
 import AdminCourses from "./modules/admin-dashboard/pages/Courses/AdminCourses";
+import AdminSolutions from "./modules/admin-dashboard/pages/Solutions/AdminSolutions";
 import AdminStudents from "./modules/admin-dashboard/pages/Students/AdminStudents";
-import AdminInstructor from "./modules/admin-dashboard/pages/Instructor/AdminInstructor";
 import AdminInstructors from "./modules/admin-dashboard/pages/Instructors/AdminInstructors";
 import AdminOrders from "./modules/admin-dashboard/pages/Orders/AdminOrders";
 import AdminAnalytics from "./modules/admin-dashboard/pages/Analytics/AdminAnalytics";
@@ -202,8 +204,8 @@ function AppContent() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminOverview />} />
               <Route path="courses" element={<AdminCourses />} />
+              <Route path="solutions" element={<AdminSolutions />} />
               <Route path="students" element={<AdminStudents />} />
-              <Route path="instructor" element={<AdminInstructor />} />
               <Route path="instructors" element={<AdminInstructors />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="analytics" element={<AdminAnalytics />} />
@@ -222,7 +224,9 @@ function AppContent() {
               {/* Flat sub-pages — بدون /dashboard في المسار */}
               <Route path="certificates" element={<DashboardCertificates />} />
               <Route path="quizzes" element={<DashboardQuizzes />} />
+              <Route path="quizzes/:quizId" element={<QuizExamPage />} />
               <Route path="profile" element={<DashboardProfile />} />
+              <Route path="notifications" element={<NotificationsPage />} />
               <Route path="course/:id" element={<CourseDetails />} />
               {/* Aliases — لو جه من رابط قديم بـ /dashboard/xxx */}
               <Route

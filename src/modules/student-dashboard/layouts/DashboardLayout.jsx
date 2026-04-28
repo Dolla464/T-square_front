@@ -13,6 +13,7 @@ const STUDENT_NAV = [
   },
   { key: "quiz", path: "/student/quizzes", icon: "bi-pencil-square" },
   { key: "certificates", path: "/student/certificates", icon: "bi-award-fill" },
+  { key: "notifications", path: "/student/notifications", icon: "bi-bell-fill" },
   { key: "profile", path: "/student/profile", icon: "bi-person-fill" },
 ];
 
@@ -35,6 +36,9 @@ function DashboardLayout() {
           ? `مرحبا ${user.name}`
           : `Welcome Back ${user.name}`;
   const getPageTitle = (path) => {
+    if (path.startsWith("/student/quizzes/")) {
+      return isArabic ? "اختبار الكويز" : "Quiz Exam";
+    }
     switch (path) {
       case "/student/dashboard":
         return HomePageTitle;
@@ -42,6 +46,8 @@ function DashboardLayout() {
         return isArabic ? "الأختبارات" : "Quizzes";
       case "/student/certificates":
         return isArabic ? "الشهادات" : "Certificates";
+      case "/student/notifications":
+        return isArabic ? "الإشعارات" : "Notifications";
       case "/student/profile":
         return isArabic ? "الملف الشخصي" : "My Profile";
       default:
