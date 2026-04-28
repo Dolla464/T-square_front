@@ -3,7 +3,7 @@
   "full_stack_course": "Full Stack course",
   "course_title": "Full Stack Web Development Bootcamp",
   "course_description": "Build beautiful cross-platform mobile apps with Flutter and Dart. Deploy to iOS and Android.",
-
+"courses_page": "Courses",
   "Course_price": "Course price",
   "price": "250 EGP",
   "one_time_payment": "One-time payment",
@@ -15,9 +15,11 @@
   "study_type_value": "Online",
   "level": "Level",
   "level_value": "Beginner",
-
+"weeks":"Weeks",
   "enroll_now": "Enroll Now",
   "contact_us": "Contact us",
+"course_details":"Course details",
+"hours":"h",
 
   "about_program": "About the Program",
   "about_description": "This comprehensive program prepares you to become a Full Stack Developer capable of building complete web applications from scratch, from designing interactive user interfaces to managing servers and databases.",

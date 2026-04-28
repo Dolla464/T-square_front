@@ -6,8 +6,8 @@ import { useNavigate } from "react-router-dom";
 const CourseCard = ({ course }) => {
   const navigate = useNavigate();
 
-  const handleBuyNow = (courseId) => {
-    navigate(`/course_details/${courseId}`);
+  const handleDetails = (courseId) => {
+    navigate(`/courses/course_details/${courseId}`);
   };
   const { t } = useTranslation("courses");
 
@@ -15,7 +15,11 @@ const CourseCard = ({ course }) => {
     <div className="course-card">
       <div className="course-img-wrapper">
         {/* لما يكون عندنا صور الكورسات هنشيل courseThumb */}
-        <img src={courseThumb || course.image} alt={course.title} className="course-img" />
+        <img
+          src={courseThumb || course.image}
+          alt={course.title}
+          className="course-img"
+        />
         <span
           className={`course-badge badge-${course.attendance_type.toLowerCase()}`}
         >
@@ -24,18 +28,21 @@ const CourseCard = ({ course }) => {
       </div>
 
       <div className="course-body">
-        <h3 className="course-title" dir="ltr">{course.title}</h3>
+        <h3 className="course-title" dir="ltr">
+          {course.title}
+        </h3>
         <div className="course-info">
           <span>
-            <i className="bi bi-clock me-1"></i>{course.duration_weeks} {t("card.weeks")}
+            <i className="bi bi-clock me-1"></i>
+            {course.duration_weeks} {t("card.weeks")}
           </span>
           <span>
-            <i className="bi bi-play-circle me-1"></i>{course.duration_hours} {t("card.hours")}
+            <i className="bi bi-play-circle me-1"></i>
+            {course.duration_hours} {t("card.hours")}
           </span>
         </div>
         <p className="course-desc" dir="ltr">
           {course.short_description}
-
         </p>
 
         <div className="course-tags" dir="ltr">
@@ -58,8 +65,11 @@ const CourseCard = ({ course }) => {
               </small>
             )}
           </div>
-          <button onClick={() => handleBuyNow(course.slug)} className="buy-btn">
-            {t("card.buyNow")}
+          <button
+            onClick={() => handleDetails(course.slug)}
+            className="buy-btn"
+          >
+            {t("card.details")}
           </button>
         </div>
       </div>

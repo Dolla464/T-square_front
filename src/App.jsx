@@ -193,16 +193,19 @@ function AppContent() {
 
           <Route path="/courses" element={<Courses />} />
 
-          <Route path="/course_details/:slug" element={<DetailsCourse />} />
+          <Route
+            path="/courses/course_details/:slug"
+            element={<DetailsCourse />}
+          />
+
+          <Route path="/payment" element={<Navigate to="/courses" replace />} />
+          <Route path="/payment/:slug" element={<Payment />} />
 
           <Route path="/solutions" element={<Solutions />} />
 
           <Route path="/team" element={<Team />} />
 
           <Route path="/contact" element={<Contact />} />
-
-          <Route path="/payment" element={<Navigate to="/courses" replace />} />
-          <Route path="/payment/:slug" element={<Payment />} />
 
           {/* Protected Routes — Admin Dashboard */}
           <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>

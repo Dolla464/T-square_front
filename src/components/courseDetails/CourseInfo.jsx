@@ -8,11 +8,29 @@ const CourseInfo = () => {
 
   return (
     <div dir={isArabic ? "rtl" : "ltr"}>
-      <nav className="mb-3 text-muted">
-        <Link to="/" className="breadcrumb-item nav-link d-inline">
-          {t("home")} <span className="mx-2">›</span>{" "}
-          <span className="text-danger">{t("full_stack_course")}</span>
+      {/* Breadcrumbs */}
+      <nav className="breadcrumb-nav mb-4 d-flex align-items-center">
+        <Link to="/" className="breadcrumb-item">
+          {t("navbar:home")}
         </Link>
+        <span className="breadcrumb-separator mx-2">
+          {isArabic ? (
+            <i className="bi bi-chevron-left"></i>
+          ) : (
+            <i className="bi bi-chevron-right"></i>
+          )}
+        </span>
+        <Link to="/courses" className="breadcrumb-item">
+          {t("courses_page")}
+        </Link>
+        <span className="breadcrumb-separator mx-2">
+          {isArabic ? (
+            <i className="bi bi-chevron-left"></i>
+          ) : (
+            <i className="bi bi-chevron-right"></i>
+          )}
+        </span>
+        <span className="breadcrumb-item active">{t("course_details")}</span>
       </nav>
 
       <h1 className="fw-bold mb-2">{t("course_title")}</h1>
