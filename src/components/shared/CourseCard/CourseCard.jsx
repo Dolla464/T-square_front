@@ -7,7 +7,7 @@ const CourseCard = ({ course }) => {
   const navigate = useNavigate();
 
   const handleBuyNow = (courseId) => {
-    navigate(`/payment/${courseId}`);
+    navigate(`/course_details/${courseId}`);
   };
   const { t } = useTranslation("courses");
 

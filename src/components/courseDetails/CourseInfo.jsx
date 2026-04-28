@@ -1,9 +1,11 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 const CourseInfo = () => {
   const { t, i18n } = useTranslation("coursesDetails");
   const isArabic = i18n?.language === "ar";
+  const { slug } = useParams();
+
   return (
     <div dir={isArabic ? "rtl" : "ltr"}>
       <nav className="mb-3 text-muted">

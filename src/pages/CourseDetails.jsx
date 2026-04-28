@@ -5,18 +5,16 @@ import CourseLayout from "../components/courseDetails/CourseLayout";
 import "../components/courseDetails/CourseDetails.css";
 import ContactSection from "../components/courses/ContactSection";
 
-
-
 const CourseDetails = () => {
   return (
-    <div className="course-details-page container my-5 pt-5">
-
-      <div className="row">
-        <CourseLayout/>
+    <>
+      <div className="course-details-page container my-5 pt-5">
+        <div className="row">
+          <CourseLayout />
+        </div>
       </div>
       <ContactSection />
-
-    </div>
+    </>
   );
 };
 export default CourseDetails;

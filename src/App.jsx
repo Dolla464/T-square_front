@@ -193,8 +193,8 @@ function AppContent() {
 
           <Route path="/courses" element={<Courses />} />
 
-          <Route path="/course_details" element={<DetailsCourse />} />
-          
+          <Route path="/course_details/:slug" element={<DetailsCourse />} />
+
           <Route path="/solutions" element={<Solutions />} />
 
           <Route path="/team" element={<Team />} />
