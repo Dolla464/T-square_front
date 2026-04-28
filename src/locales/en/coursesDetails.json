@@ -1,0 +1,45 @@
+{
+  "home": "Home",
+  "full_stack_course": "Full Stack course",
+  "course_title": "Full Stack Web Development Bootcamp",
+  "course_description": "Build beautiful cross-platform mobile apps with Flutter and Dart. Deploy to iOS and Android.",
+
+  "Course_price": "Course price",
+  "price": "250 EGP",
+  "one_time_payment": "One-time payment",
+  "duration": "Duration",
+  "duration_value": "8 weeks",
+  "total_hours": "Total Hours",
+  "total_hours_value": "120h",
+  "study_type": "Study Type",
+  "study_type_value": "Online",
+  "level": "Level",
+  "level_value": "Beginner",
+
+  "enroll_now": "Enroll Now",
+  "contact_us": "Contact us",
+
+  "about_program": "About the Program",
+  "about_description": "This comprehensive program prepares you to become a Full Stack Developer capable of building complete web applications from scratch, from designing interactive user interfaces to managing servers and databases.",
+  "about_paragraph_2": "Bring to the table win-win survival strategies to ensure proactive domination. At the end of the day, going forward, a new normal that has evolved from generation X is on the runway.",
+  "about_paragraph_3": "Heading towards a streamlined cloud solution. User generated content in real-time will have multiple touchpoints for offshoring. Capitalize on low hanging fruit to identify a ballpark value added activity to beta test. Override the digital divide with additional solutions.",
+
+  "what_you_will_learn": "What You Will Learn?",
+  "frontend": "Front-End Development:",
+  "backend": "Back-End Development:",
+
+  "html": "HTML5",
+  "css": "CSS3",
+  "responsive": "Responsive Design",
+  "javascript": "JavaScript (ES6+)",
+  "react": "React.js",
+  "git": "Git & GitHub",
+
+  "node": "Node.js",
+  "express": "Express.js",
+  "api": "RESTful APIs",
+  "auth": "Authentication & Authorization",
+
+  "course_preview": "Course Preview",
+  "preview_description": "Start by watching free videos to discover the quality of the content and decide to join with confidence."
+}

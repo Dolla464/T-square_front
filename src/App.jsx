@@ -18,10 +18,13 @@ import ForgotPassword from "./pages/forgot_password/ForgotPassword";
 import UpdatePassword from "./pages/Update_Password/UpdatePassword";
 import Courses from "./pages/CoursesPage";
 import Solutions from "./pages/Solutions";
+import DetailsCourse from "./pages/CourseDetails";
 
 // استيراد ملفات البوتستراب
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap.rtl.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
+
 import Team from "./pages/Team";
 import Contact from "./pages/Contact";
 import Payment from "./pages/Payment";
@@ -190,6 +193,8 @@ function AppContent() {
 
           <Route path="/courses" element={<Courses />} />
 
+          <Route path="/course_details" element={<DetailsCourse />} />
+          
           <Route path="/solutions" element={<Solutions />} />
 
           <Route path="/team" element={<Team />} />
