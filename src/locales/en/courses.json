@@ -16,6 +16,8 @@
     "hours": "h",
     "priceUnit": "EGP",
     "buyNow": "Buy now",
+        "details": "Course details",
+
     "online": "Online",
     "offline": "Offline",
     "hybrid": "Hybrid",

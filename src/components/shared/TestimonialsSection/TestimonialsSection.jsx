@@ -17,8 +17,7 @@ function TestimonialsSection({ data, className = "" }) {
   const { t } = useTranslation("testimonials");
 
   // لو فيه داتا ممررة من البرا نستخدمها، ولو لأ نجلب من الهوك
-  const { testimonials: hookData, loading, error } = useTestimonials();
-  const testimonials = data || hookData;
+  const { testimonials, loading, error } = useTestimonials();
 
   return (
     <div className={`testimonials-section py-5 ${className}`}>

@@ -57,7 +57,12 @@
     "cert_earned": "Certificate earned alerts",
     "weekly_reminders": "Weekly learning reminders",
     "promo_emails": "Promotional emails",
-    "save_preferences": "Save Preferences"
+    "save_preferences": "Save Preferences",
+    "gender": "Gender",
+    "select_gender": "Select Gender",
+    "male": "Male",
+    "female": "Female",
+    "update_data": "Update Data"
   },
   "quizzes": {      
       "continue": "Enter the quiz",

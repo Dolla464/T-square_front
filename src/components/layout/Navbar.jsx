@@ -27,15 +27,16 @@ function AppNavbar({ isLoggedIn, userName }) {
     // تسجيل الخروج وعرض إشعار الوداع
     logout();
     toastCustom({
-      message: i18n.language === "ar" ? "تم تسجيل الخروج بنجاح" : "Logged out successfully",
+      message:
+        i18n.language === "ar"
+          ? "تم تسجيل الخروج بنجاح"
+          : "Logged out successfully",
       type: "info",
       bsIcon: "bi-box-arrow-right",
       duration: 3000,
     });
-    navigate('/');
+    navigate("/");
   };
-
-
 
   // Reset mobile menu when route changes
   useEffect(() => {
@@ -52,6 +53,9 @@ function AppNavbar({ isLoggedIn, userName }) {
   }, []);
 
   const toggleLanguage = () => {
+    if (mobileMenuOpen) {
+      setMobileMenuOpen(false);
+    }
     const newLang = i18n.language === "ar" ? "en" : "ar";
     i18n.changeLanguage(newLang);
 
@@ -193,8 +197,9 @@ function AppNavbar({ isLoggedIn, userName }) {
 
           <div className="d-flex align-items-center gap-3">
             <div
-              className={`d-flex align-items-center cursor-pointer lang-switch ${Tbtn
-                }`}
+              className={`d-flex align-items-center cursor-pointer lang-switch ${
+                Tbtn
+              }`}
               onClick={toggleLanguage}
             >
               <HiOutlineGlobeAlt size={20} className="me-1" />
@@ -226,8 +231,9 @@ function AppNavbar({ isLoggedIn, userName }) {
               </div>
             ) : (
               <div
-                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${isDarkMode ? "border-dark" : "border-light"
-                  }`}
+                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${
+                  isDarkMode ? "border-dark" : "border-light"
+                }`}
               >
                 <div
                   className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold"
@@ -258,7 +264,10 @@ function AppNavbar({ isLoggedIn, userName }) {
                     {t("user:my_courses")}
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
-                  <NavDropdown.Item className="text-danger" onClick={handleLogout}>
+                  <NavDropdown.Item
+                    className="text-danger"
+                    onClick={handleLogout}
+                  >
                     {t("user:logout")}
                   </NavDropdown.Item>
                 </NavDropdown>
