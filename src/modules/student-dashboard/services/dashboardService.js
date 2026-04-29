@@ -9,8 +9,8 @@ import axiosClient from "../../../api/axios";
  * جلب بيانات الداشبورد الرئيسية (كورسات + إحصائيات)
  * TODO: فعّل عند توفر الـ endpoint
  */
-export const getStudentDashboard = () =>
-    axiosClient.get("/student/dashboard");
+export const getStudentCourses = () =>
+    axiosClient.get("student/courses/dashboard");
 
 /**
  * جلب شهادات الطالب

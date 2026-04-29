@@ -50,7 +50,6 @@ export const AuthProvider = ({ children }) => {
     const { token, user } = responseData;
     setToken(token);
     setUser(user);
-
     // مسح أي بيانات قديمة قبل حفظ الجديدة
     clearAllStorage();
 
