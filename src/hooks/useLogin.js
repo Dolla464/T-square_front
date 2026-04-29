@@ -15,25 +15,26 @@ export const useLogin = () => {
     setError(null);
     
     try {
-      const { data } = await loginService(credentials);
+      const response = await loginService(credentials);
+      const actualData = response.data.data;
       
       // حفظ بيانات المستخدم في الـ Context
-      login(data, rememberMe);
+      login(actualData, rememberMe);
 
       // عرض رسالة ترحيب بعد تسجيل الدخول بنجاح
-      toastWelcome(data.user?.name || data.user?.email);
+      toastWelcome(actualData.user?.name || actualData.user?.email);
 
       // Role-based routing
-      if (data.user.role === 'admin') {
-        navigate('/admin', { replace: true });
-      } else if (data.user.role === 'student') {
-        navigate('/student', { replace: true });
+      if (actualData.user.role === "admin") {
+        navigate("/admin", { replace: true });
+      } else if (actualData.user.role === "student") {
+        navigate("/student", { replace: true });
       } else {
         // Fallback for unknown role
-        navigate('/', { replace: true });
+        navigate("/", { replace: true });
       }
       
-      return data;
+      return actualData;
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
       setError(errorMessage);

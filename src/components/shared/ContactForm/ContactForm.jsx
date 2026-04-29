@@ -9,7 +9,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 function ContactForm({ title, subtitle, onSubmit, submitText, externalLoading }) {
   const { t } = useTranslation(["contact"]);
   const { submitContact, loading: hookLoading, error, success } = useContact();
-  const isArabic = i18n.language === "ar";
+  //const isArabic = i18n.language === "ar";
   const loading = externalLoading || hookLoading;
 
   const { user } = useAuth();

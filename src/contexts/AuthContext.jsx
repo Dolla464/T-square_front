@@ -46,17 +46,18 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = (data, rememberMe = true) => {
-    setToken(data.token);
-    setUser(data.user);
+  const login = (responseData, rememberMe = true) => {
+    const { token, user } = responseData;
+    setToken(token);
+    setUser(user);
 
     // مسح أي بيانات قديمة قبل حفظ الجديدة
     clearAllStorage();
 
     // حفظ البيانات في نوع التخزين المحدد
     const storage = getStorage(rememberMe);
-    storage.setItem("token", data.token);
-    storage.setItem("user", JSON.stringify(data.user));
+    storage.setItem("token", token);
+    storage.setItem("user", JSON.stringify(user));
   };
 
   // --- التعديل هنا لربط اللوج اوت بالباك ---
