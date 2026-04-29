@@ -35,6 +35,7 @@ function LoginPage() {
         name: "Admin User",
         email: "admin@tsquare.com",
         role: "admin",
+        phone: "01016981295",
         is_active: true,
         email_verified_at: "2026-04-22T13:54:21.000000Z",
       },
@@ -51,6 +52,7 @@ function LoginPage() {
         email: "student@tsquare.com",
         role: "student",
         is_active: true,
+        phone: "01016981295",
         email_verified_at: null,
       },
     };
