@@ -7,11 +7,9 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
 
   // تعليق: إعداد أعمدة الجدول بناءً على التصنيف (Type)
   const isCourse = type === "course";
-
+  const isSolution = type === "solution";
   return (
     <div className="ac-table-container">
-
-
       {loading ? (
         <div className="text-center py-5">
           <Spinner animation="border" variant="danger" />
@@ -21,11 +19,17 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
           <table className="table ac-table mb-0 align-middle">
             <thead>
               <tr>
-                <th>{isCourse ? t("content.table.course") : t("content.table.solution")}</th>
+                <th>
+                  {isCourse
+                    ? t("content.table.course")
+                    : t("content.table.solution")}
+                </th>
                 {isCourse && <th>{t("content.table.instructor")}</th>}
-                {!isCourse && <th>{t("content.table.description")}</th>}
+                {isSolution && <th>{t("content.table.description")}</th>}
                 {isCourse && <th>{t("content.table.revenue")}</th>}
-                {isCourse && <th className="text-center">{t("content.table.students")}</th>}
+                {isCourse && (
+                  <th className="text-center">{t("content.table.students")}</th>
+                )}
                 <th>{t("content.table.tags")}</th>
                 <th className="text-center">{t("content.table.actions")}</th>
               </tr>
@@ -34,23 +38,40 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
               {data && data.length > 0 ? (
                 data.map((item, index) => (
                   <tr key={item.id || index}>
-                    <td className="fw-medium text-dark">{item.name || item.title || "Untitled"}</td>
-                    {isCourse && <td className="text-secondary">{item.instructor?.name || "N/A"}</td>}
+                    <td className="fw-medium text-dark">
+                      {item.name || item.title || "Untitled"}
+                    </td>
+                    {isCourse && (
+                      <td className="text-secondary">
+                        {item.instructor?.name || "N/A"}
+                      </td>
+                    )}
 
-                    {!isCourse && (
+                    {isSolution && (
                       <td className="text-secondary ac-truncate-text">
                         {item.description || "N/A"}
                       </td>
                     )}
 
-                    {isCourse && <td className="text-secondary">{item.revenue || "0.00 EGY"}</td>}
-                    {isCourse && <td className="text-secondary  text-center">{item.students_count || 0}</td>}
+                    {isCourse && (
+                      <td className="text-secondary">
+                        {item.revenue || "0.00 EGY"}
+                      </td>
+                    )}
+                    {isCourse && (
+                      <td className="text-secondary  text-center">
+                        {item.students_count || 0}
+                      </td>
+                    )}
 
                     <td>
                       <div className="d-flex gap-1 flex-wrap justify-content-start">
                         {item.tags && item.tags.length > 0 ? (
                           item.tags.map((tag) => (
-                            <span key={tag.tag_id || tag.id || tag} className="badge bg-light text-dark border">
+                            <span
+                              key={tag.tag_id || tag.id || tag}
+                              className="badge bg-light text-dark border"
+                            >
                               {tag.tag_name || tag.name || tag}
                             </span>
                           ))
@@ -59,7 +80,6 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
                         )}
                       </div>
                     </td>
-
 
                     <td className="text-center">
                       <div className="d-flex justify-content-center gap-2">
@@ -90,7 +110,10 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={isCourse ? 6 : 5} className="text-center py-4 text-muted">
+                  <td
+                    colSpan={isCourse ? 6 : 5}
+                    className="text-center py-4 text-muted"
+                  >
                     No data available.
                   </td>
                 </tr>

@@ -17,7 +17,6 @@ function AllPayment() {
   if (!slug || slug == null) {
     return <Navigate to="/courses" replace />;
   }
-  // Find course from mock data
   const course = courseData;
 
   const WHATSAPP_NUMBER = "201021327600";

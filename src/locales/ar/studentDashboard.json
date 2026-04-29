@@ -56,7 +56,12 @@
     "cert_earned": "تنبيهات الحصول على الشهادات",
     "weekly_reminders": "تذكيرات تعلم أسبوعية",
     "promo_emails": "رسائل برامج ترويجية",
-    "save_preferences": "حفظ التفضيلات"
+    "save_preferences": "حفظ التفضيلات",
+    "gender": "الجنس",
+    "select_gender": "اختر الجنس",
+    "male": "ذكر",
+    "female": "أنثى",
+    "update_data": "تحديث البيانات"
   },
   "quizzes": {
         "continue": "الدخول للاختبار",

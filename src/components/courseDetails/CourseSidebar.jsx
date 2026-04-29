@@ -1,8 +1,15 @@
 import { useTranslation } from "react-i18next";
-import { FaPhone, FaTags } from "react-icons/fa";
 
-const CourseSidebar = () => {
+import { FaPhone, FaTags } from "react-icons/fa";
+import { Link, Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import i18n from "../../i18n";
+import { t } from "i18next";
+
+const CourseSidebar = ({ course }) => {
   const { t, i18n } = useTranslation("coursesDetails");
+
+  const [show, setShow] = useState(false);
   const isArabic = i18n?.language === "ar";
 
   const SidebarContent = () => (
