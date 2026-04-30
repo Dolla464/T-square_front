@@ -3,20 +3,24 @@ import React from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { DASHBOARD_MOCK } from "../../data/dashboardMockData";
+import { getStudentCourses } from "../../hooks/useCourses";
 import "./CourseDetails.css";
 
 function CourseDetails() {
   const { id } = useParams();
   const { state } = useLocation();
   const { t } = useTranslation("studentDashboard");
+  const { enrolledCourses } = getStudentCourses();
 
   // استخدام البيانات من ملف الموك الرئيسي — مع فولباك من state لو متاح
   const course =
-    DASHBOARD_MOCK.enrolledCourses.find((c) => String(c.id) === String(id)) ||
+    enrolledCourses.find((c) => String(c.id) === String(id)) ||
     state?.course ||
-    DASHBOARD_MOCK.enrolledCourses[0];
-
+    null;
+  const handeDrive = () =>
+    course.google_drive_link != null && course.google_drive_link != ""
+      ? window.open(course.google_drive_link || "")
+      : null;
   return (
     <div className="course-details-page" dir="ltr">
       <Helmet>
@@ -37,26 +41,23 @@ function CourseDetails() {
             <div className="course-details-meta">
               <div className="course-details-meta-item">
                 <i className="bi bi-book"></i>
-                <span>
-                  {course.lessonsCount} Lessons
-                </span>
+                <span>{course.lessonsCount} Lessons</span>
               </div>
               <div className="course-details-meta-item">
                 <i className="bi bi-clock"></i>
-                <span>
-                  {course.duration} Hours
-                </span>
+                <span>{course.duration} Hours</span>
               </div>
               <div className="course-details-meta-item">
                 <i className="bi bi-people"></i>
-                <span>
-                  {course.studentsCount} Students
-                </span>
+                <span>{course.studentsCount} Students</span>
               </div>
             </div>
 
             {/* زر متابعة التعلم */}
-            <button className="course-details-continue-btn">
+            <button
+              onClick={handeDrive}
+              className="course-details-continue-btn"
+            >
               <i className="bi bi-play-fill"></i>
               {t("course.continue_learning")}
             </button>
@@ -88,9 +89,7 @@ function CourseDetails() {
 
       {/* بطاقة المدرب */}
       <div className="course-details-instructor-card">
-        <h4 className="course-details-instructor-title">
-          About Instructor
-        </h4>
+        <h4 className="course-details-instructor-title">About Instructor</h4>
         <div className="course-details-instructor-row">
           {/* أفاتار المدرب */}
           <div className="course-details-instructor-avatar">
@@ -98,13 +97,7 @@ function CourseDetails() {
           </div>
           {/* معلومات المدرب */}
           <div className="course-details-instructor-info">
-            <h5>{course.instructor}</h5>
-            <p className="course-details-instructor-role">
-              {course?.instructorRole}
-            </p>
-            <p className="course-details-instructor-bio">
-              {course?.instructorBio}
-            </p>
+            <h5>{course.instructor.full_name}</h5>
           </div>
         </div>
       </div>

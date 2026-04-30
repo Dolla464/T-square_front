@@ -1,6 +1,6 @@
 /* Admin Content Page General */
 .admin-content-page {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
 }
 
 /* Header */
@@ -41,7 +41,7 @@
   padding: 16px;
   border-radius: 12px;
   border: 1px solid #eaeaea;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .ac-search-input-wrapper {
@@ -94,7 +94,7 @@
   background-color: #ffffff;
   border-radius: 12px;
   border: 1px solid #eaeaea;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
   overflow: hidden;
 }
 
@@ -200,7 +200,7 @@
 .ac-tab-btn.active {
   background: #ffffff;
   color: #1a1a1a;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   font-weight: 600;
 }
 

@@ -18,6 +18,7 @@ export const useInstructors = () => {
 
             } catch (err) {
                 setError(err);
+                
             } finally {
                 setLoading(false);
             }
