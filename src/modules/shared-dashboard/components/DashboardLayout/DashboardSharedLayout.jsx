@@ -23,6 +23,7 @@ function DashboardSharedLayout({
 }) {
   const { t, i18n } = useTranslation([translationNs, "studentDashboard"]);
   const { user, logout } = useAuth();
+  const isAdmin = user.role == "admin";
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -43,7 +44,9 @@ function DashboardSharedLayout({
     : "US";
 
   const handleNotificationsClick = () => {
-    navigate("/student/notifications");
+    isAdmin
+      ? navigate("/admin/notifications")
+      : navigate("/student/notifications");
   };
 
   const handleLogout = async () => {

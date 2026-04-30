@@ -53,6 +53,11 @@ const ADMIN_NAV = [
     icon: "bi-chat-square-text",
   },
   {
+    key: "Notification",
+    path: "/admin/notifications",
+    icon: "bi-bell-fill",
+  },
+  {
     key: "settings",
     path: "/admin/settings",
     icon: "bi-gear",
@@ -60,7 +65,7 @@ const ADMIN_NAV = [
 ];
 
 function AdminLayout() {
-  const { t } = useTranslation("adminDashboard");
+  const { t } = useTranslation("adminDashboard",);
   const location = useLocation();
   const { user } = useAuth();
   const isArabic = i18next.language === "ar";
@@ -91,6 +96,8 @@ function AdminLayout() {
         return isArabic ? "الإشعارات" : "Notifications";
       case "/admin/certificates":
         return isArabic ? "الشهادات" : "Certificates";
+      case "/admin/notifications":
+        return isArabic ? "الاشعارات" : "Notification";
       case "/admin/settings":
         return isArabic ? "الإعدادات" : "Settings";
 

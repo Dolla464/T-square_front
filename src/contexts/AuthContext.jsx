@@ -59,6 +59,16 @@ export const AuthProvider = ({ children }) => {
     storage.setItem("user", JSON.stringify(user));
   };
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    const storage = localStorage.getItem("token")
+      ? localStorage
+      : sessionStorage.getItem("token")
+        ? sessionStorage
+        : localStorage;
+    storage.setItem("user", JSON.stringify(updatedUser));
+  };
+
   // --- التعديل هنا لربط اللوج اوت بالباك ---
   const logout = async () => {
     try {
@@ -86,7 +96,15 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout, loading, isLoggedIn: !!token }}
+      value={{
+        user,
+        token,
+        login,
+        logout,
+        updateUser,
+        loading,
+        isLoggedIn: !!token,
+      }}
     >
       {!loading && children}
     </AuthContext.Provider>
