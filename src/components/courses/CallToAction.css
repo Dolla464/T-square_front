@@ -44,10 +44,11 @@
 }
 
 .cta-description {
-  max-width: 700px;
+  max-width: 750px;
 }
 
 .cta-btn {
+
   background-color: #be1522 !important;
   border-color: #be1522 !important;
   font-size: 0.95rem; /* Mobile-first */

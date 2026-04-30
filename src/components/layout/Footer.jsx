@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import "./Footer.css";
-import logoWhite from "../../assets/logo-white.png"; // اللوجو باللون الأبيض
+import logoWhite from "../../assets/logo-white.webp"; // اللوجو باللون الأبيض
 
 function Footer() {
   const { t } = useTranslation("footer");
@@ -19,16 +19,16 @@ function Footer() {
 
           {/* عمود Academy */}
           <Col lg={3} md={6}>
-            <h5 className="footer-heading">{t("sections.academy")}</h5>
+            <h1 className="footer-heading">{t("sections.academy")}</h1>
             <ul className="footer-links">
               <li>
                 <Link to="/courses">{t("links.allCourses")}</Link>
               </li>
               <li>
-                <a href="#kids">{t("links.kidsPrograms")}</a>
+                <Link to="/courses">{t("links.kidsPrograms")}</Link>
               </li>
               <li>
-                <a href="#team">{t("links.ourTeam")}</a>
+                <Link to="/courses">{t("links.ourTeam")}</Link>
               </li>
             </ul>
           </Col>
@@ -38,19 +38,19 @@ function Footer() {
             <h5 className="footer-heading">{t("sections.services")}</h5>
             <ul className="footer-links">
               <li>
-                <a href="#web">{t("links.webDevelopment")}</a>
+                <Link to="/solutions">{t("links.webDevelopment")}</Link>
               </li>
               <li>
-                <a href="#mobile">{t("links.mobileApps")}</a>
+                <Link to="/solutions">{t("links.mobileApps")}</Link>
               </li>
               <li>
-                <a href="#ai">{t("links.aiSolutions")}</a>
+                <Link to="/solutions">{t("links.aiSolutions")}</Link>
               </li>
               <li>
-                <a href="#uiux">{t("links.uiUxDesign")}</a>
+                <Link to="/solutions">{t("links.uiUxDesign")}</Link>
               </li>
               <li>
-                <a href="#super">{t("links.supermarkets")}</a>
+                <Link to="/solutions">{t("links.supermarkets")}</Link>
               </li>
             </ul>
           </Col>

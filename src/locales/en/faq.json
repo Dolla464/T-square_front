@@ -1,26 +1,26 @@
 {
-  "badge": "Frequently asked questions",
-  "title": "Most Common Question?",
+  "badge": "Frequently Asked Questions",
+  "title": "Most Common Questions",
   "questions": [
     {
       "id": "0",
-      "question": "What device specifications do I need?",
-      "answer": "Simply browse our courses, choose a program, and enroll online. You can also take our free career assessment quiz to find the best path for you, or book a free consultation with our advisors."
+      "question": "What kind of device do I need to get started?",
+      "answer": "You don’t need a high-end machine. Any decent laptop that can run development tools and a modern browser smoothly will be enough. As a minimum recommendation: 8GB RAM, Intel i5 (6th generation) or Ryzen 5 or higher, and at least 20GB of free storage."
     },
     {
       "id": "1",
-      "question": "Is this field in demand in the job market?",
-      "answer": "Simply browse our courses, choose a program, and enroll online. You can also take our free career assessment quiz to find the best path for you, or book a free consultation with our advisors."
+      "question": "Are these fields really in demand in the job market?",
+      "answer": "Yes. Technology-related fields are among the most in-demand careers today both locally and globally. As companies continue moving toward digital solutions, the need for people with practical technical skills keeps growing."
     },
     {
       "id": "2",
-      "question": "How can I start?",
-      "answer": "Simply browse our courses, choose a program, and enroll online. You can also take our free career assessment quiz to find the best path for you, or book a free consultation with our advisors."
+      "question": "How can I start if I’m completely new?",
+      "answer": "If you're starting from scratch, you can choose a suitable learning path from the courses page and enroll directly. If you're unsure where to begin, you can take a career path assessment or book a free consultation to help you choose the right track."
     },
     {
       "id": "3",
-      "question": "What are the required device specifications?",
-      "answer": "Simply browse our courses, choose a program, and enroll online. You can also take our free career assessment quiz to find the best path for you, or book a free consultation with our advisors."
+      "question": "Do I need any prior experience before enrolling?",
+      "answer": "No prior experience is required for most programs. Our learning paths are designed to take you step by step from the basics to a level where you can start working and building a real portfolio."
     }
   ]
 }

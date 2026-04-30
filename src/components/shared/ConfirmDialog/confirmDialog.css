@@ -1,0 +1,106 @@
+/* ================================================================
+   تنسيق نافذة التأكيد — بهوية موقع T-Square
+   ألوان أبيض / أحمر / أسود
+   ================================================================ */
+
+/* ── النافذة الرئيسية ── */
+.tsq-swal-popup {
+  border-radius: 18px !important;
+  padding: 0 !important;
+  font-family: inherit !important;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.16) !important;
+  border: none !important;
+  max-width: 430px !important;
+  overflow: hidden !important;
+}
+
+/* ── المحتوى الداخلي ── */
+.swal-inner {
+  padding: 2rem 2rem 0.5rem;
+  text-align: center;
+}
+
+/* ── الأيقونة (Bootstrap Icon) ── */
+.swal-bs-icon {
+  display: block;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+
+.swal-icon-warning  { color: #be1522; }
+.swal-icon-error    { color: #7f0d15; }
+.swal-icon-success  { color: #166534; }
+.swal-icon-info     { color: #1a1a1a; }
+.swal-icon-question { color: #be1522; }
+
+/* ── العنوان ── */
+.swal-custom-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.6rem;
+  line-height: 1.4;
+}
+
+/* ── نص الرسالة ── */
+.swal-custom-msg {
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── HTML مخصص ── */
+.swal-custom-html {
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 0.5rem;
+}
+
+/* ── حاوية الأزرار ── */
+.tsq-swal-actions {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  padding: 1.4rem 2rem 1.8rem !important;
+  margin: 0 !important;
+}
+
+/* ── زر التأكيد ── */
+.tsq-swal-confirm {
+  border-radius: 9px !important;
+  padding: 10px 26px !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  border: none !important;
+  transition:
+    filter 0.2s ease,
+    transform 0.15s ease !important;
+  color: #fff !important;
+  letter-spacing: 0.01em;
+}
+
+.tsq-swal-confirm:hover {
+  filter: brightness(0.88) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── زر الإلغاء ── */
+.tsq-swal-cancel {
+  border-radius: 9px !important;
+  padding: 10px 22px !important;
+  font-weight: 500 !important;
+  font-size: 0.9rem !important;
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+  border: 1px solid #e5e7eb !important;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease !important;
+}
+
+.tsq-swal-cancel:hover {
+  background: #e5e7eb !important;
+  transform: translateY(-1px) !important;
+}

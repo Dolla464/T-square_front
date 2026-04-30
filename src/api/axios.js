@@ -1,20 +1,23 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-    headers: {
-        "Content-Type": "application/json",
-    },
+  baseURL: import.meta.env.VITE_API_URL,
+  // تم حذف withCredentials: true لأننا نستخدم Bearer Token
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
 });
 
 axiosClient.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
 
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
 
-    return config;
+  return config;
 });
 
 export default axiosClient;

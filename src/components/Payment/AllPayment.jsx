@@ -7,20 +7,21 @@ import courseTempImg from "../../assets/course-temp.png";
 import "./AllPayment.css";
 import { useCourseSlug } from "../../hooks/useCousrsesSlug";
 import { useAuth } from "../../contexts/AuthContext";
+import { showConfirmCustom } from "../shared/ConfirmDialog/confirmDialog";
+import { toastSuccess, toastError } from "../shared/Toaster/toaster";
+import usePayment from "../../hooks/usePayment";
 
 function AllPayment() {
   const { slug } = useParams();
   const { courseData, loading, error } = useCourseSlug(slug);
-
   const { t } = useTranslation(["payment", "navbar", "courses"]);
   const isArabic = i18n.language === "ar";
+
   if (!slug || slug == null) {
     return <Navigate to="/courses" replace />;
   }
-  // Find course from mock data
-  const course = courseData;
 
-  const WHATSAPP_NUMBER = "201021327600";
+  const course = courseData;
   const { user } = useAuth();
 
   // Student form state
@@ -34,24 +35,61 @@ function AllPayment() {
 
   // Submission state
   const [submitted, setSubmitted] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const { createEnrollment, loading: apiLoading } = usePayment();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Payment Request Submitted:", {
-      ...formData,
-      courseId: course.id,
+
+    const confirm = await showConfirmCustom({
+      title: t("confirmTitle"),
+      message: t("confirmMessage"),
+      confirmText: t("confirm"),
+      cancelText: t("cancel"),
+      icon: "question",
+      variant: "primary",
     });
+
+    if (!confirm) return;
+
+    try {
+      const response = await createEnrollment({
+        course_id: course.id,
+        billing_name: formData.fullName,
+        billing_email: formData.email,
+        billing_phone: formData.phone,
+        notes: formData.notes,
+      });
+
+      toastSuccess(t("successMessage"));
+
+      const whatsappConfirm = await showConfirmCustom({
+        title: t("whatsappTitle"),
+        message: t("whatsappMessage"),
+        confirmText: t("whatsappNow"),
+        cancelText: t("whatsappLater"),
+        icon: "info",
+        variant: "success",
+      });
+
+      if (whatsappConfirm) {
+        window.open(response.data.whatsapp_link, "_blank");
+      }
+    } catch (error) {
+      toastError(t("errorMessage"));
+    }
     setSubmitted(true);
   };
 
   // Build formatted data string for clipboard / WhatsApp
+  const WHATSAPP_NUMBER = "201021327600";
+
   const buildFormattedData = () => {
     const lines = [
       ` ${t("payment:submitSection.paymentRequestLabel")}`,
@@ -71,7 +109,7 @@ function AllPayment() {
     return lines.join("\n");
   };
 
-  const handleWhatsApp = async () => {
+  const whatsapp = async () => {
     const data = buildFormattedData();
     // Copy to clipboard first
     try {
@@ -247,8 +285,8 @@ function AllPayment() {
                         <div className="whatsapp-actions">
                           <button
                             type="button"
+                            onClick={whatsapp}
                             className="btn-whatsapp"
-                            onClick={handleWhatsApp}
                             id="payment-whatsapp-btn"
                           >
                             <i className="bi bi-whatsapp"></i>
@@ -328,47 +366,26 @@ function AllPayment() {
                     </div>
                     <div className="order-summary-meta-item">
                       <i className="bi bi-translate"></i>
-                      Course language :<span className="fw-bold"> {course?.language}</span>
+                      Course level :
+                      <span className="fw-bold"> {course?.level}</span>
                     </div>
                     <div className="order-summary-meta-item">
                       <i className="bi bi-calendar-event"></i>
                       <span>
-                        Course created at :
-                        <span className="text-capitalize fw-bold">
-                          {course?.created_at}
+                        Course duration :{" "}
+                        <span className="fw-bold">
+                          {" "}
+                          {course?.duration_hours} h{" "}
                         </span>
                       </span>
                     </div>
-
-                  </div>
-                  {/* Course Tags */}
-                  <div className="course-tags" dir="ltr">
-                    {course?.tags?.map((tag) => (
-                      <span key={tag.id} className="tag">
-                        {tag.name}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Price Details */}
-                  <div className="order-price-details mt-4 mb-3 border-top pt-3" dir={isArabic ? "rtl" : "ltr"}>
-                    <div className="d-flex justify-content-between mb-2">
-                      <span className="text-muted">{isArabic ? "السعر الأصلي" : "Original Price"}</span>
-                      <span className="text-decoration-line-through text-muted">
-                        {course?.price?.original} {t("courses:card.priceUnit")}
-                      </span>
-                    </div>
-
-                    {course?.price?.discount > 0 && (
-                      <div className="d-flex justify-content-between mb-2 text-success">
-                        <span>{isArabic ? "الخصم" : "Discount"}</span>
-                        <span>- {course?.price?.discount} {t("courses:card.priceUnit")}</span>
-                      </div>
-                    )}
                   </div>
 
                   {/* Total */}
-                  <div className="order-total-row border-top pt-2 mt-2" dir={isArabic ? "rtl" : "ltr"}>
+                  <div
+                    className="order-total-row border-top pt-2 mt-2"
+                    dir={isArabic ? "rtl" : "ltr"}
+                  >
                     <span className="total-label fw-bold">
                       {t("payment:orderSummary.total")}
                     </span>

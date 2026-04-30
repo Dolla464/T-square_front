@@ -1,0 +1,276 @@
+/* ================================================================
+   صفحة تفاصيل الكورس - تنسيقات خاصة
+   ================================================================ */
+
+/* ── البطاقة الحمراء العلوية ── */
+.course-details-hero {
+  background: linear-gradient(135deg, #e01527 0%, #b80d1e 60%, #8e0a17 100%);
+  border-radius: 20px;
+  padding: 40px 36px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(190, 21, 34, 0.18);
+}
+
+.course-details-hero::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  inset-inline-end: -60px;
+  width: 220px;
+  height: 220px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.course-details-hero-row {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+/* ── القسم الأيسر (المحتوى) ── */
+.course-details-hero-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.course-details-hero-content h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.course-details-hero-desc {
+  font-size: 0.98rem;
+  opacity: 0.92;
+  margin-bottom: 24px;
+  line-height: 1.6;
+  max-width: 540px;
+}
+
+/* ── معلومات الميتا (دروس، ساعات، طلاب) ── */
+.course-details-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-bottom: 28px;
+  font-size: 0.92rem;
+}
+
+.course-details-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.course-details-meta-item i {
+  font-size: 1.1rem;
+  opacity: 0.85;
+}
+
+/* ── زر متابعة التعلم ── */
+.course-details-continue-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 12px 34px;
+
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+
+  color: #8e0a17;
+  font-weight: 700;
+  font-size: 1rem;
+
+  /* 🔥 Google Drive inspired gradient */
+  background-color: white;
+
+  /* 🔥 strong but controlled glow */
+  box-shadow: 0 8px 20px rgba(26, 115, 232, 0.25);
+
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.course-details-continue-btn:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 12px 28px rgba(232, 184, 26, 0.35);
+
+  filter: saturate(1.2);
+}
+.course-details-continue-btn:active {
+  transform: scale(0.98);
+}.course-details-continue-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+
+  transform: skewX(-20deg);
+}
+
+.course-details-continue-btn:hover::after {
+  animation: shine 0.8s ease;
+}
+
+@keyframes shine {
+  0% { left: -150%; }
+  100% { left: 150%; }
+}
+.course-details-continue-btn i {
+  font-size: 1.25rem;
+}
+
+/* ── صندوق التقدم (الجانب الأيمن) ── */
+.course-details-progress-box {
+  width: 220px;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.13);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.course-details-progress-pct {
+  font-size: 3.2rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.course-details-progress-label {
+  opacity: 0.9;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+
+.course-details-progress-bar-wrap {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.course-details-progress-bar-fill {
+  height: 100%;
+  background: #fff;
+  border-radius: 10px;
+  transition: width 0.6s ease;
+}
+
+.course-details-progress-info {
+  opacity: 0.8;
+  font-size: 0.82rem;
+}
+
+/* ── بطاقة المدرب ── */
+.course-details-instructor-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+}
+
+.course-details-instructor-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+}
+
+.course-details-instructor-row {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.course-details-instructor-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #cba5df;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.course-details-instructor-info h5 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 2px;
+}
+
+.course-details-instructor-role {
+  font-size: 0.88rem;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+.course-details-instructor-bio {
+  font-size: 0.92rem;
+  color: #666;
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ── ريسبونسيف ── */
+@media (max-width: 991px) {
+  .course-details-hero-row {
+    flex-direction: column;
+  }
+
+  .course-details-progress-box {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .course-details-hero {
+    padding: 32px 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .course-details-hero-content h1 {
+    font-size: 1.35rem;
+  }
+
+  .course-details-meta {
+    gap: 16px;
+    font-size: 0.85rem;
+  }
+
+  .course-details-instructor-card {
+    padding: 20px 18px;
+  }
+
+  .course-details-instructor-row {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}

@@ -14,7 +14,7 @@ const ScrollToTop = () => {
   // يراقب السكرول ويظهر الزر
   useEffect(() => {
     const handleScroll = () => {
-      setVisible(window.scrollY > 300);
+      setVisible(window.scrollY > 270);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -29,6 +29,7 @@ const ScrollToTop = () => {
     <button
       className={`scroll-top-btn ${visible ? "show" : ""}`}
       onClick={scrollToTop}
+      aria-label="scrol-to-top"
     >
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
         <path

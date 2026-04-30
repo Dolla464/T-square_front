@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
 import { HiOutlineGlobeAlt } from "react-icons/hi";
 import { useAuth } from "../../contexts/AuthContext";
+import { showLogoutConfirm } from "../shared/ConfirmDialog/confirmDialog";
+import { toastCustom } from "../shared/Toaster/toaster";
 import "./Navbar.css";
 
 import logoWhite from "../../assets/logo-white.png";
@@ -17,12 +19,24 @@ function AppNavbar({ isLoggedIn, userName }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // عرض نافذة التأكيد قبل تسجيل الخروج
+    const confirmed = await showLogoutConfirm();
+    if (!confirmed) return;
+
+    // تسجيل الخروج وعرض إشعار الوداع
     logout();
-    navigate('/');
+    toastCustom({
+      message:
+        i18n.language === "ar"
+          ? "تم تسجيل الخروج بنجاح"
+          : "Logged out successfully",
+      type: "info",
+      bsIcon: "bi-box-arrow-right",
+      duration: 3000,
+    });
+    navigate("/");
   };
-
-
 
   // Reset mobile menu when route changes
   useEffect(() => {
@@ -39,6 +53,9 @@ function AppNavbar({ isLoggedIn, userName }) {
   }, []);
 
   const toggleLanguage = () => {
+    if (mobileMenuOpen) {
+      setMobileMenuOpen(false);
+    }
     const newLang = i18n.language === "ar" ? "en" : "ar";
     i18n.changeLanguage(newLang);
 
@@ -180,8 +197,9 @@ function AppNavbar({ isLoggedIn, userName }) {
 
           <div className="d-flex align-items-center gap-3">
             <div
-              className={`d-flex align-items-center cursor-pointer lang-switch ${Tbtn
-                }`}
+              className={`d-flex align-items-center cursor-pointer lang-switch ${
+                Tbtn
+              }`}
               onClick={toggleLanguage}
             >
               <HiOutlineGlobeAlt size={20} className="me-1" />
@@ -213,8 +231,9 @@ function AppNavbar({ isLoggedIn, userName }) {
               </div>
             ) : (
               <div
-                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${isDarkMode ? "border-dark" : "border-light"
-                  }`}
+                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${
+                  isDarkMode ? "border-dark" : "border-light"
+                }`}
               >
                 <div
                   className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold"
@@ -222,11 +241,11 @@ function AppNavbar({ isLoggedIn, userName }) {
                 >
                   {userName ? userName.charAt(0).toUpperCase() : "U"}
                 </div>
-                
+
                 {/* الإشعار لو الحساب مش متفعل */}
                 {user && !user.email_verified_at && (
-                  <i 
-                    className="bi bi-exclamation-circle-fill text-warning fs-5" 
+                  <i
+                    className="bi bi-exclamation-circle-fill text-warning fs-5"
                     title={t("user:not_activated")}
                     style={{ cursor: "help" }}
                   ></i>
@@ -245,7 +264,10 @@ function AppNavbar({ isLoggedIn, userName }) {
                     {t("user:my_courses")}
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
-                  <NavDropdown.Item className="text-danger" onClick={handleLogout}>
+                  <NavDropdown.Item
+                    className="text-danger"
+                    onClick={handleLogout}
+                  >
                     {t("user:logout")}
                   </NavDropdown.Item>
                 </NavDropdown>

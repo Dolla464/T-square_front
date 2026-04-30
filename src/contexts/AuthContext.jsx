@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import axios from "axios"; // تأكد من تثبيت axios
 
 const AuthContext = createContext();
 
@@ -7,52 +8,89 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Check localStorage and sessionStorage for stored auth data on initialization
-    const storedToken = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+  // دالة مساعدة لتحديد نوع التخزين
+  const getStorage = (rememberMe) => {
+    return rememberMe ? localStorage : sessionStorage;
+  };
 
-    if (storedToken && storedUser) {
-      setToken(storedToken);
+  // دالة مساعدة لمسح البيانات من كلا النوعين
+  const clearAllStorage = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+  };
+
+  useEffect(() => {
+    // الأولوية للـ localStorage (Remember Me)
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
+    // إذا مفيش في localStorage، نجرب sessionStorage
+    const sessionToken = !storedToken ? sessionStorage.getItem("token") : null;
+    const sessionUser = !storedUser ? sessionStorage.getItem("user") : null;
+
+    const finalToken = storedToken || sessionToken;
+    const finalUser = storedUser || sessionUser;
+
+    if (finalToken && finalUser) {
+      setToken(finalToken);
       try {
-        setUser(JSON.parse(storedUser));
+        setUser(JSON.parse(finalUser));
       } catch (e) {
-        console.error("Failed to parse user data from localStorage", e);
+        console.error("Failed to parse user data from storage", e);
+        // تنظيف البيانات التالفة
+        clearAllStorage();
       }
     }
     setLoading(false);
   }, []);
 
-  const login = (data, rememberMe = true) => {
-    // data structure expected: { token, user: { id, name, email, role, ... } }
-    setToken(data.token);
-    setUser(data.user);
+  const login = (responseData, rememberMe = true) => {
+    const { token, user } = responseData;
+    setToken(token);
+    setUser(user);
+    // مسح أي بيانات قديمة قبل حفظ الجديدة
+    clearAllStorage();
 
-    if (rememberMe) {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-    } else {
-      sessionStorage.setItem('token', data.token);
-      sessionStorage.setItem('user', JSON.stringify(data.user));
+    // حفظ البيانات في نوع التخزين المحدد
+    const storage = getStorage(rememberMe);
+    storage.setItem("token", token);
+    storage.setItem("user", JSON.stringify(user));
+  };
+
+  // --- التعديل هنا لربط اللوج اوت بالباك ---
+  const logout = async () => {
+    try {
+      // نبعت طلب للباك إيند لإلغاء التوكن
+      // ملاحظة: تأكد إن مسار الـ API صح (مثلاً /api/logout)
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/logout`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+    } catch (e) {
+      console.error("Server-side logout failed:", e);
+      // بنكمل مسح البيانات من الجهاز حتى لو السيرفر رجع Error
+    } finally {
+      // تنظيف كل شيء من الجهاز (الفرونت إيند)
+      setToken(null);
+      setUser(null);
+      clearAllStorage();
     }
   };
 
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
-  };
-
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{ user, token, login, logout, loading, isLoggedIn: !!token }}
+    >
       {!loading && children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
