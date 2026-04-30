@@ -1,0 +1,28 @@
+{
+  "orders": "Orders and Payments",
+  "track": "Track and manage all transactions",
+
+  "totalRevenue": "Total Revenue",
+  "totalOrders": "Total Orders",
+  "pending": "Pending",
+  "refunded": "Refunded",
+
+  "awaitingPayment": "Awaiting payment",
+  "thisMonth": "This month",
+
+  "search": "Search students...",
+  "allStudents": "All Students",
+
+  "orderId": "Order ID",
+  "student": "Student",
+  "course": "Course",
+  "amount": "Amount",
+  "paymentMethod": "Payment Method",
+  "status": "Status",
+
+  "completed": "Completed",
+  "cancelled": "Cancelled",
+  "failed": "Failed",
+  "export": "Export Report",
+  "fromLastMonth": "from last month"
+}
