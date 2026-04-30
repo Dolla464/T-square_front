@@ -42,7 +42,7 @@ import DashboardCertificates from "./modules/student-dashboard/pages/DashboardCe
 import DashboardQuizzes from "./modules/student-dashboard/pages/DashboardQuizzes/DashboardQuizzes";
 import DashboardProfile from "./modules/student-dashboard/pages/DashboardProfile/DashboardProfile";
 import CourseDetails from "./modules/student-dashboard/pages/CourseDetails/CourseDetails";
-import NotificationsPage from "./modules/student-dashboard/pages/Notifications/NotificationsPage";
+import NotificationsPage from "./modules/shared-dashboard/Notifications/NotificationsPage";
 import QuizExamPage from "./modules/student-dashboard/pages/QuizExam/QuizExamPage";
 
 // ── وحدة داشبورد الأدمن ──
@@ -219,6 +219,7 @@ function AppContent() {
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="certificates" element={<AdminCertificates />} />
               <Route path="reviews" element={<AdminReviews />} />
+              <Route path="notifications" element={<NotificationsPage />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
           </Route>

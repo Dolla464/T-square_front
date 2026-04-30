@@ -1,0 +1,29 @@
+{
+  "orders": "الطلبات والمدفوعات",
+  "track": "تتبع وإدارة جميع المعاملات",
+
+  "totalRevenue": "إجمالي الإيرادات",
+  "totalOrders": "إجمالي الطلبات",
+  "pending": "قيد الانتظار",
+  "refunded": "تم الاسترجاع",
+
+  "awaitingPayment": "في انتظار الدفع",
+  "thisMonth": "هذا الشهر",
+
+  "search": "ابحث عن الطلاب...",
+  "allStudents": "كل الطلاب",
+
+  "orderId": "رقم الطلب",
+  "student": "الطالب",
+  "course": "الكورس",
+  "amount": "المبلغ",
+  "paymentMethod": "طريقة الدفع",
+  "status": "الحالة",
+
+  "completed": "مكتمل",
+  "cancelled": "ملغي",
+  "failed": "فشل",
+
+  "export": "تصدير التقرير",
+  "fromLastMonth": "من الشهر الماضي"
+}

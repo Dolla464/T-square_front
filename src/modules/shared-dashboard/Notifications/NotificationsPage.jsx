@@ -1,10 +1,9 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { toastCustom } from "../../../../components/shared/Toaster/toaster";
-import { NOTIFICATIONS_MOCK } from "../../data/dashboardMockData";
-import NotificationCard from "../../components/NotificationCard";
-import "../../styles/dashboardShared.css";
-
+import { toastCustom } from "../../../components/shared/Toaster/toaster";
+import NotificationCard from "../../student-dashboard/components/NotificationCard";
+import "../components/DashboardLayout/DashboardSharedLayout";
+import { useNotifications } from "../notificationsServices/useNotifications";
 /**
  * صفحة الإشعارات - NotificationsPage
  * تعرض جميع إشعارات المستخدم مع إمكانية تحديدها كمقروءة
@@ -14,46 +13,34 @@ function NotificationsPage() {
   const isArabic = i18n.language === "ar";
 
   // state الإشعارات
-  const [notifications, setNotifications] = useState(NOTIFICATIONS_MOCK);
-  const [loading] = useState(false);
+  const {
+    notificationsData,
+    loading,
+    handleMarkAsRead,
+    markNotificationAllRead,
+  } = useNotifications();
 
   /**
    * عدد الإشعارات غير المقروءة
    */
   const unreadCount = useMemo(() => {
-    return notifications.filter((n) => !n.is_read).length;
-  }, [notifications]);
+    return notificationsData.filter((n) => !n.is_read).length;
+  }, [notificationsData]);
 
   /**
    * ترتيب الإشعارات (الأحدث أولاً)
    */
   const sortedNotifications = useMemo(() => {
-    return [...notifications].sort((a, b) => {
-      const dateA = new Date(a.created_at);
-      const dateB = new Date(b.created_at);
-
-      // fallback لو التاريخ بايظ
-      if (isNaN(dateA)) return 1;
-      if (isNaN(dateB)) return -1;
-
-      return dateB - dateA;
+    return [...notificationsData].sort((a, b) => {
+      return new Date(b.created_at) - new Date(a.created_at);
     });
-  }, [notifications]);
-
-  /**
-   * تحديد إشعار كمقروء
-   */
-  const handleMarkAsRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
-    );
-  };
+  }, [notificationsData]);
 
   /**
    * تحديد كل الإشعارات كمقروءة
    */
-  const handleMarkAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+  const handleMarkAllAsRead = async () => {
+    await markNotificationAllRead();
 
     toastCustom({
       message: isArabic

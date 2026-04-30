@@ -1,29 +1,62 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../../contexts/AuthContext";
-import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
+import {
+  toastSuccess,
+  toastError,
+} from "../../../../components/shared/Toaster/toaster";
 import "./DashboardProfile.css";
 import { showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import {
+  getStudentProfile,
+  updateStudentProfile,
+  updateStudentPassword,
+} from "../../services/dashboardService";
 
 /**
  * صفحة الملف الشخصي والإعدادات
  * بيانات المستخدم تأتي من AuthContext
- * الحقول القابلة للتعديل: ستُربط بـ API لاحقاً
+ * الحقول القابلة للتعديل: ستُربط بـ API
  */
 function DashboardProfile() {
   const { t, i18n } = useTranslation("studentDashboard");
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const isArabic = i18n.language === "ar";
   const [fullName, setFullName] = useState(user?.name || "");
-  const [email] = useState(user?.email || "");
+  const [email, setEmail] = useState(user?.email || "");
   const [phone, setPhone] = useState(user?.phone || "+20 10 1234 5678");
   const [currentPwd, setCurrentPwd] = useState("");
   const [newPwd, setNewPwd] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
 
   const [gender, setGender] = useState(user?.gender || "");
-  const [isUpdated, setIsUpdated] = useState(false);
   const [isInfoUpdated, setIsInfoUpdated] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [pwdLoading, setPwdLoading] = useState(false);
+  const [profileError, setProfileError] = useState(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      setProfileLoading(true);
+      try {
+        const res = await getStudentProfile();
+        const profile =
+          res?.data?.data?.data || res?.data?.data || res?.data || {};
+
+        setFullName(profile.name ?? user?.name ?? "");
+        setEmail(profile.email ?? user?.email ?? "");
+        setPhone(profile.phone ?? user?.phone ?? "+20 10 1234 5678");
+        setGender(profile.gender ?? user?.gender ?? "");
+      } catch (err) {
+        setProfileError(err);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [user]);
 
   // إعدادات الإشعارات
   const [prefs, setPrefs] = useState({
@@ -42,17 +75,54 @@ function DashboardProfile() {
         .toUpperCase()
     : "ST";
 
-  const handlePasswordUpdate = (e) => {
+  const handlePasswordUpdate = async (e) => {
     e.preventDefault();
-    // TODO: ربط بـ API (updateStudentPassword)
-    toastSuccess(
-      i18n.language === "ar"
-        ? "تم تحديث كلمة المرور"
-        : "Password updated successfully",
-    );
-    setCurrentPwd("");
-    setNewPwd("");
-    setConfirmPwd("");
+
+    if (!currentPwd || !newPwd || !confirmPwd) {
+      toastError(
+        isArabic
+          ? "الرجاء تعبئة جميع حقول كلمة المرور"
+          : "Please fill in all password fields",
+      );
+      return;
+    }
+
+    if (newPwd !== confirmPwd) {
+      toastError(
+        isArabic
+          ? "كلمة المرور الجديدة غير مطابقة"
+          : "New passwords do not match",
+      );
+      return;
+    }
+
+    setPwdLoading(true);
+
+    try {
+      await updateStudentPassword({
+        current_password: currentPwd,
+        password: newPwd,
+        password_confirmation: confirmPwd,
+      });
+
+      toastSuccess(
+        isArabic
+          ? "تم تحديث كلمة المرور بنجاح"
+          : "Password updated successfully",
+      );
+      setCurrentPwd("");
+      setNewPwd("");
+      setConfirmPwd("");
+    } catch (error) {
+      toastError(
+        error?.response?.data?.message ||
+          (isArabic
+            ? "حدث خطأ أثناء تحديث كلمة المرور"
+            : "Unable to update password"),
+      );
+    } finally {
+      setPwdLoading(false);
+    }
   };
 
   const handleSavePrefs = () => {
@@ -65,7 +135,7 @@ function DashboardProfile() {
 
   const handleGenderChange = (e) => {
     setGender(e.target.value);
-    setIsUpdated(true);
+    setIsInfoUpdated(true);
   };
 
   const handleInputChange = (setter) => (e) => {
@@ -74,30 +144,72 @@ function DashboardProfile() {
   };
 
   const handleUpdateInformation = async () => {
-    // Confirm dialog before updating
-
     const ok = await showConfirmCustom({
       title: isArabic ? "تحديث البيانات" : "Update Information",
       message: isArabic ? "هل أنت متأكد؟" : "Are you sure?",
       icon: "question",
       variant: "danger",
     });
-    if (ok) {
-      // TODO: ربط بـ API لتحديث البيانات
+
+    if (!ok) {
+      return;
+    }
+
+    setSaveLoading(true);
+
+    try {
+      await updateStudentProfile({
+        name: fullName,
+        gender,
+      });
+
       toastSuccess(
         isArabic
           ? "تم تحديث المعلومات بنجاح"
           : "Information updated successfully",
       );
       setIsInfoUpdated(false);
+
+      if (updateUser) {
+        updateUser({
+          ...user,
+          name: fullName,
+          gender,
+        });
+      }
+    } catch (error) {
+      toastError(
+        error?.response?.data?.message ||
+          (isArabic
+            ? "حدث خطأ أثناء تحديث المعلومات"
+            : "Unable to update information"),
+      );
+    } finally {
+      setSaveLoading(false);
     }
   };
+
+  if (profileLoading) {
+    return (
+      <div className="dash-profile">
+        {isArabic ? "جارٍ تحميل الملف الشخصي..." : "Loading profile..."}
+      </div>
+    );
+  }
 
   return (
     <div className="dash-profile">
       <h4 className="dash-page-title d-md-none d-block">
         {t("profile_page.title")}
       </h4>
+
+      {profileError && (
+        <div className="profile-error text-danger mb-4">
+          {isArabic
+            ? "حدث خطأ أثناء تحميل بيانات الملف الشخصي"
+            : "Failed to load profile data."}
+        </div>
+      )}
 
       <div className="profile-grid">
         {/* ── العمود الأيسر ── */}
@@ -141,16 +253,18 @@ function DashboardProfile() {
                 <label>{t("profile_page.phone_number")}</label>
                 <input
                   value={phone}
-                  onChange={handleInputChange(setPhone)}
-                  className="profile-input"
+                  readOnly
+                  className="profile-input profile-input-readonly"
                 />
               </div>
               <div className="profile-field">
                 <label>{t("profile_page.gender")}</label>
                 <select
-                  className="form-control"
-                  value={gender}
-                  onChange={handleInputChange(setGender)}
+                  className={`form-control profile-input  ${!gender ? "" : "profile-input profile-input-readonly"}`}
+                  value={gender || ""}
+                  onChange={handleGenderChange}
+                  readOnly
+                  disabled={gender}
                 >
                   <option value="">{t("profile_page.select_gender")}</option>
                   <option value="male">{t("profile_page.male")}</option>
@@ -160,10 +274,15 @@ function DashboardProfile() {
               {isInfoUpdated && (
                 <div className="profile-field-actions">
                   <button
-                    className=" btn-update-pwd"
+                    className="btn-update-pwd"
                     onClick={handleUpdateInformation}
+                    disabled={saveLoading}
                   >
-                    {t("profile_page.update_data")}
+                    {saveLoading
+                      ? isArabic
+                        ? "جاري الحفظ..."
+                        : "Saving..."
+                      : t("profile_page.update_data")}
                   </button>
                 </div>
               )}
@@ -204,8 +323,16 @@ function DashboardProfile() {
                 />
               </div>
               <div className="profile-field-actions">
-                <button type="submit" className="btn-update-pwd">
-                  {t("profile_page.update_password")}
+                <button
+                  type="submit"
+                  className="btn-update-pwd"
+                  disabled={pwdLoading}
+                >
+                  {pwdLoading
+                    ? isArabic
+                      ? "جاري التحديث..."
+                      : "Updating..."
+                    : t("profile_page.update_password")}
                 </button>
               </div>
             </form>
