@@ -87,6 +87,8 @@
     }
   },
   "students_page": {
+    "deleted_success":"Student deleted successfully",
+
     "title": "Students",
     "subtitle": "Manage all students on the platform",
     "add_student": "+ Add Student",

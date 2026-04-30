@@ -87,6 +87,8 @@
     }
   },
   "students_page": {
+        "deleted_success":"تم حذف الطالب بنجاح",
+
     "title": "الطلاب",
     "subtitle": "إدارة كل الطلاب على المنصة",
     "add_student": "+ إضافة طالب",
