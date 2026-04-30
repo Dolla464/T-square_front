@@ -1,13 +1,35 @@
 import { useTranslation } from "react-i18next";
 import { Spinner } from "react-bootstrap";
 import "./AdminContentPage.css";
+import { useState } from "react";
 
 function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
   const { t } = useTranslation("adminDashboard");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState("all");
 
-  // تعليق: إعداد أعمدة الجدول بناءً على التصنيف (Type)
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleFilterChange = (e) => {
+    setSelectedFilter(e.target.value);
+  };
+
   const isCourse = type === "course";
   const isSolution = type === "solution";
+
+  const filteredData = data.filter((item) => {
+    const matchesSearch = (item.name || "")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    const matchesFilter =
+      selectedFilter === "all" || item.status === selectedFilter;
+
+    return matchesSearch && matchesFilter;
+  });
+
   return (
     <div className="ac-table-container">
       {loading ? (
@@ -16,6 +38,22 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
         </div>
       ) : (
         <div className="table-responsive ac-rounded-table">
+          <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
+            <div className="ac-search-input-wrapper">
+              <i className="bi bi-search ac-search-icon"></i>
+              <input
+                type="text"
+                className="form-control ac-search-input"
+                placeholder={
+                  isCourse
+                    ? t("content.search_courses")
+                    : t("content.search_solutions")
+                }
+                value={searchTerm}
+                onChange={handleSearchChange}
+              />
+            </div>
+          </div>
           <table className="table ac-table mb-0 align-middle">
             <thead>
               <tr>
@@ -35,8 +73,8 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
               </tr>
             </thead>
             <tbody>
-              {data && data.length > 0 ? (
-                data.map((item, index) => (
+              {filteredData && filteredData.length > 0 ? (
+                filteredData.map((item, index) => (
                   <tr key={item.id || index}>
                     <td className="fw-medium text-dark">
                       {item.name || item.title || "Untitled"}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../../contexts/AuthContext";
-import { useDashboard } from "../../hooks/useDashboard";
+import { getStudentCourses } from "../../hooks/useCourses";
 import StatCard from "../../components/StatCard";
 import DashboardItemsSection from "../../components/DashboardItemsSection";
 import { Link } from "react-router-dom";
@@ -11,17 +11,21 @@ function DashboardHome() {
   const { t, i18n } = useTranslation("studentDashboard");
   const isArabic = i18n.language?.startsWith("ar");
   const { user } = useAuth();
-  const { stats, enrolledCourses, loading } = useDashboard();
+  const { stats, enrolledCourses, loading } = getStudentCourses();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
 
   // فلترة الكورسات
   const filtered = (enrolledCourses || []).filter((c) => {
+    const status = c.enrollment?.status;
+
     const matchesFilter =
       filter === "all" ||
-      (filter === "in_progress" && c.status === "in_progress") ||
-      (filter === "completed" && c.status === "completed");
-    const matchesSearch = c.title.toLowerCase().includes(search.toLowerCase());
+      (filter === "in_progress" && status === "in_progress") ||
+      (filter === "completed" && status === "completed");
+
+    const matchesSearch = c.title?.toLowerCase().includes(search.toLowerCase());
+
     return matchesFilter && matchesSearch;
   });
 
@@ -30,28 +34,28 @@ function DashboardHome() {
       icon: "bi-journals",
       iconBg: "#fff0f0",
       iconColor: "#be1522",
-      key: "allCourses",
+      key: "total_platform_courses",
       label: t("stats.all_courses"),
     },
     {
       icon: "bi-clock-history",
       iconBg: "#eef3ff",
       iconColor: "#4a6cf7",
-      key: "inProgress",
+      key: "in_progress",
       label: t("stats.in_progress"),
     },
     {
       icon: "bi-check2-circle",
       iconBg: "#efffef",
       iconColor: "#22c55e",
-      key: "completedCourses",
+      key: "completed",
       label: t("stats.completed_courses"),
     },
     {
       icon: "bi-bag-check",
       iconBg: "#fffbee",
       iconColor: "#f59e0b",
-      key: "purchasedCourses",
+      key: "total_enrolled",
       label: t("stats.purchased_courses"),
     },
   ];

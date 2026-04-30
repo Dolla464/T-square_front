@@ -35,8 +35,7 @@ export const useTestimonials = () => {
         //   image: item.avatar_url,
         // }))
         const data = res?.data?.data;
-        setTestimonials(res?.data?.data || []);
-        console.log(data);
+        setTestimonials(data || []);
       } catch (err) {
         setError(err);
       } finally {

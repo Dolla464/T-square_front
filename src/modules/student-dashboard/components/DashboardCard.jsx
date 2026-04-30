@@ -18,7 +18,7 @@ function DashboardCard({ item, type, t }) {
 
   // تحديد حالة الاكتمال
   const isCompleted = item.status === "completed";
-  const isPending = item.status === "pending";
+  const isPending = item.status === "in_progress";
 
   // حساب التقدم للكورسات أو الكويزات
   let progress = 0;
@@ -76,7 +76,8 @@ function DashboardCard({ item, type, t }) {
       {isCourse ? (
         <div className="course-card-img-wrapper">
           <img
-            src={item.image || courseImg}
+            // item.thumbnail from api
+            src={courseImg || item.thumbnail}
             alt={item.title}
             className="course-card-img"
           />
@@ -117,10 +118,8 @@ function DashboardCard({ item, type, t }) {
 
         {/* معلومات الميتا */}
         {isCourse ? (
-          <p className="course-card-meta">
-            <span>{item.instructor}</span>
-            <span className="meta-dot"> · </span>
-            <span>{item.category}</span>
+          <p className="course-card-meta mb-2">
+            <span>{item.instructor.full_name}</span>
           </p>
         ) : (
           <p className="quiz-card-meta">
@@ -137,12 +136,7 @@ function DashboardCard({ item, type, t }) {
         )}
 
         {/* معلومات الكويز/النتيجة */}
-        {isCourse ? (
-          <div className="course-quiz-meta">
-            <i className="bi bi-pencil-square me-1"></i>
-            {item.quizzesCompleted}/{item.totalQuizzes} quizzes
-          </div>
-        ) : (
+        {isQuiz && (
           <div className="quiz-score-meta">
             <i className="bi bi-question-circle me-1"></i>
             {item.totalQuestions} questions
