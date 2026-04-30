@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
-import i18next from "i18next";
 import studentImg from "../../../../assets/student-avatar.jpg";
 
 const initialStudents = [
@@ -37,7 +39,7 @@ const initialStudents = [
     name: "Mohamed Salama",
     email: "salama@gmail.com",
     role: "student",
-    joinDate: "30-4-2024",
+    joinDate: "3-4-2024",
     enrolledCourses: 10,
     phone: "+20 101 343 4567",
     verified: "2024-05-1T010:30:00Z",
@@ -86,7 +88,8 @@ function AdminStudents() {
   const [formData, setFormData] = useState(defaultFormData);
   const [selectedGender, setSelectedGender] = useState("all");
 
-  const isArabic = i18next.language === "ar";
+  const { t, i18n } = useTranslation("adminDashboard");
+  const isArabic = i18n.language?.startsWith("ar");
   const item = editingItem || viewingItem;
 
   const filteredStudents = students.filter((student) => {
@@ -155,13 +158,12 @@ function AdminStudents() {
     setActiveTab("view");
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const student = students.find((item) => item.id === id);
-    const confirmDelete = window.confirm(
-      `Delete ${student?.name || "this student"}?`,
-    );
-    if (confirmDelete) {
+    const ok = await showDeleteConfirm(student?.name || "");
+    if (ok) {
       setStudents((prev) => prev.filter((item) => item.id !== id));
+      toastSuccess(t("students_page.deleted_success"));
     }
   };
 
@@ -187,6 +189,7 @@ function AdminStudents() {
             : student,
         ),
       );
+      toastSuccess(t("students_page.updated_success"));
     } else {
       setStudents((prev) => [
         {
@@ -198,6 +201,7 @@ function AdminStudents() {
         },
         ...prev,
       ]);
+      toastSuccess(t("students_page.created_success"));
     }
     handleBack();
   };
@@ -208,16 +212,16 @@ function AdminStudents() {
         <>
           <div className="ac-header d-flex justify-content-between align-items-center mb-4">
             <div>
-              <h2 className="ac-title">Students</h2>
+              <h2 className="ac-title">{t("students_page.title")}</h2>
               <p className="ac-subtitle text-muted mb-0">
-                manage all students on the platform
+                {t("students_page.subtitle")}
               </p>
             </div>
             <button
               className="btn btn-danger ac-add-btn"
               onClick={handleAddNew}
             >
-              <i className="bi bi-plus fw-bolder"></i> Add Student
+              {t("students_page.add_student")}
             </button>
           </div>
 
@@ -230,7 +234,7 @@ function AdminStudents() {
                     <input
                       type="text"
                       className="form-control ac-search-input"
-                      placeholder="Search student"
+                      placeholder={t("students_page.search_placeholder")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -241,33 +245,61 @@ function AdminStudents() {
                       value={selectedGender}
                       onChange={(e) => setSelectedGender(e.target.value)}
                     >
-                      <option value="all">All genders</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
+                      <option value="all">
+                        {t("students_page.all_genders")}
+                      </option>
+                      <option value="male">
+                        {t("students_page.male_option")}
+                      </option>
+                      <option value="female">
+                        {t("students_page.female_option")}
+                      </option>
                     </select>
                     <select
                       className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                     >
-                      <option value="all">All statuses</option>
-                      <option value="active">Active</option>
-                      <option value="pending">Pending</option>
+                      <option value="all">
+                        {t("students_page.all_statuses")}
+                      </option>
+                      <option value="active">
+                        {t("students_page.active_status")}
+                      </option>
+                      <option value="pending">
+                        {t("students_page.pending_status")}
+                      </option>
                     </select>
                   </div>
                 </div>
                 <table className="table ac-table mb-0 align-middle">
                   <thead>
                     <tr>
-                      <th>Name</th>
-                      <th className="text-center">Email</th>
-                      <th className="text-center">Enrolled Courses</th>
-                      <th className="text-center">Join Date</th>
-                      <th className="text-center">Role</th>
-                      <th className="text-center">Phone</th>
-                      <th className="text-center">Gender</th>
-                      <th className="text-center">Verified</th>
-                      <th className="text-center">Actions</th>
+                      <th>{t("students_page.table_name")}</th>
+                      <th className="text-center">
+                        {t("students_page.table_email")}
+                      </th>
+                      <th className="text-center">
+                        {t("students_page.table_enrolled_courses")}
+                      </th>
+                      <th className="text-center">
+                        {t("students_page.table_join_date")}
+                      </th>
+                      <th className="text-center">
+                        {t("students_page.table_role")}
+                      </th>
+                      <th className="text-center">
+                        {t("students_page.table_phone")}
+                      </th>
+                      <th className="text-center">
+                        {t("students_page.table_gender")}
+                      </th>
+                      <th className="text-center">
+                        {t("students_page.table_verified")}
+                      </th>
+                      <th className="text-center">
+                        {t("students_page.table_actions")}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -298,7 +330,9 @@ function AdminStudents() {
                             {student.gender || "-"}
                           </td>
                           <td className="text-center text-secondary">
-                            {student.verified ? "Yes" : "No"}
+                            {student.verified
+                              ? t("students_page.verified_yes")
+                              : t("students_page.verified_no")}
                           </td>
                           <td className="text-center">
                             <div className="d-flex justify-content-center gap-2">
@@ -329,8 +363,8 @@ function AdminStudents() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={8} className="text-center py-4 text-muted">
-                          No students available.
+                        <td colSpan={9} className="text-center py-4 text-muted">
+                          {t("students_page.no_students")}
                         </td>
                       </tr>
                     )}
@@ -349,10 +383,10 @@ function AdminStudents() {
               ></i>
               <span className="ms-2 me-2 fs-5 fw-bold text-dark">
                 {viewingItem
-                  ? "View Student"
+                  ? t("students_page.view_student")
                   : editingItem
-                    ? "Edit Student"
-                    : "Add New Student"}
+                    ? t("students_page.edit_student")
+                    : t("students_page.add_student_title")}
               </span>
             </button>
             {!viewingItem && (
@@ -361,7 +395,9 @@ function AdminStudents() {
                   className="btn btn-danger px-4 ac-publish-btn"
                   onClick={handleSubmitWrapper}
                 >
-                  {editingItem ? "Update Student" : "Create Student"}
+                  {editingItem
+                    ? t("students_page.update_student")
+                    : t("students_page.create_student")}
                 </button>
               </div>
             )}
@@ -388,13 +424,13 @@ function AdminStudents() {
 
                 <div className="mb-4">
                   <label className="form-label fw-bold text-dark">
-                    Student Name
+                    {t("students_page.name")}
                   </label>
                   <input
                     type="text"
                     name="name"
                     className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    placeholder="Enter student name"
+                    placeholder={t("students_page.name_placeholder")}
                     value={formData.name}
                     onChange={handleChange}
                     disabled={!!viewingItem}
@@ -403,13 +439,13 @@ function AdminStudents() {
 
                 <div className="mb-4">
                   <label className="form-label fw-bold text-dark">
-                    Email address
+                    {t("students_page.email")}
                   </label>
                   <input
                     type="email"
                     name="email"
                     className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    placeholder="Enter student email"
+                    placeholder={t("students_page.email_placeholder")}
                     value={formData.email}
                     onChange={handleChange}
                     disabled={!!viewingItem}
@@ -418,23 +454,25 @@ function AdminStudents() {
 
                 <div className="row mb-4">
                   <div className="col-md-6 mb-3 mb-md-0">
-                    <label className="form-label fw-bold text-dark">Role</label>
+                    <label className="form-label fw-bold text-dark">
+                      {t("students_page.role")}
+                    </label>
                     <input
                       type="text"
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                      value="Student"
+                      value={t("students_page.role_value")}
                       disabled
                     />
                   </div>
                   <div className="col-md-6">
                     <label className="form-label fw-bold text-dark">
-                      Phone
+                      {t("students_page.phone")}
                     </label>
                     <input
                       type="tel"
                       name="phone"
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                      placeholder="Enter phone number"
+                      placeholder={t("students_page.phone_placeholder")}
                       value={formData.phone}
                       onChange={handleChange}
                       disabled={!!viewingItem}
@@ -443,7 +481,9 @@ function AdminStudents() {
                 </div>
 
                 <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">Gender</label>
+                  <label className="form-label fw-bold text-dark">
+                    {t("students_page.gender")}
+                  </label>
                   <select
                     name="gender"
                     className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
@@ -451,16 +491,20 @@ function AdminStudents() {
                     onChange={handleChange}
                     disabled={!!viewingItem || !!editingItem}
                   >
-                    <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
+                    <option value="">{t("students_page.select_gender")}</option>
+                    <option value="male">
+                      {t("students_page.male_option")}
+                    </option>
+                    <option value="female">
+                      {t("students_page.female_option")}
+                    </option>
                   </select>
                 </div>
 
                 <div className="row mb-4">
                   <div className="col-md-6 mb-3 mb-md-0">
                     <label className="form-label fw-bold text-dark">
-                      Enrolled Courses
+                      {t("students_page.enrolled_courses")}
                     </label>
                     <input
                       type="number"
@@ -471,7 +515,7 @@ function AdminStudents() {
                   </div>
                   <div className="col-md-6">
                     <label className="form-label fw-bold text-dark">
-                      Joined At
+                      {t("students_page.joined_at")}
                     </label>
                     <input
                       type="text"
@@ -485,13 +529,13 @@ function AdminStudents() {
                 {!viewingItem && (
                   <div className="mb-4">
                     <label className="form-label fw-bold text-dark">
-                      Password
+                      {t("students_page.password")}
                     </label>
                     <input
                       type="password"
                       name="password"
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                      placeholder="Enter password"
+                      placeholder={t("students_page.password_placeholder")}
                       value={formData.password}
                       onChange={handleChange}
                     />
@@ -507,15 +551,21 @@ function AdminStudents() {
                     onChange={handleChange}
                     disabled={!!viewingItem}
                   >
-                    <option value="active">Active</option>
-                    <option value="pending">Pending</option>
-                    <option value="inactive">Inactive</option>
+                    <option value="active">
+                      {t("students_page.active_status")}
+                    </option>
+                    <option value="pending">
+                      {t("students_page.pending_status")}
+                    </option>
+                    <option value="inactive">
+                      {t("students_page.inactive_status")}
+                    </option>
                   </select>
                 </div>
 
                 <div className="mb-4">
                   <label className="form-label fw-bold text-dark">
-                    Verified
+                    {t("students_page.verified")}
                   </label>
                   <div className="d-flex align-items-center gap-3">
                     <button
@@ -531,7 +581,9 @@ function AdminStudents() {
                       }
                       disabled={!!viewingItem}
                     >
-                      {formData.verified ? "Verified" : "Not Verified"}
+                      {formData.verified
+                        ? t("students_page.verified_yes")
+                        : t("students_page.verified_no")}
                     </button>
                     {formData.verified && (
                       <small className="text-muted">
@@ -548,7 +600,9 @@ function AdminStudents() {
                       className="btn btn-danger px-5 py-2 fw-medium rounded-3"
                       onClick={handleSubmitWrapper}
                     >
-                      {editingItem ? "Update Student" : "Add Student"}
+                      {editingItem
+                        ? t("students_page.update_student")
+                        : t("students_page.add_student")}
                     </button>
                   </div>
                 )}
