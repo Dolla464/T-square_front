@@ -23,7 +23,7 @@ import enPayment from "./locales/en/payment.json";
 import enStudentDashboard from "./locales/en/studentDashboard.json";
 import enAdminDashboard from "./locales/en/adminDashboard.json";
 import enCoursesDetails from "./locales/en/coursesDetails.json";
-import arCoursesDetails from "./locales/ar/coursesDetails.json";
+import enorderPayments from "./locales/en/orderPayments.json";
 
 // Arabic namespaces
 import arNavbar from "./locales/ar/navbar.json";
@@ -45,6 +45,9 @@ import arFooter from "./locales/ar/footer.json";
 import arPayment from "./locales/ar/payment.json";
 import arStudentDashboard from "./locales/ar/studentDashboard.json";
 import arAdminDashboard from "./locales/ar/adminDashboard.json";
+import arCoursesDetails from "./locales/ar/coursesDetails.json";
+import arorderPayments from "./locales/ar/orderPayments.json";
+
 
 i18n
   .use(LanguageDetector)
@@ -72,6 +75,7 @@ i18n
         studentDashboard: enStudentDashboard,
         adminDashboard: enAdminDashboard,
         coursesDetails: enCoursesDetails,
+        orderPayments: enorderPayments,
       },
       ar: {
         navbar: arNavbar,
@@ -94,6 +98,7 @@ i18n
         studentDashboard: arStudentDashboard,
         adminDashboard: arAdminDashboard,
         coursesDetails: arCoursesDetails,
+        orderPayments: arorderPayments,
       },
     },
 
@@ -119,6 +124,7 @@ i18n
       "studentDashboard",
       "adminDashboard",
       "coursesDetails",
+      "orderPayments",
     ],
     defaultNS: "common",
 
