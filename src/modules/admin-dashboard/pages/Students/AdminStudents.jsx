@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next";
-import "@fortawesome/fontawesome-free/css/all.min.css";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 function AdminStudents() {
   const { t } = useTranslation("adminDashboard");
