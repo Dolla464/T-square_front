@@ -24,6 +24,7 @@ export const getStudentCertificates = () =>
  */
 export const getStudentProfile = () => axiosClient.get("/profile");
 
+
 /**
  * تحديث بيانات الملف الشخصي
  * @param {Object} profileData
