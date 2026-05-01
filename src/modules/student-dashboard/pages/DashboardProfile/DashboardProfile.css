@@ -60,6 +60,20 @@
   flex-shrink: 0;
 }
 
+/* أضف هذا الجزء لضمان ظهور الصورة */
+.profile-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  display: block !important;   
+}
+
+/* تحسين إضافي: إخفاء الخلفية الحمراء والـ initials إذا وجدت صورة */
+.profile-avatar:has(img) {
+  background: transparent;
+}
+
 .profile-name {
   font-weight: 700;
   font-size: 0.95rem;
