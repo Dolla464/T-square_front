@@ -154,16 +154,18 @@ function DashboardSharedLayout({
           {/* الجانب الأيمن */}
           <div className="topbar-right">
             {/* تنبيه الحساب غير مفعل (Topbar) - يظهر دائما لو اليوزر مهوش فعال */}
-            {!user?.email_verified_at && (
-              <div className="topbar-activation-badge">
-                <i className="bi bi-exclamation-circle-fill"></i>
-                <span className="activation-text">
-                  {isArabic
-                    ? `الحساب غير مفعل: ${user?.email}`
-                    : `Account not activated: ${user?.email}`}
-                </span>
-              </div>
-            )}
+            {user &&
+              user.hasOwnProperty("is_verified") &&
+              String(user.is_verified) !== "true" && (
+                <div className="topbar-activation-badge">
+                  <i className="bi bi-exclamation-circle-fill"></i>
+                  <span className="activation-text">
+                    {isArabic
+                      ? `الحساب غير مفعل: ${user?.email}`
+                      : `Account not activated: ${user?.email}`}
+                  </span>
+                </div>
+              )}
 
             {/* الإشعارات */}
             <button

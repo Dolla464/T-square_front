@@ -13,135 +13,96 @@ import {
   updateStudentPassword,
 } from "../../services/dashboardService";
 
-/**
- * صفحة الملف الشخصي والإعدادات
- * بيانات المستخدم تأتي من AuthContext
- * الحقول القابلة للتعديل: ستُربط بـ API
- */
 function DashboardProfile() {
   const { t, i18n } = useTranslation("studentDashboard");
   const { user, updateUser } = useAuth();
   const isArabic = i18n.language === "ar";
-  const [fullName, setFullName] = useState(user?.name || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState(user?.phone || "+20 10 1234 5678");
+
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [gender, setGender] = useState("");
+
   const [currentPwd, setCurrentPwd] = useState("");
   const [newPwd, setNewPwd] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
 
-  const [gender, setGender] = useState(user?.gender || "");
   const [isInfoUpdated, setIsInfoUpdated] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
   const [pwdLoading, setPwdLoading] = useState(false);
   const [profileError, setProfileError] = useState(null);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
       setProfileLoading(true);
       try {
         const res = await getStudentProfile();
-        const profile =
-          res?.data?.data?.data || res?.data?.data || res?.data || {};
+        const profileData = res?.data?.data || res?.data;
 
-        setFullName(profile.name ?? user?.name ?? "");
-        setEmail(profile.email ?? user?.email ?? "");
-        setPhone(profile.phone ?? user?.phone ?? "+20 10 1234 5678");
-        setGender(profile.gender ?? user?.gender ?? "");
+        if (profileData) {
+          setFullName(profileData.student?.full_name || profileData.name || "");
+          setEmail(profileData.email || "");
+          setPhone(profileData.student?.phone || "");
+          setGender(profileData.student?.gender || "");
+
+          if (updateUser) {
+            updateUser(profileData);
+          }
+        }
       } catch (err) {
         setProfileError(err);
       } finally {
         setProfileLoading(false);
       }
     };
-
     loadProfile();
-  }, [user]);
+  }, []);
 
-  // إعدادات الإشعارات
-  const [prefs, setPrefs] = useState({
-    newLessons: true,
-    certEarned: true,
-    weeklyReminders: false,
-    promoEmails: false,
-  });
+const handleFileChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-  const initials = user?.name
-    ? user.name
+  // بناء الـ FormData يدوياً لضمان الـ Binary
+  const formData = new FormData();
+  formData.append("avatar", file);
+  formData.append("_method", "PUT");
+
+  setSaveLoading(true);
+  try {
+    // نرجع نستخدم الـ Service اللي معاه الـ Interceptors والـ Token جاهز
+    const res = await updateStudentProfile(formData);
+    const updatedData = res?.data?.data || res?.data;
+
+    setImageError(false);
+
+    toastSuccess(
+      isArabic ? "تم تحديث الصورة بنجاح" : "Photo updated successfully",
+    );
+
+    if (updateUser && updatedData) {
+      updateUser(updatedData);
+    }
+  } catch (error) {
+    console.error("Upload Error:", error);
+    // لو لسه 401، تأكد إن اليوزر عامل Login والتوكن سليم
+    toastError(isArabic ? "فشل رفع الصورة" : "Failed to upload photo");
+  } finally {
+    setSaveLoading(false);
+    e.target.value = "";
+  }
+};
+
+  const initials = fullName
+    ? fullName
         .split(" ")
+        .filter(Boolean) // تجاهل المسافات الزائدة
         .map((w) => w[0])
         .join("")
         .slice(0, 2)
         .toUpperCase()
     : "ST";
-
-  const handlePasswordUpdate = async (e) => {
-    e.preventDefault();
-
-    if (!currentPwd || !newPwd || !confirmPwd) {
-      toastError(
-        isArabic
-          ? "الرجاء تعبئة جميع حقول كلمة المرور"
-          : "Please fill in all password fields",
-      );
-      return;
-    }
-
-    if (newPwd !== confirmPwd) {
-      toastError(
-        isArabic
-          ? "كلمة المرور الجديدة غير مطابقة"
-          : "New passwords do not match",
-      );
-      return;
-    }
-
-    setPwdLoading(true);
-
-    try {
-      await updateStudentPassword({
-        current_password: currentPwd,
-        password: newPwd,
-        password_confirmation: confirmPwd,
-      });
-
-      toastSuccess(
-        isArabic
-          ? "تم تحديث كلمة المرور بنجاح"
-          : "Password updated successfully",
-      );
-      setCurrentPwd("");
-      setNewPwd("");
-      setConfirmPwd("");
-    } catch (error) {
-      toastError(
-        error?.response?.data?.message ||
-          (isArabic
-            ? "حدث خطأ أثناء تحديث كلمة المرور"
-            : "Unable to update password"),
-      );
-    } finally {
-      setPwdLoading(false);
-    }
-  };
-
-  const handleSavePrefs = () => {
-    // TODO: ربط بـ API
-    toastSuccess(isArabic ? "تم حفظ التفضيلات" : "Preferences saved");
-  };
-
-  const togglePref = (key) =>
-    setPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
-
-  const handleGenderChange = (e) => {
-    setGender(e.target.value);
-    setIsInfoUpdated(true);
-  };
-
-  const handleInputChange = (setter) => (e) => {
-    setter(e.target.value);
-    setIsInfoUpdated(true);
-  };
 
   const handleUpdateInformation = async () => {
     const ok = await showConfirmCustom({
@@ -151,93 +112,129 @@ function DashboardProfile() {
       variant: "danger",
     });
 
-    if (!ok) {
-      return;
-    }
+    if (!ok) return;
 
     setSaveLoading(true);
-
     try {
-      await updateStudentProfile({
+      const res = await updateStudentProfile({
         name: fullName,
+        full_name: fullName,
         gender,
       });
-
-      toastSuccess(
-        isArabic
-          ? "تم تحديث المعلومات بنجاح"
-          : "Information updated successfully",
-      );
+      const updatedData = res?.data?.data || res?.data;
+      toastSuccess(isArabic ? "تم التحديث بنجاح" : "Updated successfully");
       setIsInfoUpdated(false);
-
-      if (updateUser) {
-        updateUser({
-          ...user,
-          name: fullName,
-          gender,
-        });
-      }
+      if (updateUser) updateUser(updatedData);
     } catch (error) {
-      toastError(
-        error?.response?.data?.message ||
-          (isArabic
-            ? "حدث خطأ أثناء تحديث المعلومات"
-            : "Unable to update information"),
-      );
+      toastError(error?.response?.data?.message || "Error");
     } finally {
       setSaveLoading(false);
     }
   };
 
+  const handlePasswordUpdate = async (e) => {
+    e.preventDefault();
+    setPwdLoading(true);
+    try {
+      await updateStudentPassword({
+        current_password: currentPwd,
+        password: newPwd,
+        password_confirmation: confirmPwd,
+      });
+      toastSuccess(isArabic ? "تم تغيير كلمة المرور" : "Password updated");
+      setCurrentPwd("");
+      setNewPwd("");
+      setConfirmPwd("");
+    } catch (error) {
+      toastError(error?.response?.data?.message || "Error");
+    } finally {
+      setPwdLoading(false);
+    }
+  };
+
   if (profileLoading) {
     return (
-      <div className="dash-profile">
-        {isArabic ? "جارٍ تحميل الملف الشخصي..." : "Loading profile..."}
+      <div className="dash-profile p-5 text-center">
+        {isArabic ? "جاري التحميل..." : "Loading..."}
       </div>
     );
   }
 
+  console.log("Full User Object:", user);
+  console.log("Is Verified Type:", typeof user?.is_verified);
   return (
     <div className="dash-profile">
-      <h4 className="dash-page-title d-md-none d-block">
-        {t("profile_page.title")}
-      </h4>
-
-      {profileError && (
-        <div className="profile-error text-danger mb-4">
-          {isArabic
-            ? "حدث خطأ أثناء تحميل بيانات الملف الشخصي"
-            : "Failed to load profile data."}
-        </div>
-      )}
+      <input
+        type="file"
+        id="avatar-upload"
+        className="d-none"
+        accept="image/*"
+        onChange={handleFileChange}
+      />
 
       <div className="profile-grid">
-        {/* ── العمود الأيسر ── */}
         <div className="profile-left-col">
-          {/* المعلومات الشخصية */}
           <div className="profile-card">
             <h6 className="profile-card-title">
               {t("profile_page.personal_info")}
             </h6>
-            {/* صورة + اسم */}
             <div className="profile-head-row">
-              <div className="profile-avatar">{initials}</div>
+              <div className="profile-avatar" style={{ position: "relative" }}>
+                {saveLoading && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background: "rgba(255,255,255,0.7)",
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      zIndex: 2,
+                    }}
+                  >
+                    <div className="spinner-border spinner-border-sm text-danger"></div>
+                  </div>
+                )}
+
+                {/* 
+    المنطق الجديد: 
+    لو مفيش avatar أو لو الصورة حاولت تحمل وفشلت (imageError)، اعرض الـ initials 
+  */}
+                {user?.student?.avatar && !imageError ? (
+                  <img
+                    src={user.student.avatar}
+                    alt="avatar"
+                    onError={() => setImageError(true)} // لو الصورة مكسورة، اقلب على الـ initials
+                  />
+                ) : (
+                  <span className="avatar-initials">{initials}</span>
+                )}
+              </div>
               <div>
-                <div className="profile-name">{user?.name}</div>
+                <div className="profile-name">
+                  {user?.student?.full_name || user?.name}
+                </div>
                 <div className="profile-email-sub">{user?.email}</div>
               </div>
-              <button className="btn-edit-photo">
+              <button
+                className="btn-edit-photo"
+                onClick={() => document.getElementById("avatar-upload").click()}
+                disabled={saveLoading}
+              >
                 {t("profile_page.edit_photo")}
               </button>
             </div>
 
-            {/* الحقول */}
             <div className="profile-fields">
               <div className="profile-field">
                 <label>{t("profile_page.full_name")}</label>
                 <input
                   value={fullName}
-                  onChange={handleInputChange(setFullName)}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                    setIsInfoUpdated(true);
+                  }}
                   className="profile-input"
                 />
               </div>
@@ -260,11 +257,12 @@ function DashboardProfile() {
               <div className="profile-field">
                 <label>{t("profile_page.gender")}</label>
                 <select
-                  className={`form-control profile-input  ${!gender ? "" : "profile-input profile-input-readonly"}`}
+                  className="profile-input"
                   value={gender || ""}
-                  onChange={handleGenderChange}
-                  readOnly
-                  disabled={gender}
+                  onChange={(e) => {
+                    setGender(e.target.value);
+                    setIsInfoUpdated(true);
+                  }}
                 >
                   <option value="">{t("profile_page.select_gender")}</option>
                   <option value="male">{t("profile_page.male")}</option>
@@ -278,18 +276,13 @@ function DashboardProfile() {
                     onClick={handleUpdateInformation}
                     disabled={saveLoading}
                   >
-                    {saveLoading
-                      ? isArabic
-                        ? "جاري الحفظ..."
-                        : "Saving..."
-                      : t("profile_page.update_data")}
+                    {saveLoading ? "..." : t("profile_page.update_data")}
                   </button>
                 </div>
               )}
             </div>
           </div>
 
-          {/* تغيير كلمة المرور */}
           <div className="profile-card">
             <h6 className="profile-card-title">
               {t("profile_page.change_password")}
@@ -328,20 +321,14 @@ function DashboardProfile() {
                   className="btn-update-pwd"
                   disabled={pwdLoading}
                 >
-                  {pwdLoading
-                    ? isArabic
-                      ? "جاري التحديث..."
-                      : "Updating..."
-                    : t("profile_page.update_password")}
+                  {pwdLoading ? "..." : t("profile_page.update_password")}
                 </button>
               </div>
             </form>
           </div>
         </div>
 
-        {/* ── العمود الأيمن ── */}
         <div className="profile-right-col">
-          {/* إعدادات الحساب */}
           <div className="profile-card">
             <h6 className="profile-card-title">
               {t("profile_page.account_settings")}
@@ -352,49 +339,16 @@ function DashboardProfile() {
                 className="profile-input"
                 value={i18n.language}
                 onChange={(e) => {
-                  i18n.changeLanguage(e.target.value);
-                  localStorage.setItem("i18nextLng", e.target.value);
-                  document.documentElement.dir =
-                    e.target.value === "ar" ? "rtl" : "ltr";
-                  document.documentElement.lang = e.target.value;
+                  const lang = e.target.value;
+                  i18n.changeLanguage(lang);
+                  localStorage.setItem("i18nextLng", lang);
+                  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
                 }}
               >
                 <option value="en">English (US)</option>
                 <option value="ar">العربية</option>
               </select>
             </div>
-          </div>
-
-          {/* تفضيلات الإشعارات */}
-          <div className="profile-card">
-            <h6 className="profile-card-title">
-              {t("profile_page.notification_prefs")}
-            </h6>
-            <div className="notif-list">
-              {[
-                { key: "newLessons", label: t("profile_page.new_lessons") },
-                { key: "certEarned", label: t("profile_page.cert_earned") },
-                {
-                  key: "weeklyReminders",
-                  label: t("profile_page.weekly_reminders"),
-                },
-                { key: "promoEmails", label: t("profile_page.promo_emails") },
-              ].map(({ key, label }) => (
-                <div key={key} className="notif-row">
-                  <span className="notif-label">{label}</span>
-                  <button
-                    className={`toggle-btn ${prefs[key] ? "toggle-on" : ""}`}
-                    onClick={() => togglePref(key)}
-                    aria-pressed={prefs[key]}
-                  >
-                    <span className="toggle-knob" />
-                  </button>
-                </div>
-              ))}
-            </div>
-            <button className="btn-save-prefs" onClick={handleSavePrefs}>
-              {t("profile_page.save_preferences")}
-            </button>
           </div>
         </div>
       </div>

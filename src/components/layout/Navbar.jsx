@@ -143,6 +143,7 @@ function AppNavbar({ isLoggedIn, userName }) {
   const handleNavLinkClick = () => {
     setMobileMenuOpen(false);
   };
+
   return (
     <Navbar
       expand="lg"
@@ -243,13 +244,21 @@ function AppNavbar({ isLoggedIn, userName }) {
                 </div>
 
                 {/* الإشعار لو الحساب مش متفعل */}
-                {user && !user.email_verified_at && (
-                  <i
-                    className="bi bi-exclamation-circle-fill text-warning fs-5"
-                    title={t("user:not_activated")}
-                    style={{ cursor: "help" }}
-                  ></i>
-                )}
+                {user &&
+                  user.hasOwnProperty("is_verified") &&
+                  (user.is_verified === false ||
+                    user.is_verified === 0 ||
+                    user.is_verified === "0") && (
+                    <i
+                      className="bi bi-exclamation-circle-fill text-warning fs-5"
+                      title={t("user:not_activated")}
+                      style={{
+                        cursor: "help",
+                        marginLeft: "5px",
+                        marginRight: "5px",
+                      }}
+                    ></i>
+                  )}
                 <NavDropdown
                   title={<span className={Tbtn}>{userName}</span>}
                   id="user-dropdown"

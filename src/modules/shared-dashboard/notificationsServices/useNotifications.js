@@ -1,36 +1,30 @@
 import { useState, useEffect } from "react";
+import axiosClient from "../../../api/axios";
 
-/**
- * جلب الاشعارات الخاصه بالطالب
- */
 const getStudentNotifications = () => axiosClient.get("/notifications");
 const markNotificationAsRead = (id) =>
   axiosClient.post(`/notifications/${id}/read`);
-const markNotificationAllRead = (id) =>
-  axiosClient.post(`/notifications/notifications/read-all`);
+const markAllNotificationsAsRead = () =>
+  axiosClient.post("/notifications/read-all");
 
-const handleMarkAllAsRead = () => {
-  setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-
-  toastCustom({
-    message: isArabic
-      ? "تم تحديد جميع الإشعارات كمقروءة"
-      : "All notifications marked as read",
-    type: "success",
-    bsIcon: "bi-check2-all",
-    duration: 3000,
-  });
+const normalizeNotificationsData = (data) => {
+  if (Array.isArray(data)) return data;
+  if (data?.data && Array.isArray(data.data)) return data.data;
+  if (data?.notifications && Array.isArray(data.notifications))
+    return data.notifications;
+  return [];
 };
+
 export const useNotifications = () => {
-  const [notificationsData, setآotifications] = useState([]);
+  const [notificationsData, setNotificationsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchFromAPI = async () => {
+    const fetchNotifications = async () => {
       try {
-        const res = await getStudentNotifications();
-        setNotifications(res.data);
+        const response = await getStudentNotifications();
+        setNotificationsData(normalizeNotificationsData(response.data));
       } catch (err) {
         setError(err);
       } finally {
@@ -38,40 +32,44 @@ export const useNotifications = () => {
       }
     };
 
-    fetchFromAPI();
+    fetchNotifications();
   }, []);
 
-  //  mark as read (UI + backend sync)
   const handleMarkAsRead = async (id) => {
     try {
-      // optimistic UI update
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
+      setNotificationsData((prev) =>
+        prev.map((notification) =>
+          notification.id === id
+            ? { ...notification, is_read: true }
+            : notification,
+        ),
       );
 
-      // backend sync
       await markNotificationAsRead(id);
     } catch (err) {
       console.error(err);
-
-      // rollback لو حصل error
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: false } : n)),
+      setNotificationsData((prev) =>
+        prev.map((notification) =>
+          notification.id === id
+            ? { ...notification, is_read: false }
+            : notification,
+        ),
       );
     }
   };
+
   const markNotificationAllRead = async () => {
     try {
-      // optimistic update
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      setNotificationsData((prev) =>
+        prev.map((notification) => ({ ...notification, is_read: true })),
+      );
 
-      // backend sync
-      await markNotificationAllReadAPI();
+      await markAllNotificationsAsRead();
     } catch (err) {
       console.error(err);
-
-      // rollback لو حصل error
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: false })));
+      setNotificationsData((prev) =>
+        prev.map((notification) => ({ ...notification, is_read: false })),
+      );
     }
   };
 
