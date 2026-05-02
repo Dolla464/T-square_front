@@ -31,7 +31,7 @@ function DashboardSharedLayout({
 
   const isCourseDetailsPage = location.pathname.includes("/student/course/");
   const isExmam = location.pathname.includes("/student/quizzes/");
-
+  // لازم افتكر اعدل دا عشان يرجع بعدد النوتفكيشن الخاص باليوزر حسب الرول
   const unreadCount = NOTIFICATIONS_MOCK.filter((n) => !n.is_read).length;
 
   const initials = user?.name
