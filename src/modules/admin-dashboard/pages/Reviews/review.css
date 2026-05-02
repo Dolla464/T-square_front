@@ -1,0 +1,67 @@
+.state {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+  height: 120px;
+  transition: all 0.4s ease;
+
+}
+.state:hover{
+    transform: scale(1.03);
+    border: 1px solid #e9301c;
+}
+.ac-search-input {
+  padding-left: 36px;
+  border-radius: 8px;
+  border: 1px solid #eaeaea;
+  background-color: #f9f9fb;
+  font-size: 0.9rem;
+}
+.ac-search-input:focus {
+  background-color: #fff;
+  border-color: #d32f2f;
+  box-shadow: 0 0 0 0.2rem rgba(211, 47, 47, 0.25);
+}
+.state-value{
+    font-size: 18px;
+    font-weight: bold;
+}
+.stat-label{
+    letter-spacing: 1px;
+}
+.ac-rounded-table {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+}
+
+.ac-table th {
+  background-color: #ffffff;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-bottom: 2px solid #eaeaea;
+  padding: 16px;
+}
+
+.ac-table td {
+  padding: 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.9rem;
+}
+
+.ac-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ac-truncate-text {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
