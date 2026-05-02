@@ -69,19 +69,7 @@ function DashboardQuizzes() {
         </div>
       ) : (
         <>
-          {/* تنبيه الحساب غير مفعل */}
-          {user &&
-            user.hasOwnProperty("is_verified") &&
-            String(user.is_verified) !== "true" && (
-              <div className="activation-banner">
-                <i className="bi bi-exclamation-circle-fill"></i>
-                <span>
-                  {isArabic
-                    ? `الحساب غير مفعل - برجاء مراجعة البريد الإلكتروني: ${user?.email}`
-                    : `Account not activated - please check your email: ${user?.email}`}
-                </span>
-              </div>
-            )}
+
 
           {/* إحصائيات */}
           <div className="stats-grid-quizzes">

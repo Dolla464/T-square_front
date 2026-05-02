@@ -27,15 +27,8 @@ export const useRegister = () => {
       // عرض إشعار إنشاء الحساب بنجاح
       toastAccountCreated();
 
-      // 1. Log the user in implicitly using AuthContext logic
-      login(responseData);
-
-      // 2. Redirect based on role
-      if (responseData.user?.role === 'admin') {
-        navigate('/admin', { replace: true });
-      } else {
-        navigate('/student', { replace: true });
-      }
+      // التوجيه إلى صفحة تسجيل الدخول بدلاً من الدخول التلقائي
+      navigate('/login', { replace: true });
 
       return response;
     } catch (err) {

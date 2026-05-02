@@ -19,6 +19,7 @@ import UpdatePassword from "./pages/Update_Password/UpdatePassword";
 import Courses from "./pages/CoursesPage";
 import Solutions from "./pages/Solutions";
 import DetailsCourse from "./pages/CourseDetails";
+import VerifyEmailPage from "./pages/VerifyEmail/VerifyEmailPage";
 
 // استيراد ملفات البوتستراب
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -70,6 +71,7 @@ function AppContent() {
     location.pathname === "/signup" ||
     location.pathname === "/forgot_password" ||
     location.pathname === "/update_password" ||
+    location.pathname.startsWith("/verify-email") ||
     location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/student");
 
@@ -190,6 +192,8 @@ function AppContent() {
           <Route path="/forgot_password" element={<ForgotPassword />} />
 
           <Route path="/update_password" element={<UpdatePassword />} />
+
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
 
           <Route path="/courses" element={<Courses />} />
 
