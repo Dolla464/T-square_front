@@ -1,11 +1,31 @@
-import { Container, Alert, Button } from 'react-bootstrap';
+import { Container, Alert, Button, Spinner } from 'react-bootstrap';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { resendVerificationNotification } from '../../services/register';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
   const { t } = useTranslation("user");
+  const [isResending, setIsResending] = useState(false);
+
+  const handleResend = async () => {
+    try {
+      setIsResending(true);
+      await resendVerificationNotification();
+      toast.success(t("verification_link_sent") || "تم إرسال رابط تفعيل جديد إلى بريدك الإلكتروني.");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || 
+        t("resend_failed") || 
+        "حدث خطأ أثناء محاولة إرسال الرابط. يرجى المحاولة لاحقاً."
+      );
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   return (
     <Container className="d-flex flex-column justify-content-center align-items-center vh-100">
@@ -31,6 +51,22 @@ const StudentDashboard = () => {
               {t("not_activated")}
             </Alert.Heading>
             <p className="fs-5">{t("not_activated_msg")}</p>
+            
+            <Button 
+              variant="outline-danger" 
+              className="mt-2 fw-bold"
+              onClick={handleResend}
+              disabled={isResending}
+            >
+              {isResending ? (
+                <>
+                  <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
+                  {t("sending") || "جاري الإرسال..."}
+                </>
+              ) : (
+                t("resend_verification_link") || "إعادة إرسال رابط التفعيل"
+              )}
+            </Button>
           </Alert>
         )}
 

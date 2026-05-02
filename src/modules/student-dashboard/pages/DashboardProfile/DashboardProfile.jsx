@@ -15,7 +15,7 @@ import {
 
 function DashboardProfile() {
   const { t, i18n } = useTranslation("studentDashboard");
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const isArabic = i18n.language === "ar";
 
   const [fullName, setFullName] = useState("");
@@ -60,48 +60,48 @@ function DashboardProfile() {
     loadProfile();
   }, []);
 
-const handleFileChange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  // بناء الـ FormData يدوياً لضمان الـ Binary
-  const formData = new FormData();
-  formData.append("avatar", file);
-  formData.append("_method", "PUT");
+    // بناء الـ FormData يدوياً لضمان الـ Binary
+    const formData = new FormData();
+    formData.append("avatar", file);
+    formData.append("_method", "PUT");
 
-  setSaveLoading(true);
-  try {
-    // نرجع نستخدم الـ Service اللي معاه الـ Interceptors والـ Token جاهز
-    const res = await updateStudentProfile(formData);
-    const updatedData = res?.data?.data || res?.data;
+    setSaveLoading(true);
+    try {
+      // نرجع نستخدم الـ Service اللي معاه الـ Interceptors والـ Token جاهز
+      const res = await updateStudentProfile(formData);
+      const updatedData = res?.data?.data || res?.data;
 
-    setImageError(false);
+      setImageError(false);
 
-    toastSuccess(
-      isArabic ? "تم تحديث الصورة بنجاح" : "Photo updated successfully",
-    );
+      toastSuccess(
+        isArabic ? "تم تحديث الصورة بنجاح" : "Photo updated successfully",
+      );
 
-    if (updateUser && updatedData) {
-      updateUser(updatedData);
+      if (updateUser && updatedData) {
+        updateUser(updatedData);
+      }
+    } catch (error) {
+      console.error("Upload Error:", error);
+      // لو لسه 401، تأكد إن اليوزر عامل Login والتوكن سليم
+      toastError(isArabic ? "فشل رفع الصورة" : "Failed to upload photo");
+    } finally {
+      setSaveLoading(false);
+      e.target.value = "";
     }
-  } catch (error) {
-    console.error("Upload Error:", error);
-    // لو لسه 401، تأكد إن اليوزر عامل Login والتوكن سليم
-    toastError(isArabic ? "فشل رفع الصورة" : "Failed to upload photo");
-  } finally {
-    setSaveLoading(false);
-    e.target.value = "";
-  }
-};
+  };
 
   const initials = fullName
     ? fullName
-        .split(" ")
-        .filter(Boolean) // تجاهل المسافات الزائدة
-        .map((w) => w[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
+      .split(" ")
+      .filter(Boolean) // تجاهل المسافات الزائدة
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase()
     : "ST";
 
   const handleUpdateInformation = async () => {
@@ -257,8 +257,9 @@ const handleFileChange = async (e) => {
               <div className="profile-field">
                 <label>{t("profile_page.gender")}</label>
                 <select
-                  className="profile-input"
+                  className={`profile-input ${gender ? "profile-input-readonly" : ""}`}
                   value={gender || ""}
+                  disabled={gender}
                   onChange={(e) => {
                     setGender(e.target.value);
                     setIsInfoUpdated(true);
@@ -352,7 +353,7 @@ const handleFileChange = async (e) => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 
