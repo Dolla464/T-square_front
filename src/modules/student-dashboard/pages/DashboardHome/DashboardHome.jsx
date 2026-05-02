@@ -4,7 +4,7 @@ import { useAuth } from "../../../../contexts/AuthContext";
 import { getStudentCourses } from "../../hooks/useCourses";
 import StatCard from "../../components/StatCard";
 import DashboardItemsSection from "../../components/DashboardItemsSection";
-import { Link } from "react-router-dom";
+
 import "../../styles/dashboardShared.css";
 
 function DashboardHome() {
@@ -59,7 +59,7 @@ function DashboardHome() {
       label: t("stats.purchased_courses"),
     },
   ];
-
+ 
   return (
     <div className="dash-home">
       {/* عنوان الصفحة */}
@@ -73,19 +73,8 @@ function DashboardHome() {
         </div>
       ) : (
         <>
-          {/* تنبيه الحساب غير مفعل */}
-          {user &&
-            user.hasOwnProperty("is_verified") &&
-            String(user.is_verified) !== "true" && (
-              <div className="activation-banner">
-                <i className="bi bi-exclamation-circle-fill"></i>
-                <span>
-                  {isArabic
-                    ? `الحساب غير مفعل - برجاء مراجعة البريد الإلكتروني: ${user?.email}`
-                    : `Account not activated - please check your email: ${user?.email}`}
-                </span>
-              </div>
-            )}
+         
+
 
           {/* إحصائيات */}
           <div className="stats-grid">

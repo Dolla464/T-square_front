@@ -5,3 +5,13 @@ export const registerService = async (userData) => {
   const response = await axiosClient.post('/register', userData);
   return response.data;
 };
+
+export const verifyEmail = async (id, hash, expires, signature) => {
+  const response = await axiosClient.get(`/verify-email/${id}/${hash}?expires=${expires}&signature=${signature}`);
+  return response.data;
+};
+
+export const resendVerificationNotification = async () => {
+  const response = await axiosClient.post('/email/verification-notification');
+  return response.data;
+};
