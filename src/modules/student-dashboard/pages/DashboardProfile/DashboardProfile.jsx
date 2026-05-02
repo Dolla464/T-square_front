@@ -15,7 +15,7 @@ import {
 
 function DashboardProfile() {
   const { t, i18n } = useTranslation("studentDashboard");
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const isArabic = i18n.language === "ar";
 
   const [fullName, setFullName] = useState("");
