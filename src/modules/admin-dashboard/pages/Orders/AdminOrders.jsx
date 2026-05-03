@@ -13,7 +13,7 @@ function AdminOrders() {
       <div className="header">
         <div>
           <h2 className="fw-bold">{t("orders")}</h2>
-          <p className="fs-5 mt-2">{t("track")}</p>
+          <p className="mt-2">{t("track")}</p>
         </div>
         <button className="export-btn">
           <FaDownload className="icon" />
@@ -37,7 +37,7 @@ function AdminOrders() {
 
         <div className="card">
           <h4 className="opacity-75">{t("pending")}</h4>
-          <h2 className="orange">24</h2>
+          <h2 className="orange fw-bold">24</h2>
           <span>{t("awaitingPayment")}</span>
         </div>
 
@@ -51,15 +51,22 @@ function AdminOrders() {
       {/* Table */}
       <div className="table-container">
         <div className="table-header">
-          <input type="text" placeholder="Search students..." />
+          <div className="filters">
+            <div className="search-box">
+              <FaSearch className="search-icon" />
+              <input type="text" placeholder={t("search")} />
+            </div>
+          </div>
 
-          <select>
-            <option>{t("allStudents")}</option>
-            <option>{t("completed")}</option>
-            <option>{t("pending")}</option>
-            <option>{t("failed")}</option>
-            <option>{t("refunded")}</option>
-          </select>
+          <div className="select-wrapper">
+            <select className="custom-select">
+              <option>{t("allStudents")}</option>
+              <option>{t("completed")}</option>
+              <option>{t("pending")}</option>
+              <option>{t("failed")}</option>
+              <option>{t("refunded")}</option>
+            </select>
+          </div>
         </div>
 
         <div className="table-responsive">

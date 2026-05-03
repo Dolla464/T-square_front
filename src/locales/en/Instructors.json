@@ -1,0 +1,48 @@
+{
+  "instructors": "Instructors",
+  "manageInstructors": "Manage all instructors on the platform",
+
+  "searchInstructor": "Search instructor...",
+
+  "name": "Name",
+  "email": "Email",
+  "phone": "Phone",
+  "actions": "Actions" ,
+
+  "addInstructorTitle": "Add New Instructor",
+
+  "fullName": "Full Name",
+  "enterFullName": "Enter instructor name",
+
+  "enterPhone": "Enter phone number",
+
+  "avatar": "Avatar",
+
+  "field": "Field",
+  "enterField": "Enter field (e.g. Frontend)",
+
+  "bio": "Bio",
+  "enterBio": "Enter short bio",
+
+  "gender": "Gender",
+  "selectGender": "Select Gender",
+
+  "status": "Status",
+  "active": "Active",
+  "inactive": "Inactive",
+
+  "instagram": "Instagram URL",
+  "enterInstagram": "Enter instagram link",
+
+  "linkedin": "LinkedIn URL",
+  "enterLinkedin": "Enter linkedin link",
+
+  "facebook": "Facebook URL",
+  "enterFacebook": "Enter facebook link",
+
+  "createInstructor": "Create Instructor",
+  "addInstructor": "Add Instructor",
+  "viewinstructors": "Edit Instructor",
+  "updateInstructor": "Update Instructor"
+
+}

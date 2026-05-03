@@ -1,0 +1,49 @@
+{
+  "instructors": "المدربين",
+  "manageInstructors": "إدارة جميع المدربين على المنصة",
+
+  "searchInstructor": "ابحث عن مدرب...",
+
+  "name": "الاسم",
+  "email": "البريد الإلكتروني",
+  "actions": "الإجراءات",
+
+  "addInstructorTitle": "إضافة مدرب جديد",
+
+  "fullName": "الاسم بالكامل",
+  "enterFullName": "أدخل اسم المدرب",
+
+  "phone": "رقم الهاتف",
+  "enterPhone": "أدخل رقم الهاتف",
+
+  "avatar": "الصورة",
+
+  "field": "التخصص",
+  "enterField": "أدخل التخصص (مثال: Frontend)",
+
+  "bio": "نبذة",
+  "enterBio": "أدخل نبذة مختصرة",
+
+  "gender": "النوع",
+  "selectGender": "اختر النوع",
+  "male": "ذكر",
+  "female": "أنثى",
+  "status": "الحالة",
+  "active": "نشط",
+  "inactive": "غير نشط",
+
+  "instagram": "رابط إنستجرام",
+  "enterInstagram": "أدخل رابط إنستجرام",
+
+  "linkedin": "رابط لينكد إن",
+  "enterLinkedin": "أدخل رابط لينكد إن",
+
+  "facebook": "رابط فيسبوك",
+  "enterFacebook": "أدخل رابط فيسبوك",
+
+  "createInstructor": "إنشاء مدرب",
+  "addInstructor": "إضافة مدرب",
+  "viewinstructors": "عرض المدرب",
+  "editinstructors": "تعديل المدرب",
+  "updateInstructor": "تحديث المدرب"
+}
