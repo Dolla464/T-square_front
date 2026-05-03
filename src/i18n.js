@@ -25,6 +25,8 @@ import enAdminDashboard from "./locales/en/adminDashboard.json";
 import enCoursesDetails from "./locales/en/coursesDetails.json";
 import enorderPayments from "./locales/en/orderPayments.json";
 import enAdminReviews from "./locales/en/AdminReviews.json";
+import enInstructors from "./locales/en/Instructors.json";
+
 // Arabic namespaces
 import arNavbar from "./locales/ar/navbar.json";
 import arHome from "./locales/ar/home.json";
@@ -48,7 +50,7 @@ import arStudentDashboard from "./locales/ar/studentDashboard.json";
 import arAdminDashboard from "./locales/ar/adminDashboard.json";
 import arCoursesDetails from "./locales/ar/coursesDetails.json";
 import arorderPayments from "./locales/ar/orderPayments.json";
-
+import arInstructors from "./locales/ar/Instructors.json";
 
 i18n
   .use(LanguageDetector)
@@ -56,8 +58,7 @@ i18n
   .init({
     resources: {
       en: {
-        
-  AdminReviews: enAdminReviews,
+        AdminReviews: enAdminReviews,
 
         navbar: enNavbar,
         home: enHome,
@@ -80,10 +81,10 @@ i18n
         adminDashboard: enAdminDashboard,
         coursesDetails: enCoursesDetails,
         orderPayments: enorderPayments,
-        
+        Instructors: enInstructors,
       },
       ar: {
-  AdminReviews: arAdminReviews,
+        AdminReviews: arAdminReviews,
         navbar: arNavbar,
         home: arHome,
         discovery: arDiscovery,
@@ -105,6 +106,7 @@ i18n
         adminDashboard: arAdminDashboard,
         coursesDetails: arCoursesDetails,
         orderPayments: arorderPayments,
+        Instructors: arInstructors,
       },
     },
 
@@ -131,6 +133,7 @@ i18n
       "adminDashboard",
       "coursesDetails",
       "orderPayments",
+      "Instructors",
     ],
     defaultNS: "common",
 
