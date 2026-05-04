@@ -1,62 +1,45 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Pagination } from "react-bootstrap";
+import { useInstructors } from "../../hooks/useInstractor";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
-import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
+// import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import instructorImg from "../../../../assets/student-avatar.jpg";
 
-const initialInstructors = [
-  {
-    id: "ins-1",
-    name: "Ahmed Ali",
-    email: "ahmed@site.com",
-    coursesCount: 3,
-    phone: "+20 100 123 4567",
-    status: "active",
-    joinDate: "2026-05-04T07:18:25Z",
-    verified: "2026-02-19T08:30:00Z",
-    image: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "ins-2",
-    name: "Mohamed Hassan",
-    email: "hassan@site.com",
-    coursesCount: 5,
-    phone: "+20 101 234 5678",
-    status: "active",
-    joinDate: "2025-10-10T10:00:00Z",
-    verified: "2025-11-01T12:00:00Z",
-    image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "ins-3",
-    name: "Sara Ahmed",
-    email: "sara@site.com",
-    coursesCount: 2,
-    phone: "+20 102 345 6789",
-    status: "pending",
-    joinDate: "2026-04-15T09:00:00Z",
-    verified: null,
-    image: instructorImg,
-  }
-];
-
 const defaultFormData = {
-  name: "",
+  full_name: "",
   email: "",
   role: "instructor",
   password: "",
   phone: "",
+  gender: "male",
+  field: "",
+  insta_url: "",
+  linkedin_url: "",
+  facebook_url: "",
   verified: null,
   status: "active",
-  coursesCount: 0,
   joinDate: "",
   image: instructorImg,
+  avg_rating: "0.00",
+  reviews_count: 0,
 };
 
 function AdminInstructors() {
-  const [instructors, setInstructors] = useState(initialInstructors);
+  const {
+    instructors,
+    pagination: apiPagination,
+    loading,
+    getInstructors,
+    createInstructor,
+    updateInstructor,
+    deleteInstructor,
+  } = useInstructors();
+
+  const { t, i18n } = useTranslation("adminDashboard");
+  const isArabic = i18n.language?.startsWith("ar");
+
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
@@ -64,39 +47,16 @@ function AdminInstructors() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [formData, setFormData] = useState(defaultFormData);
-
-  const { t, i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  const filteredInstructors = instructors.filter((instructor) => {
-    const matchesSearch = [instructor.name, instructor.email]
-      .filter(Boolean)
-      .some((value) => value.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const matchesStatus =
-      selectedStatus === "all" || instructor.status === selectedStatus;
-
-    return matchesSearch && matchesStatus;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filteredInstructors.length / itemsPerPage));
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentInstructors = filteredInstructors.slice(indexOfFirstItem, indexOfLastItem);
-
-  const pagination = {
-    currentPage,
-    lastPage: totalPages,
-  };
-
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
+  useEffect(() => {
+    getInstructors({
+      page: currentPage,
+      search: searchTerm,
+      status: selectedStatus === "all" ? "" : selectedStatus,
+    });
+  }, [getInstructors, currentPage, searchTerm, selectedStatus]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -113,16 +73,15 @@ function AdminInstructors() {
     setViewingItem(null);
     setEditingItem(instructor);
     setFormData({
-      name: instructor.name,
-      email: instructor.email,
-      role: "instructor",
+      full_name: instructor.full_name || instructor.name || "",
       password: "",
-      phone: instructor.phone || "",
-      verified: instructor.verified || null,
-      status: instructor.status,
-      coursesCount: instructor.coursesCount ?? 0,
-      joinDate: instructor.joinDate || "",
-      image: instructor.image,
+      verified: instructor.email_verified_at || instructor.verified || null,
+      field: instructor.field || "",
+      insta_url: instructor.insta_url || "",
+      linkedin_url: instructor.linkedin_url || "",
+      facebook_url: instructor.facebook_url || "",
+      status: instructor.status || "active",
+      image: instructor.image || instructorImg,
     });
     setShowForm(true);
   };
@@ -131,16 +90,22 @@ function AdminInstructors() {
     setEditingItem(null);
     setViewingItem(instructor);
     setFormData({
-      name: instructor.name,
-      email: instructor.email,
+      full_name: instructor.full_name || instructor.name || "",
+      email: instructor.email || "",
       role: "instructor",
       password: "",
       phone: instructor.phone || "",
-      verified: instructor.verified || null,
-      status: instructor.status,
-      coursesCount: instructor.coursesCount ?? 0,
-      joinDate: instructor.joinDate || "",
-      image: instructor.image,
+      verified: instructor.email_verified_at || instructor.verified || null,
+      gender: instructor.gender || "male",
+      field: instructor.field || "",
+      insta_url: instructor.insta_url || "",
+      linkedin_url: instructor.linkedin_url || "",
+      facebook_url: instructor.facebook_url || "",
+      avg_rating: instructor.avg_rating || "0.00",
+      reviews_count: instructor.reviews_count || 0,
+      status: instructor.status || "active",
+      joinDate: instructor.created_at || instructor.joinDate || "",
+      image: instructor.image || instructorImg,
     });
     setShowForm(true);
   };
@@ -154,10 +119,16 @@ function AdminInstructors() {
 
   const handleDelete = async (id) => {
     const instructor = instructors.find((item) => item.id === id);
-    const ok = await showDeleteConfirm(instructor?.name || "");
+    const ok = await showDeleteConfirm(instructor?.full_name || instructor?.name || "");
     if (ok) {
-      setInstructors((prev) => prev.filter((item) => item.id !== id));
-      toastSuccess(t("instructors_page.deleted_success"));
+      const success = await deleteInstructor(id);
+      if (success) {
+        getInstructors({
+          page: currentPage,
+          search: searchTerm,
+          status: selectedStatus === "all" ? "" : selectedStatus,
+        });
+      }
     }
   };
 
@@ -169,35 +140,23 @@ function AdminInstructors() {
     }));
   };
 
-  const handleSubmitWrapper = (e) => {
+  const handleSubmitWrapper = async (e) => {
     e.preventDefault();
-    if (editingItem) {
-      setInstructors((prev) =>
-        prev.map((instructor) =>
-          instructor.id === editingItem.id
-            ? {
-              ...instructor,
-              ...formData,
-              role: "instructor",
-            }
-            : instructor,
-        ),
-      );
-      toastSuccess(t("instructors_page.updated_success"));
-    } else {
-      setInstructors((prev) => [
-        {
-          id: `ins-${Date.now()}`,
-          ...formData,
-          role: "instructor",
-          coursesCount: 0,
-          joinDate: new Date().toISOString(),
-        },
-        ...prev,
-      ]);
-      toastSuccess(t("instructors_page.created_success"));
+    try {
+      if (editingItem) {
+        await updateInstructor(editingItem.id, formData);
+      } else {
+        await createInstructor(formData);
+      }
+      getInstructors({
+        page: currentPage,
+        search: searchTerm,
+        status: selectedStatus === "all" ? "" : selectedStatus,
+      });
+      handleBack();
+    } catch (err) {
+      // Error handled in hook
     }
-    handleBack();
   };
 
   return (
@@ -255,21 +214,18 @@ function AdminInstructors() {
                   <thead>
                     <tr>
                       <th>{t("instructors_page.table_name")}</th>
+                      <th className="text-center">{isArabic ? "التخصص" : "Field"}</th>
+                      <th className="text-center">{isArabic ? "الجنس" : "Gender"}</th>
                       <th className="text-center">
                         {t("instructors_page.table_email")}
                       </th>
-                      <th className="text-center">
-                        {t("instructors_page.table_courses_count")}
-                      </th>
+                      <th className="text-center">{isArabic ? "التقييم" : "Rating"}</th>
+                      <th className="text-center">{isArabic ? "المراجعات" : "Reviews"}</th>
+                      <th className="text-center">{isArabic ? "التواصل" : "Social"}</th>
                       <th className="text-center">
                         {t("instructors_page.table_join_date")}
                       </th>
-                      <th className="text-center">
-                        {t("instructors_page.table_role")}
-                      </th>
-                      <th className="text-center">
-                        {t("instructors_page.table_phone")}
-                      </th>
+
                       <th className="text-center">
                         {t("instructors_page.table_verified")}
                       </th>
@@ -279,31 +235,67 @@ function AdminInstructors() {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentInstructors.length > 0 ? (
-                      currentInstructors.map((instructor) => (
+                    {loading ? (
+                      <tr>
+                        <td colSpan={11} className="text-center py-5">
+                          <div className="spinner-border text-danger" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : instructors.length > 0 ? (
+                      instructors.map((instructor) => (
                         <tr key={instructor.id}>
                           <td className="fw-medium text-dark">
-                            {instructor.name}
+                            {instructor.full_name || instructor.name}
+                          </td>
+                          <td className="text-center text-secondary">{instructor.field || "-"}</td>
+                          <td className="text-center text-secondary">
+                            {instructor.gender === "female" ? (isArabic ? "أنثى" : "Female") : (isArabic ? "ذكر" : "Male")}
                           </td>
                           <td className="text-center text-secondary">
                             {instructor.email}
                           </td>
                           <td className="text-center text-secondary">
-                            {instructor.coursesCount ?? 0}
+                            <span className="text-warning me-1">★</span>
+                            {instructor.avg_rating || "0.00"}
                           </td>
                           <td className="text-center text-secondary">
-                            {instructor.joinDate
-                              ? new Date(instructor.joinDate).toLocaleDateString()
+                            {instructor.reviews_count || 0}
+                          </td>
+                          <td className="text-center">
+                            <div className="d-flex justify-content-center gap-2">
+                              {instructor.insta_url && (
+                                <a href={instructor.insta_url} target="_blank" rel="noreferrer" className="text-danger">
+                                  <i className="bi bi-instagram"></i>
+                                </a>
+                              )}
+                              {instructor.linkedin_url && (
+                                <a href={instructor.linkedin_url} target="_blank" rel="noreferrer" className="text-primary">
+                                  <i className="bi bi-linkedin"></i>
+                                </a>
+                              )}
+                              {instructor.facebook_url && (
+                                <a href={instructor.facebook_url} target="_blank" rel="noreferrer" className="text-primary">
+                                  <i className="bi bi-facebook"></i>
+                                </a>
+                              )}
+                              {instructor.phone && (
+                                <a href={`tel:${instructor.phone}`} target="_blank" rel="noreferrer" className="text-primary">
+                                  <i className="bi bi-phone"></i>
+                                </a>
+                              )}
+                              {!instructor.insta_url && !instructor.linkedin_url && !instructor.facebook_url && "-"}
+                            </div>
+                          </td>
+                          <td className="text-center text-secondary">
+                            {instructor.created_at || instructor.joinDate
+                              ? new Date(instructor.created_at || instructor.joinDate).toLocaleDateString()
                               : "-"}
                           </td>
-                          <td className="text-center text-secondary text-capitalize">
-                            {t("instructors_page.role_value")}
-                          </td>
+
                           <td className="text-center text-secondary">
-                            {instructor.phone || "-"}
-                          </td>
-                          <td className="text-center text-secondary">
-                            {instructor.verified
+                            {instructor.email_verified_at || instructor.verified
                               ? t("instructors_page.verified_yes")
                               : t("instructors_page.verified_no")}
                           </td>
@@ -336,7 +328,7 @@ function AdminInstructors() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={8} className="text-center py-4 text-muted">
+                        <td colSpan={11} className="text-center py-4 text-muted">
                           {t("instructors_page.no_instructors")}
                         </td>
                       </tr>
@@ -347,25 +339,25 @@ function AdminInstructors() {
             </div>
 
             {/* Pagination */}
-            {pagination && (
+            {apiPagination && apiPagination.lastPage > 1 && (
               <div className="d-flex justify-content-center mt-5">
                 <Pagination className="custom-pagination">
                   <Pagination.Prev
-                    disabled={pagination.currentPage === 1}
-                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    disabled={currentPage === 1}
+                    onClick={() => handlePageChange(currentPage - 1)}
                   />
-                  {[...Array(pagination.lastPage)].map((_, i) => (
+                  {[...Array(apiPagination.lastPage)].map((_, i) => (
                     <Pagination.Item
                       key={i + 1}
-                      active={i + 1 === pagination.currentPage}
+                      active={i + 1 === currentPage}
                       onClick={() => handlePageChange(i + 1)}
                     >
                       {i + 1}
                     </Pagination.Item>
                   ))}
                   <Pagination.Next
-                    disabled={pagination.currentPage === pagination.lastPage}
-                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                    disabled={currentPage === apiPagination.lastPage}
+                    onClick={() => handlePageChange(currentPage + 1)}
                   />
                 </Pagination>
               </div>
@@ -412,7 +404,7 @@ function AdminInstructors() {
                     >
                       <img
                         src={formData.image}
-                        alt={formData.name}
+                        alt={formData.full_name}
                         className="img-fluid w-100"
                         style={{ height: "300px", objectFit: "cover" }}
                       />
@@ -426,32 +418,111 @@ function AdminInstructors() {
                   </label>
                   <input
                     type="text"
-                    name="name"
+                    name="full_name"
                     className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
                     placeholder={t("instructors_page.name_placeholder")}
-                    value={formData.name}
+                    value={formData.full_name}
                     onChange={handleChange}
                     disabled={!!viewingItem}
                   />
                 </div>
 
-                <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">
-                    {t("instructors_page.email")}
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    placeholder={t("instructors_page.email_placeholder")}
-                    value={formData.email}
-                    onChange={handleChange}
-                    disabled={!!viewingItem}
-                  />
+
+                <div className="row mb-4">
+
+                  <div className={`${!viewingItem ? "col-md-12" : "d-none"}`}>
+                    <label className="form-label fw-bold text-dark">
+                      {isArabic ? "التخصص" : "Field"}
+                    </label>
+                    <input
+                      type="text"
+                      name="field"
+                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                      placeholder={isArabic ? "التخصص" : "Field"}
+                      value={formData.field}
+                      onChange={handleChange}
+                      disabled={!!viewingItem}
+                    />
+                  </div>
                 </div>
 
                 <div className="row mb-4">
-                  <div className="col-md-6 mb-3 mb-md-0">
+                  <div className={`${!viewingItem ? "d-none" : "col-md-6"}`}>
+                    <label className="form-label fw-bold text-dark">
+                      {isArabic ? "التخصص" : "Field"}
+                    </label>
+                    <input
+                      type="text"
+                      name="field"
+                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                      placeholder={isArabic ? "التخصص" : "Field"}
+                      value={formData.field}
+                      onChange={handleChange}
+                      disabled={!!viewingItem}
+                    />
+                  </div>
+                  <div className={`col-md-${!viewingItem ? "12" : "6"}`}>
+                    <label className="form-label fw-bold text-dark">
+                      {isArabic ? "روابط التواصل" : "Social Links"}
+                    </label>
+                    {viewingItem ? (
+                      <div className="d-flex gap-4  p-3 bg-light rounded-3 fs-4">
+                        {formData.insta_url && (
+                          <a href={formData.insta_url} target="_blank" rel="noreferrer" className="text-danger">
+                            <i className="bi bi-instagram"></i>
+                          </a>
+                        )}
+                        {formData.linkedin_url && (
+                          <a href={formData.linkedin_url} target="_blank" rel="noreferrer" className="text-primary">
+                            <i className="bi bi-linkedin"></i>
+                          </a>
+                        )}
+                        {formData.facebook_url && (
+                          <a href={formData.facebook_url} target="_blank" rel="noreferrer" className="text-primary">
+                            <i className="bi bi-facebook"></i>
+                          </a>
+                        )}
+                        {!formData.insta_url && !formData.linkedin_url && !formData.facebook_url && "-"}
+                      </div>
+                    ) : (
+                      <div className="row">
+                        <div className="col-md-4 mb-3 mb-md-0">
+                          <input
+                            type="text"
+                            name="insta_url"
+                            className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                            placeholder="Instagram URL"
+                            value={formData.insta_url}
+                            onChange={handleChange}
+                          />
+                        </div>
+                        <div className="col-md-4 mb-3 mb-md-0">
+                          <input
+                            type="text"
+                            name="linkedin_url"
+                            className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                            placeholder="LinkedIn URL"
+                            value={formData.linkedin_url}
+                            onChange={handleChange}
+                          />
+                        </div>
+                        <div className="col-md-4">
+                          <input
+                            type="text"
+                            name="facebook_url"
+                            className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                            placeholder="Facebook URL"
+                            value={formData.facebook_url}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="row mb-4">
+                  <div className={`col-md-6 mb-3 mb-md-0 ${!viewingItem ? "d-none" : ""} `}>
                     <label className="form-label fw-bold text-dark">
                       {t("instructors_page.role")}
                     </label>
@@ -462,7 +533,7 @@ function AdminInstructors() {
                       disabled
                     />
                   </div>
-                  <div className="col-md-6">
+                  <div className={`col-md-6 ${!viewingItem ? "d-none" : ""}`}>
                     <label className="form-label fw-bold text-dark">
                       {t("instructors_page.phone")}
                     </label>
@@ -478,19 +549,30 @@ function AdminInstructors() {
                   </div>
                 </div>
 
-                <div className="row mb-4">
-                  <div className="col-md-6 mb-3 mb-md-0">
+                <div className={`row mb-4 ${!viewingItem ? "d-none" : ""}`}>
+                  <div className="col-md-4 mb-3 mb-md-0">
                     <label className="form-label fw-bold text-dark">
-                      {t("instructors_page.courses_count")}
+                      {isArabic ? "التقييم" : "Rating"}
                     </label>
                     <input
-                      type="number"
+                      type="text"
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                      value={formData.coursesCount}
+                      value={formData.avg_rating}
                       disabled
                     />
                   </div>
-                  <div className="col-md-6">
+                  <div className="col-md-4 mb-3 mb-md-0">
+                    <label className="form-label fw-bold text-dark">
+                      {isArabic ? "المراجعات" : "Reviews"}
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                      value={formData.reviews_count}
+                      disabled
+                    />
+                  </div>
+                  <div className="col-md-4">
                     <label className="form-label fw-bold text-dark">
                       {t("instructors_page.joined_at")}
                     </label>
