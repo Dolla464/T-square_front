@@ -23,14 +23,15 @@ function AdminContentPage({ type, useDataHook }) {
     type === "course" ? t("content.add_course") : t("content.add_solution");
 
   // Hook البيانات (يتم استدعاء الدالة الممررة)
-  const {
-    solutions, // يمكن أن تكون courses أيضاً
-    loading,
-    getSolutions,
-    createSolution,
-    updateSolution,
-    deleteSolution,
-  } = useDataHook();
+  const hookData = useDataHook();
+
+  const data = hookData.solutions || hookData.courses || [];
+  const getData = hookData.getSolutions || hookData.getCourses;
+  const createData = hookData.createSolution || hookData.createCourse;
+  const updateData = hookData.updateSolution || hookData.updateCourse;
+  const deleteData = hookData.deleteSolution || hookData.deleteCourse;
+
+  const { loading } = hookData;
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -38,8 +39,8 @@ function AdminContentPage({ type, useDataHook }) {
   // تحديث البيانات عند تحميل المكون
   useEffect(() => {
     // تعليق: استدعاء الـ API لجلب البيانات.
-    if (getSolutions) {
-      getSolutions();
+    if (getData) {
+      getData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -72,7 +73,8 @@ function AdminContentPage({ type, useDataHook }) {
     is_free: false,
   };
 
-  const displayData = type === "course" ? [dummyCourse] : solutions || [];
+  const displayData = data;
+
 
   const totalPages = Math.max(1, Math.ceil(displayData.length / itemsPerPage));
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -92,7 +94,7 @@ function AdminContentPage({ type, useDataHook }) {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [type, solutions]);
+  }, [type, data]);
 
   const handleAddNew = () => {
     setViewingItem(null);
@@ -125,20 +127,19 @@ function AdminContentPage({ type, useDataHook }) {
 
     const ok = await showDeleteConfirm(itemName);
     if (ok) {
-      const success = await deleteSolution(id);
-      if (success) getSolutions();
+      const success = await deleteData(id);
+      if (success) getData();
     }
   };
 
   const handleSubmit = async (idOrPayload, payload) => {
     try {
       if (editingItem) {
-        await updateSolution(idOrPayload, payload);
+        await updateData(idOrPayload, payload);
       } else {
-        await createSolution(idOrPayload);
+        await createData(idOrPayload);
       }
-      getSolutions();
-      handleBack();
+      getData(); handleBack();
     } catch (err) {
       // error handled in hook
     }
