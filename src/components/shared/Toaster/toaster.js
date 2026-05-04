@@ -23,8 +23,8 @@ const THEME = {
   success: {
     bg: "#fff",
     color: "#1a1a1a",
-    border: "3px solid #be1522",
-    iconEl: Icon("bi-check-circle-fill", "#be1522"),
+    border: "3px solid #29be15ff",
+    iconEl: Icon("bi-check-circle-fill", "#29be15ff"),
   },
   error: {
     bg: "#fff",
@@ -35,14 +35,14 @@ const THEME = {
   warning: {
     bg: "#fff",
     color: "#1a1a1a",
-    border: "3px solid #be1522",
-    iconEl: Icon("bi-exclamation-triangle-fill", "#be1522"),
+    border: "3px solid #dfd220ff",
+    iconEl: Icon("bi-exclamation-triangle-fill", "#dfd220ff"),
   },
   info: {
     bg: "#fff",
     color: "#1a1a1a",
-    border: "3px solid #1a1a1a",
-    iconEl: Icon("bi-info-circle-fill", "#1a1a1a"),
+    border: "3px solid #341fd0ff",
+    iconEl: Icon("bi-info-circle-fill", "#341fd0ff"),
   },
   brand: {
     bg: "#be1522",

@@ -42,7 +42,7 @@ function AdminContentForm({
     ],
   });
   const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const { tags: availableTags, getTags } = useTags();
 
   const createLesson = () => ({
@@ -123,38 +123,38 @@ function AdminContentForm({
 
     setFile(selectedFile);
   };
-  const uploadHandler = async () => {
-    if (!file) {
-      alert("Choose a file first");
-      return;
-    }
+  // const uploadHandler = async () => {
+  //   if (!file) {
+  //     alert("Choose a file first");
+  //     return;
+  //   }
 
-    try {
-      setLoading(true);
+  //   try {
+  //     setLoading(true);
 
-      const formData = new FormData();
-      formData.append("file", file);
+  //     const formData = new FormData();
+  //     formData.append("file", file);
 
-      const response = await fetch("YOUR_API_ENDPOINT", {
-        method: "POST",
-        body: formData,
-      });
+  //     const response = await fetch("YOUR_API_ENDPOINT", {
+  //       method: "POST",
+  //       body: formData,
+  //     });
 
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
+  //     if (!response.ok) {
+  //       throw new Error("Upload failed");
+  //     }
 
-      const data = await response.json();
+  //     const data = await response.json();
 
-      console.log("Uploaded:", data);
+  //     console.log("Uploaded:", data);
 
-    } catch (error) {
-      console.error(error);
-      alert("Error uploading file");
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   } catch (error) {
+  //     console.error(error);
+  //     alert("Error uploading file");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   // const handleTagsChange = (e) => {
   //   const options = e.target.options;
   //   const selectedTags = [];
