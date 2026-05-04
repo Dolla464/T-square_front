@@ -48,7 +48,6 @@ import arStudentDashboard from "./locales/ar/studentDashboard.json";
 import arAdminDashboard from "./locales/ar/adminDashboard.json";
 import arCoursesDetails from "./locales/ar/coursesDetails.json";
 import arorderPayments from "./locales/ar/orderPayments.json";
-import enAdminReviews from "./locales/en/AdminReviews.json";
 import arAdminReviews from "./locales/ar/AdminReviews.json";
 
 i18n
