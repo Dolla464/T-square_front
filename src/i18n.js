@@ -29,6 +29,7 @@ import enAdminReviews from "./locales/en/AdminReviews.json";
 // Arabic namespaces
 import arNavbar from "./locales/ar/navbar.json";
 import arHome from "./locales/ar/home.json";
+import arAdminReviews from "./locales/ar/AdminReviews.json";
 import arDiscovery from "./locales/ar/discovery.json";
 import arCourses from "./locales/ar/courses.json";
 import arCoursesCard from "./locales/ar/coursesCard.json";
