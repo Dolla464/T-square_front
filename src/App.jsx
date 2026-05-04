@@ -19,6 +19,7 @@ import UpdatePassword from "./pages/Update_Password/UpdatePassword";
 import Courses from "./pages/CoursesPage";
 import Solutions from "./pages/Solutions";
 import DetailsCourse from "./pages/CourseDetails";
+import VerifyEmailPage from "./pages/VerifyEmail/VerifyEmailPage";
 
 // استيراد ملفات البوتستراب
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -57,6 +58,9 @@ import AdminAnalytics from "./modules/admin-dashboard/pages/Analytics/AdminAnaly
 import AdminCertificates from "./modules/admin-dashboard/pages/Certificates/AdminCertificates";
 import AdminReviews from "./modules/admin-dashboard/pages/Reviews/AdminReviews";
 import AdminSettings from "./modules/admin-dashboard/pages/Settings/AdminSettings";
+import AddInstructor from "./modules/admin-dashboard/pages/Instructors/AddInstructor";
+import ShowInstructors from "./modules/admin-dashboard/pages/Instructors/ShowInstructors";
+import EditInstructors from "./modules/admin-dashboard/pages/Instructors/EditInstructors";
 
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
@@ -70,6 +74,7 @@ function AppContent() {
     location.pathname === "/signup" ||
     location.pathname === "/forgot_password" ||
     location.pathname === "/update_password" ||
+    location.pathname.startsWith("/verify-email") ||
     location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/student");
 
@@ -191,6 +196,8 @@ function AppContent() {
 
           <Route path="/update_password" element={<UpdatePassword />} />
 
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+
           <Route path="/courses" element={<Courses />} />
 
           <Route
@@ -215,6 +222,9 @@ function AppContent() {
               <Route path="solutions" element={<AdminSolutions />} />
               <Route path="students" element={<AdminStudents />} />
               <Route path="instructors" element={<AdminInstructors />} />
+              <Route path="instructors/add" element={<AddInstructor />} />
+              <Route path="instructors/show" element={<ShowInstructors />} />
+              <Route path="instructors/edit" element={<EditInstructors />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="certificates" element={<AdminCertificates />} />

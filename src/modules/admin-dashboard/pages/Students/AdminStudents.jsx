@@ -182,10 +182,10 @@ function AdminStudents() {
         prev.map((student) =>
           student.id === editingItem.id
             ? {
-                ...student,
-                ...formData,
-                role: "student",
-              }
+              ...student,
+              ...formData,
+              role: "student",
+            }
             : student,
         ),
       );
@@ -221,7 +221,7 @@ function AdminStudents() {
               className="btn btn-danger ac-add-btn"
               onClick={handleAddNew}
             >
-              {t("students_page.add_student")}
+              + {t("students_page.add_student")}
             </button>
           </div>
 
@@ -272,29 +272,29 @@ function AdminStudents() {
                     </select>
                   </div>
                 </div>
-                <table className="table ac-table mb-0 align-middle">
+                <table className="table ac-table mb-0 align-middle" dir="ltr">
                   <thead>
                     <tr>
                       <th>{t("students_page.table_name")}</th>
-                      <th className="text-center">
+                      <th className="">
                         {t("students_page.table_email")}
                       </th>
-                      <th className="text-center">
+                      <th className="">
                         {t("students_page.table_enrolled_courses")}
                       </th>
-                      <th className="text-center">
+                      <th className="">
                         {t("students_page.table_join_date")}
                       </th>
-                      <th className="text-center">
+                      <th className="">
                         {t("students_page.table_role")}
                       </th>
-                      <th className="text-center">
+                      <th className="">
                         {t("students_page.table_phone")}
                       </th>
-                      <th className="text-center">
+                      <th className="">
                         {t("students_page.table_gender")}
                       </th>
-                      <th className="text-center">
+                      <th className="">
                         {t("students_page.table_verified")}
                       </th>
                       <th className="text-center">
@@ -351,7 +351,7 @@ function AdminStudents() {
                                 <i className="bi bi-pencil-square fs-6"></i>
                               </button>
                               <button
-                                className="btn btn-sm ac-btn-delete border-0"
+                                className="btn btn-sm ac-btn-deleteTable border-0"
                                 title="Delete"
                                 onClick={() => handleDelete(student.id)}
                               >

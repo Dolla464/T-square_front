@@ -58,6 +58,7 @@ function DashboardLayout() {
   const pageTitle = getPageTitle(location.pathname);
 
   return (
+    
     <DashboardSharedLayout
       navItems={STUDENT_NAV}
       translationNs="studentDashboard"

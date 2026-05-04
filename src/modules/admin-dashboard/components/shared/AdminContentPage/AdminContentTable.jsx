@@ -12,9 +12,9 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
     setSearchTerm(e.target.value);
   };
 
-  const handleFilterChange = (e) => {
-    setSelectedFilter(e.target.value);
-  };
+  // const handleFilterChange = (e) => {
+  //   setSelectedFilter(e.target.value);
+  // };
 
   const isCourse = type === "course";
   const isSolution = type === "solution";
@@ -37,7 +37,7 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
           <Spinner animation="border" variant="danger" />
         </div>
       ) : (
-        <div className="table-responsive ac-rounded-table">
+        <div className="table-responsive ac-rounded-table" dir="ltr">
           <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
             <div className="ac-search-input-wrapper">
               <i className="bi bi-search ac-search-icon"></i>
@@ -136,7 +136,7 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
                           <i className="bi bi-pencil-square fs-6"></i>
                         </button>
                         <button
-                          className="btn btn-sm ac-btn-delete border-0"
+                          className="btn btn-sm ac-btn-deleteTable border-0"
                           onClick={() => onDelete(item.id)}
                           title="Delete"
                         >

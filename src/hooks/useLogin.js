@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { loginService } from '../services/login';
 import { useAuth } from '../contexts/AuthContext';
 import { toastWelcome } from '../components/shared/Toaster/toaster';
@@ -9,6 +9,8 @@ export const useLogin = () => {
   const [error, setError] = useState(null);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnUrl = location.state?.returnUrl;
 
   const executeLogin = async (credentials, rememberMe = false) => {
     setLoading(true);
@@ -23,6 +25,11 @@ export const useLogin = () => {
 
       // عرض رسالة ترحيب بعد تسجيل الدخول بنجاح
       toastWelcome(actualData.user?.name || actualData.user?.email);
+
+      if (returnUrl) {
+        navigate(returnUrl, { replace: true });
+        return actualData;
+      }
 
       // Role-based routing
       if (actualData.user.role === "admin") {

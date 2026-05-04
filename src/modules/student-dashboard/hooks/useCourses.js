@@ -23,9 +23,16 @@ export const getStudentCourses = () => {
     const fetchFromAPI = async () => {
       try {
         const res = await studentCoursesApi();
-        setStats(res.data.data.stats);
-        setEnrolledCourses(res.data.data.courses);
-        setContinueLearning(res.data.data.continue_learning);
+        const data = res.data.data;
+
+        setStats(data.stats);
+
+        // فلترة الكورسات لعرض الكورسات المسجل فيها فقط
+        const allCourses = data.courses || [];
+        const enrolled = allCourses.filter(course => course.enrollment !== null);
+
+        setEnrolledCourses(enrolled);
+        setContinueLearning(data.continue_learning);
       } catch (err) {
         setError(err);
       } finally {

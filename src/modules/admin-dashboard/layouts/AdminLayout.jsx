@@ -65,7 +65,7 @@ const ADMIN_NAV = [
 ];
 
 function AdminLayout() {
-  const { t } = useTranslation("adminDashboard",);
+  const { t } = useTranslation("adminDashboard");
   const location = useLocation();
   const { user } = useAuth();
   const isArabic = i18next.language === "ar";
@@ -85,6 +85,9 @@ function AdminLayout() {
       case "/admin/students":
         return isArabic ? "الطلاب" : "Students";
       case "/admin/instructors":
+      case "/admin/instructors/add":
+      case "/admin/instructors/show":
+      case "/admin/instructors/edit":
         return isArabic ? "المدربين" : "Instructors";
       case "/admin/orders":
         return isArabic ? "الطلبات / المدفوعات" : "Orders / Payments";

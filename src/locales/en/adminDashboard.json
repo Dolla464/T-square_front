@@ -62,29 +62,57 @@
     "form": {
       "save_draft": "Save as Draft",
       "publish": "Publish",
-      "tabs": {
-        "basic_info": "Basic Info",
-        "curriculum": "Curriculum",
-        "pricing": "Pricing",
-        "settings": "Settings"
-      },
-      "fields": {
-        "title": "Title",
-        "title_placeholder": "Enter title",
-        "description": "Description",
-        "description_placeholder": "Describe what students will learn...",
-        "category": "Category",
-        "category_placeholder": "Select category",
-        "difficulty": "Difficulty Level",
-        "difficulty_placeholder": "Select level",
-        "instructor": "Instructor",
-        "instructor_placeholder": "Select instructor",
-        "thumbnail": "Thumbnail",
-        "thumbnail_hint": "Click to upload or drag and drop",
-        "thumbnail_sub_hint": "PNG, JPG or GIF (max. 1920x1080px)",
-        "tags": "Tags",
-        "tags_placeholder": "Select tags"
-      }
+        "tabs": {
+          "basic": "Basic",
+          "curriculum": "Curriculum",
+          "settings": "Settings",
+          "blank": "Blank"
+        },
+        "curriculum_part": "Curriculum Part",
+        "settings_part": "Settings Part",
+        "fields": {
+          "course_title": "Course Title",
+          "title": "Title",
+          "title_placeholder": "Enter title",
+          "description": "Description",
+          "description_placeholder": "Describe what students will learn...",
+          "category": "Category",
+          "category_placeholder": "Select category",
+          "difficulty": "Difficulty Level",
+          "difficulty_placeholder": "Select level",
+          "instructor": "Instructor",
+          "instructor_placeholder": "Select instructor",
+          "thumbnail": "Thumbnail",
+          "thumbnail_hint": "Click to upload or drag and drop",
+          "thumbnail_sub_hint": "PNG, JPG or GIF (max. 1920x1080px)",
+          "tags": "Tags",
+          "tags_placeholder": "Select tags",
+          "course_price": "Course Price",
+          "discount_price": "Discount Price (Optional)",
+          "course_thumbnail": "Course Thumbnail",
+          "change_photo": "Change photo",
+          "remove": "Remove"
+        },
+        "curriculum": {
+          "section_placeholder": "Section title",
+          "lesson_placeholder": "Lesson title",
+          "duration_placeholder": "Duration (e.g. 10:00)",
+          "video_placeholder": "Video URL",
+          "add_lesson": "Add Lesson",
+          "add_section": "Add Section",
+          "video_uploaded": "Video uploaded",
+          "upload_video": "Upload video"
+        },
+        "settings": {
+          "publish_title": "Publish Course",
+          "publish_desc": "Make this course visible to students",
+          "featured_title": "Featured Course",
+          "featured_desc": "Display this course on the homepage",
+          "comments_title": "Enable Comments",
+          "comments_desc": "Allow students to comment on lessons",
+          "certificate_title": "Certificate",
+          "certificate_desc": "Award certificate upon completion"
+        }
     }
   },
 

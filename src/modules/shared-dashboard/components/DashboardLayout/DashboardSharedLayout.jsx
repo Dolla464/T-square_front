@@ -13,7 +13,9 @@ import { toastCustom } from "../../../../components/shared/Toaster/toaster";
 import logoDark from "../../../../assets/logo-dark.png";
 import { NOTIFICATIONS_MOCK } from "../../../../modules/student-dashboard/data/dashboardMockData";
 import "./DashboardSharedLayout.css";
-
+import { resendVerificationNotification } from '../../../../services/register';
+import toast from "react-hot-toast";
+import { Alert, Button, Spinner } from "react-bootstrap";
 function DashboardSharedLayout({
   navItems,
   translationNs,
@@ -36,11 +38,11 @@ function DashboardSharedLayout({
 
   const initials = user?.name
     ? user.name
-        .split(" ")
-        .map((w) => w[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase()
     : "US";
 
   const handleNotificationsClick = () => {
@@ -61,7 +63,23 @@ function DashboardSharedLayout({
     });
     navigate("/");
   };
+  const [isResending, setIsResending] = useState(false);
 
+  const handleResend = async () => {
+    try {
+      setIsResending(true);
+      await resendVerificationNotification();
+      toast.success(t("verification_link_sent") || "تم إرسال رابط تفعيل جديد إلى بريدك الإلكتروني.");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+        t("resend_failed") ||
+        "حدث خطأ أثناء محاولة إرسال الرابط. يرجى المحاولة لاحقاً."
+      );
+    } finally {
+      setIsResending(false);
+    }
+  };
   return (
     <div className="shared-dashboard-wrapper">
       {/* Overlay للموبايل */}
@@ -75,9 +93,8 @@ function DashboardSharedLayout({
       {/* ── Sidebar ── */}
       {!isCourseDetailsPage && (
         <aside
-          className={`shared-dashboard-sidebar ${
-            sidebarOpen ? "sidebar-open" : ""
-          }`}
+          className={`shared-dashboard-sidebar ${sidebarOpen ? "sidebar-open" : ""
+            }`}
         >
           {/* اللوجو */}
           <Link to="/" className="sidebar-logo text-decoration-none">
@@ -181,9 +198,8 @@ function DashboardSharedLayout({
 
             {/* أيقونة المستخدم */}
             <button
-              className={`topbar-user-btn ${
-                userRoleName === "Student" ? "clickable" : ""
-              }`}
+              className={`topbar-user-btn ${userRoleName === "Student" ? "clickable" : ""
+                }`}
               onClick={() =>
                 userRoleName === "Student"
                   ? navigate("/student/profile")
@@ -204,6 +220,37 @@ function DashboardSharedLayout({
         <main
           className={`shared-dashboard-content ${isExmam ? "py-1 pt-3" : ""} `}
         >
+          {/* تنبيه الحساب غير مفعل */}
+          {user &&
+            user.hasOwnProperty("is_verified") &&
+            String(user.is_verified) !== "true" && (
+              <Alert className="activation-banner d-flex justify-content-between">
+                <div className="d-flex align-items-center gap-2">
+
+                  <i className="bi bi-exclamation-circle-fill"></i>
+                  <span>
+                    {isArabic
+                      ? `الحساب غير مفعل - برجاء مراجعة البريد الإلكتروني: ${user?.email}`
+                      : `Account not activated - please check your email: ${user?.email}`}
+                  </span>
+                </div>
+                <Button
+                  variant="outline-danger"
+                  className="mt-2 fw-bold mb-1 btn btn-outline-danger"
+                  onClick={handleResend}
+                  disabled={isResending}
+                >
+                  {isResending ? (
+                    <>
+                      <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
+                      {t("sending") || "جاري الإرسال..."}
+                    </>
+                  ) : (
+                    "Send verification link again" || "إعادة إرسال رابط التفعيل"
+                  )}
+                </Button>
+              </Alert>
+            )}
           <Outlet />
         </main>
       </div>

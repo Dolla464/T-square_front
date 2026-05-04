@@ -1,0 +1,26 @@
+{
+  "title": "التقييمات",
+  "subtitle": "إدارة ومراجعة التقييمات",
+
+  "stats": {
+    "totalReviews": "إجمالي التقييمات",
+    "averageRating": "متوسط التقييم",
+    "pendingReview": "تقييمات معلقة",
+    "rejected": "مرفوضة",
+    "thisMonth": "+64 هذا الشهر",
+    "awaiting": "في انتظار المراجعة",
+    "allTime": "إجمالي"
+  },
+
+  "table": {
+    "student": "الطالب",
+    "course": "الدورة",
+    "rating": "التقييم",
+    "review": "المراجعة",
+    "date": "التاريخ",
+    "search": "ابحث في التقييمات...",
+    "allStatus": "كل الحالات",
+    "allRatings": "كل التقييمات",
+    "seeMore": "عرض المزيد"
+  }
+}
