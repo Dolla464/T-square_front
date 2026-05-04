@@ -135,7 +135,7 @@ function AdminContentPage({ type, useDataHook }) {
               className="btn btn-danger ac-add-btn"
               onClick={handleAddNew}
             >
-             <i className="bi bi-plus fw-bolder"></i>{addBtnText}
+              +{addBtnText}
             </button>
           </div>
 

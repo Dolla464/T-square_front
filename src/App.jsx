@@ -145,12 +145,12 @@ function AppContent() {
 
         <meta
           property="og:url"
-          // content="https://yourdomain.com"
+        // content="https://yourdomain.com"
         />
 
         <meta
           property="og:image"
-          // content="https://yourdomain.com/preview.png"
+        // content="https://yourdomain.com/preview.png"
         />
 
         {/* Twitter Preview */}
@@ -158,7 +158,7 @@ function AppContent() {
 
         <meta
           name="twitter:title"
-          // content="LMS Platform | Programming Courses & Digital Solutions"
+        // content="LMS Platform | Programming Courses & Digital Solutions"
         />
 
         <meta
@@ -168,7 +168,7 @@ function AppContent() {
 
         <meta
           name="twitter:image"
-          // content="https://yourdomain.com/preview.png"
+        // content="https://yourdomain.com/preview.png"
         />
       </Helmet>
 
