@@ -12,6 +12,10 @@
     transform: scale(1.03);
     border: 1px solid #e9301c;
 }
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 .ac-search-input {
   padding-left: 36px;
   border-radius: 8px;
@@ -114,4 +118,24 @@
 .custom-pagination .page-item.disabled .page-link {
   opacity: 0.5;
   cursor: not-allowed;
+}
+@media (max-width: 576px) {
+  th{
+    width: 160px !important;
+  }
+  .gt{
+    font-size: 12px !important;
+    font-weight: bold;
+  }
+  .rt{
+    font-size: 10px !important;
+  }
+  .uo{
+    font-size: 18px !important;
+  }
+ 
+}
+table {
+  table-layout: fixed;
+  width: 100%;
 }

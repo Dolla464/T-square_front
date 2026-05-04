@@ -110,8 +110,8 @@ const totalPages = Math.max(1, Math.ceil(filteredReviews.length / itemsPerPage))
         <div className="col-md-3 col-6">
           <div className="state p-2">
             <div className="stat-label">{t("stats.totalReviews")}</div>
-            <div className="stat-value my-2">1400</div>
-            <div style={{ color: "#28a745" }} className="stat-sub">
+            <div className="stat-value my-2 uo">1400</div>
+            <div style={{ color: "#28a745" }} className="stat-sub rt">
               +64 this month
             </div>
           </div>
@@ -119,10 +119,10 @@ const totalPages = Math.max(1, Math.ceil(filteredReviews.length / itemsPerPage))
 
         <div className="col-md-3 col-6">
           <div className="state p-2">
-            <div  className="stat-label">{t("stats.averageRating")}</div>
-            <div className="state-value my-2">
+            <div  className="stat-label ">{t("stats.averageRating")}</div>
+            <div className="state-value my-2 rt">
               4.6
-              <span  className="text-warning fs-5 ms-2">
+              <span  className="text-warning rt fs-5 ms-2">
                 <i className="bi bi-star-fill"></i>
                 <i className="bi bi-star-fill"></i>
                 <i className="bi bi-star-fill"></i>
@@ -136,16 +136,16 @@ const totalPages = Math.max(1, Math.ceil(filteredReviews.length / itemsPerPage))
         <div className="col-md-3 col-6">
           <div className="state p-2">
             <div className="stat-label">{t("stats.pendingReview")}</div>
-            <div className="stat-value my-2 text-warning">23</div>
-            <div className="stat-sub text-muted">{t("stats.awaiting")}</div>
+            <div className="stat-value my-2 text-warning uo">23</div>
+            <div className="stat-sub text-muted rt">{t("stats.awaiting")}</div>
           </div>
         </div>
 
         <div className="col-md-3 col-6">
           <div className="state p-2">
             <div className="stat-label">{t("stats.rejected")}</div>
-            <div className="state-value my-2">48</div>
-            <div className="stat-sub text-muted">{t("stats.allTime")}</div>
+            <div className="state-value my-2 uo">48</div>
+            <div className="stat-sub text-muted rt">{t("stats.allTime")}</div>
           </div>
         </div>
       </div>
@@ -160,8 +160,9 @@ const totalPages = Math.max(1, Math.ceil(filteredReviews.length / itemsPerPage))
 
       <div className="row align-items-center g-3">
 
-        <div className="col-md-6">
-          <div className="position-relative">
+              <div className="col-md-6 ">
+                <div className="justify-content-center d-flex">
+          <div className="position-relative col-12">
             <i
               className="bi bi-search position-absolute"
               style={{
@@ -179,17 +180,18 @@ const totalPages = Math.max(1, Math.ceil(filteredReviews.length / itemsPerPage))
   onChange={(e) => setSearch(e.target.value)}
   className="form-control ac-search-input bg-light"
   placeholder="Search reviews..."
-/>
+                    />
+                    </div>
           </div>
         </div>
 
-        <div className="col-md-3">
+        <div className="col-md-3 col-6">
           <select className="form-select ac-search-input bg-light border-0">
             <option>All Status</option>
           </select>
         </div>
 
-        <div className="col-md-3">
+        <div className="col-md-3 col-6">
   <select
     className="form-select ac-search-input bg-light border-0"
     value={ratingFilter}
@@ -208,16 +210,17 @@ const totalPages = Math.max(1, Math.ceil(filteredReviews.length / itemsPerPage))
 
 
             </div>
-          <table  className="table table-hover ac-table">
-            <thead className="ac-table">
-              <tr className="text-muted">
-                <th>{t("table.student")}</th>
-                <th>{t("table.course")}</th>
-                <th>{t("table.rating")}</th>
-                <th>{t("table.review")}</th>
-                <th>{t("table.date")}</th>
-              </tr>
-            </thead>
+        <div className="table-wrapper">
+  <table className="table table-hover ac-table">
+    <thead className="ac-table">
+      <tr className="text-muted">
+        <th>{t("table.student")}</th>
+        <th>{t("table.course")}</th>
+        <th>{t("table.rating")}</th>
+        <th>{t("table.review")}</th>
+        <th>{t("table.date")}</th>
+      </tr>
+    </thead>
 
 <tbody>
   {currentReviews.length > 0 ? (
@@ -225,7 +228,7 @@ const totalPages = Math.max(1, Math.ceil(filteredReviews.length / itemsPerPage))
       <tr key={index} className="ac-table">
         <td className="align-content-center">{item.student}</td>
 
-        <td className="text-muted align-content-center">
+        <td className="text-muted align-content-center gt">
           {item.course}
         </td>
 
@@ -263,6 +266,7 @@ const totalPages = Math.max(1, Math.ceil(filteredReviews.length / itemsPerPage))
             </tbody>
           </table>
 </div>
+        </div>
         </div>
   {filteredReviews.length > 0 && (
   <div className="d-flex justify-content-center mt-4">
