@@ -1,0 +1,26 @@
+{
+  "title": "Reviews",
+  "subtitle": "Manage and moderate reviews",
+
+  "stats": {
+    "totalReviews": "Total Reviews",
+    "averageRating": "Average Rating",
+    "pendingReview": "Pending Review",
+    "rejected": "Rejected",
+    "thisMonth": "+64 this month",
+    "awaiting": "Awaiting moderation",
+    "allTime": "All time"
+  },
+
+  "table": {
+    "student": "Student",
+    "course": "Course",
+    "rating": "Rating",
+    "review": "Review",
+    "date": "Date",
+    "search": "Search reviews...",
+    "allStatus": "All Status",
+    "allRatings": "All Ratings",
+    "seeMore": "see more"
+  }
+} 
