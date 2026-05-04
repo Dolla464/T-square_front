@@ -1,7 +1,7 @@
 import AdminContentPage from "../../components/shared/AdminContentPage/AdminContentPage";
-import { useAdminSolutions } from "../../hooks/useAdminSolutions";
+import { useAdminCourses } from "../../hooks/useAdminCourses";
 
 function AdminCourses() {
-  return <AdminContentPage type="course" useDataHook={useAdminSolutions} />;
+  return <AdminContentPage type="course" useDataHook={useAdminCourses} />;
 }
 export default AdminCourses;
