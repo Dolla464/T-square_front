@@ -62,62 +62,61 @@
     "form": {
       "save_draft": "حفظ كمسودة",
       "publish": "نشر",
-        "tabs": {
-          "basic": "المعلومات الأساسية",
-          "curriculum": "المنهج الدراسي",
-          "settings": "الإعدادات",
-          "blank": "صفحة فارغة"
-        },
-        "curriculum_part": "جزء المنهج",
-        "settings_part": "جزء الإعدادات",
-        "fields": {
-          "course_title": "عنوان الكورس",
-          "title": "العنوان",
-          "title_placeholder": "أدخل العنوان",
-          "description": "الوصف",
-          "description_placeholder": "أدخل الوصف...",
-          "category": "القسم",
-          "category_placeholder": "اختر القسم",
-          "difficulty": "مستوى الصعوبة",
-          "difficulty_placeholder": "اختر المستوى",
-          "instructor": "المحاضر",
-          "instructor_placeholder": "اختر المحاضر",
-          "thumbnail": "الصورة الرمزية",
-          "thumbnail_hint": "انقر للرفع أو اسحب وأفلت",
-          "thumbnail_sub_hint": "PNG, JPG أو GIF (بحد أقصى 1920×1080 بكسل)",
-          "tags": "العلامات",
-          "tags_placeholder": "اختر العلامات",
-          "course_price": "سعر الكورس",
-          "discount_price": "سعر الخصم (اختياري)",
-          "course_thumbnail": "الصورة المصغرة للكورس",
-          "change_photo": "تغيير الصورة",
-          "remove": "إزالة"
-        },
-        "curriculum": {
-          "section_placeholder": "عنوان القسم",
-          "lesson_placeholder": "عنوان الدرس",
-          "duration_placeholder": "المدة (مثلاً 10:00)",
-          "video_placeholder": "رابط الفيديو",
-          "add_lesson": "إضافة درس",
-          "add_section": "إضافة قسم",
-          "video_uploaded": "تم رفع الفيديو",
-          "upload_video": "رفع فيديو"
-        },
-        "settings": {
-          "publish_title": "نشر الكورس",
-          "publish_desc": "اجعل هذا الكورس متاحاً للطلاب",
-          "featured_title": "كورس مميز",
-          "featured_desc": "عرض هذا الكورس في الصفحة الرئيسية",
-          "comments_title": "تفعيل التعليقات",
-          "comments_desc": "السماح للطلاب بالتعليق على الدروس",
-          "certificate_title": "شهادة",
-          "certificate_desc": "منح شهادة عند الإتمام"
-        }
+      "tabs": {
+        "basic": "المعلومات الأساسية",
+        "curriculum": "المنهج الدراسي",
+        "settings": "الإعدادات",
+        "blank": "صفحة فارغة"
+      },
+      "curriculum_part": "جزء المنهج",
+      "settings_part": "جزء الإعدادات",
+      "fields": {
+        "course_title": "عنوان الكورس",
+        "title": "العنوان",
+        "title_placeholder": "أدخل العنوان",
+        "description": "الوصف",
+        "description_placeholder": "أدخل الوصف...",
+        "category": "القسم",
+        "category_placeholder": "اختر القسم",
+        "difficulty": "مستوى الصعوبة",
+        "difficulty_placeholder": "اختر المستوى",
+        "instructor": "المحاضر",
+        "instructor_placeholder": "اختر المحاضر",
+        "thumbnail": "الصورة الرمزية",
+        "thumbnail_hint": "انقر للرفع أو اسحب وأفلت",
+        "thumbnail_sub_hint": "PNG, JPG أو GIF (بحد أقصى 1920×1080 بكسل)",
+        "tags": "العلامات",
+        "tags_placeholder": "اختر العلامات",
+        "course_price": "سعر الكورس",
+        "discount_price": "سعر الخصم (اختياري)",
+        "course_thumbnail": "الصورة المصغرة للكورس",
+        "change_photo": "تغيير الصورة",
+        "remove": "إزالة"
+      },
+      "curriculum": {
+        "section_placeholder": "عنوان القسم",
+        "lesson_placeholder": "عنوان الدرس",
+        "duration_placeholder": "المدة (مثلاً 10:00)",
+        "video_placeholder": "رابط الفيديو",
+        "add_lesson": "إضافة درس",
+        "add_section": "إضافة قسم",
+        "video_uploaded": "تم رفع الفيديو",
+        "upload_video": "رفع فيديو"
+      },
+      "settings": {
+        "publish_title": "نشر الكورس",
+        "publish_desc": "اجعل هذا الكورس متاحاً للطلاب",
+        "featured_title": "كورس مميز",
+        "featured_desc": "عرض هذا الكورس في الصفحة الرئيسية",
+        "comments_title": "تفعيل التعليقات",
+        "comments_desc": "السماح للطلاب بالتعليق على الدروس",
+        "certificate_title": "شهادة",
+        "certificate_desc": "منح شهادة عند الإتمام"
+      }
     }
   },
   "students_page": {
-        "deleted_success":"تم حذف الطالب بنجاح",
-
+    "deleted_success": "تم حذف الطالب بنجاح",
     "title": "الطلاب",
     "subtitle": "إدارة كل الطلاب على المنصة",
     "add_student": "إضافة طالب",
@@ -203,6 +202,43 @@
     "verified_yes": "نعم",
     "verified_no": "لا",
     "no_instructors": "مفيش محاضرين دلوقتي."
+  },
+  "reviews_page": {
+    "title": "التقييمات",
+    "subtitle": "إدارة ومراقبة التقييمات",
+    "search_placeholder": "ابحث في التقييمات...",
+    "all_ratings": "كل التقييمات",
+    "all_statuses": "كل الحالات",
+    "active_status": "تمت الموافقة",
+    "pending_status": "قيد الانتظار",
+    "rejected_status": "مرفوض",
+    "table_student": "الطالب",
+    "table_course": "الكورس",
+    "table_rating": "التقييم",
+    "table_review": "التعليق",
+    "table_date": "التاريخ",
+    "table_status": "الحالة",
+    "table_actions": "الإجراءات",
+    "view_review": "عرض التقييم",
+    "edit_review": "تعديل التقييم",
+    "no_reviews": "لا توجد تقييمات متاحة.",
+    "stats": {
+      "total_reviews": "إجمالي التقييمات",
+      "average_rating": "متوسط التقييم",
+      "pending_reviews": "تقييمات معلقة",
+      "rejected_reviews": "تقييمات مرفوضة",
+      "this_month": "+64 هذا الشهر",
+      "awaiting": "في انتظار المراجعة",
+      "all_time": "كل الوقت"
+    },
+    "fields": {
+      "student": "اسم الطالب",
+      "course": "اسم الكورس",
+      "rating": "التقييم",
+      "review": "نص التقييم",
+      "date": "تاريخ التقييم",
+      "status": "حالة التقييم"
+    }
   },
   "success": {
     "created": "تم الإنشاء بنجاح",

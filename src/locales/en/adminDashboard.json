@@ -203,6 +203,43 @@
     "verified_no": "No",
     "no_instructors": "No instructors available."
   },
+  "reviews_page": {
+    "title": "Reviews",
+    "subtitle": "Manage and moderate reviews",
+    "search_placeholder": "Search reviews...",
+    "all_ratings": "All Ratings",
+    "all_statuses": "All statuses",
+    "active_status": "Approved",
+    "pending_status": "Pending",
+    "rejected_status": "Rejected",
+    "table_student": "Student",
+    "table_course": "Course",
+    "table_rating": "Rating",
+    "table_review": "Review",
+    "table_date": "Date",
+    "table_status": "Status",
+    "table_actions": "Actions",
+    "view_review": "View Review",
+    "edit_review": "Edit Review",
+    "no_reviews": "No reviews available.",
+    "stats": {
+      "total_reviews": "Total Reviews",
+      "average_rating": "Average Rating",
+      "pending_reviews": "Pending Reviews",
+      "rejected_reviews": "Rejected Reviews",
+      "this_month": "+64 this month",
+      "awaiting": "Awaiting moderation",
+      "all_time": "All time"
+    },
+    "fields": {
+      "student": "Student Name",
+      "course": "Course Name",
+      "rating": "Rating",
+      "review": "Review Message",
+      "date": "Review Date",
+      "status": "Review Status"
+    }
+  },
   "success": {
     "created": "Created successfully",
     "updated": "Updated successfully",

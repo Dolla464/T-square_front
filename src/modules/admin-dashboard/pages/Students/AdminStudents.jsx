@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Pagination } from "react-bootstrap";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
@@ -90,6 +91,9 @@ function AdminStudents() {
 
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
   const item = editingItem || viewingItem;
 
   const filteredStudents = students.filter((student) => {
@@ -105,6 +109,26 @@ function AdminStudents() {
 
     return matchesSearch && matchesStatus && matchesGender;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / itemsPerPage));
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentStudents = filteredStudents.slice(indexOfFirstItem, indexOfLastItem);
+
+  const pagination = {
+    currentPage,
+    lastPage: totalPages,
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedStatus, selectedGender]);
 
   const handleAddNew = () => {
     setViewingItem(null);
@@ -303,8 +327,8 @@ function AdminStudents() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredStudents.length > 0 ? (
-                      filteredStudents.map((student) => (
+                    {currentStudents.length > 0 ? (
+                      currentStudents.map((student) => (
                         <tr key={student.id}>
                           <td className="fw-medium text-dark">
                             {student.name}
@@ -372,6 +396,31 @@ function AdminStudents() {
                 </table>
               </div>
             </div>
+
+            {/* Pagination */}
+            {pagination && (
+              <div className="d-flex justify-content-center mt-5">
+                <Pagination className="custom-pagination">
+                  <Pagination.Prev
+                    disabled={pagination.currentPage === 1}
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  />
+                  {[...Array(pagination.lastPage)].map((_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === pagination.currentPage}
+                      onClick={() => handlePageChange(i + 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    disabled={pagination.currentPage === pagination.lastPage}
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  />
+                </Pagination>
+              </div>
+            )}
           </div>
         </>
       ) : (

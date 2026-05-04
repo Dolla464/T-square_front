@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Pagination } from "react-bootstrap";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
@@ -67,6 +68,9 @@ function AdminInstructors() {
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
   const filteredInstructors = instructors.filter((instructor) => {
     const matchesSearch = [instructor.name, instructor.email]
       .filter(Boolean)
@@ -77,6 +81,26 @@ function AdminInstructors() {
 
     return matchesSearch && matchesStatus;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredInstructors.length / itemsPerPage));
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentInstructors = filteredInstructors.slice(indexOfFirstItem, indexOfLastItem);
+
+  const pagination = {
+    currentPage,
+    lastPage: totalPages,
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedStatus]);
 
   const handleAddNew = () => {
     setViewingItem(null);
@@ -255,8 +279,8 @@ function AdminInstructors() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredInstructors.length > 0 ? (
-                      filteredInstructors.map((instructor) => (
+                    {currentInstructors.length > 0 ? (
+                      currentInstructors.map((instructor) => (
                         <tr key={instructor.id}>
                           <td className="fw-medium text-dark">
                             {instructor.name}
@@ -321,6 +345,31 @@ function AdminInstructors() {
                 </table>
               </div>
             </div>
+
+            {/* Pagination */}
+            {pagination && (
+              <div className="d-flex justify-content-center mt-5">
+                <Pagination className="custom-pagination">
+                  <Pagination.Prev
+                    disabled={pagination.currentPage === 1}
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  />
+                  {[...Array(pagination.lastPage)].map((_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === pagination.currentPage}
+                      onClick={() => handlePageChange(i + 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    disabled={pagination.currentPage === pagination.lastPage}
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  />
+                </Pagination>
+              </div>
+            )}
           </div>
         </>
       ) : (

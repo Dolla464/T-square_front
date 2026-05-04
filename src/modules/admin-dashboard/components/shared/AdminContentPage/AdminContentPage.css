@@ -45,6 +45,7 @@
 }
 
 .ac-search-input-wrapper {
+  width: 50%  !important;
   position: relative;
 }
 
@@ -86,7 +87,7 @@
   background-color: #f9f9fb;
   font-size: 0.9rem;
   color: #4b5563;
-  min-width: 150px;
+  min-width: 250px !important;
 }
 
 /* Table Styles */
@@ -399,3 +400,21 @@
 .cursor-pointer {
   cursor: pointer;
 }
+/* \\\\\\\\\\\\\\\\\\\\\ */
+.state {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+  height: 120px;
+  transition: all 0.4s ease;
+  padding: 13px;
+  padding-left: 20px ;
+  position: relative;
+    
+
+} .state-value{
+    font-size: 18px;
+       font-weight: bold;
+     }

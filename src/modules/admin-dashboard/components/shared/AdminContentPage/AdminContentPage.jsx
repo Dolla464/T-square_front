@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Pagination } from "react-bootstrap";
 import AdminContentTable from "./AdminContentTable";
 
 import AdminContentForm from "./AdminContentForm";
@@ -31,10 +32,8 @@ function AdminContentPage({ type, useDataHook }) {
     deleteSolution,
   } = useDataHook();
 
-  // حالة عرض الفورم أو قائمة الجدول
-  const [showForm, setShowForm] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [viewingItem, setViewingItem] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   // تحديث البيانات عند تحميل المكون
   useEffect(() => {
@@ -44,6 +43,10 @@ function AdminContentPage({ type, useDataHook }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const [showForm, setShowForm] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [viewingItem, setViewingItem] = useState(null);
 
   // Dummy data for courses until API is ready
   const dummyCourse = {
@@ -70,6 +73,26 @@ function AdminContentPage({ type, useDataHook }) {
   };
 
   const displayData = type === "course" ? [dummyCourse] : solutions || [];
+
+  const totalPages = Math.max(1, Math.ceil(displayData.length / itemsPerPage));
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = displayData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const pagination = {
+    currentPage,
+    lastPage: totalPages,
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [type, solutions]);
 
   const handleAddNew = () => {
     setViewingItem(null);
@@ -143,12 +166,37 @@ function AdminContentPage({ type, useDataHook }) {
             {/* Table Component */}
             <AdminContentTable
               type={type}
-              data={displayData}
+              data={currentItems}
               loading={loading}
               onView={handleView}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
+
+            {/* Pagination */}
+            {pagination && (
+              <div className="d-flex justify-content-center mt-5">
+                <Pagination className="custom-pagination">
+                  <Pagination.Prev
+                    disabled={pagination.currentPage === 1}
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  />
+                  {[...Array(pagination.lastPage)].map((_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === pagination.currentPage}
+                      onClick={() => handlePageChange(i + 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    disabled={pagination.currentPage === pagination.lastPage}
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  />
+                </Pagination>
+              </div>
+            )}
           </div>
         </>
       ) : (
