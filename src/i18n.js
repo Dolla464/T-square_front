@@ -25,7 +25,7 @@ import enAdminDashboard from "./locales/en/adminDashboard.json";
 import enCoursesDetails from "./locales/en/coursesDetails.json";
 import enorderPayments from "./locales/en/orderPayments.json";
 import enAdminReviews from "./locales/en/AdminReviews.json";
-
+//
 // Arabic namespaces
 import arNavbar from "./locales/ar/navbar.json";
 import arHome from "./locales/ar/home.json";
