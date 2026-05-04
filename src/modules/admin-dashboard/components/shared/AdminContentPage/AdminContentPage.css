@@ -247,6 +247,11 @@
   background-color: #f3f4f6 !important;
   transition: all 0.2s;
 }
+.ac-btn-whatsapp {
+  color: #36ff0e !important;
+  background-color: #0c8817 !important;
+  transition: all 0.2s;
+}
 
 .ac-btn-edit:hover {
   background-color: #e5e7eb !important;
@@ -262,6 +267,10 @@
 
 .ac-btn-delete:hover {
   background-color: #be1522 !important;
+  color: #ffffff !important;
+}
+.ac-btn-whatsapp:hover {
+  background-color: #0f5201 !important;
   color: #ffffff !important;
 }
 

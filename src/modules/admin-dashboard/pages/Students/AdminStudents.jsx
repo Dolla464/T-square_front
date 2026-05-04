@@ -94,7 +94,7 @@ function AdminStudents() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
-  const item = editingItem || viewingItem;
+  // const item = editingItem || viewingItem;
 
   const filteredStudents = students.filter((student) => {
     const matchesSearch = [student.name, student.email]
@@ -109,6 +109,40 @@ function AdminStudents() {
 
     return matchesSearch && matchesStatus && matchesGender;
   });
+
+
+  // الواتساببب 
+  const handleWhatsapp = (id) => {
+    // 1. هات الطالب من الليست
+    const student = students.find((s) => s.id === id);
+    if (!student) return;
+
+    // 2. ظبط رقم الموبايل (مصر)
+    let phone = student.phone || "";
+    phone = phone.replace(/\D/g, ""); // شيل أي حروف
+    if (phone.startsWith("0")) {
+      phone = "20" + phone.slice(1);
+    }
+
+    // 3. ابني الرسالة
+    const message = `
+ شكرا لانضمامك معانا 
+ اسم الطالب: ${student.name || "-"}
+ رقم الهاتف: ${student.phone || "-"}
+ البريد الإلكتروني: ${student.email || "-"}
+ كلمة المرور: ${student.password || "-"}
+
+ ملحوظة:
+يُرجى تسجيل الدخول وتغيير كلمة المرور من داخل المنصة حفاظًا على أمان حسابك.
+`;
+
+    // 4. encode + open
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, "_blank");
+  };
+
+
+
 
   const totalPages = Math.max(1, Math.ceil(filteredStudents.length / itemsPerPage));
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -225,7 +259,8 @@ function AdminStudents() {
         },
         ...prev,
       ]);
-      toastSuccess(t("students_page.created_success"));
+
+      toastSuccess(isArabic ? "تم إضافة الطالب بنجاح" : "Student added successfully");
     }
     handleBack();
   };
@@ -380,6 +415,13 @@ function AdminStudents() {
                                 onClick={() => handleDelete(student.id)}
                               >
                                 <i className="bi bi-trash fs-6"></i>
+                              </button>
+                              <button
+                                className="btn btn-sm ac-btn-whatsapp border-0"
+                                title="WhatsApp"
+                                onClick={() => handleWhatsapp(student.id)}
+                              >
+                                <i className="bi bi-whatsapp fs-6"></i>
                               </button>
                             </div>
                           </td>
