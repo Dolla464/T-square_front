@@ -15,7 +15,8 @@
 .shared-dashboard-sidebar {
   width: 230px;
   height: 100vh;
-  height: 100dvh;         
+  max-height: 100dvh !important;
+  overflow: hidden !important;         
   position: sticky;
   top: 0;
   display: flex;
@@ -132,6 +133,8 @@
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
+
+
 }
 
 .shared-dashboard-topbar {

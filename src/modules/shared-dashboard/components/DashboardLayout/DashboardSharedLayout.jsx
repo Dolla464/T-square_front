@@ -11,11 +11,11 @@ import { useAuth } from "../../../../contexts/AuthContext";
 import { showLogoutConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastCustom } from "../../../../components/shared/Toaster/toaster";
 import logoDark from "../../../../assets/logo-dark.png";
-import { NOTIFICATIONS_MOCK } from "../../../../modules/student-dashboard/data/dashboardMockData";
 import "./DashboardSharedLayout.css";
 import { resendVerificationNotification } from '../../../../services/register';
 import toast from "react-hot-toast";
 import { Alert, Button, Spinner } from "react-bootstrap";
+import { useNotifications } from "../../notificationsServices/useNotifications";
 function DashboardSharedLayout({
   navItems,
   translationNs,
@@ -33,8 +33,10 @@ function DashboardSharedLayout({
 
   const isCourseDetailsPage = location.pathname.includes("/student/course/");
   const isExmam = location.pathname.includes("/student/quizzes/");
-  // لازم افتكر اعدل دا عشان يرجع بعدد النوتفكيشن الخاص باليوزر حسب الرول
-  const unreadCount = NOTIFICATIONS_MOCK.filter((n) => !n.is_read).length;
+
+  const { notificationsData } = useNotifications();
+  // const totalNotifications = notificationsData.total;
+  const unreadCount = notificationsData.unread_count;
 
   const initials = user?.name
     ? user.name

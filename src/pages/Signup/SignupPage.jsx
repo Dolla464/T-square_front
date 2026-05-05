@@ -12,11 +12,12 @@ function SignupPage() {
   const isArabic = i18n.language === "ar";
   
   const [formData, setFormData] = useState({
-    name: "",
+    full_name: "",
     phone: "",
     email: "",
     password: "",
-    password_confirmation: ""
+    password_confirmation: "",
+    role: "student" // default role, can be changed to "teacher" if needed
   });
 
   const { executeRegister, loading, error, successMsg } = useRegister();
@@ -75,10 +76,10 @@ function SignupPage() {
                 </Form.Label>
                 <Form.Control
                   type="text"
-                  name="name"
+                  name="full_name"
                   placeholder={t("signup_form.name_placeholder")}
                   className="signup-input"
-                  value={formData.name}
+                  value={formData.full_name}
                   onChange={handleChange}
                   required
                 />

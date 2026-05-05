@@ -124,6 +124,44 @@
   background: #9a111b;
 }
 
+.btn-view-cert {
+  background: #f0f0f0;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-view-cert:hover {
+  background: #e0e0e0;
+}
+
+/* ── Modal ── */
+.cert-detail-modal .modal-content {
+  border-radius: 18px;
+  border: none;
+}
+
+.cert-info-list {
+  border: 1px solid #eee;
+}
+
+.info-item {
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 8px;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
 /* ── Counter ── */
 .certs-counter {
   text-align: center;

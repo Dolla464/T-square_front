@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Pagination } from "react-bootstrap";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
@@ -90,7 +91,10 @@ function AdminStudents() {
 
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
-  const item = editingItem || viewingItem;
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  // const item = editingItem || viewingItem;
 
   const filteredStudents = students.filter((student) => {
     const matchesSearch = [student.name, student.email]
@@ -105,6 +109,60 @@ function AdminStudents() {
 
     return matchesSearch && matchesStatus && matchesGender;
   });
+
+
+  // الواتساببب 
+  const handleWhatsapp = (id) => {
+    // 1. هات الطالب من الليست
+    const student = students.find((s) => s.id === id);
+    if (!student) return;
+
+    // 2. ظبط رقم الموبايل (مصر)
+    let phone = student.phone || "";
+    phone = phone.replace(/\D/g, ""); // شيل أي حروف
+    if (phone.startsWith("0")) {
+      phone = "20" + phone.slice(1);
+    }
+
+    // 3. ابني الرسالة
+    const message = `
+ شكرا لانضمامك معانا 
+ اسم الطالب: ${student.name || "-"}
+ رقم الهاتف: ${student.phone || "-"}
+ البريد الإلكتروني: ${student.email || "-"}
+ كلمة المرور: ${student.password || "-"}
+
+ ملحوظة:
+يُرجى تسجيل الدخول وتغيير كلمة المرور من داخل المنصة حفاظًا على أمان حسابك.
+`;
+
+    // 4. encode + open
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, "_blank");
+  };
+
+
+
+
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / itemsPerPage));
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentStudents = filteredStudents.slice(indexOfFirstItem, indexOfLastItem);
+
+  const pagination = {
+    currentPage,
+    lastPage: totalPages,
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedStatus, selectedGender]);
 
   const handleAddNew = () => {
     setViewingItem(null);
@@ -201,7 +259,8 @@ function AdminStudents() {
         },
         ...prev,
       ]);
-      toastSuccess(t("students_page.created_success"));
+
+      toastSuccess(isArabic ? "تم إضافة الطالب بنجاح" : "Student added successfully");
     }
     handleBack();
   };
@@ -303,8 +362,8 @@ function AdminStudents() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredStudents.length > 0 ? (
-                      filteredStudents.map((student) => (
+                    {currentStudents.length > 0 ? (
+                      currentStudents.map((student) => (
                         <tr key={student.id}>
                           <td className="fw-medium text-dark">
                             {student.name}
@@ -357,6 +416,13 @@ function AdminStudents() {
                               >
                                 <i className="bi bi-trash fs-6"></i>
                               </button>
+                              <button
+                                className="btn btn-sm ac-btn-whatsapp border-0"
+                                title="WhatsApp"
+                                onClick={() => handleWhatsapp(student.id)}
+                              >
+                                <i className="bi bi-whatsapp fs-6"></i>
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -372,6 +438,31 @@ function AdminStudents() {
                 </table>
               </div>
             </div>
+
+            {/* Pagination */}
+            {pagination && (
+              <div className="d-flex justify-content-center mt-5">
+                <Pagination className="custom-pagination">
+                  <Pagination.Prev
+                    disabled={pagination.currentPage === 1}
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  />
+                  {[...Array(pagination.lastPage)].map((_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === pagination.currentPage}
+                      onClick={() => handlePageChange(i + 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    disabled={pagination.currentPage === pagination.lastPage}
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  />
+                </Pagination>
+              </div>
+            )}
           </div>
         </>
       ) : (

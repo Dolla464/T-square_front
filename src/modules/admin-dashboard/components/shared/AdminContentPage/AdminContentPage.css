@@ -45,6 +45,7 @@
 }
 
 .ac-search-input-wrapper {
+  width: 50%  !important;
   position: relative;
 }
 
@@ -86,7 +87,7 @@
   background-color: #f9f9fb;
   font-size: 0.9rem;
   color: #4b5563;
-  min-width: 150px;
+  min-width: 250px !important;
 }
 
 /* Table Styles */
@@ -246,6 +247,11 @@
   background-color: #f3f4f6 !important;
   transition: all 0.2s;
 }
+.ac-btn-whatsapp {
+  color: #36ff0e !important;
+  background-color: #0c8817 !important;
+  transition: all 0.2s;
+}
 
 .ac-btn-edit:hover {
   background-color: #e5e7eb !important;
@@ -261,6 +267,10 @@
 
 .ac-btn-delete:hover {
   background-color: #be1522 !important;
+  color: #ffffff !important;
+}
+.ac-btn-whatsapp:hover {
+  background-color: #0f5201 !important;
   color: #ffffff !important;
 }
 
@@ -399,3 +409,21 @@
 .cursor-pointer {
   cursor: pointer;
 }
+/* \\\\\\\\\\\\\\\\\\\\\ */
+.state {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+  height: 120px;
+  transition: all 0.4s ease;
+  padding: 13px;
+  padding-left: 20px ;
+  position: relative;
+    
+
+} .state-value{
+    font-size: 18px;
+       font-weight: bold;
+     }

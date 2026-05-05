@@ -1,31 +1,31 @@
 import { useState, useEffect } from "react";
-import { DASHBOARD_MOCK } from "../data/dashboardMockData";
-// import { getStudentCertificates } from "../services/dashboardService"; // فعّل عند توفر الـ API
+import { getStudentCertificates } from "../services/dashboardService";
 
 export const useCertificates = () => {
     const [certificates, setCertificates] = useState([]);
-    const [certStats, setCertStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        // ── TODO: استبدل بالكود ده لما الـ API يكون جاهز ──
-        // const fetchFromAPI = async () => {
-        //     try {
-        //         const res = await getStudentCertificates();
-        //         setCertificates(res.data.data.certificates);
-        //         setCertStats(res.data.data.stats);
-        //     } catch (err) { setError(err); }
-        //     finally { setLoading(false); }
-        // };
-        // fetchFromAPI();
+        const fetchCertificates = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const res = await getStudentCertificates();
+                const data = res?.data?.data;
+                setCertificates(Array.isArray(data) ? data : []);
 
-        setTimeout(() => {
-            setCertificates(DASHBOARD_MOCK.certificates);
-            setCertStats(DASHBOARD_MOCK.certStats);
-            setLoading(false);
-        }, 300);
+
+            } catch (err) {
+                console.error(err);
+                setError(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCertificates();
     }, []);
 
-    return { certificates, certStats, loading, error };
+    return { certificates, loading, error };
 };

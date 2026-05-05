@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Pagination } from "react-bootstrap";
 import AdminContentTable from "./AdminContentTable";
 
 import AdminContentForm from "./AdminContentForm";
@@ -22,28 +23,31 @@ function AdminContentPage({ type, useDataHook }) {
     type === "course" ? t("content.add_course") : t("content.add_solution");
 
   // Hook البيانات (يتم استدعاء الدالة الممررة)
-  const {
-    solutions, // يمكن أن تكون courses أيضاً
-    loading,
-    getSolutions,
-    createSolution,
-    updateSolution,
-    deleteSolution,
-  } = useDataHook();
+  const hookData = useDataHook();
 
-  // حالة عرض الفورم أو قائمة الجدول
-  const [showForm, setShowForm] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [viewingItem, setViewingItem] = useState(null);
+  const data = hookData.solutions || hookData.courses || [];
+  const getData = hookData.getSolutions || hookData.getCourses;
+  const createData = hookData.createSolution || hookData.createCourse;
+  const updateData = hookData.updateSolution || hookData.updateCourse;
+  const deleteData = hookData.deleteSolution || hookData.deleteCourse;
+
+  const { loading } = hookData;
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   // تحديث البيانات عند تحميل المكون
   useEffect(() => {
     // تعليق: استدعاء الـ API لجلب البيانات.
-    if (getSolutions) {
-      getSolutions();
+    if (getData) {
+      getData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const [showForm, setShowForm] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [viewingItem, setViewingItem] = useState(null);
 
   // Dummy data for courses until API is ready
   const dummyCourse = {
@@ -69,7 +73,28 @@ function AdminContentPage({ type, useDataHook }) {
     is_free: false,
   };
 
-  const displayData = type === "course" ? [dummyCourse] : solutions || [];
+  const displayData = data;
+
+
+  const totalPages = Math.max(1, Math.ceil(displayData.length / itemsPerPage));
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = displayData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const pagination = {
+    currentPage,
+    lastPage: totalPages,
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [type, data]);
 
   const handleAddNew = () => {
     setViewingItem(null);
@@ -102,20 +127,19 @@ function AdminContentPage({ type, useDataHook }) {
 
     const ok = await showDeleteConfirm(itemName);
     if (ok) {
-      const success = await deleteSolution(id);
-      if (success) getSolutions();
+      const success = await deleteData(id);
+      if (success) getData();
     }
   };
 
   const handleSubmit = async (idOrPayload, payload) => {
     try {
       if (editingItem) {
-        await updateSolution(idOrPayload, payload);
+        await updateData(idOrPayload, payload);
       } else {
-        await createSolution(idOrPayload);
+        await createData(idOrPayload);
       }
-      getSolutions();
-      handleBack();
+      getData(); handleBack();
     } catch (err) {
       // error handled in hook
     }
@@ -135,7 +159,7 @@ function AdminContentPage({ type, useDataHook }) {
               className="btn btn-danger ac-add-btn"
               onClick={handleAddNew}
             >
-             <i className="bi bi-plus fw-bolder"></i>{addBtnText}
+              +{addBtnText}
             </button>
           </div>
 
@@ -143,12 +167,37 @@ function AdminContentPage({ type, useDataHook }) {
             {/* Table Component */}
             <AdminContentTable
               type={type}
-              data={displayData}
+              data={currentItems}
               loading={loading}
               onView={handleView}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
+
+            {/* Pagination */}
+            {pagination && (
+              <div className="d-flex justify-content-center mt-5">
+                <Pagination className="custom-pagination">
+                  <Pagination.Prev
+                    disabled={pagination.currentPage === 1}
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  />
+                  {[...Array(pagination.lastPage)].map((_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === pagination.currentPage}
+                      onClick={() => handlePageChange(i + 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    disabled={pagination.currentPage === pagination.lastPage}
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  />
+                </Pagination>
+              </div>
+            )}
           </div>
         </>
       ) : (
