@@ -81,7 +81,7 @@ function AdminLayout() {
       case "/admin/courses":
         return isArabic ? "الكورسات" : "Courses";
       case "/admin/solutions":
-        return isArabic ? "الحلول البرمجية" : "solutions";
+        return isArabic ? "الحلول البرمجية" : "Solutions";
       case "/admin/students":
         return isArabic ? "الطلاب" : "Students";
       case "/admin/instructors":
