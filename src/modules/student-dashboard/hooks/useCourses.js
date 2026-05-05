@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { DASHBOARD_MOCK } from "../data/dashboardMockData";
 import { getStudentCourses as studentCoursesApi } from "../services/dashboardService"; // فعّل عند توفر الـ API
 
 /**

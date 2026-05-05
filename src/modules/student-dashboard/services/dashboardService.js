@@ -13,8 +13,15 @@ export const getStudentCourses = () =>
  */
 export const getStudentCertificates = () =>
   axiosClient.get("/student/certificates");
+export const downloadStudentCertificate = (certificate_id) =>
+  axiosClient.get(`/student/certificates/${certificate_id}/download`);
+export const showStudentCertificate = (certificate_id) =>
+  axiosClient.get(`/student/certificates/${certificate_id}`);
 
-// --- الدوال التي قمنا بتعديلها سابقاً ---
+
+
+
+
 
 /**
  * جلب بيانات ملف الطالب الشخصية
