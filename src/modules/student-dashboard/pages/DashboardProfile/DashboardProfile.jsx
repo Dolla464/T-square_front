@@ -15,7 +15,7 @@ import {
 
 function DashboardProfile() {
   const { t, i18n } = useTranslation("studentDashboard");
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const isArabic = i18n.language === "ar";
 
   const [fullName, setFullName] = useState("");
@@ -96,12 +96,12 @@ function DashboardProfile() {
 
   const initials = fullName
     ? fullName
-      .split(" ")
-      .filter(Boolean) // تجاهل المسافات الزائدة
-      .map((w) => w[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase()
+        .split(" ")
+        .filter(Boolean) // تجاهل المسافات الزائدة
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
     : "ST";
 
   const handleUpdateInformation = async () => {
@@ -353,7 +353,7 @@ function DashboardProfile() {
           </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 }
 
