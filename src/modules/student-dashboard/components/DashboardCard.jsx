@@ -17,9 +17,17 @@ function DashboardCard({ item, type, t }) {
   const isQuiz = type === "quiz";
 
   // تحديد حالة الاكتمال
-  const isCompleted = item.status === "completed";
-  const isPending = item.status === "in_progress";
+  const isCompleted = isQuiz
+    ? item.has_attempt === true
+    : isCourse
+      ? item.enrollment?.status === "completed"
+      : false;
 
+  const isPending = isQuiz
+    ? !item.has_attempt
+    : isCourse
+      ? item.enrollment?.status === "in_progress"
+      : false;
   // حساب التقدم للكورسات أو الكويزات
   let progress = 0;
   if (isCourse) {
@@ -139,7 +147,7 @@ function DashboardCard({ item, type, t }) {
         {isQuiz && (
           <div className="quiz-score-meta">
             <i className="bi bi-question-circle me-1"></i>
-            {item.totalQuestions} questions
+            {item.total_marks} marks
           </div>
         )}
 

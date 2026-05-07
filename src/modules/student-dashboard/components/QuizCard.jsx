@@ -16,22 +16,12 @@ function QuizCard({ quiz, t }) {
   const navigate = useNavigate();
   const isArabic = i18next.language === "ar";
 
-  const status = quiz.status || "pending";
+  const status = quiz.has_attempt ? "completed" : "pending";
 
   const isPending = status === "pending";
-  const isOpen = status === "open";
   const isCompleted = status === "completed";
 
-  const progress =
-    quiz.totalQuestions > 0
-      ? Math.round((quiz.correctAnswers / quiz.totalQuestions) * 100)
-      : 0;
 
-  const getScoreClass = (score) => {
-    if (score >= 90) return "score-excellent";
-    if (score >= 75) return "score-good";
-    return "score-average";
-  };
 
   function getQuizLevel(score) {
     if (isArabic) {
@@ -46,22 +36,18 @@ function QuizCard({ quiz, t }) {
   }
 
   const handleStartQuiz = () => {
-    if (isOpen) {
-      navigate(`/student/quizzes/${quiz.id}`);
-    }
+    if (isPending) navigate(`/student/quizzes/${quiz.id}`);
   };
 
   return (
-    <div className={`quiz-card ${isPending ? "quiz-card-disabled" : ""}`}>
+    <div className="quiz-card" >
       {/* أيقونة الكويز */}
       <div className="quiz-card-icon-wrapper">
-        <i className={`bi ${isCompleted ? "bi-check-circle-fill" : "bi-pencil-square"} quiz-card-icon ${isOpen ? "quiz-icon-open" : ""}`}></i>
-        <span className={`quiz-badge ${isCompleted ? "badge-completed" : isOpen ? "badge-open" : "badge-pending"}`}>
+        <i className={`bi ${isCompleted ? "bi-check-circle-fill" : "bi-pencil-square"} quiz-card-icon ${isPending ? "quiz-icon-open" : ""}`}></i>
+        <span className={`quiz-badge ${isCompleted ? "badge-completed" : isPending ? "badge-progress" : ""}`}>
           {isCompleted
             ? t("active_courses.filter.completed")
-            : isOpen
-              ? isArabic ? "مفتوح" : "Open"
-              : isArabic ? "لم يفتح بعد" : "Pending"}
+            : isPending ? (isArabic ? "امتحان مفتوح" : "Pending") : ""}
         </span>
       </div>
 
@@ -71,32 +57,22 @@ function QuizCard({ quiz, t }) {
 
         {/* اسم الكورس */}
         <p className="quiz-card-meta">
-          <span>{quiz.courseName}</span>
-        </p>
-
-        {/* معلومات إضافية */}
-        <p className="quiz-card-meta" style={{ fontSize: "0.72rem" }}>
-          <i className="bi bi-calendar3 me-1"></i>
-          {quiz.createdAt}
+          <span>{quiz.course_name}</span>
         </p>
 
         {/* عدد الأسئلة */}
-        <div className="quiz-score-meta">
-          <i className="bi bi-question-circle me-1"></i>
-          {quiz.totalQuestions} questions
+        <div className="d-flex gap-2 mb-1">
+          <div className="quiz-score-meta">
+            <i className="bi bi-award me-1"></i>
+            {quiz.total_marks} {isArabic ? "درجة" : "Marks"}
+          </div>
+          <div className="quiz-score-meta">
+            <i className="bi bi-clock me-1"></i>
+            {quiz.duration}
+          </div>
         </div>
 
-        {/* النتيجة (لو مكتمل) */}
-        {isCompleted && quiz.score !== null && (
-          <div className="quiz-score-display">
-            <span className={`score-badge ${getScoreClass(quiz.score)}`}>
-              {quiz.score}%
-            </span>
-            <span style={{ fontSize: "0.72rem", color: "#888" }}>
-              {getQuizLevel(quiz.score)}
-            </span>
-          </div>
-        )}
+
 
         {/* زر الإجراء حسب الحالة */}
         {isCompleted ? (
@@ -107,7 +83,7 @@ function QuizCard({ quiz, t }) {
             <i className="bi bi-eye me-1"></i>
             {t("active_courses.review")}
           </Link>
-        ) : isOpen ? (
+        ) : isPending ? (
           <button
             onClick={handleStartQuiz}
             className="btn-continue text-decoration-none"
@@ -115,15 +91,8 @@ function QuizCard({ quiz, t }) {
             <i className="bi bi-play-fill me-1"></i>
             {isArabic ? "ابدأ الكويز" : "Start Quiz"}
           </button>
-        ) : (
-          <button
-           disabled
-            className="btn-continue btn-disabled text-decoration-none"
-          >
-            <i className="bi bi-lock me-1"></i>
-            {isArabic ? "لم يفتح بعد" : "Not Available"}
-          </button>
-        )}
+        ) : ""}
+
       </div>
     </div>
   );

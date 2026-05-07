@@ -22,11 +22,11 @@ function DashboardQuizzes() {
   const filtered = (quizzes || []).filter((q) => {
     const matchesFilter =
       filter === "all" ||
-      (filter === "Pending" && q.status === "pending") ||
-      (filter === "completed" && q.status === "completed");
+      (filter === "Pending" && !q.has_attempt) ||
+      (filter === "completed" && q.has_attempt);
     const matchesSearch =
-      q.title.toLowerCase().includes(search.toLowerCase()) ||
-      q.courseName.toLowerCase().includes(search.toLowerCase());
+      q.title?.toLowerCase().includes(search.toLowerCase()) ||
+      q.course_name?.toLowerCase().includes(search.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
