@@ -3,7 +3,7 @@ import { Spinner } from "react-bootstrap";
 import "./AdminContentPage.css";
 import { useState } from "react";
 
-function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
+function AdminContentTable({  data, loading, onView, onEdit, onDelete }) {
   const { t } = useTranslation("adminDashboard");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
@@ -12,17 +12,11 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
     setSearchTerm(e.target.value);
   };
 
-  // const handleFilterChange = (e) => {
-  //   setSelectedFilter(e.target.value);
-  // };
-
-  const isCourse = type === "course";
-  const isSolution = type === "solution";
-
   const filteredData = data.filter((item) => {
-    const matchesSearch = (item.name || "")
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      (item.title || item.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
 
     const matchesFilter =
       selectedFilter === "all" || item.status === selectedFilter;
@@ -44,11 +38,7 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
               <input
                 type="text"
                 className="form-control ac-search-input"
-                placeholder={
-                  isCourse
-                    ? t("content.search_courses")
-                    : t("content.search_solutions")
-                }
+                placeholder={t("content.search_solutions")}
                 value={searchTerm}
                 onChange={handleSearchChange}
               />
@@ -57,17 +47,8 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
           <table className="table ac-table mb-0 align-middle">
             <thead>
               <tr>
-                <th>
-                  {isCourse
-                    ? t("content.table.course")
-                    : t("content.table.solution")}
-                </th>
-                {isCourse && <th>{t("content.table.instructor")}</th>}
-                {isSolution && <th>{t("content.table.description")}</th>}
-                {isCourse && <th>{t("content.table.revenue")}</th>}
-                {isCourse && (
-                  <th className="text-center">{t("content.table.students")}</th>
-                )}
+                <th>{t("content.table.solution")}</th>
+                <th>{t("content.table.description")}</th>
                 <th>{t("content.table.tags")}</th>
                 <th className="text-center">{t("content.table.actions")}</th>
               </tr>
@@ -79,28 +60,10 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
                     <td className="fw-medium text-dark">
                       {item.name || item.title || "Untitled"}
                     </td>
-                    {isCourse && (
-                      <td className="text-secondary">
-                        {item.instructor?.name || "N/A"}
-                      </td>
-                    )}
 
-                    {isSolution && (
-                      <td className="text-secondary ac-truncate-text">
-                        {item.description || "N/A"}
-                      </td>
-                    )}
-
-                    {isCourse && (
-                      <td className="text-secondary">
-                        {item.revenue || "0.00 EGY"}
-                      </td>
-                    )}
-                    {isCourse && (
-                      <td className="text-secondary  text-center">
-                        {item.students_count || 0}
-                      </td>
-                    )}
+                    <td className="text-secondary ac-truncate-text">
+                      {item.description || "N/A"}
+                    </td>
 
                     <td>
                       <div className="d-flex gap-1 flex-wrap justify-content-start">
@@ -148,10 +111,7 @@ function AdminContentTable({ type, data, loading, onView, onEdit, onDelete }) {
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan={isCourse ? 6 : 5}
-                    className="text-center py-4 text-muted"
-                  >
+                  <td colSpan={4} className="text-center py-4 text-muted">
                     No data available.
                   </td>
                 </tr>

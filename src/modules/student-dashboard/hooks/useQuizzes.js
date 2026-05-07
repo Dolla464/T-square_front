@@ -42,7 +42,6 @@ export const useQuizzes = () => {
 
     fetchFromAPI();
   }, []);
-// console.log(quizzes);
 
   return { quizzes, stats, loading, error };
 };
