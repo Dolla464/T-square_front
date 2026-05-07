@@ -635,10 +635,16 @@
   color: #666;
 }
 
-.result-message {
+.result-messageSucsses {
   font-size: 1.1rem;
   font-weight: 600;
   color: #22c55e;
+  margin: 0 0 32px 0;
+}
+.result-messageFailed {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ef4444;
   margin: 0 0 32px 0;
 }
 
@@ -929,7 +935,7 @@
     grid-template-columns: repeat(2, 1fr);
   }
   .stats-grid-quizzes {
-    grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   }
   .courses-grid,
   .quizzes-grid {

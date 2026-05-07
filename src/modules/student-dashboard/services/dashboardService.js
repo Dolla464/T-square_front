@@ -19,8 +19,15 @@ export const showStudentCertificate = (certificate_id) =>
   axiosClient.get(`/student/certificates/${certificate_id}`);
 
 
+// الكويزات و الاختبارات و الاجابات بتاعتهم
+export const getStudentExams = () => axiosClient.get("/exams");
 
+export const startExam = (examId) => axiosClient.post("/exams/start", { exam_id: examId });
 
+export const saveExamAnswer = (payload) => axiosClient.post("/exams/save-answer", payload);
+
+// Submit uses the attempt_id (not exam_id) so backend can authorize ownership
+export const submitExam = (attemptId) => axiosClient.post(`/exams/${attemptId}/submit`);
 
 
 /**

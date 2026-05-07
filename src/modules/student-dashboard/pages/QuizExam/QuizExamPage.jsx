@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { QUIZ_EXAMS } from "../../data/dashboardMockData";
 import { toastCustom } from "../../../../components/shared/Toaster/toaster";
+import { useExam } from "../../hooks/useExam";
 import "../../styles/dashboardShared.css";
 
 /**
@@ -15,13 +15,19 @@ function QuizExamPage() {
   const { i18n } = useTranslation("studentDashboard");
   const isArabic = i18n.language === "ar";
 
-  const quiz = QUIZ_EXAMS[parseInt(quizId)];
-  const questions = quiz?.questions || [];
+  const { exam, loading, error, startExam, saveAnswer, submitExam, submitting } = useExam(quizId);
+
+  useEffect(() => {
+    startExam();
+  }, [quizId]);
+
+  const questions = exam?.questions || [];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [showResult, setShowResult] = useState(false);
+  const [scoreResult, setScoreResult] = useState(null);
 
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
@@ -31,68 +37,81 @@ function QuizExamPage() {
     setSelectedAnswer(index);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // CRITICAL GUARD: must have a valid attempt before any action
+    if (!exam?.attempt_id) {
+      toastCustom({
+        message: isArabic ? "الاختبار لم يُبدأ بعد، انتظر قليلاً" : "Exam not ready yet, please wait",
+        type: "error",
+        bsIcon: "bi-x-circle",
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (currentQuestion && selectedAnswer !== null) {
+      const choiceId = currentQuestion.choices[selectedAnswer].id;
+      await saveAnswer(currentQuestion.id, choiceId);
+    }
+
     const newAnswers = [...answers, selectedAnswer];
     setAnswers(newAnswers);
     setSelectedAnswer(null);
 
     if (isLastQuestion) {
-      setShowResult(true);
+      try {
+        // Pass attempt_id to submit — NOT examId
+        const result = await submitExam(exam.attempt_id);
+
+        setScoreResult(result.results);
+        setShowResult(true);
+      } catch (err) {
+        toastCustom({
+          message: isArabic ? "حدث خطأ أثناء إرسال الإجابات" : "Failed to submit exam",
+          type: "error",
+          bsIcon: "bi-x-circle",
+          duration: 3000,
+        });
+      }
     } else {
       setCurrentIndex(currentIndex + 1);
     }
   };
-
-  const calculateScore = useMemo(() => {
-    let correct = 0;
-    questions.forEach((q, idx) => {
-      if (answers[idx] === q.correctAnswerIndex) {
-        correct++;
-      }
-    });
-    return { correct, total: totalQuestions };
-  }, [answers, questions, totalQuestions]);
 
   const handleExit = () => {
     navigate("/student/quizzes");
   };
 
   const handleFinishWithToast = () => {
-    // حساب النتيجة
-    const { correct, total } = calculateScore;
-    const percentage = Math.round((correct / total) * 100);
-
-    // عرض التوست بناءً على النتيجة
-    if (percentage >= 60) {
-      toastCustom({
-        message: isArabic
-          ? "تم إنهاء الاختبار بنجاح!"
-          : "Quiz completed successfully!",
-        type: "success",
-        bsIcon: "bi-check2-circle",
-        duration: 3000,
-      });
-    } else {
-      toastCustom({
-        message: isArabic
-          ? "حاول مرة أخرى لتحسين نتيجتك"
-          : "Try again to improve your score",
-        type: "warning",
-        bsIcon: "bi-exclamation-triangle",
-        duration: 3000,
-      });
-    }
-
+    const isFailed = scoreResult?.status === "failed";
+    toastCustom({
+      message: isFailed
+        ? isArabic ? "لم تجتز الاختبار، حاول مرة أخرى" : "You did not pass. Better luck next time!"
+        : isArabic ? "مبروك! اجتزت الاختبار بنجاح" : "Congratulations! You passed the exam!",
+      type: isFailed ? "error" : "success",
+      bsIcon: isFailed ? "bi-x-circle" : "bi-check2-circle",
+      duration: 4000,
+    });
     handleExit();
   };
 
-  if (!quiz) {
+  if (loading) {
+    return (
+      <div className="quiz-exam-page">
+        <div className="quiz-exam-container d-flex justify-content-center align-items-center" style={{ minHeight: "300px" }}>
+          <div className="spinner-border text-primary" role="status"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || (!loading && !exam)) {
     return (
       <div className="quiz-exam-page">
         <div className="quiz-exam-container">
           <div className="quiz-exam-placeholder">
             <i className="bi bi-exclamation-circle placeholder-icon"></i>
-            <h5>{isArabic ? "الكويز غير موجود" : "Quiz not found"}</h5>
+            <h5>{isArabic ? "الكويز غير موجود أو حدث خطأ" : "Quiz not found or error occurred"}</h5>
             <button className="btn-continue" onClick={handleExit}>
               <i className="bi bi-arrow-left me-1"></i>
               {isArabic ? "العودة" : "Back"}
@@ -104,64 +123,87 @@ function QuizExamPage() {
   }
 
   if (showResult) {
-    const { correct, total } = calculateScore;
-    const percentage = Math.round((correct / total) * 100);
+    const isFailed = scoreResult?.status === "failed";
+    const percentage = parseFloat(scoreResult?.percentage) || 0;
+
+    // Semicircle geometry:
+    // radius=80, circumference of HALF circle = π * r ≈ 251.2
+    const HALF_CIRC = Math.PI * 80; // ≈ 251.33
+    const filled = (percentage / 100) * HALF_CIRC;
+    const strokeColor = isFailed ? "#ef4444" : "#22c55e";
 
     return (
       <div className="quiz-result-overlay">
         <div className="quiz-result-content">
-          {/* عنوان النتيجة */}
           <h4 className="result-title">
             {isArabic ? "نتيجتك" : "Your Result"}
           </h4>
 
-          {/* دائرة.progress الدائرية مع نسبة مئوية */}
-          <div className="result-circle-wrap">
+          {/* Animated Half-Circle gauge */}
+          <div className="result-circle-wrap" style={{ height: 130, marginBottom: 8 }}>
             <svg
-              className="result-circle-svg"
-              viewBox="0 0 100 100"
+              viewBox="0 0 200 110"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ width: "100%", height: "100%", overflow: "visible" }}
             >
-              {/* خلفية الدائرة */}
-              <circle
-                className="result-circle-bg"
-                cx="50"
-                cy="50"
-                r="45"
+              {/* Background track — open bottom semicircle */}
+              <path
+                d="M 20 100 A 80 80 0 0 1 180 100"
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth="14"
+                strokeLinecap="round"
               />
-              {/* الدائرة التي تملئ */}
-              <circle
-                className="result-circle-progress"
-                cx="50"
-                cy="50"
-                r="45"
-                strokeDasharray={`${percentage * 2.83} 283`}
+              {/* Animated progress arc */}
+              <path
+                d="M 20 100 A 80 80 0 0 1 180 100"
+                fill="none"
+                stroke={strokeColor}
+                strokeWidth="14"
+                strokeLinecap="round"
+                strokeDasharray={`${filled} ${HALF_CIRC}`}
+                style={{
+                  transition: "stroke-dasharray 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                }}
               />
+              {/* Score text inside the arc */}
+              <text
+                x="100"
+                y="82"
+                textAnchor="middle"
+                fontSize="32"
+                fontWeight="800"
+                fill="#1a1a1a"
+              >
+                {scoreResult?.score ?? 0}
+              </text>
+              <text
+                x="100"
+                y="100"
+                textAnchor="middle"
+                fontSize="13"
+                fontWeight="500"
+                fill="#999"
+              >
+                / {scoreResult?.total_marks}
+              </text>
             </svg>
-            <div className="result-circle-text">
-              <span className="result-score">{correct}</span>
-              <span className="result-divider">/</span>
-              <span className="result-total">{total}</span>
-            </div>
           </div>
 
-          {/* رسالة النتيجة */}
-          <p className="result-message">
-            {percentage >= 70
-              ? isArabic
-                ? "عمل رائع!"
-                : "Excellent!"
-              : percentage >= 60
-                ? isArabic
-                  ? "جيد!"
-                  : "Good job!"
-                : isArabic
-                  ? "حاول مرة أخرى"
-                  : "Keep practicing!"}
+          {/* Percentage label */}
+          <p style={{ fontSize: "1.4rem", fontWeight: 700, color: strokeColor, margin: "0 0 6px" }}>
+            {scoreResult?.percentage}
           </p>
 
-          {/* زر الخروج */}
+          {/* Status label */}
+          <p className={isFailed ? "result-messageFailed" : "result-messageSucsses"}>
+            {isFailed
+              ? isArabic ? "رسبت - لم تجتز الحد الأدنى" : "Failed — Below passing mark"
+              : isArabic ? "مبروك! تجاوزت الحد الأدنى" : "Passed — Above passing mark"}
+          </p>
+
           <button
-            className="btn-continue btn-exit"
+            className="btn-continue btn-exit mt-2"
             onClick={handleFinishWithToast}
           >
             <i className="bi bi-arrow-left me-2"></i>
@@ -194,29 +236,32 @@ function QuizExamPage() {
         </div>
 
         <div className="quiz-question">
-          <h5 className="question-text">{currentQuestion?.question}</h5>
+          <h5 className="question-text">{currentQuestion?.question_text || currentQuestion?.question}</h5>
         </div>
 
         <div className="quiz-options">
-          {currentQuestion?.options.map((option, idx) => (
+          {currentQuestion?.choices?.map((choice, idx) => (
             <button
-              key={idx}
+              key={choice.id}
               className={`quiz-option ${selectedAnswer === idx ? "selected" : ""}`}
               onClick={() => handleSelectAnswer(idx)}
             >
               <span className="option-letter">
                 {String.fromCharCode(65 + idx)}
               </span>
-              <span className="option-text">{option}</span>
+              <span className="option-text">{choice.choice_text}</span>
             </button>
           ))}
         </div>
 
         <button
           className="btn-continueQuiz"
-          disabled={selectedAnswer === null}
+          disabled={selectedAnswer === null || submitting || !exam?.attempt_id}
           onClick={handleNext}
         >
+          {submitting ? (
+            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          ) : null}
           {isLastQuestion
             ? isArabic
               ? "إنهاء"
