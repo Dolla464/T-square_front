@@ -62,7 +62,8 @@ function QuizExamPage() {
       try {
         // Pass attempt_id to submit — NOT examId
         const result = await submitExam(exam.attempt_id);
-        setScoreResult(result);
+
+        setScoreResult(result.results);
         setShowResult(true);
       } catch (err) {
         toastCustom({
@@ -82,15 +83,15 @@ function QuizExamPage() {
   };
 
   const handleFinishWithToast = () => {
+    const isFailed = scoreResult?.status === "failed";
     toastCustom({
-      message: isArabic
-        ? "تم إنهاء الاختبار بنجاح!"
-        : "Quiz completed successfully!",
-      type: "success",
-      bsIcon: "bi-check2-circle",
-      duration: 3000,
+      message: isFailed
+        ? isArabic ? "لم تجتز الاختبار، حاول مرة أخرى" : "You did not pass. Better luck next time!"
+        : isArabic ? "مبروك! اجتزت الاختبار بنجاح" : "Congratulations! You passed the exam!",
+      type: isFailed ? "error" : "success",
+      bsIcon: isFailed ? "bi-x-circle" : "bi-check2-circle",
+      duration: 4000,
     });
-
     handleExit();
   };
 
@@ -122,6 +123,15 @@ function QuizExamPage() {
   }
 
   if (showResult) {
+    const isFailed = scoreResult?.status === "failed";
+    const percentage = parseFloat(scoreResult?.percentage) || 0;
+
+    // Semicircle geometry:
+    // radius=80, circumference of HALF circle = π * r ≈ 251.2
+    const HALF_CIRC = Math.PI * 80; // ≈ 251.33
+    const filled = (percentage / 100) * HALF_CIRC;
+    const strokeColor = isFailed ? "#ef4444" : "#22c55e";
+
     return (
       <div className="quiz-result-overlay">
         <div className="quiz-result-content">
@@ -129,16 +139,71 @@ function QuizExamPage() {
             {isArabic ? "نتيجتك" : "Your Result"}
           </h4>
 
-          <div className="result-circle-wrap">
-             <i className="bi bi-check-circle-fill text-success" style={{ fontSize: "5rem" }}></i>
+          {/* Animated Half-Circle gauge */}
+          <div className="result-circle-wrap" style={{ height: 130, marginBottom: 8 }}>
+            <svg
+              viewBox="0 0 200 110"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ width: "100%", height: "100%", overflow: "visible" }}
+            >
+              {/* Background track — open bottom semicircle */}
+              <path
+                d="M 20 100 A 80 80 0 0 1 180 100"
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth="14"
+                strokeLinecap="round"
+              />
+              {/* Animated progress arc */}
+              <path
+                d="M 20 100 A 80 80 0 0 1 180 100"
+                fill="none"
+                stroke={strokeColor}
+                strokeWidth="14"
+                strokeLinecap="round"
+                strokeDasharray={`${filled} ${HALF_CIRC}`}
+                style={{
+                  transition: "stroke-dasharray 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                }}
+              />
+              {/* Score text inside the arc */}
+              <text
+                x="100"
+                y="82"
+                textAnchor="middle"
+                fontSize="32"
+                fontWeight="800"
+                fill="#1a1a1a"
+              >
+                {scoreResult?.score ?? 0}
+              </text>
+              <text
+                x="100"
+                y="100"
+                textAnchor="middle"
+                fontSize="13"
+                fontWeight="500"
+                fill="#999"
+              >
+                / {scoreResult?.total_marks}
+              </text>
+            </svg>
           </div>
 
-          <p className="result-message mt-3">
-             {isArabic ? "تم إرسال إجاباتك بنجاح!" : "Your answers have been submitted successfully!"}
+          {/* Percentage label */}
+          <p style={{ fontSize: "1.4rem", fontWeight: 700, color: strokeColor, margin: "0 0 6px" }}>
+            {scoreResult?.percentage}
+          </p>
+
+          {/* Status label */}
+          <p className={isFailed ? "result-messageFailed" : "result-messageSucsses"}>
+            {isFailed
+              ? isArabic ? "رسبت - لم تجتز الحد الأدنى" : "Failed — Below passing mark"
+              : isArabic ? "مبروك! تجاوزت الحد الأدنى" : "Passed — Above passing mark"}
           </p>
 
           <button
-            className="btn-continue btn-exit mt-4"
+            className="btn-continue btn-exit mt-2"
             onClick={handleFinishWithToast}
           >
             <i className="bi bi-arrow-left me-2"></i>
@@ -195,7 +260,7 @@ function QuizExamPage() {
           onClick={handleNext}
         >
           {submitting ? (
-             <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
           ) : null}
           {isLastQuestion
             ? isArabic

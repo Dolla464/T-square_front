@@ -39,14 +39,15 @@ export const useExam = (examId) => {
   };
 
   const submitExam = async (attemptId) => {
-    // CRITICAL: submit uses attempt_id, NOT examId
-    // The backend route is /exams/{attempt_id}/submit
     if (!attemptId) {
       throw new Error("Cannot submit: attempt_id is missing");
     }
+
     try {
       setSubmitting(true);
+
       const res = await submitExamApi(attemptId);
+
       return res.data;
     } catch (err) {
       console.error("Submit failed:", err);

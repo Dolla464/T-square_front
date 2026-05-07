@@ -16,7 +16,7 @@ function NotificationsPage() {
   const {
     notificationsData,
     loading,
-    handleMarkAsRead,
+    handleMarkAsRead, 
     markNotificationAllRead,
   } = useNotifications();
 
