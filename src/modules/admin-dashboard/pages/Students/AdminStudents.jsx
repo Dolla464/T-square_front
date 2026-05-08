@@ -446,11 +446,11 @@ function AdminStudents() {
                       <Pagination.Ellipsis key={`ellipsis-${i}`} disabled />
                     ) : (
                       <Pagination.Item
-                        key={apiPagination.current_page}
-                        active={page === apiPagination.current_page}
-                        onClick={() => handlePageChange(apiPagination.current_page)}
+                        key={page}
+                        active
+                        onClick={() => handlePageChange(page)}
                       >
-                        {apiPagination.current_page}
+                        {page}
                       </Pagination.Item>
                     )
                   ))}

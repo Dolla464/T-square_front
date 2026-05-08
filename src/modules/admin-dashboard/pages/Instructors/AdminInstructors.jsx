@@ -441,7 +441,7 @@ function AdminInstructors() {
                   {[...Array(apiPagination.last_page)].map((_, i) => (
                     <Pagination.Item
                       key={i + 1}
-                      active={i + 1 === currentPage}
+                      active
                       onClick={() => handlePageChange(i + 1)}
                     >
                       {i + 1}

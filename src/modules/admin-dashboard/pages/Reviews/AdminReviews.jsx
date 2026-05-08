@@ -280,15 +280,12 @@ function AdminReviews() {
               disabled={pagination.currentPage === 1}
               onClick={() => handlePageChange(pagination.currentPage - 1)}
             />
-            {[...Array(pagination.lastPage)].map((_, i) => (
               <Pagination.Item
-                key={i + 1}
-                active={i + 1 === pagination.currentPage}
-                onClick={() => handlePageChange(i + 1)}
+                key={pagination.currentPage}
+                active
               >
-                {i + 1}
+                {pagination.currentPage}
               </Pagination.Item>
-            ))}
             <Pagination.Next
               disabled={pagination.currentPage === pagination.lastPage}
               onClick={() => handlePageChange(pagination.currentPage + 1)}
