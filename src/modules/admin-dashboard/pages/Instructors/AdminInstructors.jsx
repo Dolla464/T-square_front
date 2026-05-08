@@ -41,7 +41,6 @@ function AdminInstructors() {
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
-  const [activeTab, setActiveTab] = useState("view");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [formData, setFormData] = useState(defaultFormData);
@@ -302,7 +301,7 @@ function AdminInstructors() {
                       </option>
                     </select>
 
-                   
+
                   </div>
                 </div>
                 <table className="table ac-table mb-0 align-middle" dir="ltr">
@@ -539,8 +538,8 @@ function AdminInstructors() {
               )}
 
               {/* التخصص والجنس */}
-              <div className="row mb-4">
-                <div className="col-md-6 mb-3 mb-md-0">
+              <div className="row mb-4 ">
+                <div className={`mb-3 mb-md-0 ${editingItem ? 'col-12' : 'col-md-6'}`}>
                   <label className="form-label fw-bold text-dark">{isArabic ? "التخصص" : "Field/Specialty"}</label>
                   <input
                     type="text"
@@ -552,11 +551,11 @@ function AdminInstructors() {
                     disabled={!!viewingItem}
                   />
                 </div>
-                <div className="col-md-6">
+                <div className={`col-md-6 ${editingItem && 'd-none'}`}>
                   <label className="form-label fw-bold text-dark">{isArabic ? "الجنس" : "Gender"}</label>
                   <select
                     name="gender"
-                    className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
+                    className={`form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted `}
                     value={formData.gender}
                     onChange={handleChange}
                     disabled={!!viewingItem}
