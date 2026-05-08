@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import DashboardCard from "./DashboardCard";
+import QuizCard from "./QuizCard";
 
 /**
  * مكون مشترك لعرض قسم الكورسات أو الكويزات
@@ -34,10 +35,16 @@ function DashboardItemsSection({
           <i className={`bi ${emptyIcon} ${emptyClassName}-icon`}></i>
           <p>{isArabic ? "لا توجد نتائج" : "No results found"}</p>
         </div>
-      ) : (
+      ) : type === "course" ? (
         <div className={`${type === "course" ? "courses-grid" : "quizzes-grid"}`}>
           {items.map((item) => (
             <DashboardCard key={item.id} item={item} type={type} t={t} />
+          ))}
+        </div>
+      ) : (
+        <div className="quizzes-grid">
+          {items.map((item) => (
+            <QuizCard key={item.id} quiz={item} t={t} />
           ))}
         </div>
       )}

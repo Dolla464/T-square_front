@@ -10,6 +10,7 @@ import "./Navbar.css";
 
 import logoWhite from "../../assets/logo-white.png";
 import logoDark from "../../assets/logo-dark.png";
+import { isArabic } from "../../i18n";
 
 function AppNavbar({ isLoggedIn, userName }) {
   const { t, i18n } = useTranslation(["navbar", "common", "user"]);
@@ -17,7 +18,7 @@ function AppNavbar({ isLoggedIn, userName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, userProfile } = useAuth();
 
   const handleLogout = async () => {
     // عرض نافذة التأكيد قبل تسجيل الخروج
@@ -198,9 +199,8 @@ function AppNavbar({ isLoggedIn, userName }) {
 
           <div className="d-flex align-items-center gap-3">
             <div
-              className={`d-flex align-items-center cursor-pointer lang-switch ${
-                Tbtn
-              }`}
+              className={`d-flex align-items-center cursor-pointer lang-switch ${Tbtn
+                }`}
               onClick={toggleLanguage}
             >
               <HiOutlineGlobeAlt size={20} className="me-1" />
@@ -232,15 +232,23 @@ function AppNavbar({ isLoggedIn, userName }) {
               </div>
             ) : (
               <div
-                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${
-                  isDarkMode ? "border-dark" : "border-light"
-                }`}
+                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${isDarkMode ? "border-dark" : "border-light"
+                  }`}
               >
                 <div
-                  className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold"
+                  className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden"
                   style={{ width: "35px", height: "35px" }}
                 >
-                  {userName ? userName.charAt(0).toUpperCase() : "U"}
+                  {userProfile?.student?.avatar || userProfile?.instructor?.avatar ? (
+                    <img
+                      src={userProfile?.student?.avatar || userProfile?.instructor?.avatar}
+                      alt={userName}
+                      className="w-100 h-100"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  ) : (
+                    userName ? userName.charAt(0).toUpperCase() : "U"
+                  )}
                 </div>
 
                 {/* الإشعار لو الحساب مش متفعل */}
@@ -265,13 +273,23 @@ function AppNavbar({ isLoggedIn, userName }) {
                   align="end"
                   className={`fw-bold ${Tbtn}`}
                 >
-                  <NavDropdown.Item as={Link} to="/student">
-                    {t("user:profile")}
-                  </NavDropdown.Item>
-                  <NavDropdown.Divider />
-                  <NavDropdown.Item as={Link} to="/student">
-                    {t("user:my_courses")}
-                  </NavDropdown.Item>
+
+                  {user.role == "student" ?
+                    (<>
+                      <NavDropdown.Item as={Link} to="/student">
+                        {t("user:profile")}
+                      </NavDropdown.Item>
+                      <NavDropdown.Divider />
+                      <NavDropdown.Item as={Link} to="/student">
+                        {t("user:my_courses")}
+                      </NavDropdown.Item>
+                    </>
+                    ) : (<>
+                      <NavDropdown.Item as={Link} to="/admin">
+                        {isArabic() ? "لوحة التحكم" : "Admin Dashboard"}
+                      </NavDropdown.Item>
+
+                    </>)}
                   <NavDropdown.Divider />
                   <NavDropdown.Item
                     className="text-danger"

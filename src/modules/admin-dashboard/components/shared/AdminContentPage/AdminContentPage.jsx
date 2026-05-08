@@ -13,78 +13,40 @@ function AdminContentPage({ type, useDataHook }) {
   const { t } = useTranslation("adminDashboard");
 
   // تحديد النصوص والتسميات بناءً على النوع
-  const title =
-    type === "course" ? t("content.course_title") : t("content.solution_title");
-  const subtitle =
-    type === "course"
-      ? t("content.course_subtitle")
-      : t("content.solution_subtitle");
-  const addBtnText =
-    type === "course" ? t("content.add_course") : t("content.add_solution");
+  const title = t("content.solution_title");
+  const subtitle = t("content.solution_subtitle");
+  const addBtnText = t("content.add_solution");
 
   // Hook البيانات (يتم استدعاء الدالة الممررة)
   const hookData = useDataHook();
 
-  const data = hookData.solutions || hookData.courses || [];
-  const getData = hookData.getSolutions || hookData.getCourses;
-  const createData = hookData.createSolution || hookData.createCourse;
-  const updateData = hookData.updateSolution || hookData.updateCourse;
-  const deleteData = hookData.deleteSolution || hookData.deleteCourse;
+  const data = hookData.solutions || [];
+  const getData = hookData.getSolutions;
+  const createData = hookData.createSolution;
+  const updateData = hookData.updateSolution;
+  const deleteData = hookData.deleteSolution;
+  const apiPagination = hookData.pagination; // { current_page, last_page, total }
 
   const { loading } = hookData;
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
 
-  // تحديث البيانات عند تحميل المكون
-  useEffect(() => {
-    // تعليق: استدعاء الـ API لجلب البيانات.
-    if (getData) {
-      getData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const [showForm, setShowForm] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [viewingItem, setViewingItem] = useState(null);
-
-  // Dummy data for courses until API is ready
-  const dummyCourse = {
-    id: "dummy-1",
-    title: "Full Stack React Laravel",
-    instructor: { name: "Ahmed Hatem", id: "1" },
-    instructor_id: "1",
-    revenue: "450.00 EGY",
-    students_count: 120,
-    image:
-      "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-    description:
-      "Learn React from scratch to pro with hooks, context, and performance optimization secrets. This course covers everything you need to build production-ready apps.",
-    tags: [
-      { id: 1, name: "React" },
-      { id: 2, name: "Frontend" },
-      { id: 3, name: "Laravel" },
-    ],
-    price: "450",
-    discount: "399",
-    category: "1",
-    difficulty: "beginner",
-    is_free: false,
-  };
-
-  const displayData = data;
-
-
-  const totalPages = Math.max(1, Math.ceil(displayData.length / itemsPerPage));
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = displayData.slice(indexOfFirstItem, indexOfLastItem);
+  // Use API pagination when available, fall back to client-side
+  const totalPages = apiPagination?.last_page || Math.max(1, Math.ceil(data.length / 10));
+  const displayData = data; // API already returns paginated slice
 
   const pagination = {
-    currentPage,
+    currentPage: apiPagination?.current_page || currentPage,
     lastPage: totalPages,
   };
+
+  // تحديث البيانات عند تحميل المكون أو تغيير الصفحة
+  useEffect(() => {
+    if (getData) {
+      getData({ page: currentPage });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -94,7 +56,11 @@ function AdminContentPage({ type, useDataHook }) {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [type, data]);
+  }, [type]);
+
+  const [showForm, setShowForm] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [viewingItem, setViewingItem] = useState(null);
 
   const handleAddNew = () => {
     setViewingItem(null);
@@ -167,7 +133,7 @@ function AdminContentPage({ type, useDataHook }) {
             {/* Table Component */}
             <AdminContentTable
               type={type}
-              data={currentItems}
+              data={displayData}
               loading={loading}
               onView={handleView}
               onEdit={handleEdit}

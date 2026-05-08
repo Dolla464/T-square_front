@@ -24,7 +24,7 @@ function DashboardSharedLayout({
   pageTitle,
 }) {
   const { t, i18n } = useTranslation([translationNs, "studentDashboard"]);
-  const { user, logout } = useAuth();
+  const { user, logout, userProfile } = useAuth();
   const isAdmin = user.role == "admin";
   const navigate = useNavigate();
   const location = useLocation();
@@ -148,13 +148,13 @@ function DashboardSharedLayout({
                 {t(`${translationNs}:course.back_to_courses`)}
               </button>
             ) : (
-              <button
-                className="sidebar-toggle-btn"
-                onClick={() => setSidebarOpen(true)}
-                aria-label="Open menu"
-              >
-                <i className="bi bi-list"></i>
-              </button>
+                <button
+                  className="sidebar-toggle-btn"
+                  onClick={() => setSidebarOpen(true)}
+                  aria-label="Open menu"
+                >
+                  <i className="bi bi-list"></i>
+                </button>
             )}
 
             {/* 🔥 Page Title هنا في الشمال */}
@@ -209,7 +209,18 @@ function DashboardSharedLayout({
               }
               title={userRoleName === "Student" ? "Profile & Settings" : ""}
             >
-              <div className="topbar-avatar">{initials}</div>
+              <div className="topbar-avatar">
+                {userProfile?.student?.avatar || userProfile?.instructor?.avatar ? (
+                  <img 
+                    src={userProfile?.student?.avatar || userProfile?.instructor?.avatar} 
+                    alt={user?.name} 
+                    className="w-100 h-100 rounded-circle" 
+                    style={{ objectFit: 'cover' }} 
+                  />
+                ) : (
+                  initials
+                )}
+              </div>
               <div className="topbar-user-info">
                 <span className="topbar-user-name">{user?.name || "User"}</span>
                 <span className="topbar-user-role">{userRoleName}</span>

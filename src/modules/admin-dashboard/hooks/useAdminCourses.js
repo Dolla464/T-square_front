@@ -13,6 +13,7 @@ export const useAdminCourses = () => {
   const { t } = useTranslation(["common", "adminDashboard"]);
   const [courses, setCourses] = useState([]);
   const [course, setCourse] = useState(null);
+  const [pagination, setPagination] = useState(null); // API meta
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -21,15 +22,20 @@ export const useAdminCourses = () => {
     setError(null);
     try {
       const response = await fetchCourses(params);
-      const data = response?.data?.data || response?.data || response;
+      // API returns: { data: [...], meta: { current_page, last_page, total, ... } }
+      const data = response?.data || [];
+      const meta = response?.meta || null;
       setCourses(Array.isArray(data) ? data : []);
-      return data;
+      setPagination(meta);
+      return { data, meta };
     } catch (err) {
       console.error("Error fetching courses:", err);
       // eslint-disable-next-line
       const errorMsg = err.response?.data?.message || t("adminDashboard:errors.fetch_failed", "Failed to fetch data");
       setError(errorMsg);
       toastError(errorMsg);
+      console.log(err.response);
+
     } finally {
       setLoading(false);
     }
@@ -40,6 +46,7 @@ export const useAdminCourses = () => {
     setError(null);
     try {
       const response = await fetchCourseById(id);
+      // API returns: { data: {...} }
       const data = response?.data || response;
       setCourse(data);
       return data;
@@ -68,6 +75,8 @@ export const useAdminCourses = () => {
       const errorMsg = err.response?.data?.message || t("adminDashboard:errors.create_failed", "Failed to create");
       setError(errorMsg);
       toastError(errorMsg);
+      console.log(err.response);
+
       throw err;
     } finally {
       setLoading(false);
@@ -88,6 +97,8 @@ export const useAdminCourses = () => {
       const errorMsg = err.response?.data?.message || t("adminDashboard:errors.update_failed", "Failed to update");
       setError(errorMsg);
       toastError(errorMsg);
+      console.log(err.response);
+
       throw err;
     } finally {
       setLoading(false);
@@ -117,6 +128,7 @@ export const useAdminCourses = () => {
   return {
     courses,
     course,
+    pagination, // { current_page, last_page, total, per_page, ... }
     loading,
     error,
     getCourses,
