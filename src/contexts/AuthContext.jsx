@@ -1,10 +1,12 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios"; // تأكد من تثبيت axios
+import axiosClient from "../api/axios";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -19,6 +21,21 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
+  };
+
+  const fetchUserProfile = async (tokenToUse) => {
+    try {
+      const response = await axiosClient.get("/profile", {
+        headers: {
+          Authorization: `Bearer ${tokenToUse}`
+        }
+      });
+      if (response.data.status === "success") {
+        setUserProfile(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user profile:", error);
+    }
   };
 
   useEffect(() => {
@@ -37,6 +54,7 @@ export const AuthProvider = ({ children }) => {
       setToken(finalToken);
       try {
         setUser(JSON.parse(finalUser));
+        fetchUserProfile(finalToken);
       } catch (e) {
         console.error("Failed to parse user data from storage", e);
         // تنظيف البيانات التالفة
@@ -57,6 +75,9 @@ export const AuthProvider = ({ children }) => {
     const storage = getStorage(rememberMe);
     storage.setItem("token", token);
     storage.setItem("user", JSON.stringify(user));
+    
+    // جلب بيانات البروفايل بعد اللوج ان
+    fetchUserProfile(token);
   };
 
   const updateUser = (updatedUser) => {
@@ -90,6 +111,7 @@ export const AuthProvider = ({ children }) => {
       // تنظيف كل شيء من الجهاز (الفرونت إيند)
       setToken(null);
       setUser(null);
+      setUserProfile(null);
       clearAllStorage();
     }
   };
@@ -98,10 +120,12 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        userProfile,
         token,
         login,
         logout,
         updateUser,
+        fetchUserProfile,
         loading,
         isLoggedIn: !!token,
       }}

@@ -17,7 +17,7 @@ function AppNavbar({ isLoggedIn, userName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, userProfile } = useAuth();
 
   const handleLogout = async () => {
     // عرض نافذة التأكيد قبل تسجيل الخروج
@@ -237,10 +237,19 @@ function AppNavbar({ isLoggedIn, userName }) {
                 }`}
               >
                 <div
-                  className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold"
+                  className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden"
                   style={{ width: "35px", height: "35px" }}
                 >
-                  {userName ? userName.charAt(0).toUpperCase() : "U"}
+                  {userProfile?.student?.avatar || userProfile?.instructor?.avatar ? (
+                    <img 
+                      src={userProfile?.student?.avatar || userProfile?.instructor?.avatar} 
+                      alt={userName} 
+                      className="w-100 h-100" 
+                      style={{ objectFit: 'cover' }} 
+                    />
+                  ) : (
+                    userName ? userName.charAt(0).toUpperCase() : "U"
+                  )}
                 </div>
 
                 {/* الإشعار لو الحساب مش متفعل */}
