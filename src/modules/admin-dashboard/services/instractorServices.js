@@ -20,7 +20,7 @@ export const getInstructorById = async (id) => {
 // إنشاء instructor
 // ----------------------------------------------------------------------------
 export const createInstructor = async (data) => {
-    const response = await axiosClient.post("/admin/instructors", data);
+    const response = await axiosClient.post("/admin/users", data);
     return response.data;
 };
 

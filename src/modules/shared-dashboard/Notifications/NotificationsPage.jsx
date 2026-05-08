@@ -14,18 +14,14 @@ function NotificationsPage() {
 
   // state الإشعارات
   const {
-    notificationsData,
+    notificationsData: rawNotificationsData,
     loading,
     handleMarkAsRead, 
     markNotificationAllRead,
   } = useNotifications();
 
-  /**
-   * عدد الإشعارات غير المقروءة
-   */
-  const unreadCount = useMemo(() => {
-    return notificationsData.filter((n) => !n.is_read).length;
-  }, [notificationsData]);
+  const notificationsData = rawNotificationsData.data;
+  const unreadCount = rawNotificationsData.unread_count;
 
   /**
    * ترتيب الإشعارات (الأحدث أولاً)

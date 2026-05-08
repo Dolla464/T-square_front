@@ -83,22 +83,22 @@ const defaultFormData = {
   slug: "",
   short_description: "",
   description: "",
-  category: "",
-  instructor: "",
-  difficulty: "",
-  language: "",
-  attendance_type: "Online",
+  category_id: "",
+  instructor_id: "",
+  level: "beginner",
+  language: "Arabic",
+  attendance_type: "online",
   price: "",
   price_before: "",
-  discount: "",
+  discount_price: "",
   duration_weeks: "",
   duration_hours: "",
   status: "draft",
-  is_published: false,
   is_featured: false,
   is_free: false,
-  enable_comments: false,
-  has_certificate: false,
+  preview_video: "",
+  google_drive_link: "",
+  published_at: "",
   tags: [],
   curriculum: [createSection()],
 };
@@ -125,7 +125,8 @@ function AdminCourses() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [formData, setFormData] = useState(defaultFormData);
-  const [file, setFile] = useState(null);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [coverFile, setCoverFile] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const { tags: availableTags, getTags } = useTags();
@@ -135,10 +136,24 @@ function AdminCourses() {
   useEffect(() => {
     getCourses({
       page: currentPage,
-      search: searchTerm,
-      status: selectedStatus === "all" ? "" : selectedStatus,
+      // API search and status removed to perform filtering in frontend
     });
-  }, [getCourses, currentPage, searchTerm, selectedStatus]);
+  }, [currentPage, getCourses]);
+
+  const filteredCourses = (courses || []).filter((course) => {
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch =
+      !searchTerm ||
+      course.title?.toLowerCase().includes(searchLower) ||
+      course.short_description?.toLowerCase().includes(searchLower) ||
+      course.instructor?.full_name?.toLowerCase().includes(searchLower) ||
+      course.instructor?.name?.toLowerCase().includes(searchLower);
+
+    const matchesStatus =
+      selectedStatus === "all" || course.status === selectedStatus;
+
+    return matchesSearch && matchesStatus;
+  });
 
   useEffect(() => {
     setCurrentPage(1);
@@ -156,35 +171,38 @@ function AdminCourses() {
     setViewingItem(null);
     setEditingItem(null);
     setFormData(defaultFormData);
-    setFile(null);
+    setThumbnailFile(null);
+    setCoverFile(null);
     setActiveTab("basic");
     setShowForm(true);
   };
 
   const mapItemToFormData = (item) => {
     return {
-      title: item.title || item.name || "",
+      title: item.title || "",
       slug: item.slug || "",
       short_description: item.short_description || "",
       description: item.description || "",
-      category: item.category_id || item.category?.id || "",
-      instructor: item.instructor_id || item.instructor?.id || "",
-      difficulty: item.level || "",
-      language: item.language || "",
-      attendance_type: item.attendance_type || "Online",
+      category_id: item.category_id || item.category?.id || "",
+      instructor_id: item.instructor_id || item.instructor?.id || "",
+      level: item.level || "beginner",
+      language: item.language || "Arabic",
+      attendance_type: item.attendance_type || "online",
       price: item.price || "",
       price_before: item.price_before || "",
-      discount: item.discount_price || "",
+      discount_price: item.discount_price || "",
       duration_weeks: item.duration_weeks || "",
       duration_hours: item.duration_hours || "",
       status: item.status || "draft",
-      is_published: item.is_published || item.status === "published" || false,
       is_featured: item.is_featured || false,
       is_free: item.is_free || false,
-      enable_comments: item.enable_comments || false,
-      has_certificate: item.has_certificate || false,
+      preview_video: item.preview_video || "",
+      google_drive_link: item.google_drive_link || "",
+      published_at: item.published_at ? new Date(item.published_at).toISOString().split('T')[0] : "",
       tags: item.tags?.map((tObj) => tObj.tag_id || tObj.id || tObj) || [],
       curriculum: normalizeCurriculum(item.curriculum || item.sections || []),
+      thumbnail: item.thumbnail || null,
+      cover_image: item.cover_image || null,
     };
   };
 
@@ -195,7 +213,8 @@ function AdminCourses() {
     setViewingItem(null);
     setEditingItem(fullCourse);
     setFormData(mapItemToFormData(fullCourse));
-    setFile(null);
+    setThumbnailFile(null);
+    setCoverFile(null);
     setActiveTab("basic");
     setShowForm(true);
   };
@@ -207,7 +226,8 @@ function AdminCourses() {
     setEditingItem(null);
     setViewingItem(fullCourse);
     setFormData(mapItemToFormData(fullCourse));
-    setFile(null);
+    setThumbnailFile(null);
+    setCoverFile(null);
     setActiveTab("basic");
     setShowForm(true);
   };
@@ -240,15 +260,19 @@ function AdminCourses() {
     }));
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e, type = "thumbnail") => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
-    const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
+    const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
     if (!allowedTypes.includes(selectedFile.type)) {
-      alert("Invalid file type");
+      alert("Invalid file type. Please use PNG, JPEG or WEBP.");
       return;
     }
-    setFile(selectedFile);
+    if (type === "thumbnail") {
+      setThumbnailFile(selectedFile);
+    } else {
+      setCoverFile(selectedFile);
+    }
   };
 
   // Curriculum Handlers
@@ -324,44 +348,43 @@ function AdminCourses() {
     setCurrentPage(page);
   };
 
-  const handleSubmitWrapper = async (e, isDraft = false) => {
-    e.preventDefault();
+  const handleSubmitWrapper = async (e, forceStatus = null) => {
+    if (e) e.preventDefault();
 
     // 1. Prepare base data payload matching backend schema
-    // Mapping frontend state names to backend expected keys
     const payload = {
       title: formData.title,
       slug: formData.slug,
       short_description: formData.short_description,
       description: formData.description,
-      category_id: formData.category,
-      instructor_id: formData.instructor,
-      level: formData.difficulty,
+      category_id: formData.category_id,
+      instructor_id: formData.instructor_id,
+      level: formData.level,
       language: formData.language,
       price: formData.price,
       price_before: formData.price_before,
-      discount_price: formData.discount,
+      discount_price: formData.discount_price,
       duration_weeks: formData.duration_weeks,
       duration_hours: formData.duration_hours,
       attendance_type: formData.attendance_type?.toLowerCase(),
-      status: isDraft ? "draft" : (formData.is_published ? "published" : "draft"),
+      status: forceStatus || formData.status || "draft",
       is_featured: formData.is_featured,
       is_free: formData.is_free,
+      preview_video: formData.preview_video,
+      google_drive_link: formData.google_drive_link,
+      published_at: formData.published_at,
       tag_ids: formData.tags && formData.tags.length > 0 ? formData.tags : undefined,
-      thumbnail: file instanceof File ? file : undefined,
     };
+
+    // Add files if selected
+    if (thumbnailFile) payload.thumbnail = thumbnailFile;
+    if (coverFile) payload.cover_image = coverFile;
 
     // 2. Build FormData dynamically using the helper
     const fd = buildFormData(payload);
 
-    // [DEBUG]: Print formData to console for development verification
-    console.group("Course Submit Debug");
-    console.log("Raw Payload:", payload);
-    console.log("FormData Entries:");
-    for (let [key, val] of fd.entries()) {
-      console.log(`${key}:`, val);
-    }
-    console.groupEnd();
+    // [DEBUG]: Print formData to console
+    console.log("Course Payload:", payload);
 
     // 3. Execute the request
     try {
@@ -378,7 +401,6 @@ function AdminCourses() {
         status: selectedStatus === "all" ? "" : selectedStatus,
       });
     } catch (err) {
-      // Errors are typically caught and handled inside the custom hook (e.g., toasts)
       console.error("Submission failed:", err);
     }
   };
@@ -424,9 +446,10 @@ function AdminCourses() {
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                     >
-                      <option value="all">All</option>
+                      <option value="all">All Statuses</option>
                       <option value="published">Published</option>
                       <option value="draft">Draft</option>
+                      <option value="archived">Archived</option>
                     </select>
                   </div>
                 </div>
@@ -450,8 +473,8 @@ function AdminCourses() {
                           </div>
                         </td>
                       </tr>
-                    ) : courses.length > 0 ? (
-                      courses.map((item, index) => (
+                    ) : filteredCourses.length > 0 ? (
+                      filteredCourses.map((item, index) => (
                         <tr key={item.id || index}>
                           <td className="fw-medium text-dark">
                             {item.name || item.title || "Untitled"}
@@ -520,25 +543,23 @@ function AdminCourses() {
               </div>
             </div>
 
-            {/* Pagination */}
-            {apiPagination && apiPagination.lastPage > 1 && (
+            {/* Pagination - Always visible if data exists */}
+            {apiPagination && (
               <div className="d-flex justify-content-center mt-5">
                 <Pagination className="custom-pagination">
                   <Pagination.Prev
                     disabled={currentPage === 1}
                     onClick={() => handlePageChange(currentPage - 1)}
                   />
-                  {[...Array(apiPagination.lastPage)].map((_, i) => (
-                    <Pagination.Item
-                      key={i + 1}
-                      active={i + 1 === currentPage}
-                      onClick={() => handlePageChange(i + 1)}
-                    >
-                      {i + 1}
-                    </Pagination.Item>
-                  ))}
+                  <Pagination.Item
+                    key={currentPage}
+                    active={currentPage === apiPagination.current_page}
+                    onClick={() => handlePageChange(currentPage)}
+                  >
+                    {currentPage}
+                  </Pagination.Item>
                   <Pagination.Next
-                    disabled={currentPage === apiPagination.lastPage}
+                    disabled={currentPage === apiPagination.last_page}
                     onClick={() => handlePageChange(currentPage + 1)}
                   />
                 </Pagination>
@@ -561,19 +582,19 @@ function AdminCourses() {
                     : t("content.add_new_course")}
               </span>
             </button>
-            {!isReadOnly && (
+            {!viewingItem && (
               <div className="ac-form-actions d-flex gap-2">
                 <button
-                  className="btn bg-light px-4 ac-publish-btn"
-                  onClick={(e) => handleSubmitWrapper(e, true)}
+                  className="btn btn-outline-danger px-4"
+                  onClick={(e) => handleSubmitWrapper(e, "draft")}
                 >
-                  {isArabic ? "حفظ ك مسوده" : "Save as a draft"}
+                  {isArabic ? "حفظ كمسودة" : "Save as Draft"}
                 </button>
                 <button
                   className="btn btn-danger px-4 ac-publish-btn"
-                  onClick={(e) => handleSubmitWrapper(e, false)}
+                  onClick={(e) => handleSubmitWrapper(e, "published")}
                 >
-                  {t("content.form.publish")} {t("content.table.course")}
+                  {isArabic ? "نشر الكورس" : "Publish Course"}
                 </button>
               </div>
             )}
@@ -617,7 +638,7 @@ function AdminCourses() {
                     >
                       <img
                         src={
-                          viewingItem?.image ||
+                          formData.thumbnail ||
                           "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
                         }
                         alt={formData.title}
@@ -679,9 +700,9 @@ function AdminCourses() {
                       {t("content.form.fields.category")}
                     </label>
                     <select
-                      name="category"
+                      name="category_id"
                       className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                      value={formData.category}
+                      value={formData.category_id}
                       onChange={handleChange}
                       disabled={isReadOnly}
                     >
@@ -704,9 +725,9 @@ function AdminCourses() {
                       {t("content.form.fields.difficulty")}
                     </label>
                     <select
-                      name="difficulty"
+                      name="level"
                       className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                      value={formData.difficulty}
+                      value={formData.level}
                       onChange={handleChange}
                       disabled={isReadOnly}
                     >
@@ -725,9 +746,9 @@ function AdminCourses() {
                     {t("content.form.fields.instructor")}
                   </label>
                   <select
-                    name="instructor"
+                    name="instructor_id"
                     className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                    value={formData.instructor}
+                    value={formData.instructor_id}
                     onChange={handleChange}
                     disabled={isReadOnly}
                   >
@@ -751,7 +772,7 @@ function AdminCourses() {
                     {t("content.form.fields.course_price")}
                   </label>
                   <div className="input-group">
-                    <span className="input-group-text bg-white border-end-0 text-muted">
+                    <span className="input-group-text bg-white border-end-0  text-muted">
                       $
                     </span>
                     <input
@@ -798,13 +819,15 @@ function AdminCourses() {
                       type="text"
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-end-3"
                       placeholder="0.00"
-                      value={formData.discount}
+                      value={formData.discount_price}
                       onChange={handleChange}
-                      name="discount"
+                      name="discount_price"
                       disabled={isReadOnly}
                     />
                   </div>
                 </div>
+
+
 
                 <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
                   <div>
@@ -904,12 +927,12 @@ function AdminCourses() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleFileChange}
+                      onChange={(e) => handleFileChange(e, "thumbnail")}
                       id="thumbnailUpload"
                       hidden
                     />
 
-                    {!file ? (
+                    {!thumbnailFile && !formData.thumbnail ? (
                       <label
                         htmlFor="thumbnailUpload"
                         className="ac-thumbnail-upload w-100 mt-1 d-flex flex-column align-items-center justify-content-center p-5 text-center text-muted border-2 border-dashed rounded-3 bg-light"
@@ -928,7 +951,7 @@ function AdminCourses() {
                           style={{ height: "200px", maxWidth: "100%" }}
                         >
                           <img
-                            src={URL.createObjectURL(file)}
+                            src={thumbnailFile ? URL.createObjectURL(thumbnailFile) : formData.thumbnail}
                             alt="thumbnail preview"
                             className="img-fluid"
                             style={{ maxHeight: "100%", objectFit: "contain" }}
@@ -945,7 +968,72 @@ function AdminCourses() {
                           <button
                             type="button"
                             className="btn btn-light btn-sm rounded-3 px-3 py-2 text-secondary border"
-                            onClick={() => setFile(null)}
+                            onClick={() => {
+                              setThumbnailFile(null);
+                              setFormData(prev => ({ ...prev, thumbnail: null }));
+                            }}
+                          >
+                            <i className="bi bi-x-lg me-1"></i> {t("content.form.fields.remove")}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!isReadOnly && (
+                  <div className="mb-4">
+                    <label className="form-label fw-bold text-dark">
+                      {isArabic ? "صورة الغلاف (Cover Image)" : "Cover Image"}
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(e, "cover")}
+                      id="coverUpload"
+                      hidden
+                    />
+
+                    {!coverFile && !formData.cover_image ? (
+                      <label
+                        htmlFor="coverUpload"
+                        className="ac-thumbnail-upload w-100 mt-1 d-flex flex-column align-items-center justify-content-center p-5 text-center text-muted border-2 border-dashed rounded-3 bg-light"
+                        style={{ borderStyle: "dashed", borderColor: "#d1d5db", cursor: "pointer" }}
+                      >
+                        <i className="bi bi-cloud-arrow-up fs-1 mb-2 text-secondary"></i>
+                        <p className="mb-1">
+                          {isArabic ? "اضغط لرفع صورة الغلاف" : "Click to upload cover image"}
+                        </p>
+                        <small>{isArabic ? "PNG, JPG أو WEBP (يفضل مقاس كبير)" : "PNG, JPG or WEBP (Large size recommended)"}</small>
+                      </label>
+                    ) : (
+                      <div className="mt-2">
+                        <div
+                          className="ac-thumbnail-preview border rounded-3 overflow-hidden bg-light d-flex align-items-center justify-content-center"
+                          style={{ height: "200px", maxWidth: "100%" }}
+                        >
+                          <img
+                            src={coverFile ? URL.createObjectURL(coverFile) : formData.cover_image}
+                            alt="cover preview"
+                            className="img-fluid"
+                            style={{ maxHeight: "100%", objectFit: "contain" }}
+                          />
+                        </div>
+                        <div className="d-flex gap-2 mt-2">
+                          <label
+                            htmlFor="coverUpload"
+                            className="btn btn-outline-danger btn-sm rounded-3 px-3 py-2 d-flex align-items-center gap-2"
+                            style={{ cursor: "pointer" }}
+                          >
+                            <i className="bi bi-pencil-square"></i> {t("content.form.fields.change_photo")}
+                          </label>
+                          <button
+                            type="button"
+                            className="btn btn-light btn-sm rounded-3 px-3 py-2 text-secondary border"
+                            onClick={() => {
+                              setCoverFile(null);
+                              setFormData(prev => ({ ...prev, cover_image: null }));
+                            }}
                           >
                             <i className="bi bi-x-lg me-1"></i> {t("content.form.fields.remove")}
                           </button>
@@ -1087,8 +1175,9 @@ function AdminCourses() {
                       onChange={handleChange}
                       disabled={isReadOnly}
                     >
-                      <option value="Online">{isArabic ? "أونلاين" : "Online"}</option>
-                      <option value="Offline">{isArabic ? "أوفلاين" : "Offline"}</option>
+                      <option value="online">{isArabic ? "أونلاين" : "Online"}</option>
+                      <option value="offline">{isArabic ? "أوفلاين" : "Offline"}</option>
+                      <option value="hybrid">{isArabic ? "هجين (Hybrid)" : "Hybrid"}</option>
                     </select>
                   </div>
 
@@ -1147,27 +1236,41 @@ function AdminCourses() {
                       disabled={isReadOnly}
                     />
                   </div>
-                </div>
 
-                <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong className="d-block mb-1">{t("content.form.settings.publish_title")}</strong>
-                    <small className="text-muted">
-                      {t("content.form.settings.publish_desc")}
-                    </small>
-                  </div>
-                  <div className="form-check form-switch m-0">
+                  <div className="col-md-12 mb-3">
+                    <label className="form-label fw-bold text-dark">
+                      {isArabic ? "رابط فيديو المعاينة (Youtube/Vimeo)" : "Preview Video URL"}
+                    </label>
                     <input
-                      className="form-check-input form-check-inputS"
-                      type="checkbox"
-                      role="switch"
-                      checked={activeTab == "settings" ? true : formData.is_published}
+                      type="text"
+                      className="form-control p-3 bg-light border-0 rounded-3"
+                      name="preview_video"
+                      placeholder="https://..."
+                      value={formData.preview_video}
                       onChange={handleChange}
-                      name="is_published"
                       disabled={isReadOnly}
                     />
                   </div>
+
+                  <div className="col-md-12 mb-3">
+                    <label className="form-label fw-bold text-dark">
+                      {isArabic ? "رابط جوجل درايف" : "Google Drive Link"}
+                    </label>
+                    <input
+                      type="url"
+                      className="form-control p-3 bg-light border-0 rounded-3"
+                      name="google_drive_link"
+                      placeholder="https://drive.google.com/..."
+                      value={formData.google_drive_link}
+                      onChange={handleChange}
+                      disabled={isReadOnly}
+                    />
+                  </div>
+
+
                 </div>
+
+
 
                 <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
                   <div>
@@ -1228,6 +1331,23 @@ function AdminCourses() {
                     />
                   </div>
                 </div>
+              </div>
+            )}
+            {/* أزرار التحكم في نهاية الفورم */}
+            {!isReadOnly && (
+              <div className="d-flex justify-content-end gap-3 mt-4 pt-4 border-top">
+                <button
+                  className="btn btn-outline-danger px-5 py-2 fw-medium rounded-3"
+                  onClick={(e) => handleSubmitWrapper(e, "draft")}
+                >
+                  {isArabic ? "حفظ كمسودة" : "Save as Draft"}
+                </button>
+                <button
+                  className="btn btn-danger px-5 py-2 fw-medium rounded-3"
+                  onClick={(e) => handleSubmitWrapper(e, "published")}
+                >
+                  {editingItem ? (isArabic ? "تحديث ونشر" : "Update & Publish") : (isArabic ? "نشر الآن" : "Publish Now")}
+                </button>
               </div>
             )}
           </div>

@@ -39,6 +39,7 @@ function AdminStudents() {
   const [editingItem, setEditingItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedGender, setSelectedGender] = useState("all");
   const [formData, setFormData] = useState(defaultFormData);
@@ -50,24 +51,41 @@ function AdminStudents() {
   const isCreate = !editingItem && !viewingItem;
 
   /**
+   * فلترة الطلاب في الفرونت إند (لأن الـ API قد لا يدعم فلترة الجنس)
+   */
+  const filteredStudents = students.filter((student) => {
+    if (selectedGender === "all") return true;
+    return student.gender === selectedGender;
+  });
+
+  /**
+   * ديبونس للبحث لتقليل عدد طلبات الـ API وتحسين الأداء
+   */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  /**
    * جلب البيانات من الـ API عند تغيير الصفحة أو البحث أو الفلترة
    * العملية تتم بالكامل من جهة السيرفر لضمان الكفاءة
    */
   useEffect(() => {
     getStudents({
       page: currentPage,
-      search: searchTerm,
+      search: debouncedSearchTerm,
       status: selectedStatus === "all" ? "" : selectedStatus,
-      gender: selectedGender === "all" ? "" : selectedGender,
     });
-  }, [getStudents, currentPage, searchTerm, selectedStatus, selectedGender]);
+  }, [getStudents, currentPage, debouncedSearchTerm, selectedStatus]);
 
   /**
    * إعادة ضبط الصفحة للأولى عند تغيير الفلاتر لضمان ظهور النتائج بشكل سليم
    */
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedStatus, selectedGender]);
+  }, [debouncedSearchTerm, selectedStatus]);
 
   /**
    * التعامل مع زر الواتساب - تنسيق الرقم وإرسال بيانات الحساب للطالب
@@ -100,6 +118,24 @@ function AdminStudents() {
    */
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  /**
+   * حساب نطاق الصفحات المعروضة لتجنب ازدحام أزرار الترقيم
+   */
+  const getPageRange = () => {
+    if (!apiPagination) return [];
+    const { current_page, last_page } = apiPagination;
+    const delta = 2;
+    const range = [];
+    for (let i = Math.max(2, current_page - delta); i <= Math.min(last_page - 1, current_page + delta); i++) {
+      range.push(i);
+    }
+    if (current_page - delta > 2) range.unshift("...");
+    if (current_page + delta < last_page - 1) range.push("...");
+    range.unshift(1);
+    if (last_page > 1) range.push(last_page);
+    return range;
   };
 
   /**
@@ -174,8 +210,9 @@ function AdminStudents() {
       await deleteStudent(id);
       getStudents({
         page: currentPage,
-        search: searchTerm,
+        search: debouncedSearchTerm,
         status: selectedStatus === "all" ? "" : selectedStatus,
+        group_id: selectedGroup === "all" ? "" : selectedGroup,
       });
     }
   };
@@ -256,8 +293,9 @@ function AdminStudents() {
       handleBack();
       getStudents({
         page: currentPage,
-        search: searchTerm,
+        search: debouncedSearchTerm,
         status: selectedStatus === "all" ? "" : selectedStatus,
+        group_id: selectedGroup === "all" ? "" : selectedGroup,
       });
     } catch (err) {
       if (err.response?.data?.errors) {
@@ -310,9 +348,9 @@ function AdminStudents() {
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
-                  <div className="d-flex gap-md-3">
+                  <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap mt-3 mt-md-0">
                     <select
-                      className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
+                      className="form-select ac-form-select py-2 bg-light border-0 rounded-3 text-muted shadow-sm"
                       value={selectedGender}
                       onChange={(e) => setSelectedGender(e.target.value)}
                     >
@@ -321,7 +359,7 @@ function AdminStudents() {
                       <option value="female">{t("students_page.female_option")}</option>
                     </select>
                     <select
-                      className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
+                      className="form-select ac-form-select py-2 bg-light border-0 rounded-3 text-muted shadow-sm"
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                     >
@@ -329,6 +367,7 @@ function AdminStudents() {
                       <option value="active">{t("students_page.active_status")}</option>
                       <option value="pending">{t("students_page.pending_status")}</option>
                     </select>
+
                   </div>
                 </div>
 
@@ -337,20 +376,21 @@ function AdminStudents() {
                   <thead>
                     <tr>
                       <th>{t("students_page.table_name")}</th>
-                      <th>{t("students_page.table_email")}</th>
-                      <th>{t("students_page.table_enrolled_courses")}</th>
-                      <th>{t("students_page.table_join_date")}</th>
-                      <th>{t("students_page.table_role")}</th>
-                      <th>{t("students_page.table_phone")}</th>
-                      <th>{t("students_page.table_gender")}</th>
-                      <th>{t("students_page.table_verified")}</th>
+                      <th className="text-center">{t("students_page.table_email")}</th>
+                      <th className="text-center">{t("students_page.table_enrolled_courses")}</th>
+                      <th className="text-center">{t("students_page.table_join_date")}</th>
+                      <th className="text-center">{t("students_page.table_role")}</th>
+                      <th className="text-center">{t("students_page.table_phone")}</th>
+                      <th className="text-center">{t("students_page.table_gender")}</th>
+                      <th className="text-center">{t("students_page.table_verified")}</th>
                       <th className="text-center">{t("students_page.table_actions")}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {students.length > 0 ? (
-                      students.map((student) => (
+                    {filteredStudents.length > 0 ? (
+                      filteredStudents.map((student, index) => (
                         <tr key={student.id}>
+
                           <td className="fw-medium text-dark">{student.full_name}</td>
                           <td className="text-center text-secondary">{student.email}</td>
                           <td className="text-center text-secondary">{student.enrolledCourses ?? 0}</td>
@@ -383,7 +423,7 @@ function AdminStudents() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={9} className="text-center py-4 text-muted">
+                        <td colSpan={10} className="text-center py-4 text-muted">
                           {t("students_page.no_students")}
                         </td>
                       </tr>
@@ -401,14 +441,18 @@ function AdminStudents() {
                     disabled={apiPagination.current_page === 1}
                     onClick={() => handlePageChange(apiPagination.current_page - 1)}
                   />
-                  {[...Array(apiPagination.last_page)].map((_, i) => (
-                    <Pagination.Item
-                      key={i + 1}
-                      active={i + 1 === apiPagination.current_page}
-                      onClick={() => handlePageChange(i + 1)}
-                    >
-                      {i + 1}
-                    </Pagination.Item>
+                  {getPageRange().map((page, i) => (
+                    page === "..." ? (
+                      <Pagination.Ellipsis key={`ellipsis-${i}`} disabled />
+                    ) : (
+                      <Pagination.Item
+                        key={page}
+                        active
+                        onClick={() => handlePageChange(page)}
+                      >
+                        {page}
+                      </Pagination.Item>
+                    )
                   ))}
                   <Pagination.Next
                     disabled={apiPagination.current_page === apiPagination.last_page}
@@ -521,7 +565,7 @@ function AdminStudents() {
                   onChange={handleChange}
                   disabled={!!viewingItem}
                 >
-                  <option value="">{isArabic ? "اختر المجموعة" : "Select Group"}</option>
+                  <option value="">{t("students_page.select_group")}</option>
                   <option value="1">Square Group 1</option>
                   <option value="2">Square Group 2</option>
                   <option value="3">Square Group 3</option>
