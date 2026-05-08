@@ -772,7 +772,7 @@ function AdminCourses() {
                     {t("content.form.fields.course_price")}
                   </label>
                   <div className="input-group">
-                    <span className="input-group-text bg-white border-end-0 text-muted">
+                    <span className="input-group-text bg-white border-end-0  text-muted">
                       $
                     </span>
                     <input
