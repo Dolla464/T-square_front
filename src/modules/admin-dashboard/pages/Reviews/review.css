@@ -1,0 +1,52 @@
+/* ── Review Modal (Based on Certificate Style) ── */
+.cert-detail-modal .modal-content {
+  border-radius: 18px;
+  border: none;
+}
+
+.cert-info-list {
+  border: 1px solid #eee;
+}
+
+.info-item {
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 8px;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.ac-truncate-text {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-select {
+  border: none;
+  background-color: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+  border-radius: 50px;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  width: fit-content;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: center;
+}
+
+.status-select:focus {
+  box-shadow: none;
+}
+
+.status-select option {
+  background: white;
+  color: #333;
+}
+

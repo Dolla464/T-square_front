@@ -1,147 +1,99 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
-import { Pagination } from "react-bootstrap";
-// import "./review.css";
+import { Pagination, Modal, Button } from "react-bootstrap";
+import { useReviews } from "../../hooks/useReviews";
+import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+
+import "./review.css";
+
 function AdminReviews() {
-  const { t, i18n } = useTranslation("AdminReviews");
+  const { t, i18n } = useTranslation("adminDashboard");
+  const isArabic = i18n.language?.startsWith("ar");
+
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
-  const toggleLanguage = () => {
-    const newLang = i18n.language.startsWith("en") ? "ar" : "en";
-    i18n.changeLanguage(newLang);
-    localStorage.setItem("i18nextLng", newLang);
-  };
-  const reviews = [
-    {
-      student: "Ahmed Awad",
-      course: "Graphic Design",
-      rating: 4.5,
-      review: "The course helped me understand design principles clearly with real examples.",
-      date: "Jan 5, 2024",
-    },
-    {
-      student: "Sara Mohamed",
-      course: "Web Development",
-      rating: 4,
-      review: "I learned how to build full responsive websites from scratch.",
-      date: "Jan 12, 2024",
-    },
-    {
-      student: "Omar Ali",
-      course: "UI/UX Design",
-      rating: 3.5,
-      review: "Very practical course with modern UI tools and techniques.",
-      date: "Feb 2, 2024",
-    },
-    {
-      student: "Mona Hassan",
-      course: "React JS",
-      rating: 4,
-      review: "State management and components were explained in a simple way.",
-      date: "Feb 10, 2024",
-    },
-    {
-      student: "Khaled Tarek",
-      course: "Python Programming",
-      rating: 4.5,
-      review: "Great introduction to programming logic and problem solving.",
-      date: "Feb 18, 2024",
-    },
-    {
-      student: "Nour Ahmed",
-      course: "Digital Marketing",
-      rating: 4,
-      review: "SEO and social media strategies were very useful and updated.",
-      date: "Mar 1, 2024",
-    },
-    {
-      student: "Youssef Samir",
-      course: "Data Analysis",
-      rating: 3,
-      review: "I understood how to analyze data using real datasets.",
-      date: "Mar 8, 2024",
-    },
-    {
-      student: "Laila Mostafa",
-      course: "Mobile App Development",
-      rating: 3,
-      review: "Building apps for Android was explained step by step clearly.",
-      date: "Mar 15, 2024",
-    },
-  ];
-
-
-  const [search, setSearch] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");
+  const [selectedReview, setSelectedReview] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
 
-  const filteredReviews = reviews.filter((item) => {
-    const value = search.toLowerCase();
+  const {
+    reviews,
+    pagination: apiPagination,
+    loading,
+    getReviews,
+    getReviewById,
+    deleteReview
+  } = useReviews();
 
+  useEffect(() => {
+    getReviews({ page: currentPage });
+  }, [currentPage, getReviews]);
+
+  // Frontend search and filtering
+  const filteredReviews = (reviews || []).filter((item) => {
+    const searchLower = searchTerm.toLowerCase();
     const matchSearch =
-      item.student.toLowerCase().includes(value) ||
-      item.course.toLowerCase().includes(value) ||
-      item.review.toLowerCase().includes(value);
+      !searchTerm ||
+      item.student_name?.toLowerCase().includes(searchLower) ||
+      item.course_title?.toLowerCase().includes(searchLower) ||
+      item.overall_comment?.toLowerCase().includes(searchLower);
 
     const matchRating =
       ratingFilter === "all" ||
-      Math.floor(item.rating) === Number(ratingFilter)
+      Math.floor(Number(item.rating)) === Number(ratingFilter);
+
     return matchSearch && matchRating;
   });
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-
-  const currentReviews = filteredReviews.slice(indexOfFirstItem, indexOfLastItem);
-
-  const totalPages = Math.max(1, Math.ceil(filteredReviews.length / itemsPerPage));
-
-  const pagination = {
-    currentPage,
-    lastPage: totalPages,
-  };
 
   const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+    setCurrentPage(page);
+  };
+
+  const handleView = async (id) => {
+    const data = await getReviewById(id);
+    if (data) {
+      setSelectedReview(data);
+      setShowViewModal(true);
     }
   };
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, ratingFilter]);
+  const handleDelete = async (id) => {
+    const review = reviews.find(r => r.id === id);
+    const confirmed = await showDeleteConfirm(review?.student_name || (isArabic ? "هذا التقييم" : "this review"));
+
+    if (confirmed) {
+      const success = await deleteReview(id);
+      if (success) {
+        getReviews({ page: currentPage });
+      }
+    }
+  };
+
   return (
     <div className="admin-content-page">
-
-
-
       <div className="ac-header d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="ac-title">{t("title")}  </h2>
+          <h2 className="ac-title">{isArabic ? "تقييمات الطلاب" : "Student Reviews"}</h2>
           <p className="ac-subtitle text-muted mb-0">
-            {t("subtitle")}      </p>
+            {isArabic ? "إدارة ومراجعة تقييمات الطلاب للكورسات والمحاضرين" : "Manage and review student feedback for courses and instructors"}
+          </p>
         </div>
-
       </div>
 
       <div className="row g-3 mb-4">
         <div className="col-md-3 col-6">
           <div className="state">
-            <div className="stat-label">{t("stats.totalReviews")}</div>
-            <div className="stat-value my-2">1400</div>
-            <div style={{ color: "#28a745" }} className="stat-sub">
-              +64 this month
-            </div>
+            <div className="stat-label">{isArabic ? "إجمالي التقييمات" : "Total Reviews"}</div>
+            <div className="stat-value my-2">{apiPagination?.total || 0}</div>
+            <div style={{ color: "#28a745" }} className="stat-sub">+5% this month</div>
           </div>
         </div>
-
         <div className="col-md-3 col-6">
           <div className="state ">
-            <div className="stat-label">{t("stats.averageRating")}</div>
-            <div className="d-flex  align-items-center">
-
-              <div className="stat-value my-2">4.6</div>
-
-
+            <div className="stat-label">{isArabic ? "متوسط التقييم" : "Avg Rating"}</div>
+            <div className="d-flex align-items-center">
+              <div className="stat-value my-2">4.8</div>
               <span className="text-warning fs-5 ms-2">
                 <i className="bi bi-star-fill"></i>
                 <i className="bi bi-star-fill"></i>
@@ -152,42 +104,33 @@ function AdminReviews() {
             </div>
           </div>
         </div>
-
         <div className="col-md-3 col-6">
           <div className="state ">
-            <div className="stat-label">{t("stats.pendingReview")}</div>
-            <div className="stat-value my-2 text-warning">23</div>
-            <div className="stat-sub text-muted">{t("stats.awaiting")}</div>
+            <div className="stat-label">{isArabic ? "بانتظار المراجعة" : "Pending Review"}</div>
+            <div className="stat-value my-2 text-warning">12</div>
+            <div className="stat-sub text-muted">Awaiting</div>
           </div>
         </div>
-
         <div className="col-md-3 col-6">
           <div className="state ">
-            <div className="stat-label">{t("stats.rejected")}</div>
-            <div className="stat-value my-2">48</div>
-            <div className="stat-sub text-muted">{t("stats.allTime")}</div>
+            <div className="stat-label">{isArabic ? "مرفوضة" : "Rejected"}</div>
+            <div className="stat-value my-2">3</div>
+            <div className="stat-sub text-muted">All Time</div>
           </div>
         </div>
       </div>
 
-
-      {/* Table */}
       <div className="table-responsive ac-rounded-table">
         <div className="review-table-container ">
-
-          {/* Search Controls */}
-
-
-
           <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
             <div className="ac-search-input-wrapper">
               <i className="bi bi-search ac-search-icon"></i>
               <input
                 type="text"
                 className="form-control ac-search-input"
-                placeholder="Search reviews..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                placeholder={isArabic ? "بحث في التقييمات..." : "Search reviews..."}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="d-flex w-25 gap-md-3">
@@ -196,104 +139,162 @@ function AdminReviews() {
                 value={ratingFilter}
                 onChange={(e) => setRatingFilter(e.target.value)}
               >
-                <option value="all">All Status</option>
-                <option value="approved">Approved</option>
-                <option value="pending">Pending</option>
-                <option value="rejected">Rejected</option>
-              </select>
-              <select
-                className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
-                value={ratingFilter}
-                onChange={(e) => setRatingFilter(e.target.value)}
-              >
-                <option value="all">All Ratings</option>
-                <option value="5">5 Stars</option>
-                <option value="4">4 Stars</option>
-                <option value="3">3 Stars</option>
-                <option value="2">2 Stars</option>
-                <option value="1">1 Star</option>
+                <option value="all">{isArabic ? "جميع التقييمات" : "All Ratings"}</option>
+                {[5, 4, 3, 2, 1].map(num => (
+                  <option key={num} value={num}>{num} {isArabic ? "نجوم" : "Stars"}</option>
+                ))}
               </select>
             </div>
           </div>
+
           <table className="table ac-table mb-0 align-middle" dir="ltr">
             <thead className="ac-table">
               <tr className="text-muted">
-                <th>{t("table.student")}</th>
-                <th>{t("table.course")}</th>
-                <th>{t("table.rating")}</th>
-                <th>{t("table.review")}</th>
-                <th>{t("table.date")}</th>
+                <th>{isArabic ? "الطالب" : "Student"}</th>
+                <th>{isArabic ? "الكورس" : "Course"}</th>
+                <th>{isArabic ? "التقييم" : "Rating"}</th>
+                <th>{isArabic ? "التعليق" : "Comment"}</th>
+                <th>{isArabic ? "الحالة" : "Status"}</th>
+                <th className="text-center">{isArabic ? "إجراءات" : "Actions"}</th>
               </tr>
             </thead>
 
             <tbody>
-              {currentReviews.length > 0 ? (
-                currentReviews.map((item, index) => (
-                  <tr key={index} >
-                    <td className="fw-medium text-dark">
-                      {item.student}</td>
-
-                    <td className="fw-medium text-dark">
-                      {item.course}
-                    </td>
-
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="text-center py-4">
+                    <div className="spinner-border text-danger" role="status"></div>
+                  </td>
+                </tr>
+              ) : filteredReviews.length > 0 ? (
+                filteredReviews.map((item) => (
+                  <tr key={item.id}>
+                    <td className="fw-medium text-dark">{item.student_name}</td>
+                    <td className="fw-medium text-dark">{item.course_title}</td>
                     <td className="align-content-center">
                       <span className="text-warning" style={{ fontSize: "12px" }}>
                         {[1, 2, 3, 4, 5].map((star) => {
-                          const rating = item.rating;
-
-                          if (rating >= star) {
-                            return <i key={star} className="bi bi-star-fill"></i>;
-                          } else if (rating >= star - 0.5) {
-                            return <i key={star} className="bi bi-star-half"></i>;
-                          } else {
-                            return <i key={star} className="bi bi-star"></i>;
-                          }
+                          const rating = Number(item.rating);
+                          if (rating >= star) return <i key={star} className="bi bi-star-fill"></i>;
+                          if (rating >= star - 0.5) return <i key={star} className="bi bi-star-half"></i>;
+                          return <i key={star} className="bi bi-star"></i>;
                         })}
                       </span>
                     </td>
-
-                    <td className="ac-truncate-text text-secondary">
-                      {item.review}
+                    <td className="ac-truncate-text text-secondary">{item.overall_comment}</td>
+                    <td>
+                      <select className="status-select">
+                        <option value="active" className="text-success">{isArabic ? "نشط" : "Active"}</option>
+                        <option value="rejected" className="text-danger">{isArabic ? "مرفوض" : "Rejected"}</option>
+                      </select>
                     </td>
+                    <td className="text-center">
 
-                    <td className="text-muted">{item.date}</td>
+
+                      <div className="d-flex justify-content-center gap-2">
+                        <button
+                          className="btn btn-sm ac-btn-view border-0"
+                          title="View"
+                          onClick={() => handleView(item.id)}                        >
+                          <i className="bi bi-eye fs-6"></i>
+                        </button>
+
+                        <button
+                          className="btn btn-sm ac-btn-deleteTable border-0"
+                          title="Delete"
+                          onClick={() => handleDelete(item.id)}
+                        >
+                          <i className="bi bi-trash fs-6"></i>
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="text-center py-4 text-secondary fw-bold">
-                    No data found
+                  <td colSpan="6" className="text-center py-4 text-secondary fw-bold">
+                    {isArabic ? "لا توجد بيانات" : "No data found"}
                   </td>
                 </tr>
               )}
-
             </tbody>
           </table>
         </div>
       </div>
-      {/* Pagination */}
-      {pagination && (
+
+      {apiPagination && (
         <div className="d-flex justify-content-center mt-5">
           <Pagination className="custom-pagination">
             <Pagination.Prev
-              disabled={pagination.currentPage === 1}
-              onClick={() => handlePageChange(pagination.currentPage - 1)}
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
             />
-              <Pagination.Item
-                key={pagination.currentPage}
-                active
-              >
-                {pagination.currentPage}
-              </Pagination.Item>
+            <Pagination.Item active>{currentPage}</Pagination.Item>
             <Pagination.Next
-              disabled={pagination.currentPage === pagination.lastPage}
-              onClick={() => handlePageChange(pagination.currentPage + 1)}
+              disabled={currentPage === (apiPagination.total_pages || apiPagination.last_page)}
+              onClick={() => handlePageChange(currentPage + 1)}
             />
           </Pagination>
         </div>
       )}
 
+      {/* View Modal  */}
+      <Modal show={showViewModal} onHide={() => setShowViewModal(false)} centered size="md" className="cert-detail-modal">
+        <div className="d-flex align-items-center justify-content-between pt-2 px-3" dir={isArabic ? "rtl" : "ltr"}>
+          <Modal.Title className="fs-5 fw-bold">{isArabic ? "تفاصيل التقييم" : "Review Details"}</Modal.Title>
+          <Modal.Header closeButton className="border-0"></Modal.Header>
+        </div>
+        <Modal.Body className="pt-0">
+          {selectedReview && (
+            <div className="cert-modal-content">
+              <div className="cert-info-list p-3 bg-light rounded-3 mt-3">
+                <div className="info-item d-flex justify-content-between mb-2">
+                  <span className="text-muted">{isArabic ? "اسم الطالب:" : "Student Name:"}</span>
+                  <span className="fw-medium">{selectedReview.student_name}</span>
+                </div>
+                <div className="info-item d-flex align-items-center justify-content-between mb-2">
+                  <span className="text-muted">{isArabic ? "اسم الكورس:" : "Course Title:"}</span>
+                  <span className="fw-medium text-end ms-2" style={{ maxWidth: "200px" }}>{selectedReview.course_title}</span>
+                </div>
+                <div className="info-item d-flex justify-content-between mb-2">
+                  <span className="text-muted">{isArabic ? "المحتوى:" : "Content Rating:"}</span>
+                  <span className="fw-medium text-warning">{selectedReview.content_rating} / 5</span>
+                </div>
+                <div className="info-item d-flex justify-content-between mb-2">
+                  <span className="text-muted">{isArabic ? "المحاضر:" : "Instructor Rating:"}</span>
+                  <span className="fw-medium text-warning">{selectedReview.instructor_rating} / 5</span>
+                </div>
+                <div className="info-item d-flex justify-content-between mb-2">
+                  <span className="text-muted">{isArabic ? "المركز:" : "Center Rating:"}</span>
+                  <span className="fw-medium text-warning">{selectedReview.center_rating} / 5</span>
+                </div>
+                <div className="info-item d-flex justify-content-between mb-2">
+                  <span className="text-muted">{isArabic ? "التقييم الإجمالي:" : "Overall Rating:"}</span>
+                  <span className="fw-bold text-danger">{selectedReview.rating} / 5</span>
+                </div>
+                <div className="info-item d-flex flex-column mt-3">
+                  <span className="text-muted mb-1">{isArabic ? "التعليق:" : "Comment:"}</span>
+                  <p className="mb-0 bg-white p-3 rounded-3 border small text-dark" style={{ lineHeight: "1.6" }}>
+                    {selectedReview.overall_comment}
+                  </p>
+                </div>
+                <div className="info-item d-flex justify-content-between mt-3">
+                  <span className="text-muted">{isArabic ? "تاريخ التقييم:" : "Review Date:"}</span>
+                  <span className="fw-medium small">{selectedReview.created_at}</span>
+                </div>
+              </div>
+              <Button
+                variant="dark"
+                className="mt-3 w-100 rounded-3 py-2 fw-bold"
+                onClick={() => setShowViewModal(false)}
+                style={{ backgroundColor: "#1a1a1a" }}
+              >
+                {isArabic ? "إغلاق" : "Close"}
+              </Button>
+            </div>
+          )}
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }
