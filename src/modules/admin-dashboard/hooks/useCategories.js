@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { getCategories as fetchCategories } from "../services/coursesServices";
+import { getCat as fetchCategories } from "../services/coursesServices";
 
 export const useCategories = () => {
   const [categories, setCategories] = useState([]);
@@ -9,9 +9,11 @@ export const useCategories = () => {
     setLoading(true);
     try {
       const response = await fetchCategories();
-      // API returns: { status, message, data: [...] }
       const data = response?.data || [];
-      setCategories(Array.isArray(data) ? data : []);
+      console.log(" data : ", response);
+
+      // API returns: { status, message, data: [...] }
+      setCategories(data);
     } catch (err) {
       console.error("Error fetching categories:", err);
     } finally {
@@ -20,4 +22,5 @@ export const useCategories = () => {
   }, []);
 
   return { categories, loading, getCategories };
+
 };

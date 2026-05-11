@@ -434,23 +434,38 @@ function AdminInstructors() {
             {apiPagination && (
               <div className="d-flex justify-content-center mt-5">
                 <Pagination className="custom-pagination">
+
                   <Pagination.Prev
-                    disabled={currentPage === 1}
-                    onClick={() => handlePageChange(currentPage - 1)}
+
+                    disabled={apiPagination.current_page === 1}
+                    onClick={() =>
+                      handlePageChange(apiPagination.current_page - 1)
+                    }
                   />
-                  {[...Array(apiPagination.last_page)].map((_, i) => (
+
+
+                  {[...Array(apiPagination.total_pages)].map((_, index) => (
                     <Pagination.Item
-                      key={i + 1}
-                      active
-                      onClick={() => handlePageChange(i + 1)}
+                      style={{ margin: "0 3px" }}
+                      key={index + 1}
+                      active={apiPagination.current_page === index + 1}
+                      onClick={() => handlePageChange(index + 1)}
                     >
-                      {i + 1}
+                      {index + 1}
                     </Pagination.Item>
                   ))}
+
                   <Pagination.Next
-                    disabled={currentPage === apiPagination.last_page}
-                    onClick={() => handlePageChange(currentPage + 1)}
+                    style={{ margin: "0 6px 0" }}
+
+                    disabled={
+                      apiPagination.current_page === apiPagination.total_pages
+                    }
+                    onClick={() =>
+                      handlePageChange(apiPagination.current_page + 1)
+                    }
                   />
+
                 </Pagination>
               </div>
             )}
