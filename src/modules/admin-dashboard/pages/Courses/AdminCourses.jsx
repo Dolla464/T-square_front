@@ -267,6 +267,24 @@ function AdminCourses() {
     }
   };
 
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const fd = new FormData();
+      fd.append("status", newStatus);
+
+      await updateCourse(id, fd);
+
+      getCourses({
+        page: currentPage,
+        search: searchTerm || undefined,
+        status: selectedStatus === "all" ? undefined : selectedStatus,
+        category_id: selectedCategory === "all" ? undefined : selectedCategory,
+      });
+    } catch (err) {
+      console.error("Status update failed:", err);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -522,9 +540,20 @@ function AdminCourses() {
                             {item.total_students ?? item.students_count ?? 0}
                           </td>
                           <td className="text-center">
-                            <select className="status-select">
-                              <option value="1" className="text-success">{isArabic ? "نشط" : "Active"}</option>
-                              <option value="0" className="text-danger">{isArabic ? "مرفوض" : "Rejected"}</option>
+                            <select
+                              className={`px-3   status-select ${item.status === "published"
+                                ? "bg-success-subtle text-success border-success"
+                                : "bg-danger-subtle text-danger border-danger"
+                                }`}
+                              value={item.status}
+                              onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                            >
+                              <option value="published">
+                                &#x2B9B; {isArabic ? "منشور" : "Published"}
+                              </option>
+                              <option value="draft">
+                                &#x2B9B; {isArabic ? "مسودة" : "Draft"}
+                              </option>
                             </select>
                           </td>
                           <td className="text-center">
