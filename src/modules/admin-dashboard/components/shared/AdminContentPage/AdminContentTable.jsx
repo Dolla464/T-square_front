@@ -49,7 +49,6 @@ function AdminContentTable({  data, loading, onView, onEdit, onDelete }) {
               <tr>
                 <th>{t("content.table.solution")}</th>
                 <th>{t("content.table.description")}</th>
-                <th>{t("content.table.tags")}</th>
                 <th className="text-center">{t("content.table.actions")}</th>
               </tr>
             </thead>
@@ -65,22 +64,7 @@ function AdminContentTable({  data, loading, onView, onEdit, onDelete }) {
                       {item.description || "N/A"}
                     </td>
 
-                    <td>
-                      <div className="d-flex gap-1 flex-wrap justify-content-start">
-                        {item.tags && item.tags.length > 0 ? (
-                          item.tags.map((tag) => (
-                            <span
-                              key={tag.tag_id || tag.id || tag}
-                              className="badge bg-light text-dark border"
-                            >
-                              {tag.tag_name || tag.name || tag}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-muted small">N/A</span>
-                        )}
-                      </div>
-                    </td>
+                    
 
                     <td className="text-center">
                       <div className="d-flex justify-content-center gap-2">
