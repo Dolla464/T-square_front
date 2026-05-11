@@ -74,16 +74,7 @@ function AdminContentForm({
                 : t("content.add_new_solution")}
           </span>
         </button>
-        {!isReadOnly && (
-          <div className="ac-form-actions d-flex gap-2">
-            <button
-              className="btn btn-danger px-4 ac-publish-btn"
-              onClick={(e) => handleSubmitWrapper(e, false)}
-            >
-              {item ? t("content.update_solution") : t("content.add_solution")}
-            </button>
-          </div>
-        )}
+       
       </div>
 
       {/* Form Content Area */}

@@ -358,6 +358,17 @@ function AdminStudents() {
                       <option value="male">{t("students_page.male_option")}</option>
                       <option value="female">{t("students_page.female_option")}</option>
                     </select>
+                    {/* بدون ربط مع api */}
+                    <select
+                      className="form-select ac-form-select py-2  bg-light border-0 rounded-3 text-muted shadow-sm"
+                      value={selectedGender}
+                      onChange={(e) => setSelectedGender(e.target.value)}
+                    >
+                      <option value="all">{isArabic ? "كل المجموعات" : " All groups"}</option>
+                      <option value="1">Group square </option>
+                      <option value="2">Group square</option>
+                    </select>
+
                     <select
                       className="form-select ac-form-select py-2 bg-light border-0 rounded-3 text-muted shadow-sm"
                       value={selectedStatus}
@@ -375,13 +386,11 @@ function AdminStudents() {
                 <table className="table ac-table mb-0 align-middle" dir="ltr">
                   <thead>
                     <tr>
+                      <th>#</th>
                       <th>{t("students_page.table_name")}</th>
                       <th className="text-center">{t("students_page.table_email")}</th>
-                      <th className="text-center">{t("students_page.table_enrolled_courses")}</th>
-                      <th className="text-center">{t("students_page.table_join_date")}</th>
-                      <th className="text-center">{t("students_page.table_role")}</th>
                       <th className="text-center">{t("students_page.table_phone")}</th>
-                      <th className="text-center">{t("students_page.table_gender")}</th>
+                      <th className="text-center">{isArabic ? "المجموعة" : "Group"}</th>
                       <th className="text-center">{t("students_page.table_verified")}</th>
                       <th className="text-center">{t("students_page.table_actions")}</th>
                     </tr>
@@ -391,15 +400,12 @@ function AdminStudents() {
                       filteredStudents.map((student, index) => (
                         <tr key={student.id}>
 
+                          <td className="fw-medium text-muted">{student.enrollment_number}</td>
                           <td className="fw-medium text-dark">{student.full_name}</td>
                           <td className="text-center text-secondary">{student.email}</td>
-                          <td className="text-center text-secondary">{student.enrolledCourses ?? 0}</td>
-                          <td className="text-center text-secondary">
-                            {student.created_at ? new Date(student.created_at).toLocaleDateString() : "-"}
-                          </td>
-                          <td className="text-center text-secondary text-capitalize">{student.role || "student"}</td>
+
                           <td className="text-center text-secondary">{student.phone || "-"}</td>
-                          <td className="text-center text-secondary text-capitalize">{student.gender || "-"}</td>
+                          <td className="text-center text-secondary">Square</td>
                           <td className="text-center text-secondary">
                             {student.verified ? t("students_page.verified_yes") : t("students_page.verified_no")}
                           </td>
@@ -507,6 +513,15 @@ function AdminStudents() {
                   </div>
                 </div>
               )}
+              {/* رقم القيد (يظهر فقط في العرض العام) */}
+              {!isCreate && !isEdit && (
+                <div className="row mb-4">
+                  <div className="col-md-12 mb-3 mb-md-0">
+                    <label className="form-label fw-bold text-dark">{isArabic ? "رقم القيد" : "Enrollment Number"}</label>
+                    <input type="text" className="form-control ac-form-input p-3 bg-light border-0 rounded-3" value={formData.enrollment_number} disabled />
+                  </div>
+                </div>
+              )}
 
               {/* حقل الاسم */}
               <div className="mb-4">
@@ -538,6 +553,24 @@ function AdminStudents() {
                 </div>
               )}
 
+              {/* حقل النوع (مخفي في التعديل) */}
+              {!isEdit && (
+                <div className="mb-4">
+                  <label className="form-label fw-bold text-dark">{isArabic ? "نوع الطالب" : "Gender"}</label>
+                  <select
+                    name="group_id"
+                    className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
+                    value={formData.group_id}
+                    onChange={handleChange}
+                    disabled={!!viewingItem}
+                  >
+                    <option value="">{isArabic ? "اختيار نوع الطالب" : "Gender"}</option>
+                    <option value="male">{isArabic ? "ذكر" : "Male"}</option>
+                    <option value="female">{isArabic ? "انثي" : "Female"}</option>
+                  </select>
+                </div>
+              )}
+
               {/* حقل الهاتف (مخفي في التعديل) */}
               {!isEdit && (
                 <div className="row mb-4">
@@ -556,30 +589,21 @@ function AdminStudents() {
                 </div>
               )}
 
-              {/* رقم القيد (يظهر فقط في العرض العام) */}
-              {!isCreate && !isEdit && (
-                <div className="row mb-4">
-                  <div className="col-md-6 mb-3 mb-md-0">
-                    <label className="form-label fw-bold text-dark">رقم القيد (Enrollment Number)</label>
-                    <input type="text" className="form-control ac-form-input p-3 bg-light border-0 rounded-3" value={formData.enrollment_number} disabled />
-                  </div>
-                </div>
-              )}
 
               {/* اختيار المجموعة */}
               <div className="mb-4">
-                <label className="form-label fw-bold text-dark">{isArabic ? "رقم المجموعه" : "Group ID."}</label>
+                <label className="form-label fw-bold text-dark">{isArabic ? "اسم المجموعه" : "Group Name"}</label>
                 <select
-                  name="group_id"
+                  name="group_name"
                   className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
                   value={formData.group_id}
                   onChange={handleChange}
                   disabled={!!viewingItem}
                 >
                   <option value="">{t("students_page.select_group")}</option>
-                  <option value="1">Square Group 1</option>
-                  <option value="2">Square Group 2</option>
-                  <option value="3">Square Group 3</option>
+                  <option value="">Square Group 1</option>
+                  <option value="">Square Group 2</option>
+                  <option value="">Square Group 3</option>
                 </select>
               </div>
 
@@ -601,14 +625,12 @@ function AdminStudents() {
                 </div>
               )}
 
+
               {/* تفاصيل إضافية للعرض فقط */}
-              {viewingItem && (
+              {viewingItem && !isEdit && (
                 <div className="row mb-4">
-                  <div className="col-md-6 mb-3 mb-md-0">
-                    <label className="form-label fw-bold text-dark">{t("students_page.enrolled_courses")}</label>
-                    <input type="number" className="form-control ac-form-input p-3 bg-light border-0 rounded-3" value={0} disabled />
-                  </div>
-                  <div className="col-md-6">
+
+                  <div className="col-md-12">
                     <label className="form-label fw-bold text-dark">{t("students_page.joined_at")}</label>
                     <input type="text" className="form-control ac-form-input p-3 bg-light border-0 rounded-3" value={formData.created_at || ""} disabled />
                   </div>
@@ -645,7 +667,55 @@ function AdminStudents() {
                   <option value="inactive">{t("students_page.inactive_status")}</option>
                 </select>
               </div>
+              {/* تفاصيل إضافية للعرض فقط */}
+              {viewingItem && !isEdit && (
+                <div className="ac-table-card">
+                  <div className="ac-table-container">
+                    <label className="form-label fw-bold text-dark">{t("students_page.enrolled_courses")}</label>
+                    <table className="table ac-table mb-0 align-middle" dir="ltr">
+                      <thead>
+                        <tr>
+                          <th>{isArabic ? "عنوان الكورس" : "Course title"}</th>
+                          <th>{isArabic ? "اسم المحاضر" : "Instractor name"}</th>
+                          <th className="text-center">{isArabic ? "الحالة" : "Staus"}</th>
 
+
+                        </tr>
+                      </thead>
+                      <tbody>
+
+                        <tr >
+                          <td className="fw-medium text-dark">Front end</td>
+                          <td className="fw-medium text-dark">Ahmed Hatem</td>
+                          <td className="text-center text-dark">Completed</td>
+
+                        </tr>
+                        <tr >
+                          <td className="fw-medium text-dark">Back end</td>
+                          <td className="fw-medium text-dark">Ahmed Hatem</td>
+                          <td className="text-center text-dark">Completed</td>
+
+                        </tr>
+                        <tr >
+                          <td className="fw-medium text-dark">UI UX</td>
+                          <td className="fw-medium text-dark">Ahmed Hatem</td>
+                          <td className="text-center text-dark">Completed</td>
+
+                        </tr>
+
+
+                        {/* <tr>
+                            <td colSpan={10} className="text-center py-4 text-muted">
+                              No Courses
+                            </td>
+                          </tr> */}
+
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+              )}
               {/* أزرار التحكم */}
               {!viewingItem && (
                 <div className="d-flex justify-content-end mt-4 pt-4 border-top">

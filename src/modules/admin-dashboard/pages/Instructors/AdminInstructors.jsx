@@ -250,7 +250,35 @@ function AdminInstructors() {
       // Error handled in hook
     }
   };
+  /**
+    * التعامل مع زر الواتساب - تنسيق الرقم وإرسال بيانات الحساب للمحاضر
+    */
+  const handleWhatsapp = (instructor) => {
+    if (!instructor) return;
 
+    // تنظيف الرقم وإضافة كود الدولة (مصر +20)
+    let phone = instructor.phone || "";
+    phone = phone.replace(/\D/g, "");
+    if (phone.startsWith("0")) {
+      phone = "20" + phone.slice(1);
+    }
+    const message =
+      `مرحباً ${instructor.full_name || "Instructor"} \n\n` +
+      `تم إنشاء حسابك كمحاضر على منصة T-Square بنجاح.\n\n` +
+
+      ` بيانات الحساب:\n` +
+      `• الاسم: ${instructor.full_name || "-"}\n` +
+      `• المجال: ${instructor.field || "-"}\n` +
+      `• البريد الإلكتروني: ${instructor.email || "-"}\n` +
+      `• رقم الهاتف: ${instructor.phone || "-"}\n` +
+      `• كلمة المرور: ${ "كما تم إدخالها أثناء التسجيل"}\n\n` +
+
+      ` يُرجى تغيير كلمة المرور بعد أول تسجيل دخول حفاظاً على أمان الحساب.\n\n` +
+
+      `نتمنى لك تجربة موفقة معنا في T-Square `;
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, "_blank");
+  };
   return (
     <div className="admin-content-page">
       {!showForm ? (
@@ -307,19 +335,12 @@ function AdminInstructors() {
                 <table className="table ac-table mb-0 align-middle" dir="ltr">
                   <thead>
                     <tr>
-                      <th className="text-center">#</th>
                       <th>{t("instructors_page.table_name")}</th>
                       <th className="text-center">{isArabic ? "التخصص" : "Field"}</th>
-                      <th className="text-center">{isArabic ? "الجنس" : "Gender"}</th>
                       <th className="text-center">
                         {t("instructors_page.table_email")}
                       </th>
-                      <th className="text-center">{isArabic ? "التقييم" : "Rating"}</th>
-                      <th className="text-center">{isArabic ? "المراجعات" : "Reviews"}</th>
-                      <th className="text-center">{isArabic ? "التواصل" : "Social"}</th>
-                      <th className="text-center">
-                        {t("instructors_page.table_join_date")}
-                      </th>
+
 
                       <th className="text-center">
                         {t("instructors_page.table_actions")}
@@ -340,56 +361,18 @@ function AdminInstructors() {
                         const insData = instructor.instructor || instructor;
                         return (
                           <tr key={instructor.id}>
-                            <td className="text-center text-secondary fw-bold">
-                              {apiPagination ? (apiPagination.current_page - 1) * (apiPagination.per_page || 10) + index + 1 : index + 1}
-                            </td>
+
                             <td className="fw-medium text-dark">
                               {insData.full_name || instructor.name}
                             </td>
                             <td className="text-center text-secondary">{insData.field || "-"}</td>
-                            <td className="text-center text-secondary">
-                              {insData.gender === "female" ? (isArabic ? "أنثى" : "Female") : (isArabic ? "ذكر" : "Male")}
-                            </td>
+
                             <td className="text-center text-secondary">
                               {instructor.email}
                             </td>
-                            <td className="text-center text-secondary">
-                              <span className="text-warning me-1">★</span>
-                              {insData.avg_rating || "0.00"}
-                            </td>
-                            <td className="text-center text-secondary">
-                              {insData.reviews_count || 0}
-                            </td>
-                            <td className="text-center">
-                              <div className="d-flex justify-content-center gap-2">
-                                {insData.insta_url && (
-                                  <a href={insData.insta_url} target="_blank" rel="noreferrer" className="text-danger">
-                                    <i className="bi bi-instagram"></i>
-                                  </a>
-                                )}
-                                {insData.linkedin_url && (
-                                  <a href={insData.linkedin_url} target="_blank" rel="noreferrer" className="text-primary">
-                                    <i className="bi bi-linkedin"></i>
-                                  </a>
-                                )}
-                                {insData.facebook_url && (
-                                  <a href={insData.facebook_url} target="_blank" rel="noreferrer" className="text-primary">
-                                    <i className="bi bi-facebook"></i>
-                                  </a>
-                                )}
-                                {insData.phone && (
-                                  <a href={`tel:${insData.phone}`} target="_blank" rel="noreferrer" className="text-primary">
-                                    <i className="bi bi-phone"></i>
-                                  </a>
-                                )}
-                                {!insData.insta_url && !insData.linkedin_url && !insData.facebook_url && "-"}
-                              </div>
-                            </td>
-                            <td className="text-center text-secondary">
-                              {instructor.created_at || insData.created_at
-                                ? new Date(instructor.created_at || insData.created_at).toLocaleDateString()
-                                : "-"}
-                            </td>
+
+
+
                             <td className="text-center">
                               <div className="d-flex justify-content-center gap-2">
                                 <button
@@ -412,6 +395,9 @@ function AdminInstructors() {
                                   onClick={() => handleDelete(instructor.instructor?.id || instructor.id)}
                                 >
                                   <i className="bi bi-trash fs-6"></i>
+                                </button>
+                                <button className="btn btn-sm ac-btn-whatsapp border-0" title="WhatsApp" onClick={() => handleWhatsapp(instructor)}>
+                                  <i className="bi bi-whatsapp fs-6"></i>
                                 </button>
                               </div>
                             </td>
@@ -486,18 +472,7 @@ function AdminInstructors() {
                     : t("instructors_page.add_instructor_title")}
               </span>
             </button>
-            {!viewingItem && (
-              <div className="ac-form-actions d-flex gap-2">
-                <button
-                  className="btn btn-danger px-4 ac-publish-btn"
-                  onClick={handleSubmitWrapper}
-                >
-                  {editingItem
-                    ? t("instructors_page.update_instructor")
-                    : t("instructors_page.create_instructor")}
-                </button>
-              </div>
-            )}
+
           </div>
 
           <div className="ac-form-body p-4 bg-white border rounded-4 shadow-sm">
@@ -505,17 +480,30 @@ function AdminInstructors() {
               {/* صورة المحاضر */}
               <div className="mb-4 text-center">
                 <div className="ac-thumbnail-view border rounded-4 overflow-hidden shadow-sm d-inline-block" style={{ maxWidth: "100%", width: "600px" }}>
-                  <img
-                    src={formData.avatar instanceof File ? URL.createObjectURL(formData.avatar) : (formData.avatar || instructorImg)}
-                    alt={formData.full_name}
-                    className="img-fluid w-100"
-                    style={{ height: "300px", objectFit: "cover" }}
-                  />
+                  {formData.avatar ? (
+                    <img
+                      src={formData.avatar instanceof File ? URL.createObjectURL(formData.avatar) : formData.avatar}
+                      alt={formData.full_name}
+                      className="img-fluid w-100"
+                      style={{ height: "300px", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <div
+                      className="d-flex align-items-center justify-content-center bg-light"
+                      style={{ height: "300px" }}
+                    >
+                      <i className="bi bi-person-circle fs-1 text-secondary"></i>
+                    </div>
+                  )}
                 </div>
                 {!viewingItem && (
                   <div className="mt-2">
                     <label className="btn btn-outline-danger btn-sm">
-                      {isArabic ? "تغيير الصورة" : "Change Photo"}
+                      {
+                        isArabic
+                          ? (formData.avatar ? "تغيير صورة" : "إضافة صورة")
+                          : (formData.avatar ? "Change Photo" : "Add Photo")
+                      }
                       <input type="file" name="avatar" className="d-none" onChange={handleChange} accept="image/*" />
                     </label>
                   </div>
