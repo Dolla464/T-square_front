@@ -7,6 +7,13 @@ export const getCourses = async (params = {}) => {
     const response = await axiosClient.get("/admin/courses", { params });
     return response.data;
 };
+// ----------------------------------------------------------------------------
+// الكاتيجوري
+// ----------------------------------------------------------------------------
+export const getCat = async () => {
+    const response = await axiosClient.get("/admin/categories/tree");
+    return response.data;
+};
 
 // ----------------------------------------------------------------------------
 // جلب كورس معين بالـ ID
@@ -58,9 +65,9 @@ export const deleteCourse = async (id) => {
 // ----------------------------------------------------------------------------
 // جلب الكاتيجوريز للـ dropdown
 // ----------------------------------------------------------------------------
-export const getCategories = async () => {
-    const response = await axiosClient.get("/student/categories", {
-        params: { type: "sub" },
-    });
-    return response.data;
-};
+// export const getCategories = async () => {
+//     const response = await axiosClient.get("/student/categories", {
+//         params: { type: "sub" },
+//     });
+//     return response.data;
+// };

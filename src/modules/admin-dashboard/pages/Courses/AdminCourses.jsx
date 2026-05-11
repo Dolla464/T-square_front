@@ -10,9 +10,11 @@ import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
 const createLesson = () => ({
   id: `lesson-${Date.now()}-${Math.random()}`,
-  title: "",
+  title: "", // This will be used as Description/Title
   duration: "",
   video: "",
+  sort_order: "",
+  provider: "HTML5",
 });
 
 const createSection = () => ({
@@ -26,6 +28,13 @@ const createSection = () => ({
  * Ignores null, undefined, and empty strings automatically.
  * Supports handling arrays (e.g., tag_ids[]) and File uploads.
  */
+const formatDateForMySQL = (date) => {
+  if (!date) return null;
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString().slice(0, 19).replace("T", " ");
+};
+
 const buildFormData = (payload) => {
   const fd = new FormData();
 
@@ -58,6 +67,36 @@ const buildFormData = (payload) => {
   return fd;
 };
 
+const normalizeLearnings = (rawLearnings) => {
+  if (!rawLearnings) return [""];
+  let learnings = [];
+  try {
+    if (Array.isArray(rawLearnings)) {
+      learnings = rawLearnings;
+    } else if (typeof rawLearnings === "string" && rawLearnings.trim().startsWith("[")) {
+      learnings = JSON.parse(rawLearnings);
+    } else if (typeof rawLearnings === "string") {
+      if (rawLearnings.includes("\n")) return rawLearnings.split("\n").map(s => s.trim()).filter(Boolean);
+      return [rawLearnings];
+    }
+  } catch (e) {
+    console.error("Failed to parse learnings:", e);
+    return [""];
+  }
+
+  if (!Array.isArray(learnings)) return [""];
+
+  const result = learnings.map((l) => {
+    if (typeof l === "string") return l;
+    if (typeof l === "object" && l !== null) {
+      return l.content || l.title || l.learning || l.name || "";
+    }
+    return String(l);
+  }).filter(l => l.trim() !== "");
+
+  return result.length > 0 ? result : [""];
+};
+
 const normalizeCurriculum = (rawCurriculum) => {
   if (!Array.isArray(rawCurriculum) || rawCurriculum.length === 0) {
     return [createSection()];
@@ -73,6 +112,8 @@ const normalizeCurriculum = (rawCurriculum) => {
           title: lesson.title || "",
           duration: lesson.duration || lesson.length || "",
           video: lesson.video || lesson.video_url || "",
+          sort_order: lesson.sort_order || "",
+          provider: lesson.provider || "HTML5",
         }))
         : [createLesson()],
   }));
@@ -100,6 +141,7 @@ const defaultFormData = {
   google_drive_link: "",
   published_at: "",
   tags: [],
+  learnings: [""],
   curriculum: [createSection()],
 };
 
@@ -124,6 +166,7 @@ function AdminCourses() {
   const [activeTab, setActiveTab] = useState("basic");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [formData, setFormData] = useState(defaultFormData);
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [coverFile, setCoverFile] = useState(null);
@@ -134,12 +177,17 @@ function AdminCourses() {
   const { categories, getCategories } = useCategories();
 
   useEffect(() => {
-    getCourses({
+    const params = {
       page: currentPage,
-      // API search and status removed to perform filtering in frontend
-    });
-  }, [currentPage, getCourses]);
+      search: searchTerm || undefined,
+      status: selectedStatus === "all" ? undefined : selectedStatus,
+      category_id: selectedCategory === "all" ? undefined : selectedCategory,
+    };
+    getCourses(params);
+  }, [currentPage, getCourses, searchTerm, selectedStatus, selectedCategory]);
 
+  // We keep frontend filtering as a second layer to ensure immediate UI response 
+  // and handle any cases where the API might return unfiltered data.
   const filteredCourses = (courses || []).filter((course) => {
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
@@ -152,20 +200,28 @@ function AdminCourses() {
     const matchesStatus =
       selectedStatus === "all" || course.status === selectedStatus;
 
-    return matchesSearch && matchesStatus;
+    const matchesCategory =
+      selectedCategory === "all" ||
+      String(course.category_id) === String(selectedCategory) ||
+      String(course.category?.id) === String(selectedCategory);
+
+    return matchesSearch && matchesStatus && matchesCategory;
   });
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedStatus]);
+  }, [searchTerm, selectedStatus, selectedCategory]);
+
+  useEffect(() => {
+    getCategories();
+  }, [getCategories]);
 
   useEffect(() => {
     if (showForm) {
       getTags();
       getInstructors();
-      getCategories();
     }
-  }, [showForm, getTags, getInstructors, getCategories]);
+  }, [showForm, getTags, getInstructors]);
 
   const handleAddNew = () => {
     setViewingItem(null);
@@ -200,6 +256,7 @@ function AdminCourses() {
       google_drive_link: item.google_drive_link || "",
       published_at: item.published_at ? new Date(item.published_at).toISOString().split('T')[0] : "",
       tags: item.tags?.map((tObj) => tObj.tag_id || tObj.id || tObj) || [],
+      learnings: normalizeLearnings(item.learnings || item.what_will_learn || item.outcomes),
       curriculum: normalizeCurriculum(item.curriculum || item.sections || []),
       thumbnail: item.thumbnail || null,
       cover_image: item.cover_image || null,
@@ -246,9 +303,28 @@ function AdminCourses() {
       await deleteCourse(id);
       getCourses({
         page: currentPage,
-        search: searchTerm,
-        status: selectedStatus === "all" ? "" : selectedStatus,
+        search: searchTerm || undefined,
+        status: selectedStatus === "all" ? undefined : selectedStatus,
+        category_id: selectedCategory === "all" ? undefined : selectedCategory,
       });
+    }
+  };
+
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const fd = new FormData();
+      fd.append("status", newStatus);
+
+      await updateCourse(id, fd);
+
+      getCourses({
+        page: currentPage,
+        search: searchTerm || undefined,
+        status: selectedStatus === "all" ? undefined : selectedStatus,
+        category_id: selectedCategory === "all" ? undefined : selectedCategory,
+      });
+    } catch (err) {
+      console.error("Status update failed:", err);
     }
   };
 
@@ -257,6 +333,28 @@ function AdminCourses() {
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleLearningChange = (index, value) => {
+    setFormData((prev) => {
+      const newLearnings = [...prev.learnings];
+      newLearnings[index] = value;
+      return { ...prev, learnings: newLearnings };
+    });
+  };
+
+  const addLearning = () => {
+    setFormData((prev) => ({
+      ...prev,
+      learnings: [...prev.learnings, ""],
+    }));
+  };
+
+  const removeLearning = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      learnings: prev.learnings.filter((_, i) => i !== index),
     }));
   };
 
@@ -307,18 +405,48 @@ function AdminCourses() {
 
   const handleVideoUpload = (sectionId, lessonId, uploadedFile) => {
     if (!uploadedFile) return;
+
+    // حفظ ملف الفيديو نفسه
+    handleLessonChange(sectionId, lessonId, "videoFile", uploadedFile);
+
+    // عرض اسم الفيديو مباشرة
     handleLessonChange(sectionId, lessonId, "video", uploadedFile.name);
+
+    // حساب الـ duration تلقائي
+    const video = document.createElement("video");
+
+    video.preload = "metadata";
+
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(video.src);
+
+      const totalSeconds = Math.floor(video.duration);
+
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      const formattedDuration =
+        hours > 0
+          ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+          : `${minutes}:${String(seconds).padStart(2, "0")}`;
+
+      handleLessonChange(
+        sectionId,
+        lessonId,
+        "duration",
+        formattedDuration
+      );
+    };
+
+    video.onerror = () => {
+      console.error("Failed to load video metadata");
+    };
+
+    video.src = URL.createObjectURL(uploadedFile);
   };
 
-  const addLesson = (sectionId) => {
-    updateCurriculum((curriculum) =>
-      curriculum.map((section) =>
-        section.id === sectionId
-          ? { ...section, lessons: [...section.lessons, createLesson()] }
-          : section,
-      ),
-    );
-  };
+
 
   const removeLesson = (sectionId, lessonId) => {
     updateCurriculum((curriculum) =>
@@ -348,6 +476,23 @@ function AdminCourses() {
     setCurrentPage(page);
   };
 
+  const tabOrder = ["basic", "curriculum", "pricing", "settings"];
+  const currentTabIndex = tabOrder.indexOf(activeTab);
+
+  const goToNextTab = () => {
+    if (currentTabIndex < tabOrder.length - 1) {
+      setActiveTab(tabOrder[currentTabIndex + 1]);
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+    }
+  };
+
+  const goToPrevTab = () => {
+    if (currentTabIndex > 0) {
+      setActiveTab(tabOrder[currentTabIndex - 1]);
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+    }
+  };
+
   const handleSubmitWrapper = async (e, forceStatus = null) => {
     if (e) e.preventDefault();
 
@@ -372,8 +517,12 @@ function AdminCourses() {
       is_free: formData.is_free,
       preview_video: formData.preview_video,
       google_drive_link: formData.google_drive_link,
-      published_at: formData.published_at,
-      tag_ids: formData.tags && formData.tags.length > 0 ? formData.tags : undefined,
+      published_at:
+        forceStatus === "published"
+          ? (formData.published_at ? formatDateForMySQL(formData.published_at) : formatDateForMySQL(new Date()))
+          : formatDateForMySQL(formData.published_at),
+      tags: formData.tags && formData.tags.length > 0 ? formData.tags : undefined,
+      learnings: formData.learnings.filter((l) => l && l.trim() !== ""),
     };
 
     // Add files if selected
@@ -397,8 +546,9 @@ function AdminCourses() {
       handleBack();
       getCourses({
         page: currentPage,
-        search: searchTerm,
-        status: selectedStatus === "all" ? "" : selectedStatus,
+        search: searchTerm || undefined,
+        status: selectedStatus === "all" ? undefined : selectedStatus,
+        category_id: selectedCategory === "all" ? undefined : selectedCategory,
       });
     } catch (err) {
       console.error("Submission failed:", err);
@@ -449,7 +599,23 @@ function AdminCourses() {
                       <option value="all">All Statuses</option>
                       <option value="published">Published</option>
                       <option value="draft">Draft</option>
-                      <option value="archived">Archived</option>
+                    </select>
+                    <select
+                      className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                    >
+                      <option value="all">{t("courses_page.all_categories", "All Categories")}</option>
+                      {categories.map((cat) => (
+                        <optgroup key={cat.id} label={cat.name}>
+                          <option value={cat.id}>{cat.name} (All)</option>
+                          {cat.children?.map((child) => (
+                            <option key={child.id} value={child.id}>
+                              &nbsp;&nbsp;&nbsp;{child.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -458,9 +624,10 @@ function AdminCourses() {
                     <tr>
                       <th>{t("content.table.course")}</th>
                       <th>{t("content.table.instructor")}</th>
-                      <th>{t("content.table.revenue")}</th>
+                      <th className="text-center">{t("content.table.revenue")}</th>
                       <th className="text-center">{t("content.table.students")}</th>
-                      <th>{t("content.table.tags")}</th>
+                      <th className="text-center">{isArabic ? "الحالة" : "Status"}</th>
+
                       <th className="text-center">{t("content.table.actions")}</th>
                     </tr>
                   </thead>
@@ -482,27 +649,28 @@ function AdminCourses() {
                           <td className="text-secondary">
                             {item.instructor?.full_name || item.instructor?.name || "N/A"}
                           </td>
-                          <td className="text-secondary">
+                          <td className="text-secondary text-center">
                             {item.total_revenue || item.revenue || "0.00"}
                           </td>
                           <td className="text-secondary text-center">
                             {item.total_students ?? item.students_count ?? 0}
                           </td>
-                          <td>
-                            <div className="d-flex gap-1 flex-wrap justify-content-start">
-                              {item.tags && item.tags.length > 0 ? (
-                                item.tags.map((tag) => (
-                                  <span
-                                    key={tag.tag_id || tag.id || tag}
-                                    className="badge bg-light text-dark border"
-                                  >
-                                    {tag.tag_name || tag.name || tag}
-                                  </span>
-                                ))
-                              ) : (
-                                <span className="text-muted small">N/A</span>
-                              )}
-                            </div>
+                          <td className="text-center">
+                            <select
+                              className={`px-3   status-select ${item.status === "published"
+                                ? "bg-success-subtle text-success border-success"
+                                : "bg-danger-subtle text-danger border-danger"
+                                }`}
+                              value={item.status}
+                              onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                            >
+                              <option value="published">
+                                &#x2B9B; {isArabic ? "منشور" : "Published"}
+                              </option>
+                              <option value="draft">
+                                &#x2B9B; {isArabic ? "مسودة" : "Draft"}
+                              </option>
+                            </select>
                           </td>
                           <td className="text-center">
                             <div className="d-flex justify-content-center gap-2">
@@ -547,21 +715,38 @@ function AdminCourses() {
             {apiPagination && (
               <div className="d-flex justify-content-center mt-5">
                 <Pagination className="custom-pagination">
+
                   <Pagination.Prev
-                    disabled={currentPage === 1}
-                    onClick={() => handlePageChange(currentPage - 1)}
+
+                    disabled={apiPagination.current_page === 1}
+                    onClick={() =>
+                      handlePageChange(apiPagination.current_page - 1)
+                    }
                   />
-                  <Pagination.Item
-                    key={currentPage}
-                    active={currentPage === apiPagination.current_page}
-                    onClick={() => handlePageChange(currentPage)}
-                  >
-                    {currentPage}
-                  </Pagination.Item>
+
+                  {[...Array(apiPagination.last_page)].map((_, index) => (
+                    <Pagination.Item
+                      style={{ margin: "0 3px " }}
+
+                      key={index + 1}
+                      active={apiPagination.current_page === index + 1}
+                      onClick={() => handlePageChange(index + 1)}
+                    >
+                      {index + 1}
+                    </Pagination.Item>
+                  ))}
+
                   <Pagination.Next
-                    disabled={currentPage === apiPagination.last_page}
-                    onClick={() => handlePageChange(currentPage + 1)}
+                    style={{ margin: "0 6px 0" }}
+
+                    disabled={
+                      apiPagination.current_page === apiPagination.last_page
+                    }
+                    onClick={() =>
+                      handlePageChange(apiPagination.current_page + 1)
+                    }
                   />
+
                 </Pagination>
               </div>
             )}
@@ -584,18 +769,29 @@ function AdminCourses() {
             </button>
             {!viewingItem && (
               <div className="ac-form-actions d-flex gap-2">
-                <button
-                  className="btn btn-outline-danger px-4"
-                  onClick={(e) => handleSubmitWrapper(e, "draft")}
-                >
-                  {isArabic ? "حفظ كمسودة" : "Save as Draft"}
-                </button>
-                <button
-                  className="btn btn-danger px-4 ac-publish-btn"
-                  onClick={(e) => handleSubmitWrapper(e, "published")}
-                >
-                  {isArabic ? "نشر الكورس" : "Publish Course"}
-                </button>
+                {editingItem ? (
+                  <button
+                    className="btn btn-danger px-4 ac-publish-btn"
+                    onClick={(e) => handleSubmitWrapper(e, formData.status)}
+                  >
+                    {isArabic ? "تعديل الكورس" : "Update Course"}
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      className="btn btn-outline-danger px-4"
+                      onClick={(e) => handleSubmitWrapper(e, "draft")}
+                    >
+                      {isArabic ? "حفظ كمسودة" : "Save as Draft"}
+                    </button>
+                    <button
+                      className="btn btn-danger px-4 ac-publish-btn"
+                      onClick={(e) => handleSubmitWrapper(e, "published")}
+                    >
+                      {isArabic ? "نشر الكورس" : "Publish Course"}
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -618,11 +814,18 @@ function AdminCourses() {
                       {t("content.form.tabs.curriculum")}
                     </button>
                     <button
+                      className={`ac-tab-btn ${activeTab === "pricing" ? "active" : ""}`}
+                      onClick={() => setActiveTab("pricing")}
+                    >
+                      {isArabic ? "التسعير" : "Pricing"}
+                    </button>
+                    <button
                       className={`ac-tab-btn ${activeTab === "settings" ? "active" : ""}`}
                       onClick={() => setActiveTab("settings")}
                     >
                       {t("content.form.tabs.settings")}
                     </button>
+
                   </div>
                 </Col>
               </Row>
@@ -709,15 +912,21 @@ function AdminCourses() {
                       <option value="">
                         {t("content.form.fields.category_placeholder")}
                       </option>
-                      {categories && categories.length > 0 ? (
-                        categories.map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="1">Web Development</option>
-                      )}
+                      {categories.map((cat) => (
+                        <optgroup key={cat.id} label={cat.name}>
+                          {/* Only children are selectable as per user request */}
+                          {cat.children && cat.children.length > 0 ? (
+                            cat.children.map((child) => (
+                              <option key={child.id} value={child.id}>
+                                {child.name}
+                              </option>
+                            ))
+                          ) : (
+                            /* Fallback if a category has no children but needs to be shown (optional) */
+                            <option value={cat.id} disabled>{cat.name} (No subcategories)</option>
+                          )}
+                        </optgroup>
+                      ))}
                     </select>
                   </div>
                   <div className="col-md-6">
@@ -741,113 +950,55 @@ function AdminCourses() {
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">
-                    {t("content.form.fields.instructor")}
-                  </label>
-                  <select
-                    name="instructor_id"
-                    className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                    value={formData.instructor_id}
-                    onChange={handleChange}
-                    disabled={isReadOnly}
-                  >
-                    <option value="">
-                      {t("content.form.fields.instructor_placeholder")}
-                    </option>
-                    {instructors && instructors.length > 0 ? (
-                      instructors.map((inst) => (
-                        <option key={inst.id} value={inst.id}>
-                          {inst.full_name || inst.name}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="1">Ahmed Hatem</option>
-                    )}
-                  </select>
-                </div>
-
-                <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">
-                    {t("content.form.fields.course_price")}
-                  </label>
-                  <div className="input-group">
-                    <span className="input-group-text bg-white border-end-0  text-muted">
-                      $
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control ac-form-input p-3 bg-light border-0 rounded-end-3"
-                      placeholder="0.00"
-                      value={formData.price}
+                <div className="row mb-4">
+                  <div className="col-md-6 mb-3 mb-md-0">
+                    <label className="form-label fw-bold text-dark">
+                      {t("content.form.fields.instructor")}
+                    </label>
+                    <select
+                      name="instructor_id"
+                      className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
+                      value={formData.instructor_id}
                       onChange={handleChange}
-                      name="price"
                       disabled={isReadOnly}
-                    />
+                    >
+                      <option value="">
+                        {t("content.form.fields.instructor_placeholder")}
+                      </option>
+                      {instructors && instructors.length > 0 ? (
+                        instructors.map((inst) => (
+                          <option key={inst.id} value={inst.id}>
+                            {inst.full_name || inst.name}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="1">Ahmed Hatem</option>
+                      )}
+                    </select>
                   </div>
-                </div>
-
-                <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">
-                    {isArabic ? "السعر قبل الخصم" : "Price Before Discount"}
-                  </label>
-                  <div className="input-group">
-                    <span className="input-group-text bg-white border-end-0 text-muted">
-                      $
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control ac-form-input p-3 bg-light border-0 rounded-end-3"
-                      placeholder="0.00"
-                      value={formData.price_before}
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-bold text-dark">
+                      {isArabic ? "نوع الحضور" : "Attendance Type"}
+                    </label>
+                    <select
+                      className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
+                      name="attendance_type"
+                      value={formData.attendance_type}
                       onChange={handleChange}
-                      name="price_before"
                       disabled={isReadOnly}
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">
-                    {t("content.form.fields.discount_price")}
-                  </label>
-                  <div className="input-group">
-                    <span className="input-group-text bg-white border-end-0 text-muted">
-                      $
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control ac-form-input p-3 bg-light border-0 rounded-end-3"
-                      placeholder="0.00"
-                      value={formData.discount_price}
-                      onChange={handleChange}
-                      name="discount_price"
-                      disabled={isReadOnly}
-                    />
+                    >
+                      <option value="online">{isArabic ? "أونلاين" : "Online"}</option>
+                      <option value="offline">{isArabic ? "أوفلاين" : "Offline"}</option>
+                      <option value="hybrid">{isArabic ? "هجين (Hybrid)" : "Hybrid"}</option>
+                    </select>
                   </div>
                 </div>
 
 
 
-                <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong className="d-block mb-1">Free Course</strong>
-                    <small className="text-muted">
-                      Make this course available for free
-                    </small>
-                  </div>
-                  <div className="form-check form-switch m-0">
-                    <input
-                      className="form-check-input form-check-inputS"
-                      type="checkbox"
-                      role="switch"
-                      checked={formData.is_free}
-                      onChange={handleChange}
-                      name="is_free"
-                      disabled={isReadOnly}
-                    />
-                  </div>
-                </div>
+
+
+
 
                 <div className="mb-4">
                   <label className="form-label fw-bold text-dark">
@@ -918,6 +1069,53 @@ function AdminCourses() {
                     </div>
                   )}
                 </div>
+
+                {/* What you will learn section */}
+                <div className="mb-4">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <label className="form-label fw-bold text-dark mb-0">
+                      {isArabic ? "ماذا سيتعلم الطالب؟" : "What student will learn"}
+                    </label>
+                    {!isReadOnly && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger rounded-circle p-0 d-flex align-items-center justify-content-center"
+                        style={{ width: "24px", height: "24px" }}
+                        onClick={addLearning}
+                      >
+                        <i className="bi bi-plus"></i>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="d-flex flex-column gap-2">
+                    {formData.learnings.map((learning, index) => (
+                      <div key={index} className="d-flex gap-2 align-items-center">
+                        <div className="flex-grow-1 position-relative">
+                          <input
+                            type="text"
+                            className="form-control ac-form-input p-3 ps-5 bg-light border-0 rounded-3"
+                            placeholder={isArabic ? "مثال: تعلم أساسيات البرمجة" : "e.g. Learn the basics of programming"}
+                            value={learning}
+                            onChange={(e) => handleLearningChange(index, e.target.value)}
+                            disabled={isReadOnly}
+                          />
+                        </div>
+                        {!isReadOnly && formData.learnings.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-light text-danger border-0 rounded-3 p-2"
+                            onClick={() => removeLearning(index)}
+                          >
+                            <i className="bi bi-trash"></i>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+
 
                 {!isReadOnly && (
                   <div className="mb-4">
@@ -1047,104 +1245,128 @@ function AdminCourses() {
 
             {activeTab === "curriculum" && (
               <div className="ac-tab-content curriculum-info">
-                <h5 className="fw-bold mb-4">{t("content.form.curriculum_part")}</h5>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <h5 className="fw-bold mb-0">{t("content.form.curriculum_part")}</h5>
+
+                </div>
+
                 <div className="d-flex flex-column gap-4">
                   {formData.curriculum.map((section) => (
-                    <div key={section.id} className="curriculum-section">
-                      <div className="d-flex align-items-center gap-2 gap-md-3 bg-light rounded-3 p-2 mb-3">
-                        <i className="bi bi-grid-3x2-gap text-muted ms-2 opacity-50 fs-5 d-none rotate-90 d-md-block" style={{ transform: "rotate(90deg)" }}
-                        ></i>
+                    <div key={section.id} className="curriculum-section border rounded-4 p-3 bg-white shadow-sm">
+                      <div className="d-flex align-items-center gap-2 bg-light rounded-3 p-2 mb-3">
+                        <i className="bi bi-grid-3x2-gap text-muted ms-2 opacity-50 fs-5 rotate-90" style={{ transform: "rotate(90deg)" }}></i>
                         <input
                           type="text"
-                          className="form-control p-3 bg-white border-0 rounded-3 flex-grow-1 fw-medium text-dark"
+                          className="form-control p-3 bg-white border-0 rounded-3 flex-grow-1 fw-bold text-dark"
                           placeholder={t("content.form.curriculum.section_placeholder")}
                           value={section.title}
                           onChange={(e) => handleSectionTitleChange(section.id, e.target.value)}
                           disabled={isReadOnly}
                         />
                         {!isReadOnly && (
-                          <button
-                            type="button"
-                            className="btn bg-white text-danger border-0 rounded-3 p-3 me-0 me-md-2 d-flex align-items-center justify-content-center"
-                            style={{ width: "54px", height: "54px", flexShrink: 0 }}
-                            onClick={() => removeSection(section.id)}
-                          >
-                            <i className="bi bi-trash fs-5"></i>
-                          </button>
-                        )}
-                      </div>
+                          <div className="d-flex gap-2">
 
-                      <div className="d-flex flex-column gap-3 ms-md-5 ms-3">
-                        {section.lessons.map((lesson) => (
-                          <div key={lesson.id} className="d-flex flex-column flex-md-row align-items-md-center gap-2 gap-md-3 border rounded-3 p-2 bg-white">
-                            <div className="d-flex align-items-center gap-2 flex-grow-1">
-                              <i className="bi bi-grid-3x2-gap text-muted ms-2 opacity-50 fs-5 d-none d-md-block"></i>
-                              <input
-                                type="text"
-                                className="form-control p-3 bg-light border-0 rounded-3 flex-grow-1 fw-medium text-dark"
-                                placeholder={t("content.form.curriculum.lesson_placeholder")}
-                                value={lesson.title}
-                                onChange={(e) => handleLessonChange(section.id, lesson.id, "title", e.target.value)}
-                                disabled={isReadOnly}
-                              />
-                            </div>
-                            <div className="d-flex align-items-center gap-2">
-                              <input
-                                type="text"
-                                className="form-control p-3 bg-light border-0 rounded-3 text-center fw-medium text-dark"
-                                placeholder={t("content.form.curriculum.duration_placeholder")}
-                                style={{ width: "100px" }}
-                                value={lesson.duration}
-                                onChange={(e) => handleLessonChange(section.id, lesson.id, "duration", e.target.value)}
-                                disabled={isReadOnly}
-                              />
-                              <label
-                                className={`btn ${lesson.video ? 'bg-danger-subtle text-danger' : 'bg-light text-secondary'} border-0 rounded-3 p-3 mb-0 d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-md-grow-0`}
-                                style={{ minWidth: "160px", cursor: isReadOnly ? "default" : "pointer", height: "54px" }}
-                              >
-                                <i className={`bi ${lesson.video ? 'bi-camera-video-fill' : 'bi-camera-video'} fs-5`}></i>
-                                <span className="text-truncate fw-medium" style={{ maxWidth: "120px" }}>
-                                  {lesson.video ? (lesson.video.name || lesson.video || t("content.form.curriculum.video_uploaded")) : t("content.form.curriculum.upload_video")}
-                                </span>
-                                {!isReadOnly && (
-                                  <input
-                                    type="file"
-                                    accept="video/*"
-                                    hidden
-                                    onChange={(e) => handleVideoUpload(section.id, lesson.id, e.target.files?.[0])}
-                                  />
-                                )}
-                              </label>
-                              {!isReadOnly && (
-                                <button
-                                  type="button"
-                                  className="btn bg-white text-danger border-0 rounded-3 p-3 d-flex align-items-center justify-content-center"
-                                  style={{ width: "54px", height: "54px", flexShrink: 0 }}
-                                  onClick={() => removeLesson(section.id, lesson.id)}
-                                >
-                                  <i className="bi bi-trash fs-5"></i>
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-
-                        {!isReadOnly && (
-                          <div className="mt-1">
                             <button
                               type="button"
-                              className="btn btn-light ac-add-lesson-btn w-100 p-3 rounded-3 fw-bold border-0 shadow-sm"
-                              onClick={() => addLesson(section.id)}
-                              disabled={isReadOnly}
+                              className="btn bg-white text-danger border-0 rounded-3 p-3 d-flex align-items-center justify-content-center"
+                              style={{ width: "54px", height: "54px" }}
+                              onClick={() => removeSection(section.id)}
                             >
-                              <i className="bi bi-plus-lg me-2"></i> {t("content.form.curriculum.add_lesson")}
+                              <i className="bi bi-trash fs-5"></i>
                             </button>
                           </div>
                         )}
                       </div>
-                    </div>
-                  ))}
 
+                      <div className="d-flex flex-column gap-3 ms-md-4">
+                        {section.lessons.map((lesson, idx) => (
+                          <div key={lesson.id} className="border rounded-4 p-3 bg-light-subtle">
+                            <div className="row g-3">
+                              {/* Left side: Inputs */}
+                              <div className="col-lg-8">
+                                <div className="row g-2">
+                                  <div className="col-12">
+                                    <textarea
+                                      className="form-control p-3 bg-white border-0 rounded-3 fw-medium text-dark"
+                                      rows="2"
+                                      placeholder={isArabic ? "وصف الدرس / العنوان" : "Lesson Description / Title"}
+                                      value={lesson.title}
+                                      onChange={(e) => handleLessonChange(section.id, lesson.id, "title", e.target.value)}
+                                      disabled={isReadOnly}
+                                    ></textarea>
+                                  </div>
+                                  <div className="col-md-4">
+                                    <div className="input-group">
+                                      <span className="input-group-text bg-white border-0 text-muted small">
+                                        {isArabic ? "الترتيب" : "Sort"}
+                                      </span>
+                                      <input
+                                        type="number"
+                                        className="form-control p-3 bg-white border-0 rounded-end-3 fw-medium text-dark"
+                                        placeholder="0"
+                                        value={lesson.sort_order}
+                                        onChange={(e) => handleLessonChange(section.id, lesson.id, "sort_order", e.target.value)}
+                                        disabled={isReadOnly}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="col-md-8">
+                                    <div className="input-group">
+                                      <span className="input-group-text bg-white border-0 text-muted small">
+                                        {isArabic ? "المصدر" : "Provider"}
+                                      </span>
+                                      <select
+                                        className="form-select ac-form-select p-3 bg-white border-0 rounded-end-3 fw-medium text-dark"
+                                        value={lesson.provider}
+                                        onChange={(e) => handleLessonChange(section.id, lesson.id, "provider", e.target.value)}
+                                        disabled={isReadOnly}
+                                      >
+                                        <option value="HTML5"> Local</option>
+                                        <option value="YouTube">YouTube</option>
+                                        <option value="GoogleDrive">Google Drive</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Right side: Video Upload & Info */}
+                              <div className="col-lg-4 d-flex flex-column justify-content-between">
+                                <div className="d-flex flex-column gap-2 h-100">
+                                  <label
+                                    className={`btn ${lesson.video ? 'bg-danger text-light' : 'bg-white text-secondary'} border-0 rounded-3 p-3 mb-0 d-flex align-items-center justify-content-center gap-2 flex-grow-1`}
+                                    style={{ cursor: isReadOnly ? "default" : "pointer", minHeight: "54px" }}
+                                  >
+                                    <i className={`bi ${lesson.video ? 'bi-camera-video-fill' : 'bi-camera-video'} fs-5`}></i>
+                                    <span className="text-truncate fw-medium" style={{ maxWidth: "150px" }}>
+                                      {lesson.video ? (lesson.video.name || lesson.video) : t("content.form.curriculum.upload_video")}
+                                    </span>
+                                    {!isReadOnly && (
+                                      <input
+                                        type="file"
+                                        accept="video/*"
+                                        hidden
+                                        onChange={(e) => handleVideoUpload(section.id, lesson.id, e.target.files?.[0])}
+                                      />
+                                    )}
+                                  </label>
+
+                                  <div className="d-flex align-items-center justify-content-between px-2">
+                                    <div className="small text-muted d-flex align-items-center gap-1">
+                                      <i className="bi bi-clock"></i>
+                                      <span>{lesson.duration || "0:00"}</span>
+                                    </div>
+
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                  }
                   {!isReadOnly && (
                     <button
                       type="button"
@@ -1159,29 +1381,64 @@ function AdminCourses() {
               </div>
             )}
 
+
+            {activeTab === "pricing" && (<>
+
+
+
+              <div className="mb-4">
+                <label className="form-label fw-bold text-dark">
+                  {isArabic ? "سعر الكورس" : "Course price"}
+                </label>
+                <div className="input-group">
+                  <span className="input-group-text bg-white border-end-0 text-muted">
+                    $
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control ac-form-input p-3 bg-light border-0 rounded-end-3"
+                    placeholder="0.00"
+                    value={formData.price_before}
+                    onChange={handleChange}
+                    name="price_before"
+                    disabled={isReadOnly}
+                  />
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="form-label fw-bold text-dark">
+                  {t("content.form.fields.discount_price")}
+                </label>
+                <div className="input-group">
+                  <span className="input-group-text bg-white border-end-0 text-muted">
+                    $
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control ac-form-input p-3 bg-light border-0 rounded-end-3"
+                    placeholder="0.00"
+                    value={formData.discount_price}
+                    onChange={handleChange}
+                    name="discount_price"
+                    disabled={isReadOnly}
+                  />
+                </div>
+              </div>
+
+
+
+
+
+            </>)}
             {activeTab === "settings" && (
               <div className="ac-tab-content settings-info">
                 <h5 className="fw-bold mb-4">{isArabic ? "الإعدادات" : "Settings"}</h5>
 
                 <div className="row mb-4">
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label fw-bold text-dark">
-                      {isArabic ? "نوع الحضور" : "Attendance Type"} <span className="text-danger">*</span>
-                    </label>
-                    <select
-                      className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                      name="attendance_type"
-                      value={formData.attendance_type}
-                      onChange={handleChange}
-                      disabled={isReadOnly}
-                    >
-                      <option value="online">{isArabic ? "أونلاين" : "Online"}</option>
-                      <option value="offline">{isArabic ? "أوفلاين" : "Offline"}</option>
-                      <option value="hybrid">{isArabic ? "هجين (Hybrid)" : "Hybrid"}</option>
-                    </select>
-                  </div>
 
-                  <div className="col-md-6 mb-3">
+
+                  <div className="col-12 mb-3">
                     <label className="form-label fw-bold text-dark">
                       {isArabic ? "لغة الكورس" : "Course Language"}
                     </label>
@@ -1237,20 +1494,7 @@ function AdminCourses() {
                     />
                   </div>
 
-                  <div className="col-md-12 mb-3">
-                    <label className="form-label fw-bold text-dark">
-                      {isArabic ? "رابط فيديو المعاينة (Youtube/Vimeo)" : "Preview Video URL"}
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control p-3 bg-light border-0 rounded-3"
-                      name="preview_video"
-                      placeholder="https://..."
-                      value={formData.preview_video}
-                      onChange={handleChange}
-                      disabled={isReadOnly}
-                    />
-                  </div>
+
 
                   <div className="col-md-12 mb-3">
                     <label className="form-label fw-bold text-dark">
@@ -1271,8 +1515,27 @@ function AdminCourses() {
                 </div>
 
 
-
                 <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong className="d-block mb-1">Free Course</strong>
+                    <small className="text-muted">
+                      Make this course available for free
+                    </small>
+                  </div>
+                  <div className="form-check form-switch m-0">
+                    <input
+                      className="form-check-input form-check-inputS"
+                      type="checkbox"
+                      role="switch"
+                      checked={formData.is_free}
+                      onChange={handleChange}
+                      name="is_free"
+                      disabled={isReadOnly}
+                    />
+                  </div>
+                </div>
+                <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
+
                   <div>
                     <strong className="d-block mb-1">{t("content.form.settings.featured_title")}</strong>
                     <small className="text-muted">
@@ -1292,64 +1555,41 @@ function AdminCourses() {
                   </div>
                 </div>
 
-                <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong className="d-block mb-1">{t("content.form.settings.comments_title")}</strong>
-                    <small className="text-muted">
-                      {t("content.form.settings.comments_desc")}
-                    </small>
-                  </div>
-                  <div className="form-check form-switch m-0">
-                    <input
-                      className="form-check-input form-check-inputS"
-                      type="checkbox"
-                      role="switch"
-                      checked={formData.enable_comments}
-                      onChange={handleChange}
-                      name="enable_comments"
-                      disabled={isReadOnly}
-                    />
-                  </div>
-                </div>
 
-                <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong className="d-block mb-1">{t("content.form.settings.certificate_title")}</strong>
-                    <small className="text-muted">
-                      {t("content.form.settings.certificate_desc")}
-                    </small>
-                  </div>
-                  <div className="form-check form-switch m-0">
-                    <input
-                      className="form-check-input form-check-inputS"
-                      type="checkbox"
-                      role="switch"
-                      checked={formData.has_certificate}
-                      onChange={handleChange}
-                      name="has_certificate"
-                      disabled={isReadOnly}
-                    />
-                  </div>
-                </div>
               </div>
             )}
-            {/* أزرار التحكم في نهاية الفورم */}
-            {!isReadOnly && (
-              <div className="d-flex justify-content-end gap-3 mt-4 pt-4 border-top">
-                <button
-                  className="btn btn-outline-danger px-5 py-2 fw-medium rounded-3"
-                  onClick={(e) => handleSubmitWrapper(e, "draft")}
-                >
-                  {isArabic ? "حفظ كمسودة" : "Save as Draft"}
-                </button>
-                <button
-                  className="btn btn-danger px-5 py-2 fw-medium rounded-3"
-                  onClick={(e) => handleSubmitWrapper(e, "published")}
-                >
-                  {editingItem ? (isArabic ? "تحديث ونشر" : "Update & Publish") : (isArabic ? "نشر الآن" : "Publish Now")}
-                </button>
+
+            {/* Tab Navigator Footer */}
+            <div className="ac-form-footer d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
+              <button
+                type="button"
+                className={`btn btn-outline-secondary rounded-3 px-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === 0 ? "invisible" : ""}`}
+                onClick={goToPrevTab}
+              >
+                <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}></i>
+                {isArabic ? "السابق" : "Previous"}
+              </button>
+
+              <div className="ac-tab-indicator d-flex gap-2">
+                {tabOrder.map((tab, idx) => (
+                  <div
+                    key={tab}
+                    className={`rounded-circle ${idx === currentTabIndex ? "bg-danger" : "bg-light border"}`}
+                    style={{ width: "10px", height: "10px", cursor: "pointer" }}
+                    onClick={() => setActiveTab(tab)}
+                  ></div>
+                ))}
               </div>
-            )}
+
+              <button
+                type="button"
+                className={`btn btn-outline-danger rounded-3 px-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === tabOrder.length - 1 ? "invisible" : ""}`}
+                onClick={goToNextTab}
+              >
+                {isArabic ? "التالي" : "Next"}
+                <i className={`bi ${isArabic ? "bi-arrow-left" : "bi-arrow-right"}`}></i>
+              </button>
+            </div>
           </div>
         </div>
       )}
