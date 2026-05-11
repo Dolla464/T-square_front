@@ -50,3 +50,13 @@
   color: #333;
 }
 
+.status {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+}
+.status.completed {
+  background: #d4edda;
+  color: green;
+}
