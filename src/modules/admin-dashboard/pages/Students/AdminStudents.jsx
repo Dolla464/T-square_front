@@ -437,27 +437,38 @@ function AdminStudents() {
             {apiPagination && (
               <div className="d-flex justify-content-center mt-5">
                 <Pagination className="custom-pagination">
+
                   <Pagination.Prev
+
                     disabled={apiPagination.current_page === 1}
-                    onClick={() => handlePageChange(apiPagination.current_page - 1)}
+                    onClick={() =>
+                      handlePageChange(apiPagination.current_page - 1)
+                    }
                   />
-                  {getPageRange().map((page, i) => (
-                    page === "..." ? (
-                      <Pagination.Ellipsis key={`ellipsis-${i}`} disabled />
-                    ) : (
-                      <Pagination.Item
-                        key={page}
-                        active
-                        onClick={() => handlePageChange(page)}
-                      >
-                        {page}
-                      </Pagination.Item>
-                    )
+
+
+                  {[...Array(apiPagination.total_pages)].map((_, index) => (
+                    <Pagination.Item
+                      style={{ margin: "0 3px" }}
+                      key={index + 1}
+                      active={apiPagination.current_page === index + 1}
+                      onClick={() => handlePageChange(index + 1)}
+                    >
+                      {index + 1}
+                    </Pagination.Item>
                   ))}
+
                   <Pagination.Next
-                    disabled={apiPagination.current_page === apiPagination.last_page}
-                    onClick={() => handlePageChange(apiPagination.current_page + 1)}
+                    style={{ margin: "0 6px 0" }}
+
+                    disabled={
+                      apiPagination.current_page === apiPagination.total_pages
+                    }
+                    onClick={() =>
+                      handlePageChange(apiPagination.current_page + 1)
+                    }
                   />
+
                 </Pagination>
               </div>
             )}

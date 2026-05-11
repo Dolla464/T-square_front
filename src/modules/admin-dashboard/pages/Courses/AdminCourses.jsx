@@ -124,6 +124,7 @@ function AdminCourses() {
   const [activeTab, setActiveTab] = useState("basic");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [formData, setFormData] = useState(defaultFormData);
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [coverFile, setCoverFile] = useState(null);
@@ -134,12 +135,17 @@ function AdminCourses() {
   const { categories, getCategories } = useCategories();
 
   useEffect(() => {
-    getCourses({
+    const params = {
       page: currentPage,
-      // API search and status removed to perform filtering in frontend
-    });
-  }, [currentPage, getCourses]);
+      search: searchTerm || undefined,
+      status: selectedStatus === "all" ? undefined : selectedStatus,
+      category_id: selectedCategory === "all" ? undefined : selectedCategory,
+    };
+    getCourses(params);
+  }, [currentPage, getCourses, searchTerm, selectedStatus, selectedCategory]);
 
+  // We keep frontend filtering as a second layer to ensure immediate UI response 
+  // and handle any cases where the API might return unfiltered data.
   const filteredCourses = (courses || []).filter((course) => {
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
@@ -152,20 +158,28 @@ function AdminCourses() {
     const matchesStatus =
       selectedStatus === "all" || course.status === selectedStatus;
 
-    return matchesSearch && matchesStatus;
+    const matchesCategory =
+      selectedCategory === "all" ||
+      String(course.category_id) === String(selectedCategory) ||
+      String(course.category?.id) === String(selectedCategory);
+
+    return matchesSearch && matchesStatus && matchesCategory;
   });
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedStatus]);
+  }, [searchTerm, selectedStatus, selectedCategory]);
+
+  useEffect(() => {
+    getCategories();
+  }, [getCategories]);
 
   useEffect(() => {
     if (showForm) {
       getTags();
       getInstructors();
-      getCategories();
     }
-  }, [showForm, getTags, getInstructors, getCategories]);
+  }, [showForm, getTags, getInstructors]);
 
   const handleAddNew = () => {
     setViewingItem(null);
@@ -246,8 +260,9 @@ function AdminCourses() {
       await deleteCourse(id);
       getCourses({
         page: currentPage,
-        search: searchTerm,
-        status: selectedStatus === "all" ? "" : selectedStatus,
+        search: searchTerm || undefined,
+        status: selectedStatus === "all" ? undefined : selectedStatus,
+        category_id: selectedCategory === "all" ? undefined : selectedCategory,
       });
     }
   };
@@ -397,8 +412,9 @@ function AdminCourses() {
       handleBack();
       getCourses({
         page: currentPage,
-        search: searchTerm,
-        status: selectedStatus === "all" ? "" : selectedStatus,
+        search: searchTerm || undefined,
+        status: selectedStatus === "all" ? undefined : selectedStatus,
+        category_id: selectedCategory === "all" ? undefined : selectedCategory,
       });
     } catch (err) {
       console.error("Submission failed:", err);
@@ -449,7 +465,23 @@ function AdminCourses() {
                       <option value="all">All Statuses</option>
                       <option value="published">Published</option>
                       <option value="draft">Draft</option>
-                      <option value="archived">Archived</option>
+                    </select>
+                    <select
+                      className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                    >
+                      <option value="all">{t("courses_page.all_categories", "All Categories")}</option>
+                      {categories.map((cat) => (
+                        <optgroup key={cat.id} label={cat.name}>
+                          <option value={cat.id}>{cat.name} (All)</option>
+                          {cat.children?.map((child) => (
+                            <option key={child.id} value={child.id}>
+                              &nbsp;&nbsp;&nbsp;{child.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -458,9 +490,10 @@ function AdminCourses() {
                     <tr>
                       <th>{t("content.table.course")}</th>
                       <th>{t("content.table.instructor")}</th>
-                      <th>{t("content.table.revenue")}</th>
+                      <th className="text-center">{t("content.table.revenue")}</th>
                       <th className="text-center">{t("content.table.students")}</th>
-                      <th>{t("content.table.tags")}</th>
+                      <th className="text-center">{isArabic ? "الحالة" : "Status"}</th>
+
                       <th className="text-center">{t("content.table.actions")}</th>
                     </tr>
                   </thead>
@@ -482,27 +515,17 @@ function AdminCourses() {
                           <td className="text-secondary">
                             {item.instructor?.full_name || item.instructor?.name || "N/A"}
                           </td>
-                          <td className="text-secondary">
+                          <td className="text-secondary text-center">
                             {item.total_revenue || item.revenue || "0.00"}
                           </td>
                           <td className="text-secondary text-center">
                             {item.total_students ?? item.students_count ?? 0}
                           </td>
-                          <td>
-                            <div className="d-flex gap-1 flex-wrap justify-content-start">
-                              {item.tags && item.tags.length > 0 ? (
-                                item.tags.map((tag) => (
-                                  <span
-                                    key={tag.tag_id || tag.id || tag}
-                                    className="badge bg-light text-dark border"
-                                  >
-                                    {tag.tag_name || tag.name || tag}
-                                  </span>
-                                ))
-                              ) : (
-                                <span className="text-muted small">N/A</span>
-                              )}
-                            </div>
+                          <td className="text-center">
+                            <select className="status-select">
+                              <option value="1" className="text-success">{isArabic ? "نشط" : "Active"}</option>
+                              <option value="0" className="text-danger">{isArabic ? "مرفوض" : "Rejected"}</option>
+                            </select>
                           </td>
                           <td className="text-center">
                             <div className="d-flex justify-content-center gap-2">
@@ -547,21 +570,38 @@ function AdminCourses() {
             {apiPagination && (
               <div className="d-flex justify-content-center mt-5">
                 <Pagination className="custom-pagination">
+
                   <Pagination.Prev
-                    disabled={currentPage === 1}
-                    onClick={() => handlePageChange(currentPage - 1)}
+
+                    disabled={apiPagination.current_page === 1}
+                    onClick={() =>
+                      handlePageChange(apiPagination.current_page - 1)
+                    }
                   />
-                  <Pagination.Item
-                    key={currentPage}
-                    active={currentPage === apiPagination.current_page}
-                    onClick={() => handlePageChange(currentPage)}
-                  >
-                    {currentPage}
-                  </Pagination.Item>
+
+                  {[...Array(apiPagination.last_page)].map((_, index) => (
+                    <Pagination.Item
+                      style={{ margin: "0 3px " }}
+
+                      key={index + 1}
+                      active={apiPagination.current_page === index + 1}
+                      onClick={() => handlePageChange(index + 1)}
+                    >
+                      {index + 1}
+                    </Pagination.Item>
+                  ))}
+
                   <Pagination.Next
-                    disabled={currentPage === apiPagination.last_page}
-                    onClick={() => handlePageChange(currentPage + 1)}
+                    style={{ margin: "0 6px 0" }}
+
+                    disabled={
+                      apiPagination.current_page === apiPagination.last_page
+                    }
+                    onClick={() =>
+                      handlePageChange(apiPagination.current_page + 1)
+                    }
                   />
+
                 </Pagination>
               </div>
             )}
@@ -618,11 +658,18 @@ function AdminCourses() {
                       {t("content.form.tabs.curriculum")}
                     </button>
                     <button
+                      className={`ac-tab-btn ${activeTab === "pricing" ? "active" : ""}`}
+                      onClick={() => setActiveTab("pricing")}
+                    >
+                      {isArabic ? "التسعير" : "Pricing"}
+                    </button>
+                    <button
                       className={`ac-tab-btn ${activeTab === "settings" ? "active" : ""}`}
                       onClick={() => setActiveTab("settings")}
                     >
                       {t("content.form.tabs.settings")}
                     </button>
+
                   </div>
                 </Col>
               </Row>
@@ -709,15 +756,16 @@ function AdminCourses() {
                       <option value="">
                         {t("content.form.fields.category_placeholder")}
                       </option>
-                      {categories && categories.length > 0 ? (
-                        categories.map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="1">Web Development</option>
-                      )}
+                      {categories.map((cat) => (
+                        <optgroup key={cat.id} label={cat.name}>
+                          <option value={cat.id}>{cat.name}</option>
+                          {cat.children?.map((child) => (
+                            <option key={child.id} value={child.id}>
+                              &nbsp;&nbsp;&nbsp;{child.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
                     </select>
                   </div>
                   <div className="col-md-6">
@@ -1333,23 +1381,7 @@ function AdminCourses() {
                 </div>
               </div>
             )}
-            {/* أزرار التحكم في نهاية الفورم */}
-            {!isReadOnly && (
-              <div className="d-flex justify-content-end gap-3 mt-4 pt-4 border-top">
-                <button
-                  className="btn btn-outline-danger px-5 py-2 fw-medium rounded-3"
-                  onClick={(e) => handleSubmitWrapper(e, "draft")}
-                >
-                  {isArabic ? "حفظ كمسودة" : "Save as Draft"}
-                </button>
-                <button
-                  className="btn btn-danger px-5 py-2 fw-medium rounded-3"
-                  onClick={(e) => handleSubmitWrapper(e, "published")}
-                >
-                  {editingItem ? (isArabic ? "تحديث ونشر" : "Update & Publish") : (isArabic ? "نشر الآن" : "Publish Now")}
-                </button>
-              </div>
-            )}
+
           </div>
         </div>
       )}

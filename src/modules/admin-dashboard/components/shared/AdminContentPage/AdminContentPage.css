@@ -81,13 +81,38 @@
   box-shadow: 0 0 0 0.2rem rgba(211, 47, 47, 0.25);
 }
 
-.ac-filter-select {
-  border-radius: 8px;
+.ac-filter-select, .ac-form-select {
+  border-radius: 10px;
   border: 1px solid #eaeaea;
   background-color: #f9f9fb;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #4b5563;
-  min-width: 250px !important;
+  min-width: 220px !important;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.ac-form-select:hover {
+  border-color: #d32f2f;
+  background-color: #fff;
+}
+
+.ac-form-select optgroup {
+  font-weight: 700;
+  color: #1a1a1a;
+  padding: 10px;
+  background-color: #f8fafc;
+}
+
+.ac-form-select option {
+  padding: 12px;
+  font-weight: 400;
+  color: #4b5563;
+}
+
+.ac-form-select option:checked {
+  background-color: #d32f2f;
+  color: white;
 }
 
 /* Table Styles */
