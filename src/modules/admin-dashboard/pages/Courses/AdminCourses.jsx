@@ -28,6 +28,13 @@ const createSection = () => ({
  * Ignores null, undefined, and empty strings automatically.
  * Supports handling arrays (e.g., tag_ids[]) and File uploads.
  */
+const formatDateForMySQL = (date) => {
+  if (!date) return null;
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString().slice(0, 19).replace("T", " ");
+};
+
 const buildFormData = (payload) => {
   const fd = new FormData();
 
@@ -58,6 +65,36 @@ const buildFormData = (payload) => {
   });
 
   return fd;
+};
+
+const normalizeLearnings = (rawLearnings) => {
+  if (!rawLearnings) return [""];
+  let learnings = [];
+  try {
+    if (Array.isArray(rawLearnings)) {
+      learnings = rawLearnings;
+    } else if (typeof rawLearnings === "string" && rawLearnings.trim().startsWith("[")) {
+      learnings = JSON.parse(rawLearnings);
+    } else if (typeof rawLearnings === "string") {
+      if (rawLearnings.includes("\n")) return rawLearnings.split("\n").map(s => s.trim()).filter(Boolean);
+      return [rawLearnings];
+    }
+  } catch (e) {
+    console.error("Failed to parse learnings:", e);
+    return [""];
+  }
+
+  if (!Array.isArray(learnings)) return [""];
+
+  const result = learnings.map((l) => {
+    if (typeof l === "string") return l;
+    if (typeof l === "object" && l !== null) {
+      return l.content || l.title || l.learning || l.name || "";
+    }
+    return String(l);
+  }).filter(l => l.trim() !== "");
+
+  return result.length > 0 ? result : [""];
 };
 
 const normalizeCurriculum = (rawCurriculum) => {
@@ -219,7 +256,7 @@ function AdminCourses() {
       google_drive_link: item.google_drive_link || "",
       published_at: item.published_at ? new Date(item.published_at).toISOString().split('T')[0] : "",
       tags: item.tags?.map((tObj) => tObj.tag_id || tObj.id || tObj) || [],
-      learnings: Array.isArray(item.learnings) ? item.learnings : (item.learnings ? JSON.parse(item.learnings) : [""]),
+      learnings: normalizeLearnings(item.learnings || item.what_will_learn || item.outcomes),
       curriculum: normalizeCurriculum(item.curriculum || item.sections || []),
       thumbnail: item.thumbnail || null,
       cover_image: item.cover_image || null,
@@ -439,6 +476,23 @@ function AdminCourses() {
     setCurrentPage(page);
   };
 
+  const tabOrder = ["basic", "curriculum", "pricing", "settings"];
+  const currentTabIndex = tabOrder.indexOf(activeTab);
+
+  const goToNextTab = () => {
+    if (currentTabIndex < tabOrder.length - 1) {
+      setActiveTab(tabOrder[currentTabIndex + 1]);
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+    }
+  };
+
+  const goToPrevTab = () => {
+    if (currentTabIndex > 0) {
+      setActiveTab(tabOrder[currentTabIndex - 1]);
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+    }
+  };
+
   const handleSubmitWrapper = async (e, forceStatus = null) => {
     if (e) e.preventDefault();
 
@@ -463,9 +517,12 @@ function AdminCourses() {
       is_free: formData.is_free,
       preview_video: formData.preview_video,
       google_drive_link: formData.google_drive_link,
-      published_at: formData.published_at,
-      tag_ids: formData.tags && formData.tags.length > 0 ? formData.tags : undefined,
-      learnings: formData.learnings.filter(l => l.trim() !== ""),
+      published_at:
+        forceStatus === "published"
+          ? (formData.published_at ? formatDateForMySQL(formData.published_at) : formatDateForMySQL(new Date()))
+          : formatDateForMySQL(formData.published_at),
+      tags: formData.tags && formData.tags.length > 0 ? formData.tags : undefined,
+      learnings: formData.learnings.filter((l) => l && l.trim() !== ""),
     };
 
     // Add files if selected
@@ -712,18 +769,29 @@ function AdminCourses() {
             </button>
             {!viewingItem && (
               <div className="ac-form-actions d-flex gap-2">
-                <button
-                  className="btn btn-outline-danger px-4"
-                  onClick={(e) => handleSubmitWrapper(e, "draft")}
-                >
-                  {isArabic ? "حفظ كمسودة" : "Save as Draft"}
-                </button>
-                <button
-                  className="btn btn-danger px-4 ac-publish-btn"
-                  onClick={(e) => handleSubmitWrapper(e, "published")}
-                >
-                  {isArabic ? "نشر الكورس" : "Publish Course"}
-                </button>
+                {editingItem ? (
+                  <button
+                    className="btn btn-danger px-4 ac-publish-btn"
+                    onClick={(e) => handleSubmitWrapper(e, formData.status)}
+                  >
+                    {isArabic ? "تعديل الكورس" : "Update Course"}
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      className="btn btn-outline-danger px-4"
+                      onClick={(e) => handleSubmitWrapper(e, "draft")}
+                    >
+                      {isArabic ? "حفظ كمسودة" : "Save as Draft"}
+                    </button>
+                    <button
+                      className="btn btn-danger px-4 ac-publish-btn"
+                      onClick={(e) => handleSubmitWrapper(e, "published")}
+                    >
+                      {isArabic ? "نشر الكورس" : "Publish Course"}
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -1019,11 +1087,11 @@ function AdminCourses() {
                       </button>
                     )}
                   </div>
+
                   <div className="d-flex flex-column gap-2">
                     {formData.learnings.map((learning, index) => (
                       <div key={index} className="d-flex gap-2 align-items-center">
                         <div className="flex-grow-1 position-relative">
-                          {/* <i className="bi bi-check2-circle position-absolute top-50 translate-middle-y ms-3 text-secondary"></i> */}
                           <input
                             type="text"
                             className="form-control ac-form-input p-3 ps-5 bg-light border-0 rounded-3"
@@ -1046,6 +1114,9 @@ function AdminCourses() {
                     ))}
                   </div>
                 </div>
+
+
+
                 {!isReadOnly && (
                   <div className="mb-4">
                     <label className="form-label fw-bold text-dark">
@@ -1488,6 +1559,37 @@ function AdminCourses() {
               </div>
             )}
 
+            {/* Tab Navigator Footer */}
+            <div className="ac-form-footer d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
+              <button
+                type="button"
+                className={`btn btn-outline-secondary rounded-3 px-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === 0 ? "invisible" : ""}`}
+                onClick={goToPrevTab}
+              >
+                <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}></i>
+                {isArabic ? "السابق" : "Previous"}
+              </button>
+
+              <div className="ac-tab-indicator d-flex gap-2">
+                {tabOrder.map((tab, idx) => (
+                  <div
+                    key={tab}
+                    className={`rounded-circle ${idx === currentTabIndex ? "bg-danger" : "bg-light border"}`}
+                    style={{ width: "10px", height: "10px", cursor: "pointer" }}
+                    onClick={() => setActiveTab(tab)}
+                  ></div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className={`btn btn-outline-danger rounded-3 px-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === tabOrder.length - 1 ? "invisible" : ""}`}
+                onClick={goToNextTab}
+              >
+                {isArabic ? "التالي" : "Next"}
+                <i className={`bi ${isArabic ? "bi-arrow-left" : "bi-arrow-right"}`}></i>
+              </button>
+            </div>
           </div>
         </div>
       )}
