@@ -12,7 +12,8 @@ import VideoPreviewModal from "../../../../components/layout/VideoPreviewModal";
 
 const createLesson = () => ({
   id: `lesson-${Date.now()}-${Math.random()}`,
-  title: "", // This will be used as Description/Title
+  title: "",
+  description: "",
   duration: "",
   video: "",
   sort_order: "",
@@ -54,6 +55,7 @@ const buildFormData = (payload) => {
           fd.append(`previews[${index}][id]`, preview.id);
         }
         fd.append(`previews[${index}][title]`, preview.title || "");
+        fd.append(`previews[${index}][description]`, preview.description || "");
         fd.append(
           `previews[${index}][video_provider]`,
           (preview.video_provider || "upload").trim().toLowerCase(),
@@ -165,6 +167,7 @@ const normalizeCurriculum = (rawCurriculum) => {
         lessons: rawCurriculum.map((lesson) => ({
           id: lesson.id || `lesson-${Date.now()}-${Math.random()}`,
           title: lesson.title || "",
+          description: lesson.description || "",
           duration: formatSecondsToTime(
             lesson.duration_seconds || lesson.duration,
           ),
@@ -185,6 +188,7 @@ const normalizeCurriculum = (rawCurriculum) => {
         ? section.lessons.map((lesson) => ({
             id: lesson.id || `lesson-${Date.now()}-${Math.random()}`,
             title: lesson.title || "",
+            description: lesson.description || "",
             duration: formatSecondsToTime(
               lesson.duration_seconds || lesson.duration,
             ),
@@ -618,9 +622,10 @@ function AdminCourses() {
         : [],
       previews: formData.curriculum.flatMap((section) =>
         section.lessons.map((lesson) => ({
-          id: String(lesson.id).includes("lesson-") ? null : lesson.id, // نرسل ID فقط إذا كان موجوداً في القاعدة
+          id: String(lesson.id).includes("lesson-") ? null : lesson.id,
           title: lesson.title,
-          video_url: lesson.videoFile || lesson.video, // نرسل الملف الجديد أو المسار القديم
+          description: lesson.description || "",
+          video_url: lesson.videoFile || lesson.video,
           video_provider: lesson.provider || "upload",
           sort_order: lesson.sort_order,
           duration_seconds: lesson.duration,
@@ -1475,25 +1480,73 @@ function AdminCourses() {
                               <div className="col-lg-8">
                                 <div className="row g-2">
                                   <div className="col-12">
-                                    <textarea
-                                      className="form-control p-3 bg-white border-0 rounded-3 fw-medium text-dark"
-                                      rows="2"
-                                      placeholder={
-                                        isArabic
-                                          ? "وصف الدرس / العنوان"
-                                          : "Lesson Description / Title"
-                                      }
-                                      value={lesson.title}
-                                      onChange={(e) =>
-                                        handleLessonChange(
-                                          section.id,
-                                          lesson.id,
-                                          "title",
-                                          e.target.value,
-                                        )
-                                      }
-                                      disabled={isReadOnly}
-                                    ></textarea>
+                                    {isReadOnly ? (
+                                      <p
+                                        className="form-control p-3 bg-white border-0 rounded-3 fw-bold text-dark mb-0"
+                                        style={{ minHeight: "48px" }}
+                                      >
+                                        {lesson.title || (
+                                          <span className="text-muted fst-italic">
+                                            {isArabic
+                                              ? "بدون عنوان"
+                                              : "No title"}
+                                          </span>
+                                        )}
+                                      </p>
+                                    ) : (
+                                      <input
+                                        type="text"
+                                        className="form-control p-3 bg-white border-0 rounded-3 fw-bold text-dark"
+                                        placeholder={
+                                          isArabic
+                                            ? "عنوان الدرس"
+                                            : "Lesson Title"
+                                        }
+                                        value={lesson.title}
+                                        onChange={(e) =>
+                                          handleLessonChange(
+                                            section.id,
+                                            lesson.id,
+                                            "title",
+                                            e.target.value,
+                                          )
+                                        }
+                                      />
+                                    )}
+                                  </div>
+                                  <div className="col-12">
+                                    {isReadOnly ? (
+                                      lesson.description ? (
+                                        <p
+                                          className="form-control p-3 bg-white border-0 rounded-3 text-secondary mb-0"
+                                          style={{
+                                            minHeight: "60px",
+                                            whiteSpace: "pre-wrap",
+                                          }}
+                                        >
+                                          {lesson.description}
+                                        </p>
+                                      ) : null
+                                    ) : (
+                                      <textarea
+                                        className="form-control p-3 bg-white border-0 rounded-3 text-dark"
+                                        rows="2"
+                                        placeholder={
+                                          isArabic
+                                            ? "وصف الدرس (اختياري)"
+                                            : "Lesson description (optional)"
+                                        }
+                                        value={lesson.description}
+                                        onChange={(e) =>
+                                          handleLessonChange(
+                                            section.id,
+                                            lesson.id,
+                                            "description",
+                                            e.target.value,
+                                          )
+                                        }
+                                      ></textarea>
+                                    )}
                                   </div>
                                   <div className="col-md-4">
                                     <div className="input-group">
