@@ -7,6 +7,9 @@ import {
   createCourse as apiCreateCourse,
   updateCourse as apiUpdateCourse,
   deleteCourse as apiDeleteCourse,
+  getTrashedCourses as fetchTrashedCourses,
+  restoreCourse as apiRestoreCourse,
+  forceDeleteCourse as apiForceDeleteCourse,
 } from "../services/coursesServices";
 
 export const useAdminCourses = () => {
@@ -125,6 +128,67 @@ export const useAdminCourses = () => {
     }
   };
 
+  const getTrashedCourses = useCallback(async (params = {}) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetchTrashedCourses(params);
+      const data = response?.data || [];
+      const meta = response?.meta || null;
+      setCourses(Array.isArray(data) ? data : []);
+      setPagination(meta);
+      return { data, meta };
+    } catch (err) {
+      console.error("Error fetching trashed courses:", err);
+      // eslint-disable-next-line
+      const errorMsg = err.response?.data?.message || t("adminDashboard:errors.fetch_failed", "Failed to fetch data");
+      setError(errorMsg);
+      toastError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
+  const restoreCourse = async (id) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await apiRestoreCourse(id);
+      // eslint-disable-next-line
+      toastSuccess(t("adminDashboard:success.restored", "Restored successfully"));
+      return true;
+    } catch (err) {
+      console.error("Error restoring course:", err);
+      // eslint-disable-next-line
+      const errorMsg = err.response?.data?.message || t("adminDashboard:errors.restore_failed", "Failed to restore");
+      setError(errorMsg);
+      toastError(errorMsg);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const forceDeleteCourse = async (id) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await apiForceDeleteCourse(id);
+      // eslint-disable-next-line
+      toastSuccess(t("adminDashboard:success.force_deleted", "Permanently deleted"));
+      return true;
+    } catch (err) {
+      console.error("Error force deleting course:", err);
+      // eslint-disable-next-line
+      const errorMsg = err.response?.data?.message || t("adminDashboard:errors.delete_failed", "Failed to delete");
+      setError(errorMsg);
+      toastError(errorMsg);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     courses,
     course,
@@ -136,5 +200,8 @@ export const useAdminCourses = () => {
     createCourse,
     updateCourse,
     deleteCourse,
+    getTrashedCourses,
+    restoreCourse,
+    forceDeleteCourse,
   };
 };

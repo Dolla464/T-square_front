@@ -55,10 +55,34 @@ export const updateCourse = async (id, data) => {
 };
 
 // ----------------------------------------------------------------------------
-// حذف كورس
+// حذف كورس (Soft Delete)
 // ----------------------------------------------------------------------------
 export const deleteCourse = async (id) => {
     const response = await axiosClient.delete(`/admin/courses/${id}`);
+    return response.data;
+};
+
+// ----------------------------------------------------------------------------
+// جلب الكورسات المحذوفة مؤقتاً (Trash)
+// ----------------------------------------------------------------------------
+export const getTrashedCourses = async (params = {}) => {
+    const response = await axiosClient.get("/admin/courses/trash", { params });
+    return response.data;
+};
+
+// ----------------------------------------------------------------------------
+// استعادة كورس محذوف
+// ----------------------------------------------------------------------------
+export const restoreCourse = async (id) => {
+    const response = await axiosClient.post(`/admin/courses/${id}/restore`);
+    return response.data;
+};
+
+// ----------------------------------------------------------------------------
+// حذف نهائي للكورس وملفاته
+// ----------------------------------------------------------------------------
+export const forceDeleteCourse = async (id) => {
+    const response = await axiosClient.delete(`/admin/courses/${id}/force-delete`);
     return response.data;
 };
 
