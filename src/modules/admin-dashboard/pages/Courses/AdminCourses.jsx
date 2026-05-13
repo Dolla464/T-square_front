@@ -1,232 +1,24 @@
 import { useState, useEffect } from "react";
-import { Modal } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
-import { Pagination, Container, Row, Col } from "react-bootstrap";
 import { useAdminCourses } from "../../hooks/useAdminCourses";
 import { useInstructors } from "../../hooks/useInstractor";
 import { useCategories } from "../../hooks/useCategories";
 import { useTags } from "../../hooks/useTags";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
-import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import VideoPreviewModal from "../../../../components/layout/VideoPreviewModal";
-
-const createLesson = () => ({
-  id: `lesson-${Date.now()}-${Math.random()}`,
-  title: "",
-  description: "",
-  duration: "",
-  video: "",
-  sort_order: "",
-  provider: "",
-});
-
-const createSection = () => ({
-  id: `section-${Date.now()}-${Math.random()}`,
-  title: "",
-  lessons: [createLesson()],
-});
-
-/**
- * Helper to dynamically build FormData from a payload object.
- * Ignores null, undefined, and empty strings automatically.
- * Supports handling arrays (e.g., tag_ids[]) and File uploads.
- */
-const formatDateForMySQL = (date) => {
-  if (!date) return null;
-  const d = new Date(date);
-  if (isNaN(d.getTime())) return null;
-  return d.toISOString().slice(0, 19).replace("T", " ");
-};
-
-const buildFormData = (payload) => {
-  const fd = new FormData();
-
-  Object.entries(payload).forEach(([key, value]) => {
-    // تجاهل القيم الفارغة مع السماح بـ 0 أو false
-    if (value === null || value === undefined || value === "") {
-      return;
-    }
-
-    // 1. التعامل مع مصفوفة الـ Previews (Nested Objects)
-    if (key === "previews" && Array.isArray(value)) {
-      value.forEach((preview, index) => {
-        // نرسل الـ ID فقط إذا كان موجوداً (لتجنب إرسال نصوص lesson-...)
-        if (preview.id && !String(preview.id).includes("lesson-")) {
-          fd.append(`previews[${index}][id]`, preview.id);
-        }
-        fd.append(`previews[${index}][title]`, preview.title || "");
-        fd.append(`previews[${index}][description]`, preview.description || "");
-        fd.append(
-          `previews[${index}][video_provider]`,
-          (preview.video_provider || "upload").trim().toLowerCase(),
-        );
-        fd.append(`previews[${index}][sort_order]`, preview.sort_order || 0);
-        fd.append(
-          `previews[${index}][duration_seconds]`,
-          preview.duration_seconds || "",
-        );
-
-        // التعامل مع الفيديو (ملف جديد أو رابط قديم)
-        if (
-          preview.video_url instanceof File ||
-          preview.video_url instanceof Blob
-        ) {
-          fd.append(`previews[${index}][video]`, preview.video_url);
-        } else if (typeof preview.video_url === "string") {
-          fd.append(`previews[${index}][video_url]`, preview.video_url || "");
-        }
-      });
-    }
-
-    // 2. التعامل مع الملفات المباشرة (Thumbnail / Cover)
-    else if (value instanceof File || value instanceof Blob) {
-      fd.append(key, value);
-    }
-
-    // 3. التعامل مع المصفوفات البسيطة (مثل tags)
-    else if (Array.isArray(value)) {
-      value.forEach((item, index) => {
-        fd.append(`${key}[${index}]`, item);
-      });
-    }
-
-    // 4. التعامل مع القيم المنطقية (Booleans)
-    else if (typeof value === "boolean") {
-      fd.append(key, value ? "1" : "0");
-    }
-
-    // 5. أي بيانات أخرى (Strings / Numbers)
-    else {
-      fd.append(key, value);
-    }
-  });
-
-  return fd;
-};
-
-// دالة لتحويل الثواني إلى صيغة (دقيقة:ثانية)
-const formatSecondsToTime = (seconds) => {
-  if (!seconds || isNaN(seconds)) return "0:00";
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${String(secs).padStart(2, "0")}`;
-};
-
-const normalizeLearnings = (rawLearnings) => {
-  if (!rawLearnings) return [""];
-  let learnings = [];
-  try {
-    if (Array.isArray(rawLearnings)) {
-      learnings = rawLearnings;
-    } else if (
-      typeof rawLearnings === "string" &&
-      rawLearnings.trim().startsWith("[")
-    ) {
-      learnings = JSON.parse(rawLearnings);
-    } else if (typeof rawLearnings === "string") {
-      if (rawLearnings.includes("\n"))
-        return rawLearnings
-          .split("\n")
-          .map((s) => s.trim())
-          .filter(Boolean);
-      return [rawLearnings];
-    }
-  } catch (e) {
-    console.error("Failed to parse learnings:", e);
-    return [""];
-  }
-
-  if (!Array.isArray(learnings)) return [""];
-
-  const result = learnings
-    .map((l) => {
-      if (typeof l === "string") return l;
-      if (typeof l === "object" && l !== null) {
-        return l.content || l.title || l.learning || l.name || "";
-      }
-      return String(l);
-    })
-    .filter((l) => l.trim() !== "");
-
-  return result.length > 0 ? result : [""];
-};
-
-const normalizeCurriculum = (rawCurriculum) => {
-  // 1. if data was empty
-  if (!Array.isArray(rawCurriculum) || rawCurriculum.length === 0) {
-    return [createSection()];
-  }
-
-  // 2. التحقق: هل البيانات "فيديوهات مباشرة" أم "أقسام"؟
-  // إذا كان أول عنصر لا يحتوي على مصفوفة دروس، فهذا يعني أنها مصفوفة فيديوهات مباشرة
-  if (rawCurriculum[0] && !Array.isArray(rawCurriculum[0].lessons)) {
-    return [
-      {
-        id: "default-section",
-        title: "",
-        lessons: rawCurriculum.map((lesson) => ({
-          id: lesson.id || `lesson-${Date.now()}-${Math.random()}`,
-          title: lesson.title || "",
-          description: lesson.description || "",
-          duration: formatSecondsToTime(
-            lesson.duration_seconds || lesson.duration,
-          ),
-          video: lesson.video_url || lesson.video || "",
-          sort_order: lesson.sort_order || "",
-          provider: lesson.video_provider || "HTML5",
-        })),
-      },
-    ];
-  }
-
-  // 3. الحالة العادية (لو قررت مستقبلاً استخدام أقسام)
-  return rawCurriculum.map((section) => ({
-    id: section.id || `section-${Date.now()}-${Math.random()}`,
-    title: section.title || "",
-    lessons:
-      Array.isArray(section.lessons) && section.lessons.length > 0
-        ? section.lessons.map((lesson) => ({
-            id: lesson.id || `lesson-${Date.now()}-${Math.random()}`,
-            title: lesson.title || "",
-            description: lesson.description || "",
-            duration: formatSecondsToTime(
-              lesson.duration_seconds || lesson.duration,
-            ),
-            video: lesson.video_url || lesson.video || "",
-            sort_order: lesson.sort_order || "",
-            provider: lesson.video_provider || "HTML5",
-          }))
-        : [createLesson()],
-  }));
-};
-
-const defaultFormData = {
-  title: "",
-  slug: "",
-  short_description: "",
-  description: "",
-  category_id: "",
-  instructor_id: "",
-  level: "beginner",
-  language: "Arabic",
-  attendance_type: "online",
-  price: "",
-  price_before: "",
-  discount_price: "",
-  duration_weeks: "",
-  duration_hours: "",
-  status: "draft",
-  is_featured: false,
-  is_free: false,
-  preview_video: "",
-  google_drive_link: "",
-  published_at: "",
-  tags: [],
-  learnings: [""],
-  curriculum: [createSection()],
-};
+import { useCourseFormLogic } from "./hooks/useCourseFormLogic";
+import {
+  mapItemToFormData,
+  buildFormData,
+  formatDateForMySQL,
+} from "./utils/courseHelpers";
+import CourseFilters from "./components/CourseFilters";
+import CourseTable from "./components/CourseTable";
+import CourseForm from "./components/CourseForm";
+import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
 function AdminCourses() {
+  // ─── API hooks ─────────────────────────────────────────────────────────────
   const {
     courses,
     pagination: apiPagination,
@@ -236,29 +28,41 @@ function AdminCourses() {
     createCourse,
     updateCourse,
     deleteCourse,
+    getTrashedCourses,
+    restoreCourse,
+    forceDeleteCourse,
   } = useAdminCourses();
 
-  const { t, i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
-
-  const [showForm, setShowForm] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [viewingItem, setViewingItem] = useState(null);
-  const [activeTab, setActiveTab] = useState("basic");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("all");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [formData, setFormData] = useState(defaultFormData);
-  const [thumbnailFile, setThumbnailFile] = useState(null);
-  const [coverFile, setCoverFile] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const { tags: availableTags, getTags } = useTags();
   const { instructors, getInstructors } = useInstructors();
   const { categories, getCategories } = useCategories();
+
+  // ─── i18n ──────────────────────────────────────────────────────────────────
+  const { t, i18n } = useTranslation("adminDashboard");
+  const isArabic = i18n.language?.startsWith("ar");
+
+  // ─── View state ────────────────────────────────────────────────────────────
+  const [showForm, setShowForm] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [viewingItem, setViewingItem] = useState(null);
+
+  // ─── List / filter state ───────────────────────────────────────────────────
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showTrash, setShowTrash] = useState(false);
+  const [trashPeriod, setTrashPeriod] = useState("");
+
+  // ─── Video modal state ─────────────────────────────────────────────────────
   const [videoPreviewUrl, setVideoPreviewUrl] = useState(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [videoTitle, setVideoTitle] = useState("");
 
+  // ─── Form logic hook ───────────────────────────────────────────────────────
+  const formLogic = useCourseFormLogic();
+
+  // ─── Data fetching ─────────────────────────────────────────────────────────
   useEffect(() => {
     const params = {
       page: currentPage,
@@ -266,11 +70,39 @@ function AdminCourses() {
       status: selectedStatus === "all" ? undefined : selectedStatus,
       category_id: selectedCategory === "all" ? undefined : selectedCategory,
     };
-    getCourses(params);
-  }, [currentPage, getCourses, searchTerm, selectedStatus, selectedCategory]);
+    if (showTrash) {
+      if (trashPeriod) params.period = trashPeriod;
+      getTrashedCourses(params);
+    } else {
+      getCourses(params);
+    }
+  }, [
+    currentPage,
+    getCourses,
+    getTrashedCourses,
+    searchTerm,
+    selectedStatus,
+    selectedCategory,
+    showTrash,
+    trashPeriod,
+  ]);
 
-  // We keep frontend filtering as a second layer to ensure immediate UI response
-  // and handle any cases where the API might return unfiltered data.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedStatus, selectedCategory, showTrash, trashPeriod]);
+
+  useEffect(() => {
+    getCategories();
+  }, [getCategories]);
+
+  useEffect(() => {
+    if (showForm) {
+      getTags();
+      getInstructors();
+    }
+  }, [showForm, getTags, getInstructors]);
+
+  // ─── Client-side filter (second layer over API results) ───────────────────
   const filteredCourses = (courses || []).filter((course) => {
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
@@ -291,98 +123,53 @@ function AdminCourses() {
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedStatus, selectedCategory]);
+  // ─── Helpers ───────────────────────────────────────────────────────────────
+  const buildFetchParams = () => ({
+    page: currentPage,
+    search: searchTerm || undefined,
+    status: selectedStatus === "all" ? undefined : selectedStatus,
+    category_id: selectedCategory === "all" ? undefined : selectedCategory,
+  });
 
-  useEffect(() => {
-    if (showForm) {
-      getTags();
-      getCategories();
-      getInstructors();
+  const refreshList = () => {
+    const params = buildFetchParams();
+    if (showTrash) {
+      if (trashPeriod) params.period = trashPeriod;
+      getTrashedCourses(params);
+    } else {
+      getCourses(params);
     }
-  }, [showForm, getTags, getInstructors, getCategories]);
+  };
 
+  // ─── View handlers ─────────────────────────────────────────────────────────
   const handleAddNew = () => {
     setViewingItem(null);
     setEditingItem(null);
-    setFormData(defaultFormData);
-    setThumbnailFile(null);
-    setCoverFile(null);
-    setActiveTab("basic");
+    formLogic.resetForm();
     setShowForm(true);
-  };
-
-  const handleCloseVideo = () => {
-    setShowVideoModal(false);
-    setVideoPreviewUrl(null);
-  };
-
-  const handlePlayVideo = (url, title) => {
-    setVideoPreviewUrl(url);
-    setVideoTitle(title); // تخزين العنوان عند النقر
-    setShowVideoModal(true);
-  };
-
-  const mapItemToFormData = (item) => {
-    return {
-      title: item.title || "",
-      slug: item.slug || "",
-      short_description: item.short_description || "",
-      description: item.description || "",
-      category_id: item.category_id || item.category?.id || "",
-      instructor_id: item.instructor_id || item.instructor?.id || "",
-      level: item.level || "beginner",
-      language: item.language || "Arabic",
-      attendance_type: item.attendance_type || "online",
-      price: item.price || "",
-      price_before: item.price_before || "",
-      discount_price: item.discount_price || "",
-      duration_weeks: item.duration_weeks || "",
-      duration_hours: item.duration_hours || "",
-      status: item.status || "draft",
-      is_featured: item.is_featured || false,
-      is_free: item.is_free || false,
-      preview_video: item.preview_video || "",
-      google_drive_link: item.google_drive_link || "",
-      published_at: item.published_at
-        ? new Date(item.published_at).toISOString().split("T")[0]
-        : "",
-      tags: item.tags?.map((tObj) => tObj.tag_id || tObj.id || tObj) || [],
-      learnings: normalizeLearnings(
-        item.learnings || item.what_will_learn || [],
-      ),
-      curriculum: normalizeCurriculum(
-        item.previews || item.curriculum || item.sections || [],
-      ),
-      thumbnail: item.thumbnail || null,
-      cover_image: item.cover_image || null,
-    };
   };
 
   const handleEdit = async (course) => {
     const fullCourse = await getCourseById(course.id);
     if (!fullCourse) return;
-
     setViewingItem(null);
     setEditingItem(fullCourse);
-    setFormData(mapItemToFormData(fullCourse));
-    setThumbnailFile(null);
-    setCoverFile(null);
-    setActiveTab("basic");
+    formLogic.setFormData(mapItemToFormData(fullCourse));
+    formLogic.setThumbnailFile(null);
+    formLogic.setCoverFile(null);
+    formLogic.setActiveTab("basic");
     setShowForm(true);
   };
 
   const handleView = async (course) => {
     const fullCourse = await getCourseById(course.id);
     if (!fullCourse) return;
-
     setEditingItem(null);
     setViewingItem(fullCourse);
-    setFormData(mapItemToFormData(fullCourse));
-    setThumbnailFile(null);
-    setCoverFile(null);
-    setActiveTab("basic");
+    formLogic.setFormData(mapItemToFormData(fullCourse));
+    formLogic.setThumbnailFile(null);
+    formLogic.setCoverFile(null);
+    formLogic.setActiveTab("basic");
     setShowForm(true);
   };
 
@@ -390,20 +177,30 @@ function AdminCourses() {
     setShowForm(false);
     setEditingItem(null);
     setViewingItem(null);
-    setActiveTab("view");
+    formLogic.setActiveTab("view");
   };
 
+  // ─── CRUD handlers ─────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     const course = courses.find((item) => item.id === id);
     const ok = await showDeleteConfirm(course?.title || course?.name || "");
     if (ok) {
       await deleteCourse(id);
-      getCourses({
-        page: currentPage,
-        search: searchTerm || undefined,
-        status: selectedStatus === "all" ? undefined : selectedStatus,
-        category_id: selectedCategory === "all" ? undefined : selectedCategory,
-      });
+      refreshList();
+    }
+  };
+
+  const handleRestore = async (id) => {
+    const ok = await restoreCourse(id);
+    if (ok) refreshList();
+  };
+
+  const handleForceDelete = async (id) => {
+    const course = courses.find((item) => item.id === id);
+    const ok = await showDeleteConfirm(course?.title || course?.name || "");
+    if (ok) {
+      const success = await forceDeleteCourse(id);
+      if (success) refreshList();
     }
   };
 
@@ -411,184 +208,19 @@ function AdminCourses() {
     try {
       const fd = new FormData();
       fd.append("status", newStatus);
-
       await updateCourse(id, fd);
-
-      getCourses({
-        page: currentPage,
-        search: searchTerm || undefined,
-        status: selectedStatus === "all" ? undefined : selectedStatus,
-        category_id: selectedCategory === "all" ? undefined : selectedCategory,
-      });
+      refreshList();
     } catch (err) {
       console.error("Status update failed:", err);
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleLearningChange = (index, value) => {
-    setFormData((prev) => {
-      const newLearnings = [...prev.learnings];
-      newLearnings[index] = value;
-      return { ...prev, learnings: newLearnings };
-    });
-  };
-
-  const addLearning = () => {
-    setFormData((prev) => ({
-      ...prev,
-      learnings: [...prev.learnings, ""],
-    }));
-  };
-
-  const removeLearning = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      learnings: prev.learnings.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleFileChange = (e, type = "thumbnail") => {
-    const selectedFile = e.target.files[0];
-    if (!selectedFile) return;
-    const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
-    if (!allowedTypes.includes(selectedFile.type)) {
-      alert("Invalid file type. Please use PNG, JPEG or WEBP.");
-      return;
-    }
-    if (type === "thumbnail") {
-      setThumbnailFile(selectedFile);
-    } else {
-      setCoverFile(selectedFile);
-    }
-  };
-
-  // Curriculum Handlers
-  const updateCurriculum = (updater) => {
-    setFormData((prev) => ({
-      ...prev,
-      curriculum: updater(prev.curriculum),
-    }));
-  };
-
-  const handleSectionTitleChange = (sectionId, title) => {
-    updateCurriculum((curriculum) =>
-      curriculum.map((section) =>
-        section.id === sectionId ? { ...section, title } : section,
-      ),
-    );
-  };
-
-  const handleLessonChange = (sectionId, lessonId, field, value) => {
-    updateCurriculum((curriculum) =>
-      curriculum.map((section) => {
-        if (section.id !== sectionId) return section;
-        return {
-          ...section,
-          lessons: section.lessons.map((lesson) =>
-            lesson.id === lessonId ? { ...lesson, [field]: value } : lesson,
-          ),
-        };
-      }),
-    );
-  };
-
-  const handleVideoUpload = (sectionId, lessonId, uploadedFile) => {
-    if (!uploadedFile) return;
-
-    // حفظ ملف الفيديو نفسه
-    handleLessonChange(sectionId, lessonId, "videoFile", uploadedFile);
-
-    // عرض اسم الفيديو مباشرة
-    handleLessonChange(sectionId, lessonId, "video", uploadedFile.name);
-
-    // حساب الـ duration تلقائي
-    const video = document.createElement("video");
-
-    video.preload = "metadata";
-
-    video.onloadedmetadata = () => {
-      URL.revokeObjectURL(video.src);
-
-      const totalSeconds = Math.floor(video.duration);
-
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
-
-      const formattedDuration =
-        hours > 0
-          ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
-          : `${minutes}:${String(seconds).padStart(2, "0")}`;
-
-      handleLessonChange(sectionId, lessonId, "duration", formattedDuration);
-    };
-
-    video.onerror = () => {
-      console.error("Failed to load video metadata");
-    };
-
-    video.src = URL.createObjectURL(uploadedFile);
-  };
-
-  const removeLesson = (sectionId, lessonId) => {
-    updateCurriculum((curriculum) =>
-      curriculum.map((section) => {
-        if (section.id !== sectionId) return section;
-        const lessons = section.lessons.filter(
-          (lesson) => lesson.id !== lessonId,
-        );
-        return {
-          ...section,
-          lessons: lessons.length ? lessons : [createLesson()],
-        };
-      }),
-    );
-  };
-
-  const addSection = () => {
-    updateCurriculum((curriculum) => [...curriculum, createSection()]);
-  };
-
-  const removeSection = (sectionId) => {
-    updateCurriculum((curriculum) => {
-      const updated = curriculum.filter((section) => section.id !== sectionId);
-      return updated.length ? updated : [createSection()];
-    });
-  };
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  const tabOrder = ["basic", "curriculum", "pricing", "settings"];
-  const currentTabIndex = tabOrder.indexOf(activeTab);
-
-  const goToNextTab = () => {
-    if (currentTabIndex < tabOrder.length - 1) {
-      setActiveTab(tabOrder[currentTabIndex + 1]);
-      setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 100);
-    }
-  };
-
-  const goToPrevTab = () => {
-    if (currentTabIndex > 0) {
-      setActiveTab(tabOrder[currentTabIndex - 1]);
-      setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 100);
-    }
-  };
-
+  // ─── Form submission ───────────────────────────────────────────────────────
   const handleSubmitWrapper = async (e, forceStatus = null) => {
     if (e) e.preventDefault();
 
-    // 1. Prepare base data payload matching backend schema
+    const { formData, thumbnailFile, coverFile } = formLogic;
+
     const payload = {
       title: formData.title,
       slug: formData.slug,
@@ -633,17 +265,12 @@ function AdminCourses() {
       ),
     };
 
-    // Add files if selected
     if (thumbnailFile) payload.thumbnail = thumbnailFile;
     if (coverFile) payload.cover_image = coverFile;
 
-    // 2. Build FormData dynamically using the helper
     const fd = buildFormData(payload);
-
-    // [DEBUG]: Print formData to console
     console.log("Course Payload:", payload);
 
-    // 3. Execute the request
     try {
       if (editingItem) {
         fd.append("_method", "PUT");
@@ -651,1264 +278,142 @@ function AdminCourses() {
       } else {
         await createCourse(fd);
       }
-
       handleBack();
-      getCourses({
-        page: currentPage,
-        search: searchTerm || undefined,
-        status: selectedStatus === "all" ? undefined : selectedStatus,
-        category_id: selectedCategory === "all" ? undefined : selectedCategory,
-      });
+      refreshList();
     } catch (err) {
       console.error("Submission failed:", err);
     }
   };
 
+  // ─── Video modal handlers ──────────────────────────────────────────────────
+  const handlePlayVideo = (url, title) => {
+    setVideoPreviewUrl(url);
+    setVideoTitle(title);
+    setShowVideoModal(true);
+  };
+
+  const handleCloseVideo = () => {
+    setShowVideoModal(false);
+    setVideoPreviewUrl(null);
+  };
+
   const isReadOnly = !!viewingItem;
 
+  // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="admin-content-page">
       {!showForm ? (
+        /* ── List view ────────────────────────────────────────────────────── */
         <>
           <div className="ac-header d-flex justify-content-between align-items-center mb-4">
             <div>
-              <h2 className="ac-title">{t("courses_page.title", "Courses")}</h2>
+              <h2 className="ac-title">
+                {showTrash
+                  ? isArabic
+                    ? "الكورسات المحذوفة (الأرشيف)"
+                    : "Archived Courses (Trash)"
+                  : t("courses_page.title", "Courses")}
+              </h2>
               <p className="ac-subtitle text-muted mb-0">
                 {t("courses_page.subtitle", "Manage all courses")}
               </p>
             </div>
-            <button
-              className="btn btn-danger ac-add-btn"
-              onClick={handleAddNew}
-            >
-              + {t("courses_page.add_course", "Add Course")}
-            </button>
+            <div className="d-flex gap-2">
+              {!showTrash && (
+                <button
+                  className="btn btn-danger ac-add-btn"
+                  onClick={handleAddNew}
+                >
+                  + {t("courses_page.add_course", "Add Course")}
+                </button>
+              )}
+              <button
+                className="btn btn-outline-dark ac-add-btn"
+                style={{ color: "#ffffff" }}
+                onClick={() => {
+                  if (showTrash) {
+                    setShowTrash(false);
+                    setTrashPeriod("");
+                    setSelectedStatus("all");
+                    setSelectedCategory("all");
+                  } else {
+                    setShowTrash(true);
+                  }
+                }}
+              >
+                <i
+                  className={`bi ${showTrash ? "bi-arrow-left" : "bi-trash"} me-2`}
+                ></i>
+                {showTrash
+                  ? isArabic
+                    ? "العودة للكورسات النشطة"
+                    : "Back to Active Courses"
+                  : isArabic
+                    ? "سلة المحذوفات"
+                    : "Trash"}
+              </button>
+            </div>
           </div>
 
           <div className="ac-table-card">
             <div className="ac-table-container">
               <div className="table-responsive ac-rounded-table" dir="ltr">
-                <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
-                  <div className="ac-search-input-wrapper">
-                    <i className="bi bi-search ac-search-icon"></i>
-                    <input
-                      type="text"
-                      className="form-control ac-search-input"
-                      placeholder={t("content.search_courses")}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <div className="d-flex gap-md-3">
-                    <select
-                      className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
-                      value={selectedStatus}
-                      onChange={(e) => setSelectedStatus(e.target.value)}
-                    >
-                      <option value="all">All Statuses</option>
-                      <option value="published">Published</option>
-                      <option value="draft">Draft</option>
-                    </select>
-                    <select
-                      className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
-                    >
-                      <option value="all">
-                        {t("courses_page.all_categories", "All Categories")}
-                      </option>
-                      {categories.map((cat) => (
-                        <optgroup key={cat.id} label={cat.name}>
-                          <option value={cat.id}>{cat.name} (All)</option>
-                          {cat.children?.map((child) => (
-                            <option key={child.id} value={child.id}>
-                              &nbsp;&nbsp;&nbsp;{child.name}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <table className="table ac-table mb-0 align-middle">
-                  <thead>
-                    <tr>
-                      <th>{t("content.table.course")}</th>
-                      <th>{t("content.table.instructor")}</th>
-                      <th className="text-center">
-                        {t("content.table.revenue")}
-                      </th>
-                      <th className="text-center">
-                        {t("content.table.students")}
-                      </th>
-                      <th className="text-center">
-                        {isArabic ? "الحالة" : "Status"}
-                      </th>
-
-                      <th className="text-center">
-                        {t("content.table.actions")}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
-                      <tr>
-                        <td colSpan={6} className="text-center py-5">
-                          <div
-                            className="spinner-border text-danger"
-                            role="status"
-                          >
-                            <span className="visually-hidden">Loading...</span>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : filteredCourses.length > 0 ? (
-                      filteredCourses.map((item, index) => (
-                        <tr key={item.id || index}>
-                          <td className="fw-medium text-dark">
-                            {item.name || item.title || "Untitled"}
-                          </td>
-                          <td className="text-secondary">
-                            {item.instructor?.full_name ||
-                              item.instructor?.name ||
-                              "N/A"}
-                          </td>
-                          <td className="text-secondary text-center">
-                            {item.total_revenue || item.revenue || "0.00"}
-                          </td>
-                          <td className="text-secondary text-center">
-                            {item.total_students ?? item.students_count ?? 0}
-                          </td>
-                          <td className="text-center">
-                            <select
-                              className={`px-3   status-select ${
-                                item.status === "published"
-                                  ? "bg-success-subtle text-success border-success"
-                                  : "bg-danger-subtle text-danger border-danger"
-                              }`}
-                              value={item.status}
-                              onChange={(e) =>
-                                handleStatusChange(item.id, e.target.value)
-                              }
-                            >
-                              <option value="published">
-                                &#x2B9B; {isArabic ? "منشور" : "Published"}
-                              </option>
-                              <option value="draft">
-                                &#x2B9B; {isArabic ? "مسودة" : "Draft"}
-                              </option>
-                            </select>
-                          </td>
-                          <td className="text-center">
-                            <div className="d-flex justify-content-center gap-2">
-                              <button
-                                className="btn btn-sm ac-btn-view border-0"
-                                title="View"
-                                onClick={() => handleView(item)}
-                              >
-                                <i className="bi bi-eye fs-6"></i>
-                              </button>
-                              <button
-                                className="btn btn-sm ac-btn-edit border-0"
-                                title="Edit"
-                                onClick={() => handleEdit(item)}
-                              >
-                                <i className="bi bi-pencil-square fs-6"></i>
-                              </button>
-                              <button
-                                className="btn btn-sm ac-btn-deleteTable border-0"
-                                title="Delete"
-                                onClick={() => handleDelete(item.id)}
-                              >
-                                <i className="bi bi-trash fs-6"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={6} className="text-center py-4 text-muted">
-                          No data available.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                <CourseFilters
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  selectedStatus={selectedStatus}
+                  setSelectedStatus={setSelectedStatus}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                  categories={categories}
+                  showTrash={showTrash}
+                  trashPeriod={trashPeriod}
+                  setTrashPeriod={setTrashPeriod}
+                  isArabic={isArabic}
+                  t={t}
+                />
+                <CourseTable
+                  filteredCourses={filteredCourses}
+                  loading={loading}
+                  showTrash={showTrash}
+                  isArabic={isArabic}
+                  t={t}
+                  handleView={handleView}
+                  handleEdit={handleEdit}
+                  handleDelete={handleDelete}
+                  handleRestore={handleRestore}
+                  handleForceDelete={handleForceDelete}
+                  handleStatusChange={handleStatusChange}
+                  apiPagination={apiPagination}
+                  handlePageChange={setCurrentPage}
+                />
               </div>
             </div>
-
-            {/* Pagination - Always visible if data exists */}
-            {apiPagination && (
-              <div className="d-flex justify-content-center mt-5">
-                <Pagination className="custom-pagination">
-                  <Pagination.Prev
-                    disabled={apiPagination.current_page === 1}
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page - 1)
-                    }
-                  />
-
-                  {[...Array(apiPagination.last_page)].map((_, index) => (
-                    <Pagination.Item
-                      style={{ margin: "0 3px " }}
-                      key={index + 1}
-                      active={apiPagination.current_page === index + 1}
-                      onClick={() => handlePageChange(index + 1)}
-                    >
-                      {index + 1}
-                    </Pagination.Item>
-                  ))}
-
-                  <Pagination.Next
-                    style={{ margin: "0 6px 0" }}
-                    disabled={
-                      apiPagination.current_page === apiPagination.last_page
-                    }
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page + 1)
-                    }
-                  />
-                </Pagination>
-              </div>
-            )}
           </div>
         </>
       ) : (
-        <div className="ac-form-container">
-          <div className="ac-form-header d-flex justify-content-between align-items-center mb-4">
-            <button className="ac-back-btn" onClick={handleBack}>
-              <i
-                className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
-              ></i>
-              <span className="ms-2 me-2 fs-5 fw-bold text-dark">
-                {isReadOnly
-                  ? t("content.view_course")
-                  : editingItem
-                    ? t("content.edit_course")
-                    : t("content.add_new_course")}
-              </span>
-            </button>
-            {!viewingItem && (
-              <div className="ac-form-actions d-flex gap-2">
-                {editingItem ? (
-                  <button
-                    className="btn btn-danger px-4 ac-publish-btn"
-                    onClick={(e) => handleSubmitWrapper(e, formData.status)}
-                  >
-                    {isArabic ? "تعديل الكورس" : "Update Course"}
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      className="btn btn-outline-danger px-4"
-                      onClick={(e) => handleSubmitWrapper(e, "draft")}
-                    >
-                      {isArabic ? "حفظ كمسودة" : "Save as Draft"}
-                    </button>
-                    <button
-                      className="btn btn-danger px-4 ac-publish-btn"
-                      onClick={(e) => handleSubmitWrapper(e, "published")}
-                    >
-                      {isArabic ? "نشر الكورس" : "Publish Course"}
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="ac-form-body p-4 bg-white border rounded-4 shadow-sm">
-            <Container>
-              <Row>
-                <Col className="mb-3 m-0 p-0">
-                  <div className="ac-tabs-menu">
-                    <button
-                      className={`ac-tab-btn ${activeTab === "basic" ? "active" : ""}`}
-                      onClick={() => setActiveTab("basic")}
-                    >
-                      {t("content.form.tabs.basic")}
-                    </button>
-                    <button
-                      className={`ac-tab-btn ${activeTab === "curriculum" ? "active" : ""}`}
-                      onClick={() => setActiveTab("curriculum")}
-                    >
-                      {t("content.form.tabs.curriculum")}
-                    </button>
-                    <button
-                      className={`ac-tab-btn ${activeTab === "pricing" ? "active" : ""}`}
-                      onClick={() => setActiveTab("pricing")}
-                    >
-                      {isArabic ? "التسعير" : "Pricing"}
-                    </button>
-                    <button
-                      className={`ac-tab-btn ${activeTab === "settings" ? "active" : ""}`}
-                      onClick={() => setActiveTab("settings")}
-                    >
-                      {t("content.form.tabs.settings")}
-                    </button>
-                  </div>
-                </Col>
-              </Row>
-            </Container>
-
-            {activeTab === "basic" && (
-              <div className="ac-tab-content basic-info">
-                {isReadOnly && (
-                  <div className="mb-4 text-center">
-                    <div
-                      className="ac-thumbnail-view border rounded-4 overflow-hidden shadow-sm d-inline-block"
-                      style={{ maxWidth: "100%", width: "800px" }}
-                    >
-                      <img
-                        src={
-                          formData.cover_image ||
-                          "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-                        }
-                        loading="lazy"
-                        alt={formData.title}
-                        className="img-fluid w-100"
-                        style={{ height: "350px", objectFit: "cover" }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">
-                    {t("content.form.fields.course_title")}
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    placeholder={t("content.form.fields.title_placeholder")}
-                    value={formData.title}
-                    onChange={handleChange}
-                    disabled={isReadOnly}
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">
-                    {isArabic ? "وصف قصير" : "Short Description"}
-                  </label>
-                  <textarea
-                    name="short_description"
-                    className="form-control ac-form-textarea p-3 bg-light border-0 rounded-3"
-                    rows="2"
-                    placeholder={
-                      isArabic ? "وصف مختصر للكورس" : "Brief course description"
-                    }
-                    value={formData.short_description}
-                    onChange={handleChange}
-                    disabled={isReadOnly}
-                  ></textarea>
-                </div>
-
-                <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">
-                    {t("content.form.fields.description")}
-                  </label>
-                  <textarea
-                    name="description"
-                    className="form-control ac-form-textarea p-3 bg-light border-0 rounded-3"
-                    rows="4"
-                    placeholder={t(
-                      "content.form.fields.description_placeholder",
-                    )}
-                    value={formData.description}
-                    onChange={handleChange}
-                    disabled={isReadOnly}
-                  ></textarea>
-                </div>
-                <div className="row mb-4">
-                  <div className="col-md-6 mb-3 mb-md-0">
-                    <label className="form-label fw-bold text-dark">
-                      {t("content.form.fields.category")}
-                    </label>
-                    <select
-                      name="category_id"
-                      className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                      value={
-                        formData.category_id ? String(formData.category_id) : ""
-                      }
-                      onChange={handleChange}
-                      disabled={isReadOnly}
-                    >
-                      <option value="">
-                        {t("content.form.fields.category_placeholder")}
-                      </option>
-                      {categories.map((cat) => (
-                        <optgroup key={cat.id} label={cat.name}>
-                          {/* Only children are selectable as per user request */}
-                          {cat.children && cat.children.length > 0 ? (
-                            cat.children.map((child) => (
-                              <option key={child.id} value={String(child.id)}>
-                                {child.name} ({cat.name})
-                              </option>
-                            ))
-                          ) : (
-                            /* Fallback if a category has no children but needs to be shown (optional) */
-                            <option value={cat.id} disabled>
-                              {cat.name} (No subcategories)
-                            </option>
-                          )}
-                        </optgroup>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="col-md-6">
-                    <label className="form-label fw-bold text-dark">
-                      {t("content.form.fields.difficulty")}
-                    </label>
-                    <select
-                      name="level"
-                      className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                      value={formData.level}
-                      onChange={handleChange}
-                      disabled={isReadOnly}
-                    >
-                      <option value="">
-                        {t("content.form.fields.difficulty_placeholder")}
-                      </option>
-                      <option value="beginner">Beginner</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="row mb-4">
-                  <div className="col-md-6 mb-3 mb-md-0">
-                    <label className="form-label fw-bold text-dark">
-                      {t("content.form.fields.instructor")}
-                    </label>
-                    <select
-                      name="instructor_id"
-                      className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                      value={formData.instructor_id}
-                      onChange={handleChange}
-                      disabled={isReadOnly}
-                    >
-                      <option value="">
-                        {t("content.form.fields.instructor_placeholder")}
-                      </option>
-                      {instructors && instructors.length > 0 ? (
-                        instructors.map((inst) => (
-                          <option key={inst.id} value={inst.id}>
-                            {inst.full_name || inst.name}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="1">Ahmed Hatem</option>
-                      )}
-                    </select>
-                  </div>
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label fw-bold text-dark">
-                      {isArabic ? "نوع الحضور" : "Attendance Type"}
-                    </label>
-                    <select
-                      className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                      name="attendance_type"
-                      value={formData.attendance_type}
-                      onChange={handleChange}
-                      disabled={isReadOnly}
-                    >
-                      <option value="online">
-                        {isArabic ? "أونلاين" : "Online"}
-                      </option>
-                      <option value="offline">
-                        {isArabic ? "أوفلاين" : "Offline"}
-                      </option>
-                      <option value="hybrid">
-                        {isArabic ? "هجين (Hybrid)" : "Hybrid"}
-                      </option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">
-                    {t("content.form.fields.tags")}
-                  </label>
-
-                  {isReadOnly ? (
-                    <div className="d-flex flex-wrap gap-2 pt-2">
-                      {viewingItem &&
-                      viewingItem.tags &&
-                      viewingItem.tags.length > 0 ? (
-                        viewingItem.tags.map((tag) => (
-                          <span
-                            key={tag.tag_id || tag.id}
-                            className="badge bg-danger text-white px-3 py-2 rounded-pill fw-medium"
-                          >
-                            {tag.tag_name || tag.name}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-muted small">
-                          No tags assigned
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <div
-                      className="ac-tags-selection-box p-3 bg-light border rounded-3"
-                      style={{ maxHeight: "200px", overflowY: "auto" }}
-                    >
-                      <div className="row g-2">
-                        {availableTags &&
-                          availableTags.map((tag) => {
-                            const tagId = tag.tag_id || tag.id;
-                            const isChecked =
-                              formData.tags.includes(parseInt(tagId, 10)) ||
-                              formData.tags.includes(tagId.toString());
-
-                            return (
-                              <div key={tagId} className="col-md-4 col-6">
-                                <div
-                                  className={`ac-tag-option p-2 rounded-3 border bg-white cursor-pointer d-flex align-items-center gap-2 ${isChecked ? "checked" : ""}`}
-                                  onClick={() => {
-                                    const numericId = parseInt(tagId, 10);
-                                    const newTags = isChecked
-                                      ? formData.tags.filter(
-                                          (id) => id !== numericId,
-                                        )
-                                      : [...formData.tags, numericId];
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      tags: newTags,
-                                    }));
-                                  }}
-                                >
-                                  <input
-                                    type="checkbox"
-                                    className="form-check-input mt-0 cursor-pointer"
-                                    checked={isChecked}
-                                    onChange={() => {}}
-                                  />
-                                  <span
-                                    className={`small fw-medium ${isChecked ? "text-light" : "text-dark"}`}
-                                  >
-                                    {tag.tag_name || tag.name}
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* What you will learn section */}
-                <div className="mb-4">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <label className="form-label fw-bold text-dark mb-0">
-                      {isArabic
-                        ? "ماذا سيتعلم الطالب؟"
-                        : "What student will learn"}
-                    </label>
-                    {!isReadOnly && (
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-danger rounded-circle p-0 d-flex align-items-center justify-content-center"
-                        style={{ width: "24px", height: "24px" }}
-                        onClick={addLearning}
-                      >
-                        <i className="bi bi-plus"></i>
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="d-flex flex-column gap-2">
-                    {formData.learnings.map((learning, index) => (
-                      <div
-                        key={index}
-                        className="d-flex gap-2 align-items-center"
-                      >
-                        <div className="flex-grow-1 position-relative">
-                          <input
-                            type="text"
-                            className="form-control ac-form-input p-3 ps-5 bg-light border-0 rounded-3"
-                            placeholder={
-                              isArabic
-                                ? "مثال: تعلم أساسيات البرمجة"
-                                : "e.g. Learn the basics of programming"
-                            }
-                            value={learning}
-                            onChange={(e) =>
-                              handleLearningChange(index, e.target.value)
-                            }
-                            disabled={isReadOnly}
-                          />
-                        </div>
-                        {!isReadOnly && formData.learnings.length > 1 && (
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-light text-danger border-0 rounded-3 p-2"
-                            onClick={() => removeLearning(index)}
-                          >
-                            <i className="bi bi-trash"></i>
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {!isReadOnly && (
-                  <div className="mb-4">
-                    <label className="form-label fw-bold text-dark">
-                      {t("content.form.fields.course_thumbnail")}
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(e, "thumbnail")}
-                      id="thumbnailUpload"
-                      hidden
-                    />
-
-                    {!thumbnailFile && !formData.thumbnail ? (
-                      <label
-                        htmlFor="thumbnailUpload"
-                        className="ac-thumbnail-upload w-100 mt-1 d-flex flex-column align-items-center justify-content-center p-5 text-center text-muted border-2 border-dashed rounded-3 bg-light"
-                        style={{
-                          borderStyle: "dashed",
-                          borderColor: "#d1d5db",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <i className="bi bi-cloud-arrow-up fs-1 mb-2 text-secondary"></i>
-                        <p className="mb-1">
-                          {t("content.form.fields.thumbnail_hint")}
-                        </p>
-                        <small>
-                          {t("content.form.fields.thumbnail_sub_hint")}
-                        </small>
-                      </label>
-                    ) : (
-                      <div className="mt-2">
-                        <div
-                          className="ac-thumbnail-preview border rounded-3 overflow-hidden bg-light d-flex align-items-center justify-content-center"
-                          style={{ height: "200px", maxWidth: "100%" }}
-                        >
-                          <img
-                            src={
-                              thumbnailFile
-                                ? URL.createObjectURL(thumbnailFile)
-                                : formData.thumbnail
-                            }
-                            alt="thumbnail preview"
-                            className="img-fluid"
-                            style={{ maxHeight: "100%", objectFit: "contain" }}
-                          />
-                        </div>
-                        <div className="d-flex gap-2 mt-2">
-                          <label
-                            htmlFor="thumbnailUpload"
-                            className="btn btn-outline-danger btn-sm rounded-3 px-3 py-2 d-flex align-items-center gap-2"
-                            style={{ cursor: "pointer" }}
-                          >
-                            <i className="bi bi-pencil-square"></i>{" "}
-                            {t("content.form.fields.change_photo")}
-                          </label>
-                          <button
-                            type="button"
-                            className="btn btn-light btn-sm rounded-3 px-3 py-2 text-secondary border"
-                            onClick={() => {
-                              setThumbnailFile(null);
-                              setFormData((prev) => ({
-                                ...prev,
-                                thumbnail: null,
-                              }));
-                            }}
-                          >
-                            <i className="bi bi-x-lg me-1"></i>{" "}
-                            {t("content.form.fields.remove")}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {!isReadOnly && (
-                  <div className="mb-4">
-                    <label className="form-label fw-bold text-dark">
-                      {isArabic ? "صورة الغلاف (Cover Image)" : "Cover Image"}
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(e, "cover")}
-                      id="coverUpload"
-                      hidden
-                    />
-
-                    {!coverFile && !formData.cover_image ? (
-                      <label
-                        htmlFor="coverUpload"
-                        className="ac-thumbnail-upload w-100 mt-1 d-flex flex-column align-items-center justify-content-center p-5 text-center text-muted border-2 border-dashed rounded-3 bg-light"
-                        style={{
-                          borderStyle: "dashed",
-                          borderColor: "#d1d5db",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <i className="bi bi-cloud-arrow-up fs-1 mb-2 text-secondary"></i>
-                        <p className="mb-1">
-                          {isArabic
-                            ? "اضغط لرفع صورة الغلاف"
-                            : "Click to upload cover image"}
-                        </p>
-                        <small>
-                          {isArabic
-                            ? "PNG, JPG أو WEBP (يفضل مقاس كبير)"
-                            : "PNG, JPG or WEBP (Large size recommended)"}
-                        </small>
-                      </label>
-                    ) : (
-                      <div className="mt-2">
-                        <div
-                          className="ac-thumbnail-preview border rounded-3 overflow-hidden bg-light d-flex align-items-center justify-content-center"
-                          style={{ height: "200px", maxWidth: "100%" }}
-                        >
-                          <img
-                            src={
-                              coverFile
-                                ? URL.createObjectURL(coverFile)
-                                : formData.cover_image
-                            }
-                            alt="cover preview"
-                            className="img-fluid"
-                            style={{ maxHeight: "100%", objectFit: "contain" }}
-                          />
-                        </div>
-                        <div className="d-flex gap-2 mt-2">
-                          <label
-                            htmlFor="coverUpload"
-                            className="btn btn-outline-danger btn-sm rounded-3 px-3 py-2 d-flex align-items-center gap-2"
-                            style={{ cursor: "pointer" }}
-                          >
-                            <i className="bi bi-pencil-square"></i>{" "}
-                            {t("content.form.fields.change_photo")}
-                          </label>
-                          <button
-                            type="button"
-                            className="btn btn-light btn-sm rounded-3 px-3 py-2 text-secondary border"
-                            onClick={() => {
-                              setCoverFile(null);
-                              setFormData((prev) => ({
-                                ...prev,
-                                cover_image: null,
-                              }));
-                            }}
-                          >
-                            <i className="bi bi-x-lg me-1"></i>{" "}
-                            {t("content.form.fields.remove")}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === "curriculum" && (
-              <div className="ac-tab-content curriculum-info">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h5 className="fw-bold mb-0">
-                    {t("content.form.curriculum_part")}
-                  </h5>
-                </div>
-
-                <div className="d-flex flex-column gap-4">
-                  {formData.curriculum.map((section) => (
-                    <div
-                      key={section.id}
-                      className="curriculum-section border rounded-4 p-3 bg-white shadow-sm"
-                    >
-                      {section.title && section.title.trim() !== "" && (
-                        <div className="d-flex align-items-center gap-2 bg-light rounded-3 p-2 mb-3">
-                          <i
-                            className="bi bi-grid-3x2-gap text-muted ms-2 opacity-50 fs-5 rotate-90"
-                            style={{ transform: "rotate(90deg)" }}
-                          ></i>
-                          <input
-                            type="text"
-                            className="form-control p-3 bg-white border-0 rounded-3 flex-grow-1 fw-bold text-dark"
-                            placeholder={t(
-                              "content.form.curriculum.section_placeholder",
-                            )}
-                            value={section.title}
-                            onChange={(e) =>
-                              handleSectionTitleChange(
-                                section.id,
-                                e.target.value,
-                              )
-                            }
-                            disabled={isReadOnly}
-                          />
-                          {!isReadOnly && (
-                            <div className="d-flex gap-2">
-                              <button
-                                type="button"
-                                className="btn bg-white text-danger border-0 rounded-3 p-3 d-flex align-items-center justify-content-center"
-                                style={{ width: "54px", height: "54px" }}
-                                onClick={() => removeSection(section.id)}
-                              >
-                                <i className="bi bi-trash fs-5"></i>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      <div className="d-flex flex-column gap-3 ms-md-4">
-                        {section.lessons.map((lesson, idx) => (
-                          <div
-                            key={lesson.id}
-                            className="border rounded-4 p-3 bg-light-subtle"
-                          >
-                            <div className="row g-3">
-                              {/* Left side: Inputs */}
-                              <div className="col-lg-8">
-                                <div className="row g-2">
-                                  <div className="col-12">
-                                    {isReadOnly ? (
-                                      <p
-                                        className="form-control p-3 bg-white border-0 rounded-3 fw-bold text-dark mb-0"
-                                        style={{ minHeight: "48px" }}
-                                      >
-                                        {lesson.title || (
-                                          <span className="text-muted fst-italic">
-                                            {isArabic
-                                              ? "بدون عنوان"
-                                              : "No title"}
-                                          </span>
-                                        )}
-                                      </p>
-                                    ) : (
-                                      <input
-                                        type="text"
-                                        className="form-control p-3 bg-white border-0 rounded-3 fw-bold text-dark"
-                                        placeholder={
-                                          isArabic
-                                            ? "عنوان الدرس"
-                                            : "Lesson Title"
-                                        }
-                                        value={lesson.title}
-                                        onChange={(e) =>
-                                          handleLessonChange(
-                                            section.id,
-                                            lesson.id,
-                                            "title",
-                                            e.target.value,
-                                          )
-                                        }
-                                      />
-                                    )}
-                                  </div>
-                                  <div className="col-12">
-                                    {isReadOnly ? (
-                                      lesson.description ? (
-                                        <p
-                                          className="form-control p-3 bg-white border-0 rounded-3 text-secondary mb-0"
-                                          style={{
-                                            minHeight: "60px",
-                                            whiteSpace: "pre-wrap",
-                                          }}
-                                        >
-                                          {lesson.description}
-                                        </p>
-                                      ) : null
-                                    ) : (
-                                      <textarea
-                                        className="form-control p-3 bg-white border-0 rounded-3 text-dark"
-                                        rows="2"
-                                        placeholder={
-                                          isArabic
-                                            ? "وصف الدرس (اختياري)"
-                                            : "Lesson description (optional)"
-                                        }
-                                        value={lesson.description}
-                                        onChange={(e) =>
-                                          handleLessonChange(
-                                            section.id,
-                                            lesson.id,
-                                            "description",
-                                            e.target.value,
-                                          )
-                                        }
-                                      ></textarea>
-                                    )}
-                                  </div>
-                                  <div className="col-md-4">
-                                    <div className="input-group">
-                                      <span className="input-group-text bg-white border-0 text-muted small">
-                                        {isArabic ? "الترتيب" : "Sort"}
-                                      </span>
-                                      <input
-                                        type="number"
-                                        className="form-control p-3 bg-white border-0 rounded-end-3 fw-medium text-dark"
-                                        placeholder="0"
-                                        value={lesson.sort_order}
-                                        onChange={(e) =>
-                                          handleLessonChange(
-                                            section.id,
-                                            lesson.id,
-                                            "sort_order",
-                                            e.target.value,
-                                          )
-                                        }
-                                        disabled={isReadOnly}
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-md-8">
-                                    <div className="input-group">
-                                      <span className="input-group-text bg-white border-0 text-muted small">
-                                        {isArabic ? "المصدر" : "Provider"}
-                                      </span>
-                                      <select
-                                        className="form-select ac-form-select p-3 bg-white border-0 rounded-end-3 fw-medium text-dark"
-                                        value={lesson.provider}
-                                        onChange={(e) =>
-                                          handleLessonChange(
-                                            section.id,
-                                            lesson.id,
-                                            "provider",
-                                            e.target.value,
-                                          )
-                                        }
-                                        disabled={isReadOnly}
-                                      >
-                                        <option value="Upload"> Upload</option>
-                                        <option value="YouTube">YouTube</option>
-                                        <option value="GoogleDrive">
-                                          Google Drive
-                                        </option>
-                                      </select>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Right side: Video Upload & Info */}
-                              <div className="col-lg-4 d-flex flex-column justify-content-between">
-                                <div className="d-flex flex-column gap-2 h-100">
-                                  <label
-                                    className={`btn ${lesson.video ? "bg-danger text-light" : "bg-white text-secondary"} border-0 rounded-3 p-3 mb-0 d-flex align-items-center justify-content-center gap-2 flex-grow-1`}
-                                    // التعديل: إذا كان وضع قراءة فقط، نغير الـ cursor ليدل على إمكانية النقر للتشغيل
-                                    style={{
-                                      cursor: lesson.video
-                                        ? "pointer"
-                                        : "default",
-                                      minHeight: "54px",
-                                    }}
-                                    onClick={() => {
-                                      // إذا كان هناك فيديو ونحن في وضع العرض فقط، نفتحه في نافذة جديدة
-                                      if (isReadOnly && lesson.video) {
-                                        handlePlayVideo(
-                                          lesson.video,
-                                          lesson.title,
-                                        );
-                                      }
-                                    }}
-                                  >
-                                    {/* أيقونة متغيرة: تشغيل في وضع العرض، وكاميرا في وضع الرفع */}
-                                    <i
-                                      className={`bi ${isReadOnly && lesson.video ? "bi-play-circle-fill" : lesson.video ? "bi-camera-video-fill" : "bi-camera-video"} fs-5`}
-                                    ></i>
-
-                                    <span
-                                      className="text-truncate fw-medium"
-                                      style={{ maxWidth: "150px" }}
-                                    >
-                                      {lesson.video
-                                        ? isReadOnly
-                                          ? isArabic
-                                            ? "تشغيل الفيديو"
-                                            : "Play Video" // نص أوضح في وضع العرض
-                                          : lesson.video.name ||
-                                            "Video Uploaded"
-                                        : t(
-                                            "content.form.curriculum.upload_video",
-                                          )}
-                                    </span>
-
-                                    {!isReadOnly && (
-                                      <input
-                                        type="file"
-                                        accept="video/*"
-                                        hidden
-                                        onChange={(e) =>
-                                          handleVideoUpload(
-                                            section.id,
-                                            lesson.id,
-                                            e.target.files?.[0],
-                                          )
-                                        }
-                                      />
-                                    )}
-                                  </label>
-
-                                  <div className="d-flex align-items-center justify-content-between px-2">
-                                    <div className="small text-muted d-flex align-items-center gap-1">
-                                      <i className="bi bi-clock"></i>
-                                      <span>{lesson.duration || "0:00"}</span>
-                                    </div>
-                                    {/* زر الحذف بجانب الـ duration */}
-                                    {!isReadOnly && lesson.video && (
-                                      <button
-                                        type="button"
-                                        className="btn btn-sm p-0 border-0 text-danger"
-                                        title={
-                                          isArabic
-                                            ? "مسح بيانات الدرس"
-                                            : "Clear Lesson Data"
-                                        }
-                                        onClick={() => {
-                                          removeLesson(section.id, lesson.id);
-                                        }}
-                                      >
-                                        <i className="bi bi-trash fs-5"></i>
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                  {!isReadOnly && (
-                    <button
-                      type="button"
-                      className="btn btn-light ac-add-section-btn w-100 p-3 rounded-3 fw-bold border-0 shadow-sm mt-3"
-                      onClick={addSection}
-                      disabled={isReadOnly}
-                    >
-                      <i className="bi bi-plus-lg me-2"></i>{" "}
-                      {t("content.form.curriculum.add_section")}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {activeTab === "pricing" && (
-              <>
-                <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">
-                    {isArabic ? "سعر الكورس" : "Course price"}
-                  </label>
-                  <div className="input-group">
-                    <span className="input-group-text bg-white border-end-0 text-muted">
-                      $
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control ac-form-input p-3 bg-light border-0 rounded-end-3"
-                      placeholder="0.00"
-                      value={formData.price_before}
-                      onChange={handleChange}
-                      name="price_before"
-                      disabled={isReadOnly}
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">
-                    {t("content.form.fields.discount_price")}
-                  </label>
-                  <div className="input-group">
-                    <span className="input-group-text bg-white border-end-0 text-muted">
-                      $
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control ac-form-input p-3 bg-light border-0 rounded-end-3"
-                      placeholder="0.00"
-                      value={formData.discount_price}
-                      onChange={handleChange}
-                      name="discount_price"
-                      disabled={isReadOnly}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-            {activeTab === "settings" && (
-              <div className="ac-tab-content settings-info">
-                <h5 className="fw-bold mb-4">
-                  {isArabic ? "الإعدادات" : "Settings"}
-                </h5>
-
-                <div className="row mb-4">
-                  <div className="col-12 mb-3">
-                    <label className="form-label fw-bold text-dark">
-                      {isArabic ? "لغة الكورس" : "Course Language"}
-                    </label>
-
-                    <select
-                      className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                      name="language"
-                      value={formData.language}
-                      onChange={handleChange}
-                      disabled={isReadOnly}
-                    >
-                      <option value="">
-                        {isArabic ? "اختر اللغة" : "Select language"}
-                      </option>
-
-                      <option value="ar">
-                        {isArabic ? "العربية" : "Arabic"}
-                      </option>
-
-                      <option value="en">
-                        {isArabic ? "الإنجليزية" : "English"}
-                      </option>
-                    </select>
-                  </div>
-
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label fw-bold text-dark">
-                      {isArabic ? "المدة (بالأسابيع)" : "Duration (Weeks)"}
-                    </label>
-                    <input
-                      type="number"
-                      className="form-control p-3 bg-light border-0 rounded-3"
-                      name="duration_weeks"
-                      value={formData.duration_weeks}
-                      onChange={handleChange}
-                      min="0"
-                      disabled={isReadOnly}
-                    />
-                  </div>
-
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label fw-bold text-dark">
-                      {isArabic ? "المدة (بالساعات)" : "Duration (Hours)"}
-                    </label>
-                    <input
-                      type="number"
-                      className="form-control p-3 bg-light border-0 rounded-3"
-                      name="duration_hours"
-                      value={formData.duration_hours}
-                      onChange={handleChange}
-                      min="0"
-                      disabled={isReadOnly}
-                    />
-                  </div>
-
-                  <div className="col-md-12 mb-3">
-                    <label className="form-label fw-bold text-dark">
-                      {isArabic ? "رابط جوجل درايف" : "Google Drive Link"}
-                    </label>
-                    <input
-                      type="url"
-                      className="form-control p-3 bg-light border-0 rounded-3"
-                      name="google_drive_link"
-                      placeholder="https://drive.google.com/..."
-                      value={formData.google_drive_link}
-                      onChange={handleChange}
-                      disabled={isReadOnly}
-                    />
-                  </div>
-                </div>
-
-                <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong className="d-block mb-1">Free Course</strong>
-                    <small className="text-muted">
-                      Make this course available for free
-                    </small>
-                  </div>
-                  <div className="form-check form-switch m-0">
-                    <input
-                      className="form-check-input form-check-inputS"
-                      type="checkbox"
-                      role="switch"
-                      checked={formData.is_free}
-                      onChange={handleChange}
-                      name="is_free"
-                      disabled={isReadOnly}
-                    />
-                  </div>
-                </div>
-                <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong className="d-block mb-1">
-                      {t("content.form.settings.featured_title")}
-                    </strong>
-                    <small className="text-muted">
-                      {t("content.form.settings.featured_desc")}
-                    </small>
-                  </div>
-                  <div className="form-check form-switch m-0">
-                    <input
-                      className="form-check-input form-check-inputS"
-                      type="checkbox"
-                      role="switch"
-                      checked={formData.is_featured}
-                      onChange={handleChange}
-                      name="is_featured"
-                      disabled={isReadOnly}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Tab Navigator Footer */}
-            <div className="ac-form-footer d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
-              <button
-                type="button"
-                className={`btn btn-outline-secondary rounded-3 px-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === 0 ? "invisible" : ""}`}
-                onClick={goToPrevTab}
-              >
-                <i
-                  className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
-                ></i>
-                {isArabic ? "السابق" : "Previous"}
-              </button>
-
-              <div className="ac-tab-indicator d-flex gap-2">
-                {tabOrder.map((tab, idx) => (
-                  <div
-                    key={tab}
-                    className={`rounded-circle ${idx === currentTabIndex ? "bg-danger" : "bg-light border"}`}
-                    style={{ width: "10px", height: "10px", cursor: "pointer" }}
-                    onClick={() => setActiveTab(tab)}
-                  ></div>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                className={`btn btn-outline-danger rounded-3 px-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === tabOrder.length - 1 ? "invisible" : ""}`}
-                onClick={goToNextTab}
-              >
-                {isArabic ? "التالي" : "Next"}
-                <i
-                  className={`bi ${isArabic ? "bi-arrow-left" : "bi-arrow-right"}`}
-                ></i>
-              </button>
-            </div>
-          </div>
-        </div>
+        /* ── Form view ────────────────────────────────────────────────────── */
+        <CourseForm
+          isReadOnly={isReadOnly}
+          editingItem={editingItem}
+          viewingItem={viewingItem}
+          handleBack={handleBack}
+          handleSubmitWrapper={handleSubmitWrapper}
+          // Spread all form logic state & handlers
+          {...formLogic}
+          // Data deps
+          categories={categories}
+          instructors={instructors}
+          availableTags={availableTags}
+          // Video modal
+          handlePlayVideo={handlePlayVideo}
+          // i18n
+          isArabic={isArabic}
+          t={t}
+        />
       )}
 
-      {/* Modal لمعاينة الفيديو */}
+      {/* Video preview modal */}
       <VideoPreviewModal
         show={showVideoModal}
         onHide={handleCloseVideo}
