@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Pagination } from "react-bootstrap";
 import { useInstructors } from "../../hooks/useInstractor";
+import { useGroups } from "../../hooks/useGroups";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 // import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
-import instructorImg from "../../../../assets/student-avatar.jpg";
 
 const defaultFormData = {
   full_name: "",
@@ -24,7 +24,13 @@ const defaultFormData = {
   avatar: null,
 };
 
-function AdminInstructors() {
+function AdminGroups() {
+  const { groups, getGroups } = useGroups();
+  useEffect(() => {
+    getGroups();
+  }, []);
+
+
   const {
     instructors,
     pagination: apiPagination,
@@ -250,51 +256,22 @@ function AdminInstructors() {
       // Error handled in hook
     }
   };
-  /**
-    * التعامل مع زر الواتساب - تنسيق الرقم وإرسال بيانات الحساب للمحاضر
-    */
-  const handleWhatsapp = (instructor) => {
-    if (!instructor) return;
 
-    // تنظيف الرقم وإضافة كود الدولة (مصر +20)
-    let phone = instructor.phone || "";
-    phone = phone.replace(/\D/g, "");
-    if (phone.startsWith("0")) {
-      phone = "20" + phone.slice(1);
-    }
-    const message =
-      `مرحباً ${instructor.full_name || "Instructor"} \n\n` +
-      `تم إنشاء حسابك كمحاضر على منصة T-Square بنجاح.\n\n` +
-
-      ` بيانات الحساب:\n` +
-      `• الاسم: ${instructor.full_name || "-"}\n` +
-      `• المجال: ${instructor.field || "-"}\n` +
-      `• البريد الإلكتروني: ${instructor.email || "-"}\n` +
-      `• رقم الهاتف: ${instructor.phone || "-"}\n` +
-      `• كلمة المرور: ${"كما تم إدخالها أثناء التسجيل"}\n\n` +
-
-      ` يُرجى تغيير كلمة المرور بعد أول تسجيل دخول حفاظاً على أمان الحساب.\n\n` +
-
-      `نتمنى لك تجربة موفقة معنا في T-Square `;
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, "_blank");
-  };
   return (
     <div className="admin-content-page">
       {!showForm ? (
         <>
           <div className="ac-header d-flex justify-content-between align-items-center mb-4">
             <div>
-              <h2 className="ac-title">{t("instructors_page.title")}</h2>
+              <h2 className="ac-title">{isArabic ? "المجموعات الدراسيه" : "Learning Groups"}</h2>
               <p className="ac-subtitle text-muted mb-0">
-                {t("instructors_page.subtitle")}
-              </p>
+                {isArabic ? "ادارة جميع المجموعات الدراسيه " : "Manage all learning groups"}              </p>
             </div>
             <button
               className="btn btn-danger ac-add-btn"
               onClick={handleAddNew}
             >
-              + {t("instructors_page.add_instructor")}
+              + {isArabic ? "اضافه مجموعه" : "Add Group"}
             </button>
           </div>
 
@@ -307,12 +284,13 @@ function AdminInstructors() {
                     <input
                       type="text"
                       className="form-control ac-search-input"
-                      placeholder={t("instructors_page.search_placeholder")}
+                      placeholder={isArabic ? "بحث عن مجموعه دراسيه  " : "Search Group"}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
                   <div className="d-flex gap-md-3">
+                    {/* فلترته  */}
                     <select
                       className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedStatus !== "all"
                         ? "border-danger bg-danger-subtle text-danger-emphasis"
@@ -322,10 +300,10 @@ function AdminInstructors() {
                       onChange={(e) => setSelectedStatus(e.target.value)}
                     >
                       <option value="all">
-                        {t("instructors_page.all_statuses")}
+                        {isArabic ? "كل المجموعات" : "All Groups"}
                       </option>
                       <option value="active">
-                        {t("instructors_page.active_status")}
+                        {isArabic ? "المجموعات النشطه" : "Active Groups"}
                       </option>
                       <option value="inactive">
                         {t("instructors_page.inactive_status")}
@@ -338,16 +316,12 @@ function AdminInstructors() {
                 <table className="table ac-table mb-0 align-middle" dir="ltr">
                   <thead>
                     <tr>
-                      <th>{t("instructors_page.table_name")}</th>
-                      <th className="text-center">{isArabic ? "التخصص" : "Field"}</th>
-                      <th className="text-center">
-                        {t("instructors_page.table_email")}
-                      </th>
-
-
-                      <th className="text-center">
-                        {t("instructors_page.table_actions")}
-                      </th>
+                      <th>{isArabic ? "اسم المجموعة" : "Group Name"}</th>
+                      <th className="text-center">{isArabic ? "عنوان الدورة" : "Course Title"}</th>
+                      <th className="text-center">{isArabic ? "اسم المحاضر" : "Instructor Name"}</th>
+                      <th className="text-center">{isArabic ? "عدد الطلاب" : "Students Count"}</th>
+                      <th className="text-center">{isArabic ? "تاريخ الإنشاء" : "Created At"}</th>
+                      <th className="text-center">{isArabic ? "الإجراءات" : "Actions"}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -359,49 +333,50 @@ function AdminInstructors() {
                           </div>
                         </td>
                       </tr>
-                    ) : instructors.length > 0 ? (
-                      instructors.map((instructor, index) => {
-                        const insData = instructor.instructor || instructor;
+                    ) : groups && groups.length > 0 ? (
+                      groups.map((group, index) => {
                         return (
-                          <tr key={instructor.id}>
-
+                          <tr key={group.id}>
                             <td className="fw-medium text-dark">
-                              {insData.full_name || instructor.name}
+                              {group.group_name}
                             </td>
-                            <td className="text-center text-secondary">{insData.field || "-"}</td>
-
                             <td className="text-center text-secondary">
-                              {instructor.email}
+                              {group.course_title}
                             </td>
-
-
+                            <td className="text-center text-secondary">
+                              {group.instructor_name}
+                            </td>
+                            <td className="text-center text-secondary">
+                              {group.students_count}
+                            </td>
+                            <td className="text-center text-secondary">
+                              {group.created_at}
+                            </td>
 
                             <td className="text-center">
                               <div className="d-flex justify-content-center gap-2">
                                 <button
                                   className="btn btn-sm ac-btn-view border-0"
                                   title="View"
-                                  onClick={() => handleView(instructor)}
+                                  onClick={() => handleView(group)}
                                 >
                                   <i className="bi bi-eye fs-6"></i>
                                 </button>
                                 <button
                                   className="btn btn-sm ac-btn-edit border-0"
                                   title="Edit"
-                                  onClick={() => handleEdit(instructor)}
+                                  onClick={() => handleEdit(group)}
                                 >
                                   <i className="bi bi-pencil-square fs-6"></i>
                                 </button>
                                 <button
                                   className="btn btn-sm ac-btn-deleteTable border-0"
                                   title="Delete"
-                                  onClick={() => handleDelete(instructor.instructor?.id || instructor.id)}
+                                  onClick={() => handleDelete(group.id)}
                                 >
                                   <i className="bi bi-trash fs-6"></i>
                                 </button>
-                                <button className="btn btn-sm ac-btn-whatsapp border-0" title="WhatsApp" onClick={() => handleWhatsapp(instructor)}>
-                                  <i className="bi bi-whatsapp fs-6"></i>
-                                </button>
+
                               </div>
                             </td>
                           </tr>
@@ -410,7 +385,7 @@ function AdminInstructors() {
                     ) : (
                       <tr>
                         <td colSpan={11} className="text-center py-4 text-muted">
-                          {t("instructors_page.no_instructors")}
+                          {isArabic ? "لا توجد مجموعات" : "No groups found"}
                         </td>
                       </tr>
                     )}
@@ -687,4 +662,4 @@ function AdminInstructors() {
   );
 }
 
-export default AdminInstructors;
+export default AdminGroups;

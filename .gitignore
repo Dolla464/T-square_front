@@ -13,7 +13,8 @@ lerna-debug.log*
 node_modules/
 
 # Build files
-
+salamaDraft
+salamaDraft.jsx
 dist/
 dist-ssr/
 build/

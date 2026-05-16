@@ -135,7 +135,10 @@ function AdminReviews() {
             </div>
             <div className="d-flex w-25 gap-md-3">
               <select
-                className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
+                className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${ratingFilter !== "all"
+                  ? "border-danger bg-danger-subtle text-danger-emphasis"
+                  : "border-light bg-light text-muted"
+                  }`}
                 value={ratingFilter}
                 onChange={(e) => setRatingFilter(e.target.value)}
               >

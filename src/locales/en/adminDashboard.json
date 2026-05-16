@@ -1,6 +1,7 @@
 {
   "sidebar": {
     "dashboard": "Dashboard",
+    "groups": "Groups",
     "courses": "Courses",
     "solutions": "Solutions",
     "students": "Students",

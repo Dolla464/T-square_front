@@ -44,8 +44,10 @@ function CourseFilters({
           /* Active mode – status + category */
           <>
             <select
-              className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
-              value={selectedStatus}
+              className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedStatus !== "all"
+                ? "border-danger bg-danger-subtle text-danger-emphasis"
+                : "border-light bg-light text-muted"
+                }`} value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
             >
               <option value="all">All Statuses</option>
@@ -53,8 +55,10 @@ function CourseFilters({
               <option value="draft">Draft</option>
             </select>
             <select
-              className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
-              value={selectedCategory}
+              className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedCategory !== "all"
+                ? "border-danger bg-danger-subtle text-danger-emphasis"
+                : "border-light bg-light text-muted"
+                }`} value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
               <option value="all">

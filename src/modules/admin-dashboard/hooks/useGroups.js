@@ -31,7 +31,7 @@ export const useGroups = () => {
         const res = await fetchGroups(params);
         const data = res?.data;
         const paginationData = res?.pagination;
-
+     
         setGroups(Array.isArray(data) ? data : []);
         setPagination(paginationData || null);
         return data;
