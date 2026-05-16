@@ -123,11 +123,17 @@ function AdminReviews() {
       <div className="table-responsive ac-rounded-table">
         <div className="review-table-container ">
           <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
-            <div className="ac-search-input-wrapper">
-              <i className="bi bi-search ac-search-icon"></i>
+            <div className="ac-search-input-wrapper position-relative ">
+              <i
+                className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
+                  }`}
+                style={{ zIndex: 3 }}
+              ></i>
               <input
                 type="text"
-                className="form-control ac-search-input"
+                className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
+                  ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
+                  : "border-light bg-light text-muted"}`}
                 placeholder={isArabic ? "بحث في التقييمات..." : "Search reviews..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
