@@ -6,8 +6,11 @@ import {
   getStudents as apiGetStudents,
   getStudentById as apiGetStudentById,
   registerStudents as apiRegisterStudent,
-  updateStudent as apiUpdateStudent,
   deleteStudent as apiDeleteStudent,
+  updateStudentStatus as apiUpdateStatus,
+  toggleStudentVerify as apiToggleVerify,
+  updateStudentCourseGroup as apiUpdateStudentCourseGroup,
+  updateStudentCourseStatus as apiUpdateStudentCourseStatus,
 } from "../services/studentsServices";
 
 export const useStudents = () => {
@@ -84,24 +87,6 @@ export const useStudents = () => {
     }
   };
 
-  // ================= UPDATE =================
-  const updateStudent = async (id, payload) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await apiUpdateStudent(id, payload);
-      toastSuccess("Updated successfully");
-
-      return res;
-    } catch (err) {
-      handleError(err, "errors.update_failed");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // ================= DELETE =================
   const deleteStudent = async (id) => {
     setLoading(true);
@@ -120,6 +105,101 @@ export const useStudents = () => {
     }
   };
 
+  // ================= UPDATE STUDENT STATUS =================
+  const updateStudentStatus = async (id, status) => {
+    try {
+      await apiUpdateStatus(id, status);
+
+      // التحديث المحلي للـ State (Optimistic Update)
+      setStudents((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, status: status } : s)),
+      );
+
+      toastSuccess(t("Updated Success"));
+    } catch (err) {
+      handleError(err, "Sorry, we couldn't update the status. Please try again.");
+      throw err;
+    }
+  };
+
+  // ================= TOGGLE VERIFICATION =================
+  const toggleStudentVerify = async (id) => {
+    try {
+      await apiToggleVerify(id);
+
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.id === id ? { ...s, is_verified: !s.is_verified } : s,
+        ),
+      );
+
+      toastSuccess(t("Updated Success"));
+    } catch (err) {
+      handleError(err, "Sorry, we couldn't update the verification status. Please try again.");
+      throw err;
+    }
+  };
+
+  // ================= UPDATE COURSE GROUP =================
+ const updateStudentCourseGroup = async (studentId, courseId, groupId) => {
+   try {
+     await apiUpdateStudentCourseGroup(studentId, courseId, groupId);
+
+     setStudents((prev) =>
+       prev.map((s) =>
+         s.id === studentId
+           ? {
+               ...s,
+               group_id: parseInt(groupId),
+
+               enrolled_courses: (s.enrolled_courses || []).map((c) =>
+                 c.id === courseId ? { ...c, group_id: parseInt(groupId) } : c,
+               ),
+             }
+           : s,
+       ),
+     );
+
+     toastSuccess(t("Updated Success"));
+   } catch (err) {
+     const backendMessage = err.response?.data?.message;
+
+     handleError(
+       err,
+       backendMessage ||
+         "Sorry, we couldn't update the student's group. Please try again.",
+     );
+
+     throw err;
+   }
+ };
+
+ // ================= UPDATE COURSE STATUS =================
+ const updateStudentCourseStatus = async (studentId, courseId, isCompleted) => {
+   try {
+     await apiUpdateStudentCourseStatus(studentId, courseId, isCompleted);
+
+     setStudents((prev) =>
+       prev.map((s) =>
+         s.id === studentId
+           ? {
+               ...s,
+               enrolled_courses: (s.enrolled_courses || []).map((c) =>
+                 c.id === courseId ? { ...c, is_completed: isCompleted } : c,
+               ),
+             }
+           : s,
+       ),
+     );
+
+     toastSuccess(t("Status Updated Success"));
+   } catch (err) {
+     const backendMessage = err.response?.data?.message;
+     handleError(err, backendMessage || "Failed to update course status.");
+     throw err;
+   }
+ };
+
   return {
     students,
     student,
@@ -129,7 +209,10 @@ export const useStudents = () => {
     getStudents,
     getStudentById,
     createStudent,
-    updateStudent,
     deleteStudent,
+    updateStudentStatus,
+    toggleStudentVerify,
+    updateStudentCourseGroup,
+    updateStudentCourseStatus,
   };
 };
