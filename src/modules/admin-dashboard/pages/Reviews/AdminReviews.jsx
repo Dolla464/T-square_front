@@ -183,10 +183,39 @@ function AdminReviews() {
                     </td>
                     <td className="ac-truncate-text text-secondary">{item.overall_comment}</td>
                     <td>
-                      <select className="status-select">
-                        <option value="active" className="text-success">{isArabic ? "نشط" : "Active"}</option>
-                        <option value="rejected" className="text-danger">{isArabic ? "مرفوض" : "Rejected"}</option>
-                      </select>
+
+                      {/* لما ال الريبونس يرجع الاستايتس هنشغلها */}
+                      {/* <span
+                        className={`badge rounded-pill cp ${item.status === "published" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"}`}
+                        style={{
+                          cursor: "pointer",
+                          padding: "8px 16px",
+                        }}
+                        onClick={() => handleStatusChange(item.id, item.status === "published" ? "draft" : "published")}
+                        onClick={() => alert("Salama say : لما ال الريسبونس يرجع الاستايتس هشغلها")}
+                      >
+                        <i
+                          className={`bi ${item.status === "published" ? "bi-patch-check-fill" : "bi-shield-exclamation"} me-1`}
+                        ></i>
+                        {item.status == "draft"
+                          ? isArabic ? "مسودة" : "Draft"
+                          : isArabic ? "منشور" : "Published"}
+                      </span> */}
+
+
+                      <span
+                        className="badge rounded-pill cp bg-success-subtle text-success "
+                        style={{
+                          cursor: "pointer",
+                          padding: "8px 16px",
+                        }}
+                        onClick={() => alert("Salama say : لما ال الريسبونس يرجع الاستايتس هشغلها")}
+                      >
+                        <i
+                          className="bi-patch-check-fill me-1"
+                        ></i>
+                        {isArabic ? "مقبول" : "Aproved"}
+                      </span>
                     </td>
                     <td className="text-center">
 

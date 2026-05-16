@@ -4,7 +4,7 @@ import { useAdminCourses } from "../../hooks/useAdminCourses";
 import { useInstructors } from "../../hooks/useInstractor";
 import { useCategories } from "../../hooks/useCategories";
 import { useTags } from "../../hooks/useTags";
-import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { showConfirmCustom, showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import VideoPreviewModal from "../../../../components/layout/VideoPreviewModal";
 import { useCourseFormLogic } from "./hooks/useCourseFormLogic";
 import {
@@ -203,12 +203,48 @@ function AdminCourses() {
       if (success) refreshList();
     }
   };
-
+  // تغير الااستاتس القديمه 
+  // const handleStatusChange = async (id, newStatus) => {
+  //   try {
+  //     const fd = new FormData();
+  //     fd.append("status", newStatus);
+  //     await updateCourse(id, fd);
+  //     refreshList();
+  //   } catch (err) {
+  //     console.error("Status update failed:", err);
+  //   }
+  // };
   const handleStatusChange = async (id, newStatus) => {
+    const ok = await showConfirmCustom({
+      title: newStatus === "published"
+        ? isArabic
+          ? "نشر الكورس"
+          : "Publish Course"
+        : isArabic
+          ? "تحويل الكورس إلى مسودة"
+          : "Move Course to Draft",
+
+      message: newStatus === "draft"
+        ? isArabic
+          ? "هل تريد تحويل هذا الكورس إلى مسودة وإخفاءه عن المستخدمين؟"
+          : "Do you want to move this course to draft and hide it from users?"
+        : isArabic
+          ? "سيتم نشر الكورس وسيصبح متاحاً للمستخدمين."
+          : "The course will be published and visible to users.",
+
+      icon: newStatus == "draft" ? "warning" : "info",
+      variant: newStatus == "draft" ? "danger" : "primary",
+      confirmText: isArabic ? "استمرار" : "Proceed",
+    });
+
+    if (!ok) return;
+
     try {
       const fd = new FormData();
       fd.append("status", newStatus);
+
       await updateCourse(id, fd);
+
       refreshList();
     } catch (err) {
       console.error("Status update failed:", err);
