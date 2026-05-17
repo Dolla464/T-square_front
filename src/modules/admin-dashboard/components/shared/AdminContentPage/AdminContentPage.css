@@ -87,7 +87,8 @@
   background-color: #f9f9fb;
   font-size: 0.95rem;
   color: #4b5563;
-  min-width: 150px !important;
+  max-width: 230px !important;
+  min-width: 158px !important;
   transition: all 0.3s ease;
   cursor: pointer;
 }

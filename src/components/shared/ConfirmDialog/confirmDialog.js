@@ -158,3 +158,65 @@ export const showInfoDialog = (title, message) => {
     variant: "primary",
   });
 };
+
+/** نافذة تأكيد خاصة بحالة الدفع (تظهر زرين للاختيار وزر كبير للإلغاء) */
+export const showPaymentStatusConfirm = async (currentStatus) => {
+  const rtl = isRTL();
+
+  const statuses = {
+    pending: { id: "pending", label: rtl ? "قيد الانتظار" : "Pending", color: "#ffc107", icon: '<i class="bi bi-clock-history me-1"></i>' },
+    completed: { id: "completed", label: rtl ? "مكتمل" : "Completed", color: "#28a745", icon: '<i class="bi bi-check-circle me-1"></i>' },
+    cancelled: { id: "cancelled", label: rtl ? "ملغي" : "Cancelled", color: "#dc3545", icon: '<i class="bi bi-x-circle me-1"></i>' },
+    refunded: { id: "refunded", label: rtl ? "مسترجع" : "Refunded", color: "#6c757d", icon: '<i class="bi bi-arrow-counterclockwise me-1"></i>' },
+  };
+
+  let options = [];
+  if (currentStatus === "pending") {
+    options = [statuses.completed, statuses.cancelled];
+  } else if (currentStatus === "completed") {
+    options = [statuses.refunded, statuses.cancelled];
+  } else if (currentStatus === "cancelled") {
+    options = [statuses.completed, statuses.pending];
+  } else {
+    options = [statuses.completed, statuses.cancelled];
+  }
+
+  return new Promise((resolve) => {
+    Swal.fire({
+      html: `
+        <div class="swal-inner" dir="${rtl ? "rtl" : "ltr"}">
+          <i class="bi bi-credit-card swal-bs-icon swal-icon-primary" style="color: #0d6efd"></i>
+          <h2 class="swal-custom-title">${rtl ? "تغيير حالة الدفع" : "Change Payment Status"}</h2>
+          <p class="swal-custom-msg mb-4">${rtl ? "اختر الحالة الجديدة لهذا الطلب:" : "Select the new status for this order:"}</p>
+          <div class="d-flex flex-row justify-content-center gap-2 mb-2 w-100">
+            <button id="btn-status-1" class="btn text-white flex-fill py-2 fw-bold" style="background-color: ${options[0].color}">${options[0].icon} ${options[0].label}</button>
+            <button id="btn-status-2" class="btn text-white flex-fill py-2 fw-bold" style="background-color: ${options[1].color}">${options[1].icon} ${options[1].label}</button>
+          </div>
+        </div>
+      `,
+      showConfirmButton: false,
+      showCancelButton: true,
+      cancelButtonText: rtl ? "إلغاء" : "Cancel",
+      cancelButtonColor: "#e5e7eb",
+      customClass: {
+        popup: "tsq-swal-popup",
+        cancelButton: "tsq-swal-cancel w-100 mt-2 py-2 fw-bold",
+      },
+      didOpen: () => {
+        document.getElementById("btn-status-1").addEventListener("click", () => {
+          Swal.close();
+          resolve(options[0].id);
+        });
+        document.getElementById("btn-status-2").addEventListener("click", () => {
+          Swal.close();
+          resolve(options[1].id);
+        });
+      }
+    }).then((result) => {
+      if (result.isDismissed) {
+        resolve(null);
+      }
+    });
+  });
+};
+

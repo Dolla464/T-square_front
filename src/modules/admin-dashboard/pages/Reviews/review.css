@@ -25,38 +25,5 @@
   text-overflow: ellipsis;
 }
 
-.status-select {
-  border: none;
-  background-color: rgba(40, 167, 69, 0.1);
-  color: #28a745;
-  border-radius: 50px;
-  padding: 4px 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  outline: none;
-  width: fit-content;
-  appearance: none;
-  -webkit-appearance: none;
-  text-align: center;
-}
 
-.status-select:focus {
-  box-shadow: none;
-}
 
-.status-select option {
-  background: white;
-  color: #333;
-}
-
-.status {
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: bold;
-}
-.status.completed {
-  background: #d4edda;
-  color: green;
-}

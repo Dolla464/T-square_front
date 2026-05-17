@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
   toastSuccess,
   toastError,
+  toastWarning,
 } from "../../../components/shared/Toaster/toaster";
 import {
   getLearningGroups as fetchGroups,
@@ -11,12 +12,15 @@ import {
   createLearningGroup as apiCreateGroup,
   updateLearningGroup as apiUpdateGroup,
   deleteLearningGroup as apiDeleteGroup,
+  getAvailableStudents as fetchAvailableStudents,
+  bulkAssignStudents as apiBulkAssignStudents,
 } from "../services/learningGroupServices";
 
 export const useGroups = () => {
   const { t } = useTranslation(["common", "adminDashboard"]);
   const [groups, setGroups] = useState([]); // للمسؤول عن الـ CRUD والجدول
   const [selectionGroups, setSelectionGroups] = useState([]); // لدروب داون الفلترة
+  const [availableStudents, setAvailableStudents] = useState([]);
   const [group, setGroup] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -31,12 +35,36 @@ export const useGroups = () => {
         const res = await fetchGroups(params);
         const data = res?.data;
         const paginationData = res?.pagination;
-     
+
         setGroups(Array.isArray(data) ? data : []);
         setPagination(paginationData || null);
         return data;
       } catch (err) {
         console.error("Error fetching groups:", err);
+        const errorMsg =
+          err.response?.data?.message ||
+          t("adminDashboard:errors.fetch_failed");
+        setError(errorMsg);
+        toastError(errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [t],
+  );
+  const getAvailableStudents = useCallback(
+    async (id) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetchAvailableStudents(id);
+        const data = res?.data;
+
+
+        setAvailableStudents(Array.isArray(data) ? data : []);
+        return data;
+      } catch (err) {
+        console.error("Error fetching available students:", err);
         const errorMsg =
           err.response?.data?.message ||
           t("adminDashboard:errors.fetch_failed");
@@ -144,6 +172,29 @@ export const useGroups = () => {
     }
   };
 
+  const bulkAssign = async (id, payload) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiBulkAssignStudents(id, payload);
+      if (response.data?.unpaid_students?.length > 0) {
+        toastWarning(response.message);
+      } else {
+        toastSuccess(response.message || t("adminDashboard:success.updated"));
+      }
+      return response;
+    } catch (err) {
+      console.error("Error bulk assigning students:", err);
+      const errorMsg =
+        err.response?.data?.message || t("adminDashboard:errors.update_failed");
+      setError(errorMsg);
+      toastError(errorMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     groups,
     selectionGroups, // استخدم دي في الـ Select بتاع الفلترة
@@ -151,11 +202,14 @@ export const useGroups = () => {
     pagination,
     loading,
     error,
+    availableStudents,
     getGroups,
     getGroupsSelection,
+    getAvailableStudents,
     getGroupById,
     createGroup,
     updateGroup,
     deleteGroup,
+    bulkAssign,
   };
 };

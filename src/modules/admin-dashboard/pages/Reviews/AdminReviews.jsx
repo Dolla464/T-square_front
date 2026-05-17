@@ -139,7 +139,7 @@ function AdminReviews() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="d-flex w-25 gap-md-3">
+            <div className="d-flex gap-md-3">
               <select
                 className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${ratingFilter !== "all"
                   ? "border-danger bg-danger-subtle text-danger-emphasis"

@@ -476,7 +476,7 @@ function AdminStudents() {
                     {/* 2. فلتر الحالات (Statuses) */}
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
                         selectedStatus !== "all"
                           ? "border-danger bg-danger-subtle text-danger-emphasis"
                           : "border-light bg-light text-muted"
@@ -498,7 +498,7 @@ function AdminStudents() {
                     {/* 3. فلتر المجموعات (Groups) */}
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${
                         selectedGroup !== "all"
                           ? "border-danger bg-danger-subtle text-danger-emphasis"
                           : "border-light bg-light text-muted"
@@ -520,7 +520,7 @@ function AdminStudents() {
                     {/* 4. فلتر النوع (Genders) */}
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${
                         selectedGender !== "all"
                           ? "border-danger bg-danger-subtle text-danger-emphasis"
                           : "border-light bg-light text-muted"
