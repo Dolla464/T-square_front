@@ -294,13 +294,14 @@ function AdminInstructors() {
               className="btn btn-danger ac-add-btn"
               onClick={handleAddNew}
             >
-              + {t("instructors_page.add_instructor")}
+              <i className="bi bi-plus-lg me-0 me-md-1"></i>
+              <span className="d-none d-md-inline">{t("instructors_page.add_instructor")}</span>
             </button>
           </div>
 
           <div className="ac-table-card">
             <div className="ac-table-container">
-              <div className="table-responsive ac-rounded-table">
+              <div className="ac-rounded-table p-3 p-md-0">
                 <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
                   <div className="ac-search-input-wrapper position-relative ">
                     <i
@@ -341,8 +342,9 @@ function AdminInstructors() {
 
                   </div>
                 </div>
-                <table className="table ac-table mb-0 align-middle" dir="ltr">
-                  <thead>
+                <div className="table-responsive">
+                  <table className="table ac-table mb-0 align-middle" dir="ltr">
+                    <thead>
                     <tr>
                       <th>{t("instructors_page.table_name")}</th>
                       <th className="text-center">{isArabic ? "التخصص" : "Field"}</th>
@@ -422,6 +424,7 @@ function AdminInstructors() {
                     )}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
 

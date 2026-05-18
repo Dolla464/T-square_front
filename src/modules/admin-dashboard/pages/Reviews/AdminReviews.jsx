@@ -82,14 +82,14 @@ function AdminReviews() {
       </div>
 
       <div className="row g-3 mb-4">
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state">
             <div className="stat-label">{isArabic ? "إجمالي التقييمات" : "Total Reviews"}</div>
             <div className="stat-value my-2">{apiPagination?.total || 0}</div>
             <div style={{ color: "#28a745" }} className="stat-sub">+5% this month</div>
           </div>
         </div>
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{isArabic ? "متوسط التقييم" : "Avg Rating"}</div>
             <div className="d-flex align-items-center">
@@ -104,14 +104,14 @@ function AdminReviews() {
             </div>
           </div>
         </div>
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{isArabic ? "بانتظار المراجعة" : "Pending Review"}</div>
             <div className="stat-value my-2 text-warning">12</div>
             <div className="stat-sub text-muted">Awaiting</div>
           </div>
         </div>
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{isArabic ? "مرفوضة" : "Rejected"}</div>
             <div className="stat-value my-2">3</div>
@@ -120,7 +120,7 @@ function AdminReviews() {
         </div>
       </div>
 
-      <div className="table-responsive ac-rounded-table">
+      <div className="ac-rounded-table p-3 p-md-0">
         <div className="review-table-container ">
           <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
             <div className="ac-search-input-wrapper position-relative ">
@@ -156,8 +156,9 @@ function AdminReviews() {
             </div>
           </div>
 
-          <table className="table ac-table mb-0 align-middle" dir="ltr">
-            <thead className="ac-table">
+          <div className="table-responsive">
+            <table className="table ac-table mb-0 align-middle" dir="ltr">
+              <thead className="ac-table">
               <tr className="text-muted">
                 <th>{isArabic ? "الطالب" : "Student"}</th>
                 <th>{isArabic ? "الكورس" : "Course"}</th>
@@ -257,6 +258,7 @@ function AdminReviews() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 

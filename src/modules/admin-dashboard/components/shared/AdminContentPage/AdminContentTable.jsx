@@ -31,7 +31,7 @@ function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
           <Spinner animation="border" variant="danger" />
         </div>
       ) : (
-        <div className="table-responsive ac-rounded-table" dir="ltr">
+        <div className="ac-rounded-table p-3 p-md-0" dir="ltr">
           <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
             <div className="ac-search-input-wrapper position-relative ">
               <i
@@ -50,7 +50,8 @@ function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
               />
             </div>
           </div>
-          <table className="table ac-table mb-0 align-middle">
+          <div className="table-responsive">
+            <table className="table ac-table mb-0 align-middle">
             <thead>
               <tr>
                 <th>{t("content.table.solution")}</th>
@@ -108,6 +109,7 @@ function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

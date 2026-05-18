@@ -17,9 +17,10 @@ function CourseTable({
 }) {
   return (
     <>
-      <table
-        className={`table ac-table mb-0 align-middle${showTrash ? " table-secondary" : ""}`}
-      >
+      <div className="table-responsive">
+        <table
+          className={`table ac-table mb-0 align-middle${showTrash ? " table-secondary" : ""}`}
+        >
         <thead>
           <tr>
             <th>{t("content.table.course")}</th>
@@ -171,6 +172,7 @@ function CourseTable({
           )}
         </tbody>
       </table>
+      </div>
 
       {/* Pagination */}
       {apiPagination && (

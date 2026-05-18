@@ -142,7 +142,7 @@ function AdminOrders() {
       </div>
 
       <div className="row g-3 mb-4">
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state">
             <div className="stat-label">{t("totalRevenue")}</div>
             <div className="stat-value my-2">$125,430</div>
@@ -152,7 +152,7 @@ function AdminOrders() {
           </div>
         </div>
 
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{t("totalOrders")}</div>
             <div>
@@ -164,7 +164,7 @@ function AdminOrders() {
           </div>
         </div>
 
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{t("pending")}</div>
             <div className="stat-value my-2 text-warning">24</div>
@@ -172,7 +172,7 @@ function AdminOrders() {
           </div>
         </div>
 
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{t("refunded")}</div>
             <div className="stat-value my-2">8</div>
@@ -181,7 +181,7 @@ function AdminOrders() {
         </div>
       </div>
 
-      <div className="table-responsive ac-rounded-table">
+      <div className="ac-rounded-table p-3 p-md-0">
         <div className="review-table-container ">
           <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
             <div className="ac-search-input-wrapper position-relative ">
@@ -216,8 +216,9 @@ function AdminOrders() {
             </div>
           </div>
 
-          <table className="table ac-table mb-0 align-middle" dir="ltr">
-            <thead className="ac-table">
+          <div className="table-responsive">
+            <table className="table ac-table mb-0 align-middle" dir="ltr">
+              <thead className="ac-table">
               <tr className="text-muted">
                 <th>{t("orderId")}</th>
                 <th className="text-center">{t("student")}</th>
@@ -300,6 +301,7 @@ function AdminOrders() {
               )}
             </tbody>
           </table>
+          </div>
 
           {/* Pagination - Always visible if data exists */}
           {pagination && pagination.last_page > 1 && (

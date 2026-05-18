@@ -296,13 +296,14 @@ function AdminGroups() {
               className="btn btn-danger ac-add-btn"
               onClick={handleAddNew}
             >
-              + {isArabic ? "اضافه مجموعه" : "Add Group"}
+              <i className="bi bi-plus-lg me-0 me-md-1"></i>
+              <span className="d-none d-md-inline">{isArabic ? "اضافه مجموعه" : "Add Group"}</span>
             </button>
           </div>
 
           <div className="ac-table-card">
             <div className="ac-table-container">
-              <div className="table-responsive ac-rounded-table">
+              <div className="ac-rounded-table p-3 p-md-0">
 
 
                 {/* أدوات البحث والفلترة */}
@@ -330,7 +331,7 @@ function AdminGroups() {
 
                   </div>
 
-                  <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap mt-3 mt-md-0">
+                  <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
                     {/* فلتر الوقت */}
                     <select
                       className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${timeFilter !== "all"
@@ -380,9 +381,9 @@ function AdminGroups() {
                     </select>
                   </div>
                 </div>
-
-                <table className="table ac-table mb-0 align-middle" dir="ltr">
-                  <thead>
+                <div className="table-responsive">
+                  <table className="table ac-table mb-0 align-middle" dir="ltr">
+                    <thead>
                     <tr>
                       <th>{isArabic ? "اسم المجموعة" : "Group Name"}</th>
                       <th className="text-center">{isArabic ? "عنوان الدورة" : "Course Title"}</th>
@@ -459,6 +460,7 @@ function AdminGroups() {
                     )}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
 
