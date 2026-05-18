@@ -6,7 +6,7 @@ import axiosClient from "../../../api/axios";
  * جلب بيانات الداشبورد الرئيسية (كورسات + إحصائيات)
  */
 export const getStudentCourses = () =>
-  axiosClient.get("student/courses/dashboard");
+  axiosClient.get("/student/dashboard/courses");
 
 /**
  * جلب شهادات الطالب
