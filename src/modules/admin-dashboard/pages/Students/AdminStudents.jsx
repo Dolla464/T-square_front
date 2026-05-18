@@ -429,13 +429,14 @@ function AdminStudents() {
               className="btn btn-danger ac-add-btn"
               onClick={handleAddNew}
             >
-              + {t("students_page.add_student")}
+              <i className="bi bi-plus-lg me-0 me-md-1"></i>
+              <span className="d-none d-md-inline">{isArabic ? "إضافة طالب" : "Add Student"}</span>
             </button>
           </div>
 
           <div className="ac-table-card">
             <div className="ac-table-container">
-              <div className="table-responsive ac-rounded-table">
+              <div className="ac-rounded-table p-3 p-md-0">
                 {/* أدوات البحث والفلترة */}
                 <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
                   {/* 1. شريط البحث (Search Input) */}
@@ -472,11 +473,11 @@ function AdminStudents() {
                     )}
                   </div>
 
-                  <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap mt-3 mt-md-0">
+                  <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
                     {/* 2. فلتر الحالات (Statuses) */}
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
                         selectedStatus !== "all"
                           ? "border-danger bg-danger-subtle text-danger-emphasis"
                           : "border-light bg-light text-muted"
@@ -498,7 +499,7 @@ function AdminStudents() {
                     {/* 3. فلتر المجموعات (Groups) */}
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${
                         selectedGroup !== "all"
                           ? "border-danger bg-danger-subtle text-danger-emphasis"
                           : "border-light bg-light text-muted"
@@ -520,7 +521,7 @@ function AdminStudents() {
                     {/* 4. فلتر النوع (Genders) */}
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${
                         selectedGender !== "all"
                           ? "border-danger bg-danger-subtle text-danger-emphasis"
                           : "border-light bg-light text-muted"
@@ -539,6 +540,7 @@ function AdminStudents() {
                       </option>
                     </select>
                   </div>
+                  
                 </div>
 
                 {/* جدول عرض الطلاب */}

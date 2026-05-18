@@ -271,7 +271,7 @@ function AdminInstructors() {
       `• المجال: ${instructor.field || "-"}\n` +
       `• البريد الإلكتروني: ${instructor.email || "-"}\n` +
       `• رقم الهاتف: ${instructor.phone || "-"}\n` +
-      `• كلمة المرور: ${ "كما تم إدخالها أثناء التسجيل"}\n\n` +
+      `• كلمة المرور: ${"كما تم إدخالها أثناء التسجيل"}\n\n` +
 
       ` يُرجى تغيير كلمة المرور بعد أول تسجيل دخول حفاظاً على أمان الحساب.\n\n` +
 
@@ -294,19 +294,26 @@ function AdminInstructors() {
               className="btn btn-danger ac-add-btn"
               onClick={handleAddNew}
             >
-              + {t("instructors_page.add_instructor")}
+              <i className="bi bi-plus-lg me-0 me-md-1"></i>
+              <span className="d-none d-md-inline">{t("instructors_page.add_instructor")}</span>
             </button>
           </div>
 
           <div className="ac-table-card">
             <div className="ac-table-container">
-              <div className="table-responsive ac-rounded-table">
+              <div className="ac-rounded-table p-3 p-md-0">
                 <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
-                  <div className="ac-search-input-wrapper">
-                    <i className="bi bi-search ac-search-icon"></i>
+                  <div className="ac-search-input-wrapper position-relative ">
+                    <i
+                      className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
+                        }`}
+                      style={{ zIndex: 3 }}
+                    ></i>
                     <input
                       type="text"
-                      className="form-control ac-search-input"
+                      className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
+                        ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
+                        : "border-light bg-light text-muted"}`}
                       placeholder={t("instructors_page.search_placeholder")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -314,7 +321,10 @@ function AdminInstructors() {
                   </div>
                   <div className="d-flex gap-md-3">
                     <select
-                      className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
+                      className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedStatus !== "all"
+                        ? "border-danger bg-danger-subtle text-danger-emphasis"
+                        : "border-light bg-light text-muted"
+                        }`}
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                     >
@@ -332,8 +342,9 @@ function AdminInstructors() {
 
                   </div>
                 </div>
-                <table className="table ac-table mb-0 align-middle" dir="ltr">
-                  <thead>
+                <div className="table-responsive">
+                  <table className="table ac-table mb-0 align-middle" dir="ltr">
+                    <thead>
                     <tr>
                       <th>{t("instructors_page.table_name")}</th>
                       <th className="text-center">{isArabic ? "التخصص" : "Field"}</th>
@@ -413,6 +424,7 @@ function AdminInstructors() {
                     )}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
 

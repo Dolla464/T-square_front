@@ -14,20 +14,53 @@
 /* ══════════════ Sidebar ══════════════ */
 .shared-dashboard-sidebar {
   width: 230px;
-  height: 100vh;
+  min-height: 100vh;
   max-height: 100dvh !important;
-  overflow: hidden !important;         
+  overflow-y: auto !important;         
+  overflow-x: hidden !important;
   position: sticky;
   top: 0;
   display: flex;
   flex-direction: column;
   padding: 0;
   flex-shrink: 0;
-  overflow-y: auto;      
   z-index: 100;
   transition: transform 0.3s ease;
   box-sizing: border-box;
   background-color: rgb(26, 26, 26);
+}
+
+/* Scrollbar hidden by default, visible on hover */
+.shared-dashboard-sidebar {
+  scrollbar-width: none; /* Firefox */
+}
+
+.shared-dashboard-sidebar::-webkit-scrollbar {
+  display: none; /* Completely hide the scrollbar */
+  width: 0px;
+}
+
+.shared-dashboard-sidebar:hover {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.shared-dashboard-sidebar:hover::-webkit-scrollbar {
+  display: block;
+  width: 5px;
+}
+
+.shared-dashboard-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shared-dashboard-sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.shared-dashboard-sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.4);
 }
 
 /* اللوجو */

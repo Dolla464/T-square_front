@@ -15,12 +15,18 @@ function CourseFilters({
   return (
     <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
       {/* Search input */}
-      <div className="ac-search-input-wrapper">
-        <i className="bi bi-search ac-search-icon"></i>
+      <div className="ac-search-input-wrapper position-relative ">
+        <i
+          className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
+            }`}
+          style={{ zIndex: 3 }}
+        ></i>
         <input
           type="text"
-          className="form-control ac-search-input"
-          placeholder={t("content.search_courses")}
+          className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
+            ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
+            : "border-light bg-light text-muted"
+            }`} placeholder={t("content.search_courses")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -31,7 +37,7 @@ function CourseFilters({
         {showTrash ? (
           /* Trash mode – period filter only */
           <select
-            className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
+            className="form-select ac-form-select  bg-light border-0 rounded-3 text-muted"
             value={trashPeriod}
             onChange={(e) => setTrashPeriod(e.target.value)}
           >
@@ -44,8 +50,10 @@ function CourseFilters({
           /* Active mode – status + category */
           <>
             <select
-              className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
-              value={selectedStatus}
+              className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedStatus !== "all"
+                ? "border-danger bg-danger-subtle text-danger-emphasis"
+                : "border-light bg-light text-muted"
+                }`} value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
             >
               <option value="all">All Statuses</option>
@@ -53,8 +61,10 @@ function CourseFilters({
               <option value="draft">Draft</option>
             </select>
             <select
-              className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
-              value={selectedCategory}
+              className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedCategory !== "all"
+                ? "border-danger bg-danger-subtle text-danger-emphasis"
+                : "border-light bg-light text-muted"
+                }`} value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
               <option value="all">
@@ -79,7 +89,7 @@ function CourseFilters({
           </>
         )}
       </div>
-    </div>
+    </div >
   );
 }
 

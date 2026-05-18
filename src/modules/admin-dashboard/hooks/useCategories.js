@@ -10,7 +10,7 @@ export const useCategories = () => {
     try {
       const response = await fetchCategories();
       const data = response?.data || [];
-      console.log(" data : ", response);
+      // console.log(" data : ", response);
 
       // API returns: { status, message, data: [...] }
       setCategories(data);

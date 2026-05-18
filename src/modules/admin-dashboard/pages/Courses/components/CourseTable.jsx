@@ -17,9 +17,10 @@ function CourseTable({
 }) {
   return (
     <>
-      <table
-        className={`table ac-table mb-0 align-middle${showTrash ? " table-secondary" : ""}`}
-      >
+      <div className="table-responsive">
+        <table
+          className={`table ac-table mb-0 align-middle${showTrash ? " table-secondary" : ""}`}
+        >
         <thead>
           <tr>
             <th>{t("content.table.course")}</th>
@@ -70,30 +71,45 @@ function CourseTable({
                       <i className="bi bi-trash me-1"></i>
                       {item.deleted_at
                         ? (() => {
-                            const d = new Date(item.deleted_at);
-                            return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-                          })()
+                          const d = new Date(item.deleted_at);
+                          return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+                        })()
                         : isArabic
                           ? "محذوف"
                           : "Deleted"}
                     </span>
                   ) : (
-                    <select
-                      className={`px-3 status-select ${
-                        item.status === "published"
-                          ? "bg-success-subtle text-success border-success"
-                          : "bg-danger-subtle text-danger border-danger"
-                      }`}
-                      value={item.status}
-                      onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                    // <select
+                    //   className={`px-3 status-select ${
+                    //     item.status === "published"
+                    //       ? "bg-success-subtle text-success border-success"
+                    //       : "bg-danger-subtle text-danger border-danger"
+                    //   }`}
+                    //   value={item.status}
+                    //   onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                    // >
+                    //   <option value="published">
+                    //     &#x2B9B; {isArabic ? "منشور" : "Published"}
+                    //   </option>
+                    //   <option value="draft">
+                    //     &#x2B9B; {isArabic ? "مسودة" : "Draft"}
+                    //   </option>
+                    // </select>
+                    <span
+                      className={`badge rounded-pill cp ${item.status === "published" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"}`}
+                      style={{
+                        cursor: "pointer",
+                        padding: "8px 16px",
+                      }}
+                      onClick={() => handleStatusChange(item.id, item.status === "published" ? "draft" : "published")}
                     >
-                      <option value="published">
-                        &#x2B9B; {isArabic ? "منشور" : "Published"}
-                      </option>
-                      <option value="draft">
-                        &#x2B9B; {isArabic ? "مسودة" : "Draft"}
-                      </option>
-                    </select>
+                      <i
+                        className={`bi ${item.status === "draft" ? "bi-shield-exclamation" : "bi-patch-check-fill"} me-1`}
+                      ></i>
+                      {item.status == "draft"
+                        ? isArabic ? "مسودة" : "Draft"
+                        : isArabic ? "منشور" : "Published"}
+                    </span>
                   )}
                 </td>
 
@@ -156,6 +172,7 @@ function CourseTable({
           )}
         </tbody>
       </table>
+      </div>
 
       {/* Pagination */}
       {apiPagination && (
