@@ -56,13 +56,21 @@ function TestimonialsSection({ data, className = "" }) {
                   </div>
 
                   {/* معلومات الشخص */}
-                  <div className="d-flex align-items-center mb-3">
-                    <img
-                      src={studentImg || testimonial.student?.avatar}
-                      alt={testimonial.student?.full_name}
-                      className="testimonial-avatar-horizontal"
-                      style={{ marginInlineEnd: "12px" }}
-                    />
+                  <div className="d-flex align-items-center  mb-3 gap-3">
+
+                    {false ? (
+                      <img className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden "
+                        src={testimonial?.student?.avatar}
+                        alt={testimonial?.student?.full_name}
+                        style={{ width: "55px", height: "55px" }}
+                      />
+                    ) : (
+                      <div className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden "
+                        style={{ width: "55px", height: "55px" }}>
+                        {testimonial?.student?.full_name ? testimonial?.student?.full_name.charAt(0).toUpperCase() : "U"}
+                      </div>
+                    )}
+
                     <div>
                       <h6 className="mb-0 fw-bold">
                         {testimonial.student?.full_name}
