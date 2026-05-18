@@ -59,6 +59,7 @@ import AdminCertificates from "./modules/admin-dashboard/pages/Certificates/Admi
 import AdminReviews from "./modules/admin-dashboard/pages/Reviews/AdminReviews";
 import AdminSettings from "./modules/admin-dashboard/pages/Settings/AdminSettings";
 import AdminGroups from "./modules/admin-dashboard/pages/Groups/AdminGroups";
+import AdminCategories from "./modules/admin-dashboard/pages/Categories/AdminCategories";
 
 
 // مكون فرعي للتحكم في عرض الـ Layout
@@ -218,11 +219,12 @@ function AppContent() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminOverview />} />
               <Route path="courses" element={<AdminCourses />} />
+              <Route path="categories" element={<AdminCategories />} />
               <Route path="groups" element={<AdminGroups />} />
               <Route path="solutions" element={<AdminSolutions />} />
               <Route path="students" element={<AdminStudents />} />
               <Route path="instructors" element={<AdminInstructors />} />
-        
+
               <Route path="orders" element={<AdminOrders />} />
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="certificates" element={<AdminCertificates />} />
