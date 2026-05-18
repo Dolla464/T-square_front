@@ -14,10 +14,8 @@
 /* ══════════════ Sidebar ══════════════ */
 .shared-dashboard-sidebar {
   width: 230px;
-  min-height: 100vh;
-  max-height: 100dvh !important;
-  overflow-y: auto !important;         
-  overflow-x: hidden !important;
+  height: 100vh;
+  height: 100dvh;
   position: sticky;
   top: 0;
   display: flex;
@@ -28,48 +26,17 @@
   transition: transform 0.3s ease;
   box-sizing: border-box;
   background-color: rgb(26, 26, 26);
+  overflow: hidden; /* منع السايد بار بالكامل من عمل سكرول */
 }
 
-/* Scrollbar hidden by default, visible on hover */
-.shared-dashboard-sidebar {
-  scrollbar-width: none; /* Firefox */
-}
-
-.shared-dashboard-sidebar::-webkit-scrollbar {
-  display: none; /* Completely hide the scrollbar */
-  width: 0px;
-}
-
-.shared-dashboard-sidebar:hover {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-}
-
-.shared-dashboard-sidebar:hover::-webkit-scrollbar {
-  display: block;
-  width: 5px;
-}
-
-.shared-dashboard-sidebar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.shared-dashboard-sidebar::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-}
-
-.shared-dashboard-sidebar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.4);
-}
-
-/* اللوجو */
+/* اللوجو (الهيدر - ثابت في الأعلى) */
 .sidebar-logo {
   display: block;
   text-decoration: none;
   padding: 24px 24px 20px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
   margin-bottom: 8px;
+  flex-shrink: 0; /* منع اللوجو من الانضغاط */
 }
 
 .sidebar-logo img {
@@ -77,13 +44,54 @@
   filter: brightness(0) invert(1); /* جعل اللوجو الدارك يظهر كأنه أبيض ليناسب الخلفية الغامقة */
 }
 
-/* روابط التنقل */
+/* روابط التنقل (محتوى اللينكات - سكرول مستقل) */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: 4px 14px;
   flex: 1 1 auto;
+  overflow-y: auto; /* سكرول عمودي للينكات فقط عند زيادة عددها */
+  overflow-x: hidden;
+  scrollbar-width: none; /* إخفاء الاسكرول بار في فايرفوكس بشكل افتراضي */
+  -ms-overflow-style: none; /* إخفاء في IE/Edge */
+}
+
+/* تخصيص شكل واسكرول روابط التنقل (كروم وسفاري) */
+.sidebar-nav::-webkit-scrollbar {
+  display: none; /* إخفاء الاسكرول بار بشكل افتراضي */
+  width: 5px;
+}
+
+.sidebar-nav:hover {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgb(26, 26, 26);
+}
+
+.sidebar-nav:hover::-webkit-scrollbar {
+  display: block; /* إظهار الاسكرول بار الرفيع عند الهوفر لسهولة الاستخدام */
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: rgb(26, 26, 26); /* نفس لون خلفية السايد بار ليكون غير مرئي */
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Footer & Logout (الفوتر - ثابت في الأسفل) */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 8px 12px calc(24px + env(safe-area-inset-bottom, 0px));
+  flex-shrink: 0; /* منع الفوتر من الانضغاط */
+  border-top: 1px solid rgba(255,255,255,0.07);
+  background-color: rgb(26, 26, 26);
 }
 
 .sidebar-link {
@@ -117,15 +125,9 @@
   text-align: center;
 }
 
-/* Footer & Logout */
-.sidebar-footer {
-  margin-top: auto;
-  padding: 8px 12px calc(24px + env(safe-area-inset-bottom, 0px));
-  flex-shrink: 0;
-  border-top: 1px solid rgba(255,255,255,0.07);
-}
 
 .sidebar-logout-btn {
+  color: #be1522 !important;
   display: flex;
   align-items: center;
   gap: 12px;
