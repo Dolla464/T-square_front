@@ -13,10 +13,16 @@ const ADMIN_NAV = [
     end: true,
   },
   {
+    key: "groups",
+    path: "/admin/groups",
+    icon: "bi-people",
+  },
+  {
     key: "courses",
     path: "/admin/courses",
     icon: "bi-mortarboard",
   },
+
   {
     key: "solutions",
     path: "/admin/solutions",
@@ -78,6 +84,8 @@ function AdminLayout() {
     switch (path) {
       case "/admin":
         return HomePageTitle;
+      case "/admin/groups":
+        return isArabic ? "المجموعات" : "Groups";
       case "/admin/courses":
         return isArabic ? "الكورسات" : "Courses";
       case "/admin/solutions":

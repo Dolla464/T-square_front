@@ -82,14 +82,14 @@ function AdminReviews() {
       </div>
 
       <div className="row g-3 mb-4">
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state">
             <div className="stat-label">{isArabic ? "إجمالي التقييمات" : "Total Reviews"}</div>
             <div className="stat-value my-2">{apiPagination?.total || 0}</div>
             <div style={{ color: "#28a745" }} className="stat-sub">+5% this month</div>
           </div>
         </div>
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{isArabic ? "متوسط التقييم" : "Avg Rating"}</div>
             <div className="d-flex align-items-center">
@@ -104,14 +104,14 @@ function AdminReviews() {
             </div>
           </div>
         </div>
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{isArabic ? "بانتظار المراجعة" : "Pending Review"}</div>
             <div className="stat-value my-2 text-warning">12</div>
             <div className="stat-sub text-muted">Awaiting</div>
           </div>
         </div>
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{isArabic ? "مرفوضة" : "Rejected"}</div>
             <div className="stat-value my-2">3</div>
@@ -120,22 +120,31 @@ function AdminReviews() {
         </div>
       </div>
 
-      <div className="table-responsive ac-rounded-table">
+      <div className="ac-rounded-table p-3 p-md-0">
         <div className="review-table-container ">
           <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
-            <div className="ac-search-input-wrapper">
-              <i className="bi bi-search ac-search-icon"></i>
+            <div className="ac-search-input-wrapper position-relative ">
+              <i
+                className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
+                  }`}
+                style={{ zIndex: 3 }}
+              ></i>
               <input
                 type="text"
-                className="form-control ac-search-input"
+                className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
+                  ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
+                  : "border-light bg-light text-muted"}`}
                 placeholder={isArabic ? "بحث في التقييمات..." : "Search reviews..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="d-flex w-25 gap-md-3">
+            <div className="d-flex gap-md-3">
               <select
-                className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted"
+                className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${ratingFilter !== "all"
+                  ? "border-danger bg-danger-subtle text-danger-emphasis"
+                  : "border-light bg-light text-muted"
+                  }`}
                 value={ratingFilter}
                 onChange={(e) => setRatingFilter(e.target.value)}
               >
@@ -147,8 +156,9 @@ function AdminReviews() {
             </div>
           </div>
 
-          <table className="table ac-table mb-0 align-middle" dir="ltr">
-            <thead className="ac-table">
+          <div className="table-responsive">
+            <table className="table ac-table mb-0 align-middle" dir="ltr">
+              <thead className="ac-table">
               <tr className="text-muted">
                 <th>{isArabic ? "الطالب" : "Student"}</th>
                 <th>{isArabic ? "الكورس" : "Course"}</th>
@@ -183,10 +193,39 @@ function AdminReviews() {
                     </td>
                     <td className="ac-truncate-text text-secondary">{item.overall_comment}</td>
                     <td>
-                      <select className="status-select">
-                        <option value="active" className="text-success">{isArabic ? "نشط" : "Active"}</option>
-                        <option value="rejected" className="text-danger">{isArabic ? "مرفوض" : "Rejected"}</option>
-                      </select>
+
+                      {/* لما ال الريبونس يرجع الاستايتس هنشغلها */}
+                      {/* <span
+                        className={`badge rounded-pill cp ${item.status === "published" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"}`}
+                        style={{
+                          cursor: "pointer",
+                          padding: "8px 16px",
+                        }}
+                        onClick={() => handleStatusChange(item.id, item.status === "published" ? "draft" : "published")}
+                        onClick={() => alert("Salama say : لما ال الريسبونس يرجع الاستايتس هشغلها")}
+                      >
+                        <i
+                          className={`bi ${item.status === "published" ? "bi-patch-check-fill" : "bi-shield-exclamation"} me-1`}
+                        ></i>
+                        {item.status == "draft"
+                          ? isArabic ? "مسودة" : "Draft"
+                          : isArabic ? "منشور" : "Published"}
+                      </span> */}
+
+
+                      <span
+                        className="badge rounded-pill cp bg-success-subtle text-success "
+                        style={{
+                          cursor: "pointer",
+                          padding: "8px 16px",
+                        }}
+                        onClick={() => alert("Salama say : لما ال الريسبونس يرجع الاستايتس هشغلها")}
+                      >
+                        <i
+                          className="bi-patch-check-fill me-1"
+                        ></i>
+                        {isArabic ? "مقبول" : "Aproved"}
+                      </span>
                     </td>
                     <td className="text-center">
 
@@ -219,6 +258,7 @@ function AdminReviews() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 

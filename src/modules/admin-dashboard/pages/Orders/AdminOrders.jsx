@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { Pagination, Modal, Button } from "react-bootstrap";
-import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { showDeleteConfirm, showPaymentStatusConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { useOrders } from "../../hooks/useOrders";
 
 import "../Reviews/review.css";
 
@@ -10,96 +11,124 @@ function AdminOrders() {
   const { t, i18n } = useTranslation("orderPayments");
   const isArabic = i18n.language?.startsWith("ar");
 
+  const { orders, loading, pagination, getOrders, getOrderById, updateOrderStatus, deleteOrder } = useOrders();
+
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [ratingFilter, setRatingFilter] = useState("all");
-  const [selectedReview, setSelectedReview] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-  const [reviews, setReviews] = useState([
-    {
-      id: 1,
-      student_name: "Ahmed Ali",
-      course_title: "React Course",
-      rating: 5,
-      overall_comment: "Excellent course and very helpful",
-      content_rating: 5,
-      instructor_rating: 5,
-      center_rating: 4,
-      created_at: "2026-05-09",
-    },
-    {
-      id: 2,
-      student_name: "Sara Mohamed",
-      course_title: "Laravel Course",
-      rating: 4,
-      overall_comment: "Good explanation and organized content",
-      content_rating: 4,
-      instructor_rating: 4,
-      center_rating: 5,
-      created_at: "2026-05-08",
-    },
-    {
-      id: 3,
-      student_name: "Omar Khaled",
-      course_title: "UI/UX Course",
-      rating: 3,
-      overall_comment: "Average experience",
-      content_rating: 3,
-      instructor_rating: 4,
-      center_rating: 3,
-      created_at: "2026-05-07",
-    },
-  ]);
+  useEffect(() => {
+    getOrders({
+      page: currentPage,
+      search: debouncedSearch,
+      status: statusFilter === "all" ? "" : statusFilter,
+    });
+  }, [getOrders, currentPage, debouncedSearch, statusFilter]);
 
-  const apiPagination = {
-    total_pages: 3,
-    last_page: 3,
-  };
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, statusFilter]);
 
-  useEffect(() => {}, []);
+  // Frontend filtering fallback
+  const filteredOrders = useMemo(() => {
+    if (!orders) return [];
+    return orders.filter((item) => {
+      const searchLower = debouncedSearch.toLowerCase();
+      const matchSearch =
+        !debouncedSearch ||
+        item["student.full_name"]?.toLowerCase().includes(searchLower) ||
+        item["enrollments.course.title"]?.toLowerCase().includes(searchLower) ||
+        item.billing_name?.toLowerCase().includes(searchLower) ||
+        String(item.id).includes(searchLower);
 
-  // Frontend search and filtering
-  const filteredReviews = (reviews || []).filter((item) => {
-    const searchLower = searchTerm.toLowerCase();
+      const matchStatus =
+        statusFilter === "all" || item.status === statusFilter;
 
-    const matchSearch =
-      !searchTerm ||
-      item.student_name?.toLowerCase().includes(searchLower) ||
-      item.course_title?.toLowerCase().includes(searchLower) ||
-      item.overall_comment?.toLowerCase().includes(searchLower);
-
-    const matchRating =
-      ratingFilter === "all" ||
-      Math.floor(Number(item.rating)) === Number(ratingFilter);
-
-    return matchSearch && matchRating;
-  });
+      return matchSearch && matchStatus;
+    });
+  }, [orders, debouncedSearch, statusFilter]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
   const handleView = async (id) => {
-    const data = reviews.find((item) => item.id === id);
+    try {
+      const data = await getOrderById(id);
+      if (data) {
+        setSelectedOrder(data);
+        setShowViewModal(true);
+      }
+    } catch (err) {
+      // Error handled in hook
+    }
+  };
 
-    if (data) {
-      setSelectedReview(data);
-      setShowViewModal(true);
+  const handleStatusChange = async (id, currentStatus) => {
+    const newStatus = await showPaymentStatusConfirm(currentStatus);
+    if (newStatus) {
+      const success = await updateOrderStatus(id, newStatus);
+      if (success) {
+        getOrders({
+          page: currentPage,
+          search: debouncedSearch,
+          status: statusFilter === "all" ? "" : statusFilter,
+        });
+      }
     }
   };
 
   const handleDelete = async (id) => {
-    const review = reviews.find((r) => r.id === id);
-
+    const order = orders.find((r) => r.id === id);
     const confirmed = await showDeleteConfirm(
-      review?.student_name || (isArabic ? "هذا التقييم" : "this review"),
+      order?.["student.full_name"] || order?.billing_name || (isArabic ? "هذا الطلب" : "this order"),
     );
 
     if (confirmed) {
-      setReviews((prev) => prev.filter((item) => item.id !== id));
+      await deleteOrder(id);
+      getOrders({
+        page: currentPage,
+        search: debouncedSearch,
+        status: statusFilter === "all" ? "" : statusFilter,
+      });
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "completed": return "bg-success-subtle text-success";
+      case "pending": return "bg-warning-subtle text-warning";
+      case "cancelled": return "bg-danger-subtle text-danger";
+      case "refunded": return "bg-secondary-subtle text-secondary";
+      default: return "bg-light text-dark";
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "completed": return "bi-check-circle-fill";
+      case "pending": return "bi-clock-fill";
+      case "cancelled": return "bi-x-circle-fill";
+      case "refunded": return "bi-arrow-counterclockwise";
+      default: return "bi-info-circle-fill";
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case "completed": return isArabic ? "مكتمل" : "Completed";
+      case "pending": return isArabic ? "قيد الانتظار" : "Pending";
+      case "cancelled": return isArabic ? "ملغي" : "Cancelled";
+      case "refunded": return isArabic ? "مسترجع" : "Refunded";
+      default: return status;
     }
   };
 
@@ -113,7 +142,7 @@ function AdminOrders() {
       </div>
 
       <div className="row g-3 mb-4">
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state">
             <div className="stat-label">{t("totalRevenue")}</div>
             <div className="stat-value my-2">$125,430</div>
@@ -123,7 +152,7 @@ function AdminOrders() {
           </div>
         </div>
 
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{t("totalOrders")}</div>
             <div>
@@ -135,7 +164,7 @@ function AdminOrders() {
           </div>
         </div>
 
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{t("pending")}</div>
             <div className="stat-value my-2 text-warning">24</div>
@@ -143,7 +172,7 @@ function AdminOrders() {
           </div>
         </div>
 
-        <div className="col-md-3 col-6">
+        <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{t("refunded")}</div>
             <div className="stat-value my-2">8</div>
@@ -152,86 +181,210 @@ function AdminOrders() {
         </div>
       </div>
 
-      <div className="table-responsive ac-rounded-table">
+      <div className="ac-rounded-table p-3 p-md-0">
         <div className="review-table-container ">
           <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
-            <div className="ac-search-input-wrapper">
-              <i className="bi bi-search ac-search-icon"></i>
-
+            <div className="ac-search-input-wrapper position-relative ">
+              <i
+                className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
+                  }`}
+                style={{ zIndex: 3 }}
+              ></i>
               <input
                 type="text"
-                className="form-control ac-search-input"
+                className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
+                  ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
+                  : "border-light bg-light text-muted"}`}
                 placeholder={t("search")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
-            <div className="d-flex w-25 gap-md-3">
-              <select className="form-select ac-form-select pt-2 pb-2 py-3 bg-light border-0 rounded-3 text-muted">
+            <div className="d-flex  gap-md-3">
+              <select className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${statusFilter !== "all"
+                ? "border-danger bg-danger-subtle text-danger-emphasis"
+                : "border-light bg-light text-muted"
+                }`}
+                onChange={(e) => setStatusFilter(e.target.value)}>
                 <option value="all">{t("allStudents")}</option>
-                <option>{t("completed")}</option>
-                <option>{t("pending")}</option>
-                <option>{t("failed")}</option>
-                <option>{t("refunded")}</option>
+                <option value="completed">{t("completed")}</option>
+                <option value="pending">{t("pending")}</option>
+                <option value="refunded">{t("refunded")}</option>
+                <option value="cancelled">{isArabic ? "ملغي" : "Cancelled"}</option>
               </select>
             </div>
           </div>
 
-          <table className="table ac-table mb-0 align-middle" dir="ltr">
-            <thead className="ac-table">
+          <div className="table-responsive">
+            <table className="table ac-table mb-0 align-middle" dir="ltr">
+              <thead className="ac-table">
               <tr className="text-muted">
                 <th>{t("orderId")}</th>
-                <th>{t("student")}</th>
-                <th>{t("course")}</th>
-                <th>{t("amount")}</th>
-                <th>{t("paymentMethod")}</th>
-                <th>{t("status")}</th>
+                <th className="text-center">{t("student")}</th>
+                <th className="text-center">{t("course")}</th>
+                <th className="text-center">{t("amount")}</th>
+                <th className="text-center">{t("status")}</th>
+                <th className="text-center">{isArabic ? "الإجراءات" : "Actions"}</th>
               </tr>
             </thead>
 
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-4">
-                    <div
-                      className="spinner-border text-danger"
-                      role="status"
-                    ></div>
+                  <td colSpan="6" className="text-center py-5">
+                    <div className="spinner-border text-danger" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
                   </td>
                 </tr>
-              ) : filteredReviews.length > 0 ? (
-                filteredReviews.map((item) => (
+              ) : filteredOrders.length > 0 ? (
+                filteredOrders.map((item) => (
                   <tr key={item.id}>
-                    <td className="fw-medium text-dark">#{item.id}</td>
+                    <td className="fw-bold text-dark">#{item.id}</td>
 
-                    <td className="fw-medium text-dark">{item.student_name}</td>
+                    <td className="text-center fw-medium text-dark">
+                      {item["student.full_name"] || item.billing_name || "N/A"}
+                    </td>
 
-                    <td className="fw-medium text-dark">{item.course_title}</td>
+                    <td className="text-center fw-medium text-dark">
+                      {item["enrollments.course.title"] || "N/A"}
+                    </td>
 
-                    <td className="fw-medium text-dark">${item.rating * 20}</td>
+                    <td className="text-center fw-bold text-success"><span className="text-muted">EGP</span> {item.total_amount || 0}</td>
 
-                    <td className="text-secondary">Credit Card</td>
 
-                    <td>
-                      <span className="status completed">{t("completed")}</span>
+
+                    <td className="text-center">
+                      <span
+                        className={`badge rounded-pill cp ${getStatusBadge(item.status || "pending")}`}
+                        style={{
+                          cursor: "pointer",
+                          padding: "8px 16px",
+                        }}
+                        onClick={() => handleStatusChange(item.id, item.status || "pending")}
+                      >
+                        <i className={`bi ${getStatusIcon(item.status || "pending")} me-1`}></i>
+                        {getStatusText(item.status || "pending")}
+                      </span>
+                    </td>
+
+                    <td className="text-center">
+                      <div className="d-flex justify-content-center gap-2">
+                        <button
+                          className="btn btn-sm ac-btn-view border-0"
+                          title={isArabic ? "عرض التفاصيل" : "View Details"}
+                          onClick={() => handleView(item.id)}
+                        >
+                          <i className="bi bi-eye fs-6"></i>
+                        </button>
+                        <button
+                          className="btn btn-sm ac-btn-deleteTable border-0"
+                          title={isArabic ? "حذف" : "Delete"}
+                          onClick={() => handleDelete(item.id)}
+                        >
+                          <i className="bi bi-trash fs-6"></i>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="6"
-                    className="text-center py-4 text-secondary fw-bold"
-                  >
-                    {isArabic ? "لا توجد بيانات" : "No data found"}
+                  <td colSpan="7" className="text-center py-5 text-secondary fw-bold">
+                    <div className="d-flex flex-column align-items-center justify-content-center">
+                      <i className="bi bi-inbox fs-1 text-muted mb-2"></i>
+                      {isArabic ? "لا توجد طلبات دفع" : "No payment orders found"}
+                    </div>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
+          </div>
+
+          {/* Pagination - Always visible if data exists */}
+          {pagination && pagination.last_page > 1 && (
+            <div className="d-flex justify-content-center mt-5 pb-3" dir="ltr">
+              <Pagination className="custom-pagination mb-0">
+                <Pagination.Prev
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                />
+                {[...Array(pagination.last_page)].map((_, idx) => (
+                  <Pagination.Item
+                    key={idx + 1}
+                    style={{ margin: "0 3px" }}
+                    active={idx + 1 === currentPage}
+                    onClick={() => handlePageChange(idx + 1)}
+                  >
+                    {idx + 1}
+                  </Pagination.Item>
+                ))}
+                <Pagination.Next
+                  style={{ margin: "0 6px 0" }}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === pagination.last_page}
+                />
+              </Pagination>
+            </div>
+          )}
+
         </div>
       </div>
+
+      {/* View Modal */}
+      <Modal show={showViewModal} onHide={() => setShowViewModal(false)} centered size="md" className="cert-detail-modal">
+        <div className="d-flex align-items-center justify-content-between pt-2 px-3" dir={isArabic ? "rtl" : "ltr"}>
+          <Modal.Title className="fs-5 fw-bold">{isArabic ? "تفاصيل الطلب" : "Order Details"}</Modal.Title>
+          <Modal.Header closeButton className="border-0"></Modal.Header>
+        </div>
+        <Modal.Body className="pt-0">
+          {selectedOrder && (
+            <div className="cert-modal-content">
+              <div className="cert-info-list p-3 bg-light rounded-3 mt-3">
+                <div className="info-item d-flex justify-content-between mb-2">
+                  <span className="text-muted">{isArabic ? "رقم الطلب:" : "Order ID:"}</span>
+                  <span className="fw-bold text-dark">#{selectedOrder.id}</span>
+                </div>
+                <div className="info-item d-flex justify-content-between mb-2">
+                  <span className="text-muted">{isArabic ? "اسم الطالب:" : "Student Name:"}</span>
+                  <span className="fw-medium">{selectedOrder["student.full_name"] || selectedOrder.billing_name}</span>
+                </div>
+                <div className="info-item d-flex justify-content-between mb-2">
+                  <span className="text-muted">{isArabic ? "البريد الإلكتروني:" : "Email:"}</span>
+                  <span className="fw-medium text-muted">{selectedOrder["student.user.email"] || "N/A"}</span>
+                </div>
+                <div className="info-item d-flex align-items-center justify-content-between mb-2">
+                  <span className="text-muted">{isArabic ? "الكورس:" : "Course:"}</span>
+                  <span className="fw-medium text-end ms-2" style={{ maxWidth: "200px" }}>{selectedOrder["enrollments.course.title"] || "N/A"}</span>
+                </div>
+                <div className="info-item d-flex justify-content-between mb-2">
+                  <span className="text-muted">{isArabic ? "المبلغ:" : "Amount:"}</span>
+                  <span className="fw-bold text-success">${selectedOrder.total_amount || 0}</span>
+                </div>
+
+                <div className="info-item d-flex justify-content-between mb-2">
+                  <span className="text-muted">{isArabic ? "حالة الدفع:" : "Status:"}</span>
+                  <span className={`badge rounded-pill ${getStatusBadge(selectedOrder.status || "pending")}`}>
+                    {getStatusText(selectedOrder.status || "pending")}
+                  </span>
+                </div>
+
+              </div>
+              <Button
+                variant="dark"
+                className="mt-3 w-100 rounded-3 py-2 fw-bold"
+                onClick={() => setShowViewModal(false)}
+                style={{ backgroundColor: "#1a1a1a" }}
+              >
+                {isArabic ? "إغلاق" : "Close"}
+              </Button>
+            </div>
+          )}
+        </Modal.Body>
+      </Modal>
+
     </div>
   );
 }
