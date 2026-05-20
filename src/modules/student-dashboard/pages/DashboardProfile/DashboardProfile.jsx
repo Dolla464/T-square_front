@@ -259,7 +259,6 @@ function DashboardProfile() {
                 <select
                   className={`profile-input ${gender ? "profile-input-readonly" : ""}`}
                   value={gender || ""}
-                  disabled={gender}
                   onChange={(e) => {
                     setGender(e.target.value);
                     setIsInfoUpdated(true);
