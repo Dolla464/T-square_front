@@ -60,6 +60,7 @@ import AdminReviews from "./modules/admin-dashboard/pages/Reviews/AdminReviews";
 import AdminSettings from "./modules/admin-dashboard/pages/Settings/AdminSettings";
 import AdminGroups from "./modules/admin-dashboard/pages/Groups/AdminGroups";
 import AdminCategories from "./modules/admin-dashboard/pages/Categories/AdminCategories";
+import AdminQuizzes from "./modules/admin-dashboard/pages/Quizzes/AdminQuizzes";
 
 
 // مكون فرعي للتحكم في عرض الـ Layout
@@ -220,6 +221,7 @@ function AppContent() {
               <Route index element={<AdminOverview />} />
               <Route path="courses" element={<AdminCourses />} />
               <Route path="categories" element={<AdminCategories />} />
+              <Route path="quizzes" element={<AdminQuizzes />} />
               <Route path="groups" element={<AdminGroups />} />
               <Route path="solutions" element={<AdminSolutions />} />
               <Route path="students" element={<AdminStudents />} />

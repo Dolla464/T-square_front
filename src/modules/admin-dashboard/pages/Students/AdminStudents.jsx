@@ -392,11 +392,11 @@ function AdminStudents() {
           enrolled_courses: (prev.enrolled_courses || []).map((course) =>
             course.id === courseId
               ? {
-                  ...course,
-                  is_completed: nextStatus,
-                  // حركة ذكية: لو الكورس تقلب "مكتمل"، بنلغي الجروب الحالي جوه الفورم عشان يتماشى مع لوجيك الباك إند
-                  ...(nextStatus ? { group_id: null } : {}),
-                }
+                ...course,
+                is_completed: nextStatus,
+                // حركة ذكية: لو الكورس تقلب "مكتمل"، بنلغي الجروب الحالي جوه الفورم عشان يتماشى مع لوجيك الباك إند
+                ...(nextStatus ? { group_id: null } : {}),
+              }
               : course,
           ),
         }));
@@ -442,20 +442,18 @@ function AdminStudents() {
                   {/* 1. شريط البحث (Search Input) */}
                   <div className="ac-search-input-wrapper position-relative">
                     <i
-                      className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${
-                        searchTerm ? "text-danger fw-bold" : "text-muted"
-                      }`}
+                      className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
+                        }`}
                       style={{ zIndex: 3 }}
                     ></i>
 
                     <input
                       type="text"
                       // ضبطنا الـ padding من الشمال (ps-5) عشان الكلام ميبدأش من فوق الأيقونة
-                      className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${
-                        searchTerm
+                      className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
                           ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
                           : "border-light bg-light text-muted"
-                      }`}
+                        }`}
                       placeholder={t("students_page.search_placeholder")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -477,11 +475,10 @@ function AdminStudents() {
                     {/* 2. فلتر الحالات (Statuses) */}
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
-                        selectedStatus !== "all"
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedStatus !== "all"
                           ? "border-danger bg-danger-subtle text-danger-emphasis"
                           : "border-light bg-light text-muted"
-                      }`}
+                        }`}
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                     >
@@ -499,11 +496,10 @@ function AdminStudents() {
                     {/* 3. فلتر المجموعات (Groups) */}
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${
-                        selectedGroup !== "all"
+                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedGroup !== "all"
                           ? "border-danger bg-danger-subtle text-danger-emphasis"
                           : "border-light bg-light text-muted"
-                      }`}
+                        }`}
                       value={selectedGroup}
                       onChange={(e) => setSelectedGroup(e.target.value)}
                     >
@@ -521,11 +517,10 @@ function AdminStudents() {
                     {/* 4. فلتر النوع (Genders) */}
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${
-                        selectedGender !== "all"
+                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedGender !== "all"
                           ? "border-danger bg-danger-subtle text-danger-emphasis"
                           : "border-light bg-light text-muted"
-                      }`}
+                        }`}
                       value={selectedGender}
                       onChange={(e) => setSelectedGender(e.target.value)}
                     >
@@ -540,7 +535,7 @@ function AdminStudents() {
                       </option>
                     </select>
                   </div>
-                  
+
                 </div>
 
                 {/* جدول عرض الطلاب */}
@@ -1017,13 +1012,12 @@ function AdminStudents() {
                                       // 1. تعطيل الـ select تماماً إذا كان الكورس مكتملاً
                                       disabled={course.is_completed}
                                       // 2. تلوين ديناميكي باستخدام كلاسات بوتستراب بناءً على حالة الكورس والجروب
-                                      className={`form-control form-select-sm border-2 shadow-sm text-center rounded-3 py-2 px-3 ${
-                                        course.is_completed
+                                      className={`form-control form-select-sm border-2 shadow-sm text-center rounded-3 py-2 px-3 ${course.is_completed
                                           ? "border-light-subtle bg-body-secondary text-muted opacity-75" // شكل مطفي للكورس المكتمل
                                           : !course.group_id
                                             ? "border-warning bg-warning-subtle text-dark"
                                             : "border-light-subtle bg-light text-secondary"
-                                      }`}
+                                        }`}
                                       value={course.group_id || ""}
                                       // 3. تأكد من تمرير الدالة الصحيحة المتواجدة بالهوك لديك (يمكنك إضافة student.id إذا دعت الحاجة)
                                       onChange={(e) =>
@@ -1069,11 +1063,10 @@ function AdminStudents() {
                                   <button
                                     type="button"
                                     // تحويل الـ Badge لـ Button باستخدام كلاسات بوتستراب لتغيير الخلفية والألوان بدون inline style
-                                    className={`btn btn-sm rounded-pill fw-bold border-0 py-2 px-3 shadow-sm ${
-                                      course.is_completed
+                                    className={`btn btn-sm rounded-pill fw-bold border-0 py-2 px-3 shadow-sm ${course.is_completed
                                         ? "bg-success-subtle text-success-emphasis"
                                         : "bg-primary-subtle text-primary-emphasis"
-                                    }`}
+                                      }`}
                                     style={{
                                       fontSize: "0.75rem",
                                       transition: "all 0.2s",
