@@ -18,6 +18,11 @@ const ADMIN_NAV = [
     icon: "bi-list",
   },
   {
+    key: "Quzies",
+    path: "/admin/quizzes",
+    icon: "bi-chat-right-quote",
+  },
+  {
     key: "groups",
     path: "/admin/groups",
     icon: "bi-people",
@@ -91,6 +96,8 @@ function AdminLayout() {
         return HomePageTitle;
       case "/admin/categories":
         return isArabic ? "التصنيفات" : "Categories";
+      case "/admin/quizzes":
+        return isArabic ? "الاختبارات" : "Quzzies";
       case "/admin/groups":
         return isArabic ? "المجموعات" : "Groups";
       case "/admin/courses":
