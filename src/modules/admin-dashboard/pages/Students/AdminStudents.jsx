@@ -592,7 +592,7 @@ function AdminStudents() {
                               {student.phone || "-"}
                             </td>
                             <td className="text-center text-secondary">
-                              {student.learning_group?.group_name}
+                              {student.learning_group}
                             </td>
                             <td className="text-center">
                               <span
