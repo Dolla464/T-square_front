@@ -9,6 +9,8 @@ import { toastError } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { useQuizzes } from "../../hooks/useQuizzes";
 import { useAdminCourses } from "../../hooks/useAdminCourses";
+import { useNavigate, useParams } from "react-router-dom";
+
 
 /**
  * Default form data structure for creating or editing a quiz
@@ -63,7 +65,8 @@ function AdminQuizzes() {
 
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
-
+  const navigate = useNavigate();
+  const { id } = useParams();
   // Fetch courses on load
   useEffect(() => {
     getCourses({ per_page: 100 }).catch((err) => {
@@ -770,12 +773,25 @@ function AdminQuizzes() {
                 </select>
               </div>
 
+
+
+              <div className="d-flex justify-content-end mt-4 pt-4 border-top">
+                <button
+                  className="btn btn-success px-5 py-2 fw-medium rounded-3"
+                  onClick={() => navigate(`view-exam/${id || 1}`)}
+                >
+                  {isArabic ? "عرض الامتحان" : "View Exam"}
+                </button>
+              </div>
+
+
+
               {/* Footer Save Button for editing */}
               {isEditing && (
                 <div className="d-flex justify-content-end mt-4 pt-4 border-top">
                   <button
-                     className="btn btn-danger px-5 py-2 fw-medium rounded-3"
-                     onClick={handleSubmit}
+                    className="btn btn-danger px-5 py-2 fw-medium rounded-3"
+                    onClick={handleSubmit}
                   >
                     {viewingItem ? t("quizzes_page.update_quiz") : t("quizzes_page.create_quiz")}
                   </button>

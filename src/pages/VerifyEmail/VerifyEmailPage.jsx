@@ -9,6 +9,9 @@ import tsquareLogo from "../../assets/logo-dark.webp";
 import "../Login/Login.css"; // Reuse login wrapper styling
 import "./VerifyEmailPage.css";
 
+// Keep track of active verifications to prevent concurrent duplicate requests in Strict Mode
+const activeVerifications = new Set();
+
 const VerifyEmailPage = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
@@ -39,8 +42,9 @@ const VerifyEmailPage = () => {
     }
 
     // Prevent duplicate API calls
-    if (verificationAttempted.current) return;
-    verificationAttempted.current = true;
+    const verificationKey = `${id}-${hash}-${expires}-${signature}`;
+    if (activeVerifications.has(verificationKey)) return;
+    activeVerifications.add(verificationKey);
 
     // If already verified
     if (user.is_verified === true || user.is_verified === "true" || user.is_verified === 1) {
@@ -64,6 +68,7 @@ const VerifyEmailPage = () => {
         }, 3000);
       } catch (error) {
         console.error("Verification error:", error);
+        activeVerifications.delete(verificationKey);
         setStatus("error");
         setErrorMessage(
           error.response?.data?.message || 

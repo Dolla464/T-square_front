@@ -94,7 +94,7 @@ function DashboardProfile() {
     }
   };
 
-  const initials = fullName
+  const initials = (typeof fullName === "string" && fullName.trim())
     ? fullName
         .split(" ")
         .filter(Boolean) // تجاهل المسافات الزائدة
@@ -257,7 +257,7 @@ function DashboardProfile() {
               <div className="profile-field">
                 <label>{t("profile_page.gender")}</label>
                 <select
-                  className={`profile-input ${gender ? "profile-input-readonly" : ""}`}
+                  className="profile-input"
                   value={gender || ""}
                   onChange={(e) => {
                     setGender(e.target.value);
