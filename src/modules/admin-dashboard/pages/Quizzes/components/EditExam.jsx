@@ -1,269 +1,355 @@
-import React from 'react'
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuizzes } from "../../../hooks/useQuizzes";
 import { Spinner } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
+import "../../../../student-dashboard/styles/dashboardShared.css";
 
+/**
+ * EditExam — Admin exam question editor
+ * Mirrors the student QuizExamPage design but with editable inputs,
+ * radio buttons for correct answer selection, and add/delete question actions.
+ */
 function EditExam() {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const { t, i18n } = useTranslation(["adminDashboard"]);
-    const isArabic = i18n.language?.startsWith("ar");
-    // const { getQuizById, loading } = useQuizzes();
-    // const [quiz, setQuiz] = useState(null);
-    return (<>
-        <div className="ac-header d-flex justify-content-between align-items-center mb-4">
-            <div className="">
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { t, i18n } = useTranslation(["adminDashboard"]);
+  const isArabic = i18n.language?.startsWith("ar");
+  const { getQuizById, saveQuizQuestions, loading } = useQuizzes();
 
-                <button className="ac-back-btn ps-3 border-0 bg-transparent d-flex align-items-center" >
-                    <i
-                        className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"} fs-4 text-dark`}
-                    ></i>
-                    <span className="ms-2 me-2 fs-5 fw-bold text-dark">
-                        {t("quizzes_page.view_quiz")}
-                    </span>
-                </button>
-            </div>
+  const [quiz, setQuiz] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [saving, setSaving] = useState(false);
 
+  // Load quiz data
+  useEffect(() => {
+    if (id) {
+      getQuizById(id).then((data) => {
+        if (data) {
+          setQuiz(data);
+          const cloned = (data.questions || []).map((q) => ({ ...q, answers: [...q.answers] }));
+          if (cloned.length === 0) {
+            cloned.push(createBlankQuestion(1));
+          }
+          setQuestions(cloned);
+        }
+      });
+    }
+  }, [id]);
+
+  const createBlankQuestion = (nextId) => ({
+    id: nextId,
+    question_text: "",
+    answers: ["", "", "", ""],
+    correct_answer_index: 0,
+    correct_answer: "",
+    question_mark: 10,
+  });
+
+  const currentQuestion = questions[currentIndex];
+  const totalQuestions = questions.length;
+
+  // --- Handlers ---
+
+  const handleQuestionTextChange = (value) => {
+    setQuestions((prev) => {
+      const updated = [...prev];
+      updated[currentIndex] = { ...updated[currentIndex], question_text: value };
+      return updated;
+    });
+  };
+
+  const handleAnswerChange = (answerIdx, value) => {
+    setQuestions((prev) => {
+      const updated = [...prev];
+      const q = { ...updated[currentIndex], answers: [...updated[currentIndex].answers] };
+      q.answers[answerIdx] = value;
+      // If this answer is the correct one, update correct_answer text too
+      if (answerIdx === q.correct_answer_index) {
+        q.correct_answer = value;
+      }
+      updated[currentIndex] = q;
+      return updated;
+    });
+  };
+
+  const handleCorrectAnswerChange = (answerIdx) => {
+    setQuestions((prev) => {
+      const updated = [...prev];
+      const q = { ...updated[currentIndex] };
+      q.correct_answer_index = answerIdx;
+      q.correct_answer = q.answers[answerIdx];
+      updated[currentIndex] = q;
+      return updated;
+    });
+  };
+
+  const handleQuestionMarkChange = (value) => {
+    setQuestions((prev) => {
+      const updated = [...prev];
+      updated[currentIndex] = { ...updated[currentIndex], question_mark: parseInt(value) || 0 };
+      return updated;
+    });
+  };
+
+  const handleAddQuestion = () => {
+    const maxId = questions.reduce((max, q) => Math.max(max, q.id || 0), 0);
+    const newQ = createBlankQuestion(maxId + 1);
+    setQuestions((prev) => [...prev, newQ]);
+    setCurrentIndex(questions.length); // navigate to the new one
+  };
+
+  const handleDeleteQuestion = () => {
+    if (questions.length <= 1) return; // keep at least one question
+    setQuestions((prev) => {
+      const updated = prev.filter((_, idx) => idx !== currentIndex);
+      return updated;
+    });
+    setCurrentIndex((prev) => Math.min(prev, questions.length - 2));
+  };
+
+  const handleNext = () => {
+    if (currentIndex < totalQuestions - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    const success = await saveQuizQuestions(id, questions);
+    setSaving(false);
+    if (success) {
+      navigate(`/admin/quizzes/view-exam/${id}`);
+    }
+  };
+
+  const handleBack = () => {
+    navigate(`/admin/quizzes/view-exam/${id}`);
+  };
+
+  // --- Loading / Error ---
+  if (loading && !quiz) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "300px" }}>
+        <Spinner animation="border" />
+      </div>
+    );
+  }
+
+  if (!quiz) {
+    return (
+      <div className="quiz-exam-page">
+        <div className="quiz-exam-container">
+          <div className="quiz-exam-placeholder">
+            <i className="bi bi-exclamation-circle placeholder-icon"></i>
+            <h5>{isArabic ? "الاختبار غير موجود" : "Exam not found"}</h5>
+            <button className="btn-continue" onClick={() => navigate("/admin/quizzes")}>
+              <i className="bi bi-arrow-left me-1"></i>
+              {isArabic ? "العودة" : "Back"}
+            </button>
+          </div>
         </div>
-        <div className="ac-form-container">
-            <div className="ac-form-header d-flex justify-content-between align-items-center mb-4">
-                <button className="ac-back-btn">
-                    <i className="bi bi-arrow-left"></i>
+      </div>
+    );
+  }
 
-                    <span className="ms-2 me-2 fs-5 fw-bold text-dark">
-                        Add New Group
-                    </span>
-                </button>
+  return (
+    <>
+      {/* Header */}
+      <div className="ac-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <button
+            className="ac-back-btn ps-3 border-0 bg-transparent d-flex align-items-center"
+            onClick={handleBack}
+          >
+            <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"} fs-4 text-dark`}></i>
+            <span className="ms-2 me-2 fs-5 fw-bold text-dark">
+              {isArabic ? "تعديل أسئلة الاختبار" : "Edit Exam Questions"}
+            </span>
+          </button>
+        </div>
+        <div className="d-flex gap-2">
+          <button
+            className="btn btn-danger ac-add-btn"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? (
+              <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+            ) : (
+              <i className="bi bi-check2-all me-0 me-md-1"></i>
+            )}
+            <span className="d-none d-md-inline">
+              {isArabic ? "حفظ" : "Save"}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Quiz Exam Editor — mirrors QuizExamPage design */}
+      <div className="quiz-exam-page">
+        <div className="quiz-exam-container">
+
+          {/* Progress bar + Add Question */}
+          <div className="quiz-progress">
+            <div className="d-flex justify-content-between align-items-center">
+              <span>
+                {isArabic ? "سؤال" : "Question"} {currentIndex + 1} {isArabic ? "من" : "of"}{" "}
+                {totalQuestions}
+              </span>
+              <button
+                className="btn btn-outline-danger btn-sm rounded-pill px-3 d-flex align-items-center gap-1"
+                onClick={handleAddQuestion}
+                style={{ fontSize: "0.82rem", fontWeight: 600 }}
+              >
+                <i className="bi bi-plus-lg"></i>
+                {isArabic ? "إضافة سؤال" : "Add Question"}
+              </button>
             </div>
+            <div className="progress-bar-wrap">
+              <div
+                className="progress-bar"
+                style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
+              ></div>
+            </div>
+          </div>
 
-            <div className="ac-form-body p-4 bg-white border rounded-4 shadow-sm">
-                <div className="ac-tab-content basic-info">
-                    <div className="mb-4">
-                        <label className="form-label fw-bold text-dark">
-                            Group Name
-                        </label>
+          {/* Question Text Input */}
+          {currentQuestion && (
+            <>
+              <div className="quiz-question">
+                <input
+                  type="text"
+                  className="form-control border-0 bg-transparent fw-bold"
+                  style={{ fontSize: "1.1rem", color: "#1a1a1a" }}
+                  placeholder={isArabic ? "اكتب نص السؤال هنا..." : "Type question text here..."}
+                  value={currentQuestion.question_text}
+                  onChange={(e) => handleQuestionTextChange(e.target.value)}
+                />
+              </div>
 
-                        <input
-                            type="text"
-                            className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                            placeholder="Enter group name"
-                        />
+              {/* Answer Options with Radio Buttons */}
+              <div className="quiz-options">
+                {currentQuestion.answers.map((answer, idx) => (
+                  <div
+                    key={idx}
+                    className={`quiz-option ${currentQuestion.correct_answer_index === idx ? "selected" : ""}`}
+                    style={{ cursor: "default" }}
+                  >
+                    {/* Letter prefix */}
+                    <span className="option-letter">
+                      {String.fromCharCode(65 + idx)}
+                    </span>
+
+                    {/* Editable answer text */}
+                    <input
+                      type="text"
+                      className="form-control border-0 bg-transparent flex-grow-1"
+                      style={{
+                        fontSize: "0.95rem",
+                        color: currentQuestion.correct_answer_index === idx ? "#fff" : "#333",
+                      }}
+                      placeholder={`${isArabic ? "الإجابة" : "Answer"} ${String.fromCharCode(65 + idx)}`}
+                      value={answer}
+                      onChange={(e) => handleAnswerChange(idx, e.target.value)}
+                    />
+
+                    {/* Radio button for correct answer */}
+                    <div className="form-check mb-0 ms-2">
+                      <input
+                        className="form-check-input border-2"
+                        type="radio"
+                        name={`correct-answer-${currentQuestion.id}`}
+                        checked={currentQuestion.correct_answer_index === idx}
+                        onChange={() => handleCorrectAnswerChange(idx)}
+                        style={{
+                          width: "20px",
+                          height: "20px",
+                          cursor: "pointer",
+                          borderColor: currentQuestion.correct_answer_index === idx ? "#fff" : "#be1522",
+                          accentColor: "#be1522",
+                        }}
+                      />
                     </div>
+                  </div>
+                ))}
+              </div>
 
-                    <div className="row mb-4">
-                        <div className="col-md-6 mb-3 mb-md-0">
-                            <label className="form-label fw-bold text-dark">
-                                Course Title
-                            </label>
-
-                            <select className="form-control ac-form-input p-3 bg-light border-0 rounded-3">
-                                <option>Select course</option>
-                            </select>
-                        </div>
-
-                        <div className="col-md-6">
-                            <label className="form-label fw-bold text-dark">
-                                Instructor
-                            </label>
-
-                            <select className="form-control ac-form-input p-3 bg-light border-0 rounded-3">
-                                <option>Select instructor</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="row mb-4">
-                        <div className="col-12">
-                            <label className="form-label fw-bold text-dark mb-3">
-                                Group Statistics
-                            </label>
-
-                            <div className="d-flex align-items-center p-3 bg-light rounded-3 border">
-                                <div
-                                    className="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center mx-3"
-                                    style={{ width: "45px", height: "45px" }}
-                                >
-                                    <i className="bi bi-people-fill fs-5"></i>
-                                </div>
-
-                                <div>
-                                    <h6 className="mb-0 fw-bold text-dark fs-5">0</h6>
-
-                                    <small className="text-muted">
-                                        Enrolled Students
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="ac-table-card mt-4">
-                        <div className="ac-table-container">
-                            <div className="d-flex align-items-center justify-content-between mb-3 mt-5">
-                                <div className="d-flex align-items-center">
-                                    <div
-                                        className="bg-danger rounded-3 p-2 me-3 d-flex align-items-center justify-content-center shadow-sm"
-                                        style={{ width: "40px", height: "40px" }}
-                                    >
-                                        <i className="bi bi-people text-white"></i>
-                                    </div>
-
-                                    <div>
-                                        <h5 className="fw-bold mb-0 text-dark">
-                                            Current Group Students
-                                        </h5>
-
-                                        <p className="text-muted small mb-0">
-                                            List of students currently enrolled in this group
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div
-                                className="card border-0 shadow-sm overflow-hidden"
-                                style={{
-                                    backgroundColor: "#f8f9fc",
-                                    borderRadius: "15px",
-                                }}
-                            >
-                                <div className="table-responsive">
-                                    <table className="table mb-0 align-middle">
-                                        <thead>
-                                            <tr>
-                                                <th className="ps-4 py-3 border-0 text-secondary small fw-bold">
-                                                    Student
-                                                </th>
-
-                                                <th className="py-3 border-0 text-secondary small fw-bold">
-                                                    Email
-                                                </th>
-
-                                                <th className="py-3 border-0 text-secondary small fw-bold text-center">
-                                                    Phone
-                                                </th>
-
-                                                <th className="py-3 border-0 text-secondary small fw-bold text-center">
-                                                    Status
-                                                </th>
-                                            </tr>
-                                        </thead>
-
-                                        <tbody>
-                                            <tr>
-                                                <td
-                                                    colSpan={4}
-                                                    className="text-center py-4 text-muted"
-                                                >
-                                                    No students in this group
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="ac-table-card mt-4">
-                        <div className="ac-table-container">
-                            <div className="d-flex align-items-center justify-content-between mb-3 mt-5">
-                                <div className="d-flex align-items-center">
-                                    <div
-                                        className="bg-danger rounded-3 p-2 me-3 d-flex align-items-center justify-content-center shadow-sm"
-                                        style={{ width: "40px", height: "40px" }}
-                                    >
-                                        <i className="bi bi-person-plus text-white"></i>
-                                    </div>
-
-                                    <div>
-                                        <h5 className="fw-bold mb-0 text-dark">
-                                            Available Students to Add
-                                        </h5>
-
-                                        <p className="text-muted small mb-0">
-                                            Students enrolled in the course but not assigned to any group
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <div className="form-check">
-                                    <input
-                                        className="form-check-input border-danger"
-                                        type="checkbox"
-                                        id="selectAllStudents"
-                                    />
-
-                                    <label
-                                        className="form-check-label ms-2 fw-medium text-dark"
-                                        htmlFor="selectAllStudents"
-                                    >
-                                        Select All
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div
-                                className="card border-0 shadow-sm overflow-hidden"
-                                style={{
-                                    backgroundColor: "#ffffff",
-                                    borderRadius: "15px",
-                                    border: "1px solid #eee",
-                                }}
-                            >
-                                <div className="table-responsive">
-                                    <table className="table mb-0 align-middle table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th
-                                                    className="ps-4 py-3 border-0"
-                                                    style={{ width: "50px" }}
-                                                ></th>
-
-                                                <th className="py-3 border-0 text-secondary small fw-bold">
-                                                    Student
-                                                </th>
-
-                                                <th className="py-3 border-0 text-secondary small fw-bold">
-                                                    Email
-                                                </th>
-
-                                                <th className="pe-4 py-3 border-0 text-secondary small fw-bold text-center">
-                                                    Phone
-                                                </th>
-                                            </tr>
-                                        </thead>
-
-                                        <tbody>
-                                            <tr>
-                                                <td
-                                                    colSpan={4}
-                                                    className="text-center py-4 text-muted"
-                                                >
-                                                    No available students
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="d-flex justify-content-end mt-4 pt-4 border-top">
-                        <button className="btn btn-danger px-5 py-2 fw-medium rounded-3">
-                            Create Group
-                        </button>
-                    </div>
+              {/* Question Mark Input */}
+              <div className="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-3">
+                <div
+                  className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm"
+                  style={{ width: "40px", height: "40px", flexShrink: 0 }}
+                >
+                  <i className="bi bi-star-fill text-white"></i>
                 </div>
-            </div>
-        </div>
+                <div className="flex-grow-1">
+                  <label className="form-label fw-bold text-dark mb-1" style={{ fontSize: "0.85rem" }}>
+                    {isArabic ? "درجة السؤال" : "Question Mark"}
+                  </label>
+                  <input
+                    type="number"
+                    className="form-control border-0 bg-white rounded-3 p-2"
+                    value={currentQuestion.question_mark}
+                    onChange={(e) => handleQuestionMarkChange(e.target.value)}
+                    min="1"
+                    style={{ maxWidth: "120px" }}
+                  />
+                </div>
+              </div>
 
+              {/* Navigation Buttons */}
+              <div className="d-flex justify-content-between align-items-center gap-2">
+                {/* Delete button */}
+                <button
+                  className="btn btn-outline-danger rounded-pill px-3 d-flex align-items-center gap-1"
+                  onClick={handleDeleteQuestion}
+                  disabled={questions.length <= 1}
+                  style={{ fontSize: "0.85rem", fontWeight: 600 }}
+                >
+                  <i className="bi bi-trash"></i>
+                  <span className="d-none d-md-inline">
+                    {isArabic ? "حذف السؤال" : "Delete"}
+                  </span>
+                </button>
+
+                <div className="d-flex gap-2">
+                  {/* Previous */}
+                  <button
+                    className="btn btn-outline-secondary rounded-pill px-4"
+                    onClick={handlePrev}
+                    disabled={currentIndex === 0}
+                    style={{ fontSize: "0.85rem", fontWeight: 600 }}
+                  >
+                    <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"} me-1`}></i>
+                    {isArabic ? "السابق" : "Previous"}
+                  </button>
+
+                  {/* Next */}
+                  <button
+                    className="btn btn-danger rounded-pill px-4"
+                    onClick={handleNext}
+                    disabled={currentIndex >= totalQuestions - 1}
+                    style={{ fontSize: "0.85rem", fontWeight: 600 }}
+                  >
+                    {isArabic ? "التالي" : "Next"}
+                    <i className={`bi ${isArabic ? "bi-arrow-left" : "bi-arrow-right"} ms-1`}></i>
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </>
-    )
+  );
 }
 
-export default EditExam
+export default EditExam;
