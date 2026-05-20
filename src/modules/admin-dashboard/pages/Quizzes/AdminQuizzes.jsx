@@ -7,58 +7,70 @@ import {
 } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastError } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
-import { useGroups } from "../../hooks/useGroups";
-import { useStudents } from "../../hooks/useStudents";
+import { useQuizzes } from "../../hooks/useQuizzes";
+import { useAdminCourses } from "../../hooks/useAdminCourses";
 
 /**
- * Default form data structure for creating or editing a student, ensuring all necessary fields are initialized to empty or default values to prevent uncontrolled input issues in the form components
+ * Default form data structure for creating or editing a quiz
  */
 const defaultFormData = {
-  full_name: "",
-  email: "",
-  role: "student",
-  password: "",
-  phone: "",
-  enrollment_number: "",
-  group_id: "",
-  gender: "male",
+  title: "",
+  course_id: "",
+  questions_count: "",
+  duration: "",
   status: "active",
-  avatar: null,
 };
 
+// Fallback courses in case the course API is empty or fails
+const fallbackCourses = [
+  { id: 1, title: "React Development" },
+  { id: 2, title: "HTML/CSS Basics" },
+  { id: 3, title: "Advanced Node.js" },
+  { id: 4, title: "Database Fundamentals" },
+];
+
 function AdminQuizzes() {
-  const { selectionGroups, getGroupsSelection } = useGroups();
-
   const {
-    students,
+    quizzes,
+    quiz,
     pagination: apiPagination,
-    loading,
-    getStudents,
-    getStudentById,
-    createStudent,
-    deleteStudent,
-    updateStudentStatus,
-    toggleStudentVerify,
-    updateStudentCourseGroup,
-    updateStudentCourseStatus,
-  } = useStudents();
+    loading: quizzesLoading,
+    getQuizzes,
+    getQuizById,
+    createQuiz,
+    updateQuiz,
+    deleteQuiz,
+    toggleQuizStatus,
+  } = useQuizzes();
 
-  // State variables for managing form visibility, current editing/viewing item, search and filter criteria, form data, and pagination
+  const { courses, getCourses, loading: coursesLoading } = useAdminCourses();
+
+  // State variables for form visibility, editing mode, searches, and filters
   const [showForm, setShowForm] = useState(false);
   const [viewingItem, setViewingItem] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
-  const [selectedGender, setSelectedGender] = useState("all");
-  const [selectedGroup, setSelectedGroup] = useState("all");
+  const [selectedCourse, setSelectedCourse] = useState("all");
   const [formData, setFormData] = useState(defaultFormData);
   const [currentPage, setCurrentPage] = useState(1);
 
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
 
+  // Fetch courses on load
+  useEffect(() => {
+    getCourses({ per_page: 100 }).catch((err) => {
+      console.log("Failed to fetch courses, falling back to static list", err);
+    });
+  }, [getCourses]);
+
+  // Combine loaded courses with fallback items
+  const availableCourses = courses && courses.length > 0 ? courses : fallbackCourses;
+
   /**
-   * Debounce the search term input to avoid making API calls on every keystroke, updating the debounced value 500ms after the user stops typing
+   * Debounce search term to prevent excessive lookups
    */
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -68,136 +80,129 @@ function AdminQuizzes() {
   }, [searchTerm]);
 
   /**
-   * Get students with filters and pagination whenever any of the dependencies change (page, search term, status, gender, group)
+   * Fetch quizzes with active filters
    */
   useEffect(() => {
-    getStudents({
+    getQuizzes({
       page: currentPage,
       search: debouncedSearchTerm,
-      status: selectedStatus === "all" ? "" : selectedStatus,
-      gender: selectedGender === "all" ? "" : selectedGender,
-      group_id: selectedGroup === "all" ? "" : selectedGroup,
+      status: selectedStatus,
+      course_id: selectedCourse,
     });
-  }, [
-    getStudents,
-    currentPage,
-    debouncedSearchTerm,
-    selectedStatus,
-    selectedGender,
-    selectedGroup,
-  ]);
-
-  // Refetch groups for selection in form
-  useEffect(() => {
-    getGroupsSelection();
-  }, [getGroupsSelection]);
+  }, [getQuizzes, currentPage, debouncedSearchTerm, selectedStatus, selectedCourse]);
 
   /**
-   * Reset to first page whenever search term or filters change, to ensure we show results from the beginning of the list after applying new criteria
+   * Reset page when filters change
    */
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedStatus, selectedGender, selectedGroup]);
+  }, [debouncedSearchTerm, selectedStatus, selectedCourse]);
 
-  /**
-   * Handle WhatsApp communication by formatting the student's phone number correctly and opening a pre-filled message in WhatsApp Web for welcoming the student and providing their account details
-   */
-
-
-  /**
-   * Moving in pages
-   */
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
   /**
-   /* Calculate the range of page numbers to display in the pagination component, adding ellipses when there are many pages to keep the UI clean and user-friendly
-   */
-  // const getPageRange = () => {
-  //   if (!apiPagination) return [];
-  //   const { current_page, last_page } = apiPagination;
-  //   const delta = 2;
-  //   const range = [];
-  //   for (
-  //     let i = Math.max(2, current_page - delta);
-  //     i <= Math.min(last_page - 1, current_page + delta);
-  //     i++
-  //   ) {
-  //     range.push(i);
-  //   }
-  //   if (current_page - delta > 2) range.unshift("...");
-  //   if (current_page + delta < last_page - 1) range.push("...");
-  //   range.unshift(1);
-  //   if (last_page > 1) range.push(last_page);
-  //   return range;
-  // };
-
-  /**
-   * Prepare the form for adding a new student by resetting all relevant state to default values
+   * Setup form for a new quiz
    */
   const handleAddNew = () => {
     setViewingItem(null);
+    setIsEditing(true);
     setFormData(defaultFormData);
     setShowForm(true);
   };
 
   /**
-   * View student data in a read-only form, fetching full details from the API to ensure we have all necessary information for display
+   * Show quiz details in read-only mode
    */
-  const handleView = async (studentFromTable) => {
-    const fullStudentData = await getStudentById(studentFromTable.id);
-
-    if (fullStudentData) {
-      setViewingItem(fullStudentData);
-
+  const handleView = async (item) => {
+    const fullData = await getQuizById(item.id);
+    if (fullData) {
+      setViewingItem(fullData);
+      setIsEditing(false);
       setFormData({
-        full_name: fullStudentData.full_name || "",
-        email: fullStudentData.email || "",
-        role: "student",
-        phone: fullStudentData.phone || "",
-        enrollment_number: fullStudentData.enrollment_number || "",
-        group_id: fullStudentData.group_id || "",
-        group_name: fullStudentData.learning_group?.group_name || "",
-        gender: fullStudentData.full_gender || "male",
-        status: fullStudentData.status || "active",
-        avatar: fullStudentData.avatar,
-        created_at: fullStudentData.created_at || "",
-        enrolled_courses: fullStudentData.enrolled_courses || [],
+        title: fullData.title || "",
+        course_id: fullData.course_id || "",
+        questions_count: fullData.questions_count || "",
+        duration: fullData.duration || "",
+        status: fullData.status || "active",
       });
-
       setShowForm(true);
     }
   };
 
   /**
-   * Back to list view and reset form state
+   * Show quiz details in edit mode
    */
-  const handleBack = () => {
-    setShowForm(false);
-    setViewingItem(null);
-  };
-
-  /**
-   * Delete student with confirmation, then refresh the list if deletion was successful
-   */
-  const handleDelete = async (id) => {
-    const student = students.find((item) => item.id === id);
-    const ok = await showDeleteConfirm(student?.full_name || "");
-    if (ok) {
-      await deleteStudent(id);
-      getStudents({
-        page: currentPage,
-        search: debouncedSearchTerm,
-        status: selectedStatus === "all" ? "" : selectedStatus,
-        group_id: selectedGroup === "all" ? "" : selectedGroup,
+  const handleEdit = async (item) => {
+    const fullData = await getQuizById(item.id);
+    if (fullData) {
+      setViewingItem(fullData);
+      setIsEditing(true);
+      setFormData({
+        title: fullData.title || "",
+        course_id: fullData.course_id || "",
+        questions_count: fullData.questions_count || "",
+        duration: fullData.duration || "",
+        status: fullData.status || "active",
       });
+      setShowForm(true);
     }
   };
 
   /**
-   * Update local form state on input change, handling both text and checkbox inputs
+   * Go back to table view
    */
+  const handleBack = () => {
+    setShowForm(false);
+    setViewingItem(null);
+    setIsEditing(false);
+  };
+
+  /**
+   * Confirm and delete quiz
+   */
+  const handleDelete = async (id, title) => {
+    const ok = await showDeleteConfirm(title);
+    if (ok) {
+      const success = await deleteQuiz(id);
+      if (success) {
+        getQuizzes({
+          page: currentPage,
+          search: debouncedSearchTerm,
+          status: selectedStatus,
+          course_id: selectedCourse,
+        });
+      }
+    }
+  };
+
+  /**
+   * Toggle quiz status badge
+   */
+  const handleStatusToggle = async (id, currentStatus) => {
+    const nextStatus = currentStatus === "active" ? "inactive" : "active";
+    const ok = await showConfirmCustom({
+      title: isArabic ? "تغيير حالة الاختبار" : "Change Quiz Status",
+      message: isArabic
+        ? `هل أنت متأكد من تغيير حالة الاختبار إلى (${nextStatus === "active" ? "نشط" : "غير نشط"})؟`
+        : `Are you sure you want to change this quiz status to ${nextStatus}?`,
+      icon: "question",
+      variant: "primary",
+      confirmText: isArabic ? "نعم، قم بالتغيير" : "Yes, Change it",
+    });
+
+    if (ok) {
+      await toggleQuizStatus(id, currentStatus);
+      getQuizzes({
+        page: currentPage,
+        search: debouncedSearchTerm,
+        status: selectedStatus,
+        course_id: selectedCourse,
+      });
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -207,168 +212,53 @@ function AdminQuizzes() {
   };
 
   /**
-   * Handle form submission for create operation only, with validation and error handling
+   * Handle form submission for creation and updates
    */
-  const handleSubmitWrapper = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.full_name.length < 5) {
+    if (!formData.title || formData.title.trim().length < 3) {
       toastError(
-        isArabic ? "الاسم الكامل قصير جداً" : "Full name is too short",
+        isArabic ? "عنوان الاختبار قصير جداً" : "Quiz title is too short"
       );
       return;
     }
+    if (!formData.course_id) {
+      toastError(isArabic ? "برجاء اختيار الكورس" : "Please select a course");
+      return;
+    }
 
-    const formDataObj = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (formData[key] !== null) formDataObj.append(key, formData[key]);
-    });
+    // Find course name to keep hook display accurate
+    const selectedCourseObj = availableCourses.find(
+      (c) => c.id === parseInt(formData.course_id)
+    );
+    const payload = {
+      ...formData,
+      course_name: selectedCourseObj ? (selectedCourseObj.title || selectedCourseObj.name) : "Custom Course",
+    };
 
-    const success = await createStudent(formDataObj);
+    let success = false;
+    if (viewingItem) {
+      success = await updateQuiz(viewingItem.id, payload);
+    } else {
+      success = await createQuiz(payload);
+    }
+
     if (success) {
-      await getStudents({
+      await getQuizzes({
         page: currentPage,
         search: debouncedSearchTerm,
-        status: selectedStatus === "all" ? "" : selectedStatus,
-        gender: selectedGender === "all" ? "" : selectedGender,
-        group_id: selectedGroup === "all" ? "" : selectedGroup,
+        status: selectedStatus,
+        course_id: selectedCourse,
       });
       handleBack();
     }
   };
 
-  /**
-   * Handle status update for a student
-   */
-  const handleStatusUpdate = async (id, newStatus) => {
-    const ok = await showConfirmCustom({
-      title: isArabic ? "تغيير حالة الطالب" : "Change Student Status",
-      message: isArabic
-        ? `هل أنت متأكد من تغيير حالة الطالب إلى (${newStatus === "active" ? "نشط" : "غير نشط"})؟`
-        : `Are you sure you want to change the student status to ${newStatus}?`,
-      icon: "question",
-      variant: "primary",
-      confirmText: isArabic ? "نعم، قم بالتغيير" : "Yes, Change it",
-    });
-
-    if (ok) {
-      try {
-        await updateStudentStatus(id, newStatus);
-      } catch (error) {
-        console.error("Status update failed:", error);
-      }
-    }
-  };
-
-  /**
-   * Handle verification update for a student
-   */
-  const handleVerifyUpdate = async (studentId, currentIsVerified) => {
-    const ok = await showConfirmCustom({
-      title: currentIsVerified
-        ? isArabic
-          ? "إلغاء توثيق الحساب"
-          : "Unverify Account"
-        : isArabic
-          ? "توثيق الحساب"
-          : "Verify Account",
-      message: currentIsVerified
-        ? isArabic
-          ? "هل تريد إلغاء توثيق بريد هذا الطالب؟"
-          : "Do you want to unverify this student's email?"
-        : isArabic
-          ? "سيتم اعتبار بريد الطالب موثقاً وفعالاً."
-          : "The student's email will be marked as verified.",
-      icon: currentIsVerified ? "warning" : "info",
-      variant: currentIsVerified ? "danger" : "primary",
-      confirmText: isArabic ? "استمرار" : "Proceed",
-    });
-
-    if (ok) {
-      try {
-        await toggleStudentVerify(studentId);
-        // الهوك بتاعنا هيتولى تحديث الـ state فمش محتاجين نعمل حاجة هنا
-      } catch (error) {
-        console.error("Error in toggleVerify:", error);
-      }
-    }
-  };
-
-  /**
-   * Handle course group change for a student's enrolled course, with confirmation and error handling, and update local form state to reflect the change immediately in the UI after a successful API call
-   */
-  const handleCourseGroupChange = async (courseId, newGroupId) => {
-    const ok = await showConfirmCustom({
-      title: isArabic ? "تغيير المجموعة" : "Change Group",
-      message: isArabic
-        ? "هل أنت متأكد من تغيير مجموعة الطالب لهذا الكورس؟"
-        : "Are you sure you want to change the student's group for this course?",
-      icon: "warning",
-      confirmText: isArabic ? "تغيير" : "Update",
-    });
-
-    if (ok) {
-      try {
-        await updateStudentCourseGroup(viewingItem.id, courseId, newGroupId);
-
-        // تحديث البيانات في الـ state المحلي للفورم ليعكس الاختيار الجديد فوراً
-        setFormData((prev) => ({
-          ...prev,
-          enrolled_courses: prev.enrolled_courses.map((course) =>
-            course.id === courseId
-              ? { ...course, group_id: newGroupId }
-              : course,
-          ),
-        }));
-      } catch (error) {
-        console.error("Group update failed:", error);
-      }
-    }
-  };
-
-  /**
-   * Handle course status toggle for a student's enrolled course, with confirmation and error handling, and update local form state to reflect the change immediately in the UI after a successful API call
-   */
-  const handleStatusToggle = async (studentId, courseId, currentStatus) => {
-    const nextStatus = !currentStatus;
-
-    // 1. إظهار ديالوج التأكيد المخصص بناءً على الحالة الجديدة
-    const ok = await showConfirmCustom({
-      title: isArabic ? "تغيير حالة المقرر" : "Change Course Status",
-      message: isArabic
-        ? `هل أنت متأكد من تحويل حالة المقرر إلى (${nextStatus ? "مكتمل" : "قيد التنفيذ"})؟`
-        : `Are you sure you want to change the course status to (${nextStatus ? "Completed" : "In Progress"})?`,
-      icon: "warning",
-      confirmText: isArabic ? "تعديل" : "Confirm",
-    });
-
-    if (ok) {
-      try {
-        // 2. استدعاء دالة الهوك لتحديث الباك إند
-        await updateStudentCourseStatus(studentId, courseId, nextStatus);
-
-        // 3. تحديث الـ state المحلي للفورم (formData) ليعكس الحالة الجديدة في الـ Modal فوراً
-        setFormData((prev) => ({
-          ...prev,
-          enrolled_courses: (prev.enrolled_courses || []).map((course) =>
-            course.id === courseId
-              ? {
-                ...course,
-                is_completed: nextStatus,
-                // حركة ذكية: لو الكورس تقلب "مكتمل"، بنلغي الجروب الحالي جوه الفورم عشان يتماشى مع لوجيك الباك إند
-                ...(nextStatus ? { group_id: null } : {}),
-              }
-              : course,
-          ),
-        }));
-      } catch (error) {
-        console.error("Failed to toggle course status:", error);
-      }
-    }
-  };
+  const loading = quizzesLoading || coursesLoading;
 
   return (
     <div className="admin-content-page">
-      {/* طبقة التحميل */}
+      {/* Loading Overlay */}
       {loading && (
         <div className="ac-loading-overlay">
           <Spinner animation="border" variant="danger" />
@@ -377,12 +267,12 @@ function AdminQuizzes() {
 
       {!showForm ? (
         <>
-          {/* رأس الصفحة: العنوان وزر الإضافة */}
+          {/* Header Title and Action Button */}
           <div className="ac-header d-flex justify-content-between align-items-center mb-4">
             <div>
-              <h2 className="ac-title">{t("students_page.title")}</h2>
+              <h2 className="ac-title">{t("quizzes_page.title")}</h2>
               <p className="ac-subtitle text-muted mb-0">
-                {t("students_page.subtitle")}
+                {t("quizzes_page.subtitle")}
               </p>
             </div>
             <button
@@ -390,16 +280,16 @@ function AdminQuizzes() {
               onClick={handleAddNew}
             >
               <i className="bi bi-plus-lg me-0 me-md-1"></i>
-              <span className="d-none d-md-inline">{isArabic ? "إضافة طالب" : "Add Student"}</span>
+              <span className="d-none d-md-inline">{t("quizzes_page.add_quiz")}</span>
             </button>
           </div>
 
           <div className="ac-table-card">
             <div className="ac-table-container">
               <div className="ac-rounded-table p-3 p-md-0">
-                {/* أدوات البحث والفلترة */}
-                <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
-                  {/* 1. شريط البحث (Search Input) */}
+                {/* Search & Filter Controls */}
+                <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+                  {/* Search Bar */}
                   <div className="ac-search-input-wrapper position-relative">
                     <i
                       className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
@@ -409,32 +299,49 @@ function AdminQuizzes() {
 
                     <input
                       type="text"
-                      // ضبطنا الـ padding من الشمال (ps-5) عشان الكلام ميبدأش من فوق الأيقونة
                       className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
                         ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
                         : "border-light bg-light text-muted"
                         }`}
-                      placeholder={t("students_page.search_placeholder")}
+                      placeholder={t("quizzes_page.search_placeholder")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      style={{ zIndex: 1, position: "relative" }} // تأمين طبقة الحقل عشان يقبل الـ click دائماً
+                      style={{ zIndex: 1, position: "relative" }}
                     />
 
-                    {/* زرار مسح البحث مع تأمين الـ zIndex عشان يفضل قابل للضغط */}
                     {searchTerm && (
                       <button
                         className="btn btn-link position-absolute end-0 top-50 translate-middle-y text-danger p-0 me-3 border-0 bg-transparent"
                         onClick={() => setSearchTerm("")}
                         style={{ zIndex: 3, textDecoration: "none" }}
                       >
+                        <i className="bi bi-x-lg"></i>
                       </button>
                     )}
                   </div>
 
                   <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
-                    {/* 2. فلتر الحالات (Statuses) */}
+                    {/* Course Filter */}
                     <select
-                      // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedCourse !== "all"
+                        ? "border-danger bg-danger-subtle text-danger-emphasis"
+                        : "border-light bg-light text-muted"
+                        }`}
+                      value={selectedCourse}
+                      onChange={(e) => setSelectedCourse(e.target.value)}
+                    >
+                      <option value="all">
+                        {t("quizzes_page.all_courses")}
+                      </option>
+                      {availableCourses.map((course) => (
+                        <option key={course.id} value={course.id}>
+                          {course.title || course.name}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* Status Filter */}
+                    <select
                       className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedStatus !== "all"
                         ? "border-danger bg-danger-subtle text-danger-emphasis"
                         : "border-light bg-light text-muted"
@@ -443,156 +350,68 @@ function AdminQuizzes() {
                       onChange={(e) => setSelectedStatus(e.target.value)}
                     >
                       <option value="all">
-                        {t("students_page.all_statuses")}
+                        {t("quizzes_page.all_statuses")}
                       </option>
                       <option value="active">
-                        {t("students_page.active_status")}
+                        {t("quizzes_page.active_status")}
                       </option>
                       <option value="inactive">
-                        {t("students_page.inactive_status")}
-                      </option>
-                    </select>
-
-                    {/* 3. فلتر المجموعات (Groups) */}
-                    <select
-                      // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedGroup !== "all"
-                        ? "border-danger bg-danger-subtle text-danger-emphasis"
-                        : "border-light bg-light text-muted"
-                        }`}
-                      value={selectedGroup}
-                      onChange={(e) => setSelectedGroup(e.target.value)}
-                    >
-                      <option value="all">
-                        {isArabic ? "كل المجموعات" : "All Groups"}
-                      </option>
-                      {selectionGroups &&
-                        selectionGroups.map((group) => (
-                          <option key={group.id} value={group.id}>
-                            {group.name}
-                          </option>
-                        ))}
-                    </select>
-
-                    {/* 4. فلتر النوع (Genders) */}
-                    <select
-                      // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedGender !== "all"
-                        ? "border-danger bg-danger-subtle text-danger-emphasis"
-                        : "border-light bg-light text-muted"
-                        }`}
-                      value={selectedGender}
-                      onChange={(e) => setSelectedGender(e.target.value)}
-                    >
-                      <option value="all">
-                        {t("students_page.all_genders")}
-                      </option>
-                      <option value="male">
-                        {t("students_page.male_option")}
-                      </option>
-                      <option value="female">
-                        {t("students_page.female_option")}
+                        {t("quizzes_page.inactive_status")}
                       </option>
                     </select>
                   </div>
-
                 </div>
 
-                {/* جدول عرض الطلاب */}
+                {/* Quizzes Table */}
                 <div className="table-responsive">
-                  <table className="table ac-table mb-0 align-middle" dir="ltr">
+                  <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
                     <thead>
                       <tr>
-                        <th className="text-center">
-                          {t("students_page.table_enrollment")}
-                        </th>
-                        <th className="text-center">
-                          {t("students_page.table_name")}
-                        </th>
-                        <th className="text-center">
-                          {t("students_page.table_email")}
-                        </th>
-                        <th className="text-center">
-                          {t("students_page.table_phone")}
-                        </th>
-                        <th className="text-center">
-                          {isArabic ? "المجموعة" : "Group"}
-                        </th>
-                        <th className="text-center">
-                          {t("students_page.table_status")}
-                        </th>
-                        <th className="text-center">
-                          {t("students_page.table_verified")}
-                        </th>
-                        <th className="text-center">
-                          {t("students_page.table_actions")}
-                        </th>
+                        <th className="text-center">{t("quizzes_page.table_title")}</th>
+                        <th className="text-center">{t("quizzes_page.table_course")}</th>
+                        <th className="text-center">{t("quizzes_page.table_questions_count")}</th>
+                        <th className="text-center">{t("quizzes_page.table_duration")}</th>
+                        <th className="text-center">{t("quizzes_page.table_status")}</th>
+                        <th className="text-center">{t("quizzes_page.table_actions")}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {students && students.length > 0 ? (
-                        students.map((student) => (
-                          <tr key={student.id}>
-                            <td className="text-center fw-medium text-muted">
-                              {student.enrollment_number}
-                            </td>
+                      {quizzes && quizzes.length > 0 ? (
+                        quizzes.map((quizItem) => (
+                          <tr key={quizItem.id}>
                             <td className="text-center fw-medium text-dark">
-                              {student.full_name}
+                              {quizItem.title}
                             </td>
                             <td className="text-center text-secondary">
-                              {student.email}
+                              {quizItem.course_name}
                             </td>
-
-                            <td className="text-center text-secondary">
-                              {student.phone || "-"}
+                            <td className="text-center text-muted fw-bold">
+                              {quizItem.questions_count}
                             </td>
-                            <td className="text-center text-secondary">
-                              {student.learning_group?.group_name}
+                            <td className="text-center text-muted">
+                              {quizItem.duration} {isArabic ? "دقيقة" : "mins"}
                             </td>
                             <td className="text-center">
                               <span
-                                className={`badge rounded-pill cp ${student.status === "active" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"}`}
+                                className={`badge rounded-pill cp ${quizItem.status === "active"
+                                  ? "bg-success-subtle text-success"
+                                  : "bg-danger-subtle text-danger"
+                                  }`}
                                 style={{
                                   cursor: "pointer",
                                   padding: "8px 16px",
                                 }}
-                                onClick={() =>
-                                  handleStatusUpdate(
-                                    student.id,
-                                    student.status === "active"
-                                      ? "inactive"
-                                      : "active",
-                                  )
-                                }
+                                onClick={() => handleStatusToggle(quizItem.id, quizItem.status)}
                               >
                                 <i
-                                  className={`bi ${student.status === "active" ? "bi-check-circle" : "bi-pause-circle"} me-1 Small`}
+                                  className={`bi ${quizItem.status === "active"
+                                    ? "bi-check-circle"
+                                    : "bi-pause-circle"
+                                    } me-1 small`}
                                 ></i>
-                                {student.status === "active"
-                                  ? t("students_page.active_status")
-                                  : t("students_page.inactive_status")}
-                              </span>
-                            </td>
-                            <td className="text-center">
-                              <span
-                                className={`badge rounded-pill cp ${student.is_verified ? "bg-primary-subtle text-primary" : "bg-warning-subtle text-warning"}`}
-                                style={{
-                                  cursor: "pointer",
-                                  padding: "8px 16px",
-                                }}
-                                onClick={() =>
-                                  handleVerifyUpdate(
-                                    student.id,
-                                    student.is_verified,
-                                  )
-                                }
-                              >
-                                <i
-                                  className={`bi ${student.is_verified ? "bi-patch-check-fill" : "bi-shield-exclamation"} me-1`}
-                                ></i>
-                                {student.is_verified
-                                  ? t("students_page.verified_yes")
-                                  : t("students_page.verified_no")}
+                                {quizItem.status === "active"
+                                  ? t("quizzes_page.active_status")
+                                  : t("quizzes_page.inactive_status")}
                               </span>
                             </td>
                             <td className="text-center">
@@ -600,30 +419,32 @@ function AdminQuizzes() {
                                 <button
                                   className="btn btn-sm ac-btn-view border-0"
                                   title="View"
-                                  onClick={() => handleView(student)}
+                                  onClick={() => handleView(quizItem)}
                                 >
                                   <i className="bi bi-eye fs-6"></i>
                                 </button>
                                 <button
+                                  className="btn btn-sm ac-btn-view border-0 text-primary"
+                                  title="Edit"
+                                  onClick={() => handleEdit(quizItem)}
+                                >
+                                  <i className="bi bi-pencil-square fs-6"></i>
+                                </button>
+                                <button
                                   className="btn btn-sm ac-btn-deleteTable border-0"
                                   title="Delete"
-                                  onClick={() => handleDelete(student.id)}
+                                  onClick={() => handleDelete(quizItem.id, quizItem.title)}
                                 >
                                   <i className="bi bi-trash fs-6"></i>
                                 </button>
-
-
                               </div>
                             </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td
-                            colSpan={10}
-                            className="text-center py-4 text-muted"
-                          >
-                            {t("students_page.no_students")}
+                          <td colSpan={6} className="text-center py-4 text-muted">
+                            {t("quizzes_page.no_quizzes")}
                           </td>
                         </tr>
                       )}
@@ -633,15 +454,13 @@ function AdminQuizzes() {
               </div>
             </div>
 
-            {/* الترقيم السفلي */}
-            {apiPagination && (
+            {/* Pagination controls */}
+            {apiPagination && apiPagination.total_pages > 1 && (
               <div className="d-flex justify-content-center mt-5">
                 <Pagination className="custom-pagination">
                   <Pagination.Prev
                     disabled={apiPagination.current_page === 1}
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page - 1)
-                    }
+                    onClick={() => handlePageChange(apiPagination.current_page - 1)}
                   />
 
                   {[...Array(apiPagination.total_pages)].map((_, index) => (
@@ -657,12 +476,8 @@ function AdminQuizzes() {
 
                   <Pagination.Next
                     style={{ margin: "0 6px 0" }}
-                    disabled={
-                      apiPagination.current_page === apiPagination.total_pages
-                    }
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page + 1)
-                    }
+                    disabled={apiPagination.current_page === apiPagination.total_pages}
+                    onClick={() => handlePageChange(apiPagination.current_page + 1)}
                   />
                 </Pagination>
               </div>
@@ -670,404 +485,137 @@ function AdminQuizzes() {
           </div>
         </>
       ) : (
-        /* واجهة الفورم للإضافة/التعديل/العرض */
+        /* Create/Edit/View Form Interface */
         <div className="ac-form-container">
           <div className="ac-form-header d-flex justify-content-between align-items-center mb-4">
-            <button className="ac-back-btn" onClick={handleBack}>
+            <button className="ac-back-btn border-0 bg-transparent d-flex align-items-center" onClick={handleBack}>
               <i
-                className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
+                className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"} fs-4 text-dark`}
               ></i>
               <span className="ms-2 me-2 fs-5 fw-bold text-dark">
                 {viewingItem
-                  ? t("students_page.view_student")
-                  : t("students_page.add_student_title")}
+                  ? isEditing
+                    ? t("quizzes_page.edit_quiz")
+                    : t("quizzes_page.view_quiz")
+                  : t("quizzes_page.add_quiz_title")}
               </span>
             </button>
-            {!viewingItem && (
+            {isEditing && (
               <div className="ac-form-actions d-flex gap-2">
                 <button
                   className="btn btn-danger px-4 ac-publish-btn"
-                  onClick={handleSubmitWrapper}
+                  onClick={handleSubmit}
                 >
-                  {t("students_page.create_student")}
+                  {viewingItem ? t("quizzes_page.update_quiz") : t("quizzes_page.create_quiz")}
                 </button>
               </div>
             )}
           </div>
 
-          <div className="ac-form-body p-4 bg-white border rounded-4 shadow-sm">
+          <div className="ac-form-body p-4 bg-white border rounded-4 shadow-sm" dir={isArabic ? "rtl" : "ltr"}>
             <div className="ac-tab-content basic-info">
-              {/* صورة الطالب في وضع العرض */}
-              {viewingItem && (
-                <div className="mb-4 text-center">
-                  <div
-                    className="ac-thumbnail-view border rounded-4 overflow-hidden shadow-sm d-inline-block"
-                    style={{ maxWidth: "100%", width: "600px" }}
-                  >
-                    <img
-                      src={formData.avatar}
-                      alt={formData.full_name}
-                      className="img-fluid w-100"
-                      style={{ height: "300px", objectFit: "cover" }}
-                    />
-                  </div>
-                </div>
-              )}
-              {/* رقم القيد (يظهر فقط في العرض العام) */}
-              {viewingItem && (
-                <div className="row mb-4">
-                  <div className="col-md-12 mb-3 mb-md-0">
-                    <label className="form-label fw-bold text-dark">
-                      {isArabic ? "رقم القيد" : "Enrollment Number"}
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                      value={formData.enrollment_number}
-                      disabled
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* حقل الاسم */}
+              {/* Quiz Title */}
               <div className="mb-4">
                 <label className="form-label fw-bold text-dark">
-                  {t("students_page.name")}
+                  {t("quizzes_page.quiz_title")}
                 </label>
                 <input
                   type="text"
-                  name="full_name"
+                  name="title"
                   className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                  placeholder={t("students_page.name_placeholder")}
-                  value={formData.full_name}
+                  placeholder={t("quizzes_page.quiz_title_placeholder")}
+                  value={formData.title}
                   onChange={handleChange}
-                  disabled={!!viewingItem}
+                  disabled={!isEditing}
                 />
               </div>
 
-              {/* حقل الإيميل (مخفي في التعديل) */}
+              {/* Course Assignment Selection */}
               <div className="mb-4">
                 <label className="form-label fw-bold text-dark">
-                  {t("students_page.email")}
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                  placeholder={t("students_page.email_placeholder")}
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={!!viewingItem}
-                />
-              </div>
-
-              {/* حقل النوع (مخفي في التعديل) */}
-              <div className="mb-4">
-                <label className="form-label fw-bold text-dark">
-                  {isArabic ? "نوع الطالب" : "Gender"}
+                  {t("quizzes_page.assign_course")}
                 </label>
                 <select
-                  name="gender"
+                  name="course_id"
                   className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                  value={formData.gender}
+                  value={formData.course_id}
                   onChange={handleChange}
-                  disabled={!!viewingItem}
+                  disabled={!isEditing}
                 >
-                  <option value="">
-                    {isArabic ? "اختيار نوع الطالب" : "Gender"}
-                  </option>
-                  <option value="male">{isArabic ? "ذكر" : "Male"}</option>
-                  <option value="female">{isArabic ? "انثي" : "Female"}</option>
-                </select>
-              </div>
-
-              {/* حقل الهاتف (مخفي في التعديل) */}
-              <div className="row mb-4">
-                <div className="col-12">
-                  <label className="form-label fw-bold text-dark">
-                    {t("students_page.phone")}
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    placeholder={t("students_page.phone_placeholder")}
-                    value={formData.phone}
-                    onChange={handleChange}
-                    disabled={!!viewingItem}
-                  />
-                </div>
-              </div>
-
-              {/* اختيار المجموعة */}
-              {/* داخل فورم إضافة/تعديل طالب */}
-              <div className="mb-4">
-                <label className="form-label fw-bold text-dark">
-                  {isArabic ? "اسم المجموعه" : "Group Name"}
-                </label>
-                <select
-                  name="group_id" // تأكد إن الاسم group_id عشان يتبعت للباك صح
-                  className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                  value={formData.group_id}
-                  onChange={handleChange}
-                  disabled={!!viewingItem}
-                >
-                  <option value="">{t("students_page.select_group")}</option>
-                  {selectionGroups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
+                  <option value="">{t("quizzes_page.select_course")}</option>
+                  {availableCourses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.title || course.name}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* تفاصيل إضافية للعرض فقط */}
-              {viewingItem && (
-                <div className="row mb-4">
-                  <div className="col-md-12">
-                    <label className="form-label fw-bold text-dark">
-                      {t("students_page.joined_at")}
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                      value={formData.created_at || ""}
-                      disabled
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* كلمة المرور (تظهر في الإضافة فقط) */}
-              {!viewingItem && (
-                <div className="mb-4">
+              <div className="row mb-4">
+                {/* Quiz Duration in Minutes */}
+                <div className="col-md-6 mb-3 mb-md-0">
                   <label className="form-label fw-bold text-dark">
-                    {t("students_page.password")}
+                    {t("quizzes_page.duration")}
                   </label>
                   <input
-                    type="password"
-                    name="password"
+                    type="number"
+                    name="duration"
                     className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    placeholder={t("students_page.password_placeholder")}
-                    value={formData.password}
+                    placeholder={t("quizzes_page.duration_placeholder")}
+                    value={formData.duration}
                     onChange={handleChange}
+                    disabled={!isEditing}
+                    min="1"
                   />
                 </div>
-              )}
 
-              {/* حالة الحساب */}
+                {/* Questions Count */}
+                <div className="col-md-6">
+                  <label className="form-label fw-bold text-dark">
+                    {t("quizzes_page.questions_count")}
+                  </label>
+                  <input
+                    type="number"
+                    name="questions_count"
+                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                    placeholder={t("quizzes_page.questions_count_placeholder")}
+                    value={formData.questions_count}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    min="1"
+                  />
+                </div>
+              </div>
+
+              {/* Status Select Option */}
               <div className="mb-4">
-                <label className="form-label fw-bold text-dark">Status</label>
+                <label className="form-label fw-bold text-dark">
+                  {t("quizzes_page.table_status")}
+                </label>
                 <select
                   name="status"
                   className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
                   value={formData.status}
                   onChange={handleChange}
-                  disabled={!!viewingItem}
+                  disabled={!isEditing}
                 >
                   <option value="active">
-                    {t("students_page.active_status")}
+                    {t("quizzes_page.active_status")}
                   </option>
                   <option value="inactive">
-                    {t("students_page.inactive_status")}
+                    {t("quizzes_page.inactive_status")}
                   </option>
                 </select>
               </div>
-              {/* تفاصيل إضافية للعرض فقط */}
-              {viewingItem && (
-                <div className="ac-table-card mt-4">
-                  <div className="ac-table-container">
-                    <div className="d-flex align-items-center justify-content-between mb-3 mt-5">
-                      <div className="d-flex align-items-center">
-                        {/* أيقونة صغيرة تعطي شكل جمالي */}
-                        <div
-                          className="bg-danger rounded-3 p-2 me-3 d-flex align-items-center justify-content-center shadow-sm"
-                          style={{ width: "40px", height: "40px" }}
-                        >
-                          <i className="bi bi-book-half text-white"></i>
-                        </div>
-                        <div>
-                          <h5
-                            className="fw-bold mb-0 text-dark"
-                            style={{ letterSpacing: "-0.5px" }}
-                          >
-                            {isArabic
-                              ? "الكورسات المشترك بها"
-                              : "Enrolled Courses"}
-                          </h5>
-                          <p className="text-muted small mb-0">
-                            {isArabic
-                              ? "قائمة بجميع الدورات التدريبية المسجلة للطالب"
-                              : "List of all courses registered to this student"}
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        className="flex-grow-1 ms-4 d-none d-md-block"
-                        style={{
-                          height: "1px",
-                          background:
-                            "linear-gradient(90deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0) 100%)",
-                        }}
-                      ></div>
-                    </div>
-                    <div
-                      className="card border-0 shadow-sm overflow-hidden"
-                      style={{
-                        backgroundColor: "#f8f9fc",
-                        borderRadius: "15px",
-                        border: "5px solid rgba(0,0,0,0.05)",
-                      }}
-                    >
-                      <div className="table-responsive">
-                        <table className="table mb-0 align-middle">
-                          <thead>
-                            <tr>
-                              <th className="ps-4 py-3 border-0 text-secondary text-uppercase small fw-bold">
-                                {isArabic ? "الكورس" : "Course"}
-                              </th>
-                              <th className="py-3 border-0 text-secondary text-uppercase small fw-bold">
-                                {isArabic ? "المحاضر" : "Instructor"}
-                              </th>
-                              <th
-                                className="py-3 border-0 text-secondary text-uppercase small fw-bold text-center"
-                                style={{ minWidth: "100px" }}
-                              >
-                                {isArabic ? "المجموعة" : "Group"}
-                              </th>
-                              <th className="py-3 border-0 text-secondary text-uppercase small fw-bold text-center">
-                                {isArabic ? "التاريخ" : "Date"}
-                              </th>
-                              <th className="pe-4 py-3 border-0 text-secondary text-uppercase small fw-bold text-center">
-                                {isArabic ? "الحالة" : "Status"}
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="border-0">
-                            {formData.enrolled_courses?.map((course, index) => (
-                              <tr
-                                key={index}
-                                style={{
-                                  borderBottom: "1px solid rgba(0,0,0,0.03)",
-                                }}
-                              >
-                                <td className="ps-4 py-3 fw-bold text-dark">
-                                  {course.title}
-                                </td>
-                                <td className="py-3 text-muted">
-                                  {course.instructor_name}
-                                </td>
-                                <td
-                                  className="py-3 text-center"
-                                  style={{ minWidth: "150px" }}
-                                >
-                                  <div className="position-relative">
-                                    <select
-                                      // 1. تعطيل الـ select تماماً إذا كان الكورس مكتملاً
-                                      disabled={course.is_completed}
-                                      // 2. تلوين ديناميكي باستخدام كلاسات بوتستراب بناءً على حالة الكورس والجروب
-                                      className={`form-control form-select-sm border-2 shadow-sm text-center rounded-3 py-2 px-3 ${course.is_completed
-                                        ? "border-light-subtle bg-body-secondary text-muted opacity-75" // شكل مطفي للكورس المكتمل
-                                        : !course.group_id
-                                          ? "border-warning bg-warning-subtle text-dark"
-                                          : "border-light-subtle bg-light text-secondary"
-                                        }`}
-                                      value={course.group_id || ""}
-                                      // 3. تأكد من تمرير الدالة الصحيحة المتواجدة بالهوك لديك (يمكنك إضافة student.id إذا دعت الحاجة)
-                                      onChange={(e) =>
-                                        handleCourseGroupChange(
-                                          course.id,
-                                          e.target.value,
-                                        )
-                                      }
-                                      // 4. تغيير مؤشر الماوس إلى ممنوع 🚫 عند الوقوف على كورس مكتمل
-                                      style={{
-                                        cursor: course.is_completed
-                                          ? "not-allowed"
-                                          : "pointer",
-                                        transition: "all 0.3s",
-                                      }}
-                                    >
-                                      <option
-                                        value=""
-                                        disabled={course.group_id}
-                                      >
-                                        {isArabic
-                                          ? "⚠️ اختر مجموعة للطالب"
-                                          : "⚠️ Select a Group"}
-                                      </option>
 
-                                      {course.available_groups?.map((group) => (
-                                        <option
-                                          key={group.id}
-                                          value={group.id}
-                                          className="bg-white text-dark"
-                                        >
-                                          {isArabic ? "👥  " : "👥  "}{" "}
-                                          {group.name || group.group_name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                </td>
-                                <td className="py-3 text-center small text-secondary">
-                                  {course.joined_at}
-                                </td>
-                                <td className="pe-4 py-3 text-center">
-                                  <button
-                                    type="button"
-                                    // تحويل الـ Badge لـ Button باستخدام كلاسات بوتستراب لتغيير الخلفية والألوان بدون inline style
-                                    className={`btn btn-sm rounded-pill fw-bold border-0 py-2 px-3 shadow-sm ${course.is_completed
-                                      ? "bg-success-subtle text-success-emphasis"
-                                      : "bg-primary-subtle text-primary-emphasis"
-                                      }`}
-                                    style={{
-                                      fontSize: "0.75rem",
-                                      transition: "all 0.2s",
-                                      cursor: "pointer",
-                                    }}
-                                    // عند الضغط، نمرر المعرفات مع عكس الحالة الحالية للكورس لتحديث الباك والـ State
-                                    onClick={() =>
-                                      handleStatusToggle(
-                                        viewingItem.id,
-                                        course.id,
-                                        course.is_completed,
-                                      )
-                                    }
-                                  >
-                                    {course.is_completed ? (
-                                      <>
-                                        <i className="bi bi-check-circle-fill me-1"></i>
-                                        {isArabic ? "مكتمل" : "Completed"}
-                                      </>
-                                    ) : (
-                                      <>
-                                        <i className="bi bi-hourglass-split me-1"></i>
-                                        {isArabic
-                                          ? "قيد التنفيذ"
-                                          : "In Progress"}
-                                      </>
-                                    )}
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {/* أزرار التحكم */}
-              {!viewingItem && (
+              {/* Footer Save Button for editing */}
+              {isEditing && (
                 <div className="d-flex justify-content-end mt-4 pt-4 border-top">
                   <button
                     className="btn btn-danger px-5 py-2 fw-medium rounded-3"
-                    onClick={handleSubmitWrapper}
+                    onClick={handleSubmit}
                   >
-                    {t("students_page.create_student")}
+                    {viewingItem ? t("quizzes_page.update_quiz") : t("quizzes_page.create_quiz")}
                   </button>
                 </div>
               )}
