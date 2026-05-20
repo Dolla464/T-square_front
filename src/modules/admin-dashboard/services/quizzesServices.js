@@ -53,3 +53,31 @@ export const toggleQuizStatus = async (id, status) => {
   // return response.data;
   return { success: true };
 };
+
+// ----------------------------------------------------------------------------
+// جلب الاختبارات المؤرشفة (سلة المحذوفات)
+// ----------------------------------------------------------------------------
+export const getTrashedQuizzes = async (params = {}) => {
+  // const response = await axiosClient.get("/admin/quizzes/trash", { params });
+  // return response.data;
+  return { data: [], pagination: null };
+};
+
+// ----------------------------------------------------------------------------
+// استعادة اختبار محذوف من سلة المحذوفات
+// ----------------------------------------------------------------------------
+export const restoreQuiz = async (id) => {
+  // const response = await axiosClient.post(`/admin/quizzes/${id}/restore`);
+  // return response.data;
+  return { success: true };
+};
+
+// ----------------------------------------------------------------------------
+// حذف اختبار نهائياً
+// ----------------------------------------------------------------------------
+export const forceDeleteQuiz = async (id) => {
+  // const response = await axiosClient.delete(`/admin/quizzes/${id}/force-delete`);
+  // return response.data;
+  return { success: true };
+};
+
