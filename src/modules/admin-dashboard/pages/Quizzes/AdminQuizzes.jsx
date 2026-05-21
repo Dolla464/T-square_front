@@ -30,14 +30,6 @@ const defaultFormData = {
   shuffle_questions: true,
 };
 
-// Fallback courses in case the course API is empty or fails
-const fallbackCourses = [
-  { id: 1, title: "React Development" },
-  { id: 2, title: "HTML/CSS Basics" },
-  { id: 3, title: "Advanced Node.js" },
-  { id: 4, title: "Database Fundamentals" },
-];
-
 function AdminQuizzes() {
   const {
     quizzes,
@@ -76,12 +68,12 @@ function AdminQuizzes() {
   // Fetch courses on load
   useEffect(() => {
     getCourses({ per_page: 100 }).catch((err) => {
-      console.log("Failed to fetch courses, falling back to static list", err);
+      console.log("Failed to fetch courses", err);
     });
   }, [getCourses]);
 
-  // Combine loaded courses with fallback items
-  const availableCourses = courses && courses.length > 0 ? courses : fallbackCourses;
+  // Combine loaded courses
+  const availableCourses = courses || [];
 
   /**
    * Debounce search term to prevent excessive lookups
@@ -128,31 +120,7 @@ function AdminQuizzes() {
     setShowForm(true);
   };
 
-  /**
-   * Show quiz details in read-only mode
-   */
-  const handleView = async (item) => {
-    const fullData = await getQuizById(item.id);
-    if (fullData) {
-      setViewingItem(fullData);
-      setIsEditing(false);
-      setFormData({
-        title: fullData.title || "",
-        course_id: fullData.course_id || "",
-        questions_count: fullData.questions_count || "",
-        duration: fullData.duration || "",
-        status: fullData.status || "active",
-        description: fullData.description || "",
-        total_marks: fullData.total_marks || "",
-        passing_mark: fullData.passing_mark || "",
-        is_active: fullData.is_active !== undefined ? fullData.is_active : true,
-        is_final: fullData.is_final !== undefined ? fullData.is_final : false,
-        max_attempts: fullData.max_attempts || "",
-        shuffle_questions: fullData.shuffle_questions !== undefined ? fullData.shuffle_questions : true,
-      });
-      setShowForm(true);
-    }
-  };
+
 
   /**
    * Show quiz details in edit mode
@@ -444,7 +412,7 @@ function AdminQuizzes() {
 
                   <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
                     {/* Course Filter */}
-                   
+
 
                     {/* Status Filter */}
                     <select
@@ -500,7 +468,7 @@ function AdminQuizzes() {
                         <th className="text-center">{t("quizzes_page.table_course")}</th>
                         <th className="text-center">{t("quizzes_page.table_questions_count")}</th>
                         <th className="text-center">{t("quizzes_page.table_duration")}</th>
-                        <th className="text-center">{t("quizzes_page.table_status")}</th>
+                        <th className="text-center">{showTrash ? isArabic ? "تاريخ الحذف" : "Deleted at" : t("quizzes_page.table_status")}</th>
                         <th className="text-center">{t("quizzes_page.table_actions")}</th>
                       </tr>
                     </thead>

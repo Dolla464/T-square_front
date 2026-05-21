@@ -75,4 +75,65 @@ export const forceDeleteQuiz = async (id) => {
   return response.data;
 };
 
+// ----------------------------------------------------------------------------
+// جلب اسئلة اختبار بال id
+// ----------------------------------------------------------------------------
+export const getQuestionsForExam = async (examId) => {
+  const response = await axiosClient.get(`/admin/questions?exam_id=${examId}`);
+  return response.data;
+};
+// ----------------------------------------------------------------------------
+// جلب  تفاصيل سوال بال id
+// ----------------------------------------------------------------------------
+export const getQuestionById = async (questionId) => {
+  const response = await axiosClient.get(`/admin/questions/${questionId}`);
+  return response.data;
+};
 
+// ----------------------------------------------------------------------------
+// إنشاء سؤال جديد
+// ----------------------------------------------------------------------------
+export const createQuestion = async (payload) => {
+  const response = await axiosClient.post("/admin/questions", payload);
+  return response.data;
+};
+
+// ----------------------------------------------------------------------------
+// تعديل سؤال معين بالـ ID
+// ----------------------------------------------------------------------------
+export const updateQuestion = async (id, payload) => {
+  const response = await axiosClient.put(`/admin/questions/${id}`, payload);
+  return response.data;
+};
+
+// ----------------------------------------------------------------------------
+// حذف سؤال (سوفت ديليت يحول للتراش)
+// ----------------------------------------------------------------------------
+export const deleteQuestion = async (id) => {
+  const response = await axiosClient.delete(`/admin/questions/${id}`);
+  return response.data;
+};
+
+// ----------------------------------------------------------------------------
+// جلب الأسئلة المؤرشفة (سلة المحذوفات)
+// ----------------------------------------------------------------------------
+export const getTrashedQuestions = async (params = {}) => {
+  const response = await axiosClient.get("/admin/questions/trash", { params });
+  return response.data;
+};
+
+// ----------------------------------------------------------------------------
+// استعادة سؤال محذوف
+// ----------------------------------------------------------------------------
+export const restoreQuestion = async (id) => {
+  const response = await axiosClient.post(`/admin/questions/${id}/restore`);
+  return response.data;
+};
+
+// ----------------------------------------------------------------------------
+// حذف سؤال نهائياً
+// ----------------------------------------------------------------------------
+export const forceDeleteQuestion = async (id) => {
+  const response = await axiosClient.delete(`/admin/questions/${id}/force-delete`);
+  return response.data;
+};

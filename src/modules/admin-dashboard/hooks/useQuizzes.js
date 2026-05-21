@@ -11,6 +11,14 @@ import {
   getTrashedQuizzes as apiGetTrashedQuizzes,
   restoreQuiz as apiRestoreQuiz,
   forceDeleteQuiz as apiForceDeleteQuiz,
+  getQuestionsForExam as apiGetQuestionsForExam,
+  getQuestionById as apiGetQuestionById,
+  createQuestion as apiCreateQuestion,
+  updateQuestion as apiUpdateQuestion,
+  deleteQuestion as apiDeleteQuestion,
+  getTrashedQuestions as apiGetTrashedQuestions,
+  restoreQuestion as apiRestoreQuestion,
+  forceDeleteQuestion as apiForceDeleteQuestion,
 } from "../services/quizzesServices";
 
 export const useQuizzes = () => {
@@ -147,7 +155,7 @@ export const useQuizzes = () => {
     [t]
   );
 
-  const createQuiz = async (payload) => {
+  const createQuiz = useCallback(async (payload) => {
     setLoading(true);
     setError(null);
     try {
@@ -175,9 +183,9 @@ export const useQuizzes = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  const updateQuiz = async (id, payload) => {
+  const updateQuiz = useCallback(async (id, payload) => {
     setLoading(true);
     setError(null);
     try {
@@ -205,9 +213,9 @@ export const useQuizzes = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  const deleteQuiz = async (id) => {
+  const deleteQuiz = useCallback(async (id) => {
     setLoading(true);
     setError(null);
     try {
@@ -222,9 +230,9 @@ export const useQuizzes = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  const restoreQuiz = async (id) => {
+  const restoreQuiz = useCallback(async (id) => {
     setLoading(true);
     setError(null);
     try {
@@ -237,9 +245,9 @@ export const useQuizzes = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  const forceDeleteQuiz = async (id) => {
+  const forceDeleteQuiz = useCallback(async (id) => {
     setLoading(true);
     setError(null);
     try {
@@ -252,9 +260,11 @@ export const useQuizzes = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  const toggleQuizStatus = async (id, currentStatus) => {
+  const toggleQuizStatus = useCallback(async (id, currentStatus) => {
+    setLoading(true);
+    setError(null);
     try {
       const newStatusVal = currentStatus === "active" ? 0 : 1;
       await apiToggleQuizStatus(id, newStatusVal);
@@ -263,11 +273,13 @@ export const useQuizzes = () => {
     } catch (err) {
       toastError("Failed to update status.");
       return false;
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [t]);
 
   // Save Quiz Questions update
-  const saveQuizQuestions = async (id, questions) => {
+  const saveQuizQuestions = useCallback(async (id, questions) => {
     setLoading(true);
     setError(null);
     try {
@@ -281,7 +293,122 @@ export const useQuizzes = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const getQuestionsForExam = useCallback(async (examId) => {
+    try {
+      const response = await apiGetQuestionsForExam(examId);
+      return response.data;
+    } catch (err) {
+      toastError("Failed to fetch questions for exam");
+      return [];
+    }
+  }, []);
+
+  const getQuestionById = useCallback(async (questionId) => {
+    try {
+      const response = await apiGetQuestionById(questionId);
+      return response.data;
+    } catch (err) {
+      toastError("Failed to fetch question by id");
+      return null;
+    }
+  }, []);
+
+  const createQuestion = useCallback(async (payload) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiCreateQuestion(payload);
+      toastSuccess(t("success.created", "Created successfully"));
+      return response.data || true;
+    } catch (err) {
+      const errorMsg = t("errors.create_failed", "Failed to create");
+      setError(errorMsg);
+      toastError(errorMsg);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
+  const updateQuestion = useCallback(async (id, payload) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await apiUpdateQuestion(id, payload);
+      toastSuccess(t("success.updated", "Updated successfully"));
+      return true;
+    } catch (err) {
+      const errorMsg = t("errors.update_failed", "Failed to update");
+      setError(errorMsg);
+      toastError(errorMsg);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
+  const deleteQuestion = useCallback(async (id) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await apiDeleteQuestion(id);
+      toastSuccess(t("quizzes_page.deleted_success", "Question moved to trash successfully") || "Question moved to trash successfully");
+      return true;
+    } catch (err) {
+      const errorMsg = t("errors.delete_failed", "Failed to delete");
+      setError(errorMsg);
+      toastError(errorMsg);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
+  const getTrashedQuestions = useCallback(async (examId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiGetTrashedQuestions({ exam_id: examId });
+      return response.data || [];
+    } catch (err) {
+      toastError("Failed to fetch trashed questions");
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const restoreQuestion = useCallback(async (id) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await apiRestoreQuestion(id);
+      toastSuccess("Question restored successfully");
+      return true;
+    } catch (err) {
+      toastError("Failed to restore question");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const forceDeleteQuestion = useCallback(async (id) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await apiForceDeleteQuestion(id);
+      toastSuccess("Question deleted permanently");
+      return true;
+    } catch (err) {
+      toastError("Failed to permanently delete question");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return {
     quizzes,
@@ -297,6 +424,13 @@ export const useQuizzes = () => {
     restoreQuiz,
     forceDeleteQuiz,
     toggleQuizStatus,
-    saveQuizQuestions,
+    getQuestionsForExam,
+    getQuestionById,
+    createQuestion,
+    updateQuestion,
+    deleteQuestion,
+    getTrashedQuestions,
+    restoreQuestion,
+    forceDeleteQuestion,
   };
 };
