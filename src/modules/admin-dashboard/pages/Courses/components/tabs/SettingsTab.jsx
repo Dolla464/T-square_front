@@ -74,8 +74,8 @@ function SettingsTab({ formData, handleChange, isReadOnly, isArabic, t }) {
       {/* Free course toggle */}
       <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
         <div>
-          <strong className="d-block mb-1">Free Course</strong>
-          <small className="text-muted">Make this course available for free</small>
+          <strong className="d-block mb-1">{isArabic ? "كورس مجاني" : "Free Course"}</strong>
+          <small className="text-muted">{isArabic ? "اجعل هذا الكورس متاحًا مجانًا" : "Make this course available for free"}</small>
         </div>
         <div className="form-check form-switch m-0">
           <input

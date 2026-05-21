@@ -18,6 +18,11 @@ const ADMIN_NAV = [
     icon: "bi-list",
   },
   {
+    key: "courses",
+    path: "/admin/courses",
+    icon: "bi-mortarboard",
+  },
+  {
     key: "Quzies",
     path: "/admin/quizzes",
     icon: "bi-chat-right-quote",
@@ -27,17 +32,7 @@ const ADMIN_NAV = [
     path: "/admin/groups",
     icon: "bi-people",
   },
-  {
-    key: "courses",
-    path: "/admin/courses",
-    icon: "bi-mortarboard",
-  },
 
-  {
-    key: "solutions",
-    path: "/admin/solutions",
-    icon: "bi-laptop",
-  },
   {
     key: "students",
     path: "/admin/students",
@@ -53,6 +48,12 @@ const ADMIN_NAV = [
     path: "/admin/orders",
     icon: "bi-cart3",
   },
+  {
+    key: "solutions",
+    path: "/admin/solutions",
+    icon: "bi-laptop",
+  },
+
   {
     key: "analytics",
     path: "/admin/analytics",

@@ -22,6 +22,12 @@ const defaultFormData = {
   duration: "",
   status: "active",
   description: "",
+  total_marks: "",
+  passing_mark: "",
+  is_active: true,
+  is_final: false,
+  max_attempts: "",
+  shuffle_questions: true,
 };
 
 // Fallback courses in case the course API is empty or fails
@@ -137,6 +143,12 @@ function AdminQuizzes() {
         duration: fullData.duration || "",
         status: fullData.status || "active",
         description: fullData.description || "",
+        total_marks: fullData.total_marks || "",
+        passing_mark: fullData.passing_mark || "",
+        is_active: fullData.is_active !== undefined ? fullData.is_active : true,
+        is_final: fullData.is_final !== undefined ? fullData.is_final : false,
+        max_attempts: fullData.max_attempts || "",
+        shuffle_questions: fullData.shuffle_questions !== undefined ? fullData.shuffle_questions : true,
       });
       setShowForm(true);
     }
@@ -157,6 +169,12 @@ function AdminQuizzes() {
         duration: fullData.duration || "",
         status: fullData.status || "active",
         description: fullData.description || "",
+        total_marks: fullData.total_marks || "",
+        passing_mark: fullData.passing_mark || "",
+        is_active: fullData.is_active !== undefined ? fullData.is_active : true,
+        is_final: fullData.is_final !== undefined ? fullData.is_final : false,
+        max_attempts: fullData.max_attempts || "",
+        shuffle_questions: fullData.shuffle_questions !== undefined ? fullData.shuffle_questions : true,
       });
       setShowForm(true);
     }
@@ -420,30 +438,13 @@ function AdminQuizzes() {
                         onClick={() => setSearchTerm("")}
                         style={{ zIndex: 3, textDecoration: "none" }}
                       >
-                        <i className="bi bi-x-lg"></i>
                       </button>
                     )}
                   </div>
 
                   <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
                     {/* Course Filter */}
-                    <select
-                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedCourse !== "all"
-                        ? "border-danger bg-danger-subtle text-danger-emphasis"
-                        : "border-light bg-light text-muted"
-                        }`}
-                      value={selectedCourse}
-                      onChange={(e) => setSelectedCourse(e.target.value)}
-                    >
-                      <option value="all">
-                        {t("quizzes_page.all_courses")}
-                      </option>
-                      {availableCourses.map((course) => (
-                        <option key={course.id} value={course.id}>
-                          {course.title || course.name}
-                        </option>
-                      ))}
-                    </select>
+                   
 
                     {/* Status Filter */}
                     <select
@@ -520,27 +521,42 @@ function AdminQuizzes() {
                               {quizItem.duration} {isArabic ? "دقيقة" : "mins"}
                             </td>
                             <td className="text-center">
-                              <span
-                                className={`badge rounded-pill cp ${quizItem.status === "active"
-                                  ? "bg-success-subtle text-success"
-                                  : "bg-danger-subtle text-danger"
-                                  }`}
-                                style={{
-                                  cursor: showTrash ? "default" : "pointer",
-                                  padding: "8px 16px",
-                                }}
-                                onClick={() => handleStatusToggle(quizItem.id, quizItem.status)}
-                              >
-                                <i
-                                  className={`bi ${quizItem.status === "active"
-                                    ? "bi-check-circle"
-                                    : "bi-pause-circle"
-                                    } me-1 small`}
-                                ></i>
-                                {quizItem.status === "active"
-                                  ? t("quizzes_page.active_status")
-                                  : t("quizzes_page.inactive_status")}
-                              </span>
+                              {showTrash ? (
+                                <span
+                                  className="badge rounded-pill 
+                                    bg-danger-subtle text-danger"
+                                  style={{
+                                    padding: "8px 16px",
+                                  }}
+                                >
+                                  <i
+                                    className={`bi bi-trash-fill me-1 small`}
+                                  ></i>
+                                  {quizItem.deleted_at ? new Date(quizItem.deleted_at).toLocaleDateString() : ""}
+                                </span>
+                              ) : (
+                                <span
+                                  className={`badge rounded-pill ${quizItem.status === "active"
+                                    ? "bg-success-subtle text-success"
+                                    : "bg-danger-subtle text-danger"
+                                    }`}
+                                  style={{
+                                    cursor: showTrash ? "default" : "pointer",
+                                    padding: "8px 16px",
+                                  }}
+                                  onClick={() => handleStatusToggle(quizItem.id, quizItem.status)}
+                                >
+                                  <i
+                                    className={`bi ${quizItem.status === "active"
+                                      ? "bi-check-circle"
+                                      : "bi-pause-circle"
+                                      } me-1 small`}
+                                  ></i>
+                                  {quizItem.status === "active"
+                                    ? t("quizzes_page.active_status")
+                                    : t("quizzes_page.inactive_status")}
+                                </span>
+                              )}
                             </td>
                             <td className="text-center">
                               <div className="d-flex justify-content-center gap-2">
@@ -566,7 +582,7 @@ function AdminQuizzes() {
                                     <button
                                       className="btn btn-sm ac-btn-view border-0"
                                       title={t("quizzes_page.view_quiz")}
-                                      onClick={() => handleView(quizItem)}
+                                      onClick={() => navigate(`view-exam/${quizItem.id}`)}
                                     >
                                       <i className="bi bi-eye fs-6"></i>
                                     </button>
@@ -604,7 +620,7 @@ function AdminQuizzes() {
             </div>
 
             {/* Pagination controls */}
-            {apiPagination && apiPagination.total_pages > 1 && (
+            {apiPagination && (
               <div className="d-flex justify-content-center mt-5">
                 <Pagination className="custom-pagination">
                   <Pagination.Prev
@@ -645,60 +661,53 @@ function AdminQuizzes() {
                 {viewingItem
                   ? isEditing
                     ? t("quizzes_page.edit_quiz")
-                    : t("quizzes_page.view_quiz")
+                    : ""
                   : t("quizzes_page.add_quiz_title")}
               </span>
             </button>
-            {isEditing && (
-              <div className="ac-form-actions d-flex gap-2">
-                <button
-                  className="btn btn-danger px-4 ac-publish-btn"
-                  onClick={handleSubmit}
-                >
-                  {viewingItem ? t("quizzes_page.update_quiz") : t("quizzes_page.create_quiz")}
-                </button>
-              </div>
-            )}
+
           </div>
 
           <div className="ac-form-body p-4 bg-white border rounded-4 shadow-sm" dir={isArabic ? "rtl" : "ltr"}>
             <div className="ac-tab-content basic-info">
               {/* Quiz Title */}
-              <div className="mb-4">
-                <label className="form-label fw-bold text-dark">
-                  {t("quizzes_page.quiz_title")}
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                  placeholder={t("quizzes_page.quiz_title_placeholder")}
-                  value={formData.title}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                />
+              <div className="row mb-4">
+                <div className="col-md-6">
+                  <label className="form-label fw-bold text-dark">
+                    {t("quizzes_page.quiz_title")}
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                    placeholder={t("quizzes_page.quiz_title_placeholder")}
+                    value={formData.title}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* Course Assignment Selection */}
+                <div className="col-md-6 mb-4">
+                  <label className="form-label fw-bold text-dark">
+                    {t("quizzes_page.assign_course")}
+                  </label>
+                  <select
+                    name="course_id"
+                    className=" ac-form-select-full-width p-3   bg-light border-0 rounded-3 text-muted"
+                    value={formData.course_id}
+                    onChange={handleChange}
+                  >
+                    <option value="">{t("quizzes_page.select_course")}</option>
+                    {availableCourses.map((course) => (
+                      <option key={course.id} value={course.id}>
+                        {course.title || course.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              {/* Course Assignment Selection */}
-              <div className="mb-4">
-                <label className="form-label fw-bold text-dark">
-                  {t("quizzes_page.assign_course")}
-                </label>
-                <select
-                  name="course_id"
-                  className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                  value={formData.course_id}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                >
-                  <option value="">{t("quizzes_page.select_course")}</option>
-                  {availableCourses.map((course) => (
-                    <option key={course.id} value={course.id}>
-                      {course.title || course.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+
 
               {/* Quiz Description */}
               <div className="mb-4">
@@ -711,7 +720,6 @@ function AdminQuizzes() {
                   placeholder={t("quizzes_page.description_placeholder")}
                   value={formData.description}
                   onChange={handleChange}
-                  disabled={!isEditing}
                   rows="3"
                 />
               </div>
@@ -729,73 +737,179 @@ function AdminQuizzes() {
                     placeholder={t("quizzes_page.duration_placeholder")}
                     value={formData.duration}
                     onChange={handleChange}
-                    disabled={!isEditing}
                     min="1"
                   />
                 </div>
 
-                {/* Questions Count */}
+                {/* max attempts */}
                 <div className="col-md-6">
                   <label className="form-label fw-bold text-dark">
-                    {t("quizzes_page.questions_count")}
+                    {isArabic ? "اقصى عدد للمحاولات" : "Max attemps"}
                   </label>
                   <input
                     type="number"
-                    name="questions_count"
+                    name="max_attempts"
                     className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    placeholder={t("quizzes_page.questions_count_placeholder")}
-                    value={formData.questions_count}
+                    placeholder={isArabic ? "اقصى عدد للمحاولات" : "Max attemps"}
+                    value={formData.max_attempts}
                     onChange={handleChange}
-                    disabled={!isEditing}
+                    min="1"
+                  />
+                </div>
+
+
+                <div className="row mb-4">
+                </div> {/* total marks*/}
+                <div className="col-md-6">
+                  <label className="form-label fw-bold text-dark">
+                    {isArabic ? "الدرجة الكلية" : "Total marks"}
+                  </label>
+                  <input
+                    type="number"
+                    name="total_marks"
+                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                    placeholder={isArabic ? "الدرجة الكلية" : "Total marks"}
+                    value={formData.total_marks}
+                    onChange={handleChange}
+                    min="1"
+                  />
+                </div>
+                {/* pass mark*/}
+                <div className="col-md-6">
+                  <label className="form-label fw-bold text-dark">
+                    {isArabic ? "الدرجة المطلوبة للنجاح" : "pass mark"}
+                  </label>
+                  <input
+                    type="number"
+                    name="passing_mark"
+                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                    placeholder={isArabic ? "الدرجة المطلوبة للنجاح" : "pass mark"}
+                    value={formData.passing_mark}
+                    onChange={handleChange}
                     min="1"
                   />
                 </div>
               </div>
-
-              {/* Status Select Option */}
-              <div className="mb-4">
-                <label className="form-label fw-bold text-dark">
-                  {t("quizzes_page.table_status")}
-                </label>
-                <select
-                  name="status"
-                  className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                  value={formData.status}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                >
-                  <option value="active">
-                    {t("quizzes_page.active_status")}
-                  </option>
-                  <option value="inactive">
-                    {t("quizzes_page.inactive_status")}
-                  </option>
-                </select>
+              {/* is final */}
+              <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
+                <div>
+                  <label
+                    htmlFor="isFinalSwitch"
+                    className="d-block mb-0 cp"
+                    style={{ cursor: "pointer" }}
+                  >
+                    <strong className="d-block mb-1">
+                      {isArabic ? "اختبار نهائي" : "Final Exam"}
+                    </strong>
+                    <small className="text-muted">
+                      {isArabic
+                        ? "اجعل هذا الاختبار اختبار نهائي"
+                        : "Make this exam a final exam"}
+                    </small>
+                  </label>
+                </div>
+                <div className="form-check form-switch m-0">
+                  <input
+                    id="isFinalSwitch"
+                    className="form-check-input form-check-inputS"
+                    type="checkbox"
+                    role="switch"
+                    checked={formData.is_final}
+                    onChange={handleChange}
+                    name="is_final"
+                  />
+                </div>
+              </div>
+              {/* is active  */}
+              <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
+                <div>
+                  <label
+                    htmlFor="isActiveSwitch"
+                    className="d-block mb-0 cp"
+                    style={{ cursor: "pointer" }}
+                  >
+                    <strong className="d-block mb-1">
+                      {isArabic ? "نشط" : "Active"}
+                    </strong>
+                    <small className="text-muted">
+                      {isArabic
+                        ? "اجعل هذا الاختبار نشط"
+                        : "Make this exam active"}
+                    </small>
+                  </label>
+                </div>
+                <div className="form-check form-switch m-0">
+                  <input
+                    id="isActiveSwitch"
+                    className="form-check-input form-check-inputS"
+                    type="checkbox"
+                    role="switch"
+                    checked={formData.is_active}
+                    onChange={handleChange}
+                    name="is_active"
+                  />
+                </div>
+              </div>
+              {/* shuffle questions */}
+              <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
+                <div>
+                  <label
+                    htmlFor="shuffleQuestionsSwitch"
+                    className="d-block mb-0 cp"
+                    style={{ cursor: "pointer" }}
+                  >
+                    <strong className="d-block mb-1">
+                      {isArabic ? "ترتيب عشوائي للاسئلة" : "Shuffle questions"}
+                    </strong>
+                    <small className="text-muted">
+                      {isArabic
+                        ? "اجعل هذا الاختبار عشوائي"
+                        : "Make this quiz shuffle questions"}
+                    </small>
+                  </label>
+                </div>
+                <div className="form-check form-switch m-0">
+                  <input
+                    id="shuffleQuestionsSwitch"
+                    className="form-check-input form-check-inputS"
+                    type="checkbox"
+                    role="switch"
+                    checked={formData.shuffle_questions}
+                    onChange={handleChange}
+                    name="shuffle_questions"
+                  />
+                </div>
               </div>
 
 
 
-              <div className="d-flex justify-content-end mt-4 pt-4 border-top">
-                <button
-                  className="btn btn-success px-5 py-2 fw-medium rounded-3"
-                  onClick={() => navigate(`view-exam/${id || 1}`)}
-                >
-                  {isArabic ? "عرض الامتحان" : "View Exam"}
-                </button>
-              </div>
+
+
+
+
 
 
 
               {/* Footer Save Button for editing */}
               {isEditing && (
-                <div className="d-flex justify-content-end mt-4 pt-4 border-top">
+                <div className="d-flex justify-content-end gap-2 mt-4 pt-4 border-top">
+                  {viewingItem && (
+                    <button
+                      className="btn btn-success px-5 py-2 fw-medium rounded-3"
+                      onClick={() => navigate(`view-exam/${viewingItem.id}`)}
+                    >
+                      {isArabic ? "عرض الامتحان" : "View Exam"}
+                    </button>
+                  )}
                   <button
                     className="btn btn-danger px-5 py-2 fw-medium rounded-3"
                     onClick={handleSubmit}
                   >
                     {viewingItem ? t("quizzes_page.update_quiz") : t("quizzes_page.create_quiz")}
                   </button>
+
                 </div>
+
               )}
             </div>
           </div>
