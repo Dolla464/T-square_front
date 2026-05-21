@@ -10,8 +10,6 @@ import "../Login/Login.css"; // Reuse login wrapper styling
 import "./VerifyEmailPage.css";
 
 // Keep track of active verifications to prevent concurrent duplicate requests in Strict Mode
-const activeVerifications = new Set();
-
 const VerifyEmailPage = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
@@ -41,10 +39,8 @@ const VerifyEmailPage = () => {
       return;
     }
 
-    // Prevent duplicate API calls
-    const verificationKey = `${id}-${hash}-${expires}-${signature}`;
-    if (activeVerifications.has(verificationKey)) return;
-    activeVerifications.add(verificationKey);
+    // Prevent duplicate API calls (React 19 Strict Mode)
+    if (verificationAttempted.current) return;
 
     // If already verified
     if (user.is_verified === true || user.is_verified === "true" || user.is_verified === 1) {
@@ -53,6 +49,7 @@ const VerifyEmailPage = () => {
     }
 
     const performVerification = async () => {
+      verificationAttempted.current = true;
       try {
         await verifyEmail(id, hash, expires, signature);
         
@@ -68,7 +65,8 @@ const VerifyEmailPage = () => {
         }, 3000);
       } catch (error) {
         console.error("Verification error:", error);
-        activeVerifications.delete(verificationKey);
+        // Reset flag if it was a network error or something that might be retried
+        // But usually, a 400 from a used token shouldn't be retried
         setStatus("error");
         setErrorMessage(
           error.response?.data?.message || 

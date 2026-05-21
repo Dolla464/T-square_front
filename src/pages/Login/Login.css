@@ -137,3 +137,15 @@
     font-size: 0.85rem;
     margin-top: 1rem;
 }
+
+/* تصحيح مكان أيقونة الخطأ في الـ RTL لتظهر في النهاية (اليسار) وتجنب تداخلها مع النص */
+.login-input.is-invalid {
+    padding-right: calc(1.5em + 0.75rem) !important;
+    background-position: right calc(0.375em + 0.1875rem) center !important;
+}
+
+[dir="rtl"] .login-input.is-invalid {
+    background-position: left calc(0.375em + 0.1875rem) center !important;
+    padding-left: calc(1.5em + 0.75rem) !important;
+    padding-right: 1rem !important;
+}
