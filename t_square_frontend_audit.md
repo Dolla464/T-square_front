@@ -103,18 +103,7 @@
 1. **محرك الامتحانات والـ State Loss (QuizExamPage.jsx):**
    - الكود بيعتمد على State محلي بالكامل. لو الطالب شغال في امتحان والكهرباء قطعت أو عمل Refresh للصفحة بالخطأ، **كل إجاباته بتضيع والامتحان بيقفل عليه أو بيبدأ من الأول!** دي كارثة UX حقيقية في منصة تعليمية.
    - مفيش حماية للـ Exit Intent (منع الطالب إنه يقفل التاب أو يرجع لورا بدون تأكيد).
-   - الكود بيفترض دائمًا إن أنواع الأسئلة إما `mcq` أو `text` بشكل صلب جدًا، ومفيش مرونة لو ظهر نوع سؤال جديد زي Dropdown أو Matching.
-2. **مشكلة تعطيل تعديل البيانات في الـ Profile:**
-   - في ملف `DashboardProfile.jsx` (السطر 323)، حقل الـ Gender بيتعطل تمامًا لو فيه قيمة جاية من السيرفر:
-     ```javascript
-     disabled={gender}
-     ```
-     ده معناه إن الطالب لو اختار النوع غلط أثناء التسجيل، مش هيقدر يعدله تاني أبدًا من بروفايله! لوجيك غريب ومزعج جداً للمستخدم.
-3. **طريقة حساب الـ Initials بدائية وقد تسبب Crash:**
-   - حساب الـ Avatar initials بيتم كده:
-     ```javascript
-     fullName.split(" ").filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase()
-     ```
+
      لو الاسم يحتوي على رموز خاصة أو بلغة تانية، أو لو الـ `fullName` رجع `null` أو `undefined` من الـ API لأي سبب قبل ما الداتا تتحمل، السطر ده هيعمل Crash للموقع كله لأن مفيش Optional Chaining أو Fallback قيم.
 
 ### الميزات المفقودة (Missing Features)
@@ -134,14 +123,7 @@
      return () => window.removeEventListener("beforeunload", handleBeforeUnload);
    }, []);
    ```
-- **تحسين لوجيك الـ Initials:**
-   ```javascript
-   const getInitials = (name) => {
-     if (!name) return "ST";
-     return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase();
-   };
-   ```
-- **السماح بتعديل الـ Gender** مع عمل Validation مناسب بدلاً من إغلاقه نهائيًا.
+
 
 ### التقييم
 **4.5 / 10** (لوجيك الامتحانات غير آمن بالمرة، والـ Profile مقفول بشكل غريب).

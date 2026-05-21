@@ -345,85 +345,85 @@ function AdminInstructors() {
                 <div className="table-responsive">
                   <table className="table ac-table mb-0 align-middle" dir="ltr">
                     <thead>
-                    <tr>
-                      <th>{t("instructors_page.table_name")}</th>
-                      <th className="text-center">{isArabic ? "التخصص" : "Field"}</th>
-                      <th className="text-center">
-                        {t("instructors_page.table_email")}
-                      </th>
-
-
-                      <th className="text-center">
-                        {t("instructors_page.table_actions")}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
                       <tr>
-                        <td colSpan={11} className="text-center py-5">
-                          <div className="spinner-border text-danger" role="status">
-                            <span className="visually-hidden">Loading...</span>
-                          </div>
-                        </td>
+                        <th>{t("instructors_page.table_name")}</th>
+                        <th className="text-center">{isArabic ? "التخصص" : "Field"}</th>
+                        <th className="text-center">
+                          {t("instructors_page.table_email")}
+                        </th>
+
+
+                        <th className="text-center">
+                          {t("instructors_page.table_actions")}
+                        </th>
                       </tr>
-                    ) : instructors.length > 0 ? (
-                      instructors.map((instructor, index) => {
-                        const insData = instructor.instructor || instructor;
-                        return (
-                          <tr key={instructor.id}>
+                    </thead>
+                    <tbody>
+                      {loading ? (
+                        <tr>
+                          <td colSpan={11} className="text-center py-5">
+                            <div className="spinner-border text-danger" role="status">
+                              <span className="visually-hidden">Loading...</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : instructors.length > 0 ? (
+                        instructors.map((instructor, index) => {
+                          const insData = instructor.instructor || instructor;
+                          return (
+                            <tr key={instructor.id}>
 
-                            <td className="fw-medium text-dark">
-                              {insData.full_name || instructor.name}
-                            </td>
-                            <td className="text-center text-secondary">{insData.field || "-"}</td>
+                              <td className="fw-medium text-dark">
+                                {insData.full_name || instructor.name}
+                              </td>
+                              <td className="text-center text-secondary">{insData.field || "-"}</td>
 
-                            <td className="text-center text-secondary">
-                              {instructor.email}
-                            </td>
+                              <td className="text-center text-secondary">
+                                {instructor.email}
+                              </td>
 
 
 
-                            <td className="text-center">
-                              <div className="d-flex justify-content-center gap-2">
-                                <button
-                                  className="btn btn-sm ac-btn-view border-0"
-                                  title="View"
-                                  onClick={() => handleView(instructor)}
-                                >
-                                  <i className="bi bi-eye fs-6"></i>
-                                </button>
-                                <button
-                                  className="btn btn-sm ac-btn-edit border-0"
-                                  title="Edit"
-                                  onClick={() => handleEdit(instructor)}
-                                >
-                                  <i className="bi bi-pencil-square fs-6"></i>
-                                </button>
-                                <button
-                                  className="btn btn-sm ac-btn-deleteTable border-0"
-                                  title="Delete"
-                                  onClick={() => handleDelete(instructor.instructor?.id || instructor.id)}
-                                >
-                                  <i className="bi bi-trash fs-6"></i>
-                                </button>
-                                <button className="btn btn-sm ac-btn-whatsapp border-0" title="WhatsApp" onClick={() => handleWhatsapp(instructor)}>
-                                  <i className="bi bi-whatsapp fs-6"></i>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan={11} className="text-center py-4 text-muted">
-                          {t("instructors_page.no_instructors")}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                              <td className="text-center">
+                                <div className="d-flex justify-content-center gap-2">
+                                  <button
+                                    className="btn btn-sm ac-btn-view border-0"
+                                    title="View"
+                                    onClick={() => handleView(instructor)}
+                                  >
+                                    <i className="bi bi-eye fs-6"></i>
+                                  </button>
+                                  <button
+                                    className="btn btn-sm ac-btn-edit border-0"
+                                    title="Edit"
+                                    onClick={() => handleEdit(instructor)}
+                                  >
+                                    <i className="bi bi-pencil-square fs-6"></i>
+                                  </button>
+                                  <button
+                                    className="btn btn-sm ac-btn-deleteTable border-0"
+                                    title="Delete"
+                                    onClick={() => handleDelete(instructor.instructor?.id || instructor.id)}
+                                  >
+                                    <i className="bi bi-trash fs-6"></i>
+                                  </button>
+                                  <button className="btn btn-sm ac-btn-whatsapp border-0" title="WhatsApp" onClick={() => handleWhatsapp(instructor)}>
+                                    <i className="bi bi-whatsapp fs-6"></i>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={11} className="text-center py-4 text-muted">
+                            {t("instructors_page.no_instructors")}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -570,7 +570,7 @@ function AdminInstructors() {
                   <label className="form-label fw-bold text-dark">{isArabic ? "الجنس" : "Gender"}</label>
                   <select
                     name="gender"
-                    className={`form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted `}
+                    className={`form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted `}
                     value={formData.gender}
                     onChange={handleChange}
                     disabled={!!viewingItem}
