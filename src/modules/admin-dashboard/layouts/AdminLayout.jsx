@@ -98,6 +98,7 @@ function AdminLayout() {
         return isArabic ? "التصنيفات" : "Categories";
       case "/admin/quizzes":
         return isArabic ? "الاختبارات" : "Quzzies";
+
       case "/admin/groups":
         return isArabic ? "المجموعات" : "Groups";
       case "/admin/courses":
@@ -127,7 +128,12 @@ function AdminLayout() {
         return isArabic ? "الإعدادات" : "Settings";
 
       default:
-        return "";
+        if (location.pathname.startsWith("/admin/quizzes/view-exam/")) {
+          return isArabic ? "عرض الاختبار" : "View Exam";
+        } else if (location.pathname.startsWith("/admin/quizzes/edit-exam/")) {
+          return isArabic ? "تعديل الاختبار" : "Edit Exam";
+        } else
+          return "";
     }
   };
   const pageTitle = getPageTitle(location.pathname);

@@ -1,0 +1,44 @@
+/* NotFoundPage.css */
+
+.notfound-wrapper {
+    background-color: #f7f7f7;
+    min-height: 100vh;
+}
+
+.notfound-card {
+    border-radius: 16px !important;
+    background-color: #ffffff;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08) !important;
+}
+
+.error-code-container {
+    display: inline-block;
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.error-code {
+    font-size: 5.5rem;
+    font-weight: 900;
+    color: #c51c24;
+    line-height: 1;
+    display: block;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #c51c24 0%, #7e1015 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 4px 10px rgba(197, 28, 36, 0.1);
+}
+
+.btn-back {
+    border-color: #d1d5db !important;
+    color: #4b5563 !important;
+    background-color: transparent !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-back:hover {
+    background-color: #f3f4f6 !important;
+    border-color: #9ca3af !important;
+    color: #1f2937 !important;
+}

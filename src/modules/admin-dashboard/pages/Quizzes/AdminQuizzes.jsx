@@ -9,6 +9,8 @@ import { toastError } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { useQuizzes } from "../../hooks/useQuizzes";
 import { useAdminCourses } from "../../hooks/useAdminCourses";
+import { useNavigate, useParams } from "react-router-dom";
+
 
 /**
  * Default form data structure for creating or editing a quiz
@@ -19,6 +21,7 @@ const defaultFormData = {
   questions_count: "",
   duration: "",
   status: "active",
+  description: "",
 };
 
 // Fallback courses in case the course API is empty or fails
@@ -40,6 +43,8 @@ function AdminQuizzes() {
     createQuiz,
     updateQuiz,
     deleteQuiz,
+    restoreQuiz,
+    forceDeleteQuiz,
     toggleQuizStatus,
   } = useQuizzes();
 
@@ -53,12 +58,15 @@ function AdminQuizzes() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedCourse, setSelectedCourse] = useState("all");
+  const [selectedPeriod, setSelectedPeriod] = useState("all");
+  const [showTrash, setShowTrash] = useState(false);
   const [formData, setFormData] = useState(defaultFormData);
   const [currentPage, setCurrentPage] = useState(1);
 
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
-
+  const navigate = useNavigate();
+  const { id } = useParams();
   // Fetch courses on load
   useEffect(() => {
     getCourses({ per_page: 100 }).catch((err) => {
@@ -80,7 +88,7 @@ function AdminQuizzes() {
   }, [searchTerm]);
 
   /**
-   * Fetch quizzes with active filters
+   * Fetch quizzes with active filters (including trash and period options)
    */
   useEffect(() => {
     getQuizzes({
@@ -88,15 +96,17 @@ function AdminQuizzes() {
       search: debouncedSearchTerm,
       status: selectedStatus,
       course_id: selectedCourse,
+      trash: showTrash,
+      period: selectedPeriod,
     });
-  }, [getQuizzes, currentPage, debouncedSearchTerm, selectedStatus, selectedCourse]);
+  }, [getQuizzes, currentPage, debouncedSearchTerm, selectedStatus, selectedCourse, showTrash, selectedPeriod]);
 
   /**
    * Reset page when filters change
    */
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedStatus, selectedCourse]);
+  }, [debouncedSearchTerm, selectedStatus, selectedCourse, showTrash, selectedPeriod]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -126,6 +136,7 @@ function AdminQuizzes() {
         questions_count: fullData.questions_count || "",
         duration: fullData.duration || "",
         status: fullData.status || "active",
+        description: fullData.description || "",
       });
       setShowForm(true);
     }
@@ -145,6 +156,7 @@ function AdminQuizzes() {
         questions_count: fullData.questions_count || "",
         duration: fullData.duration || "",
         status: fullData.status || "active",
+        description: fullData.description || "",
       });
       setShowForm(true);
     }
@@ -160,7 +172,7 @@ function AdminQuizzes() {
   };
 
   /**
-   * Confirm and delete quiz
+   * Confirm and soft delete quiz
    */
   const handleDelete = async (id, title) => {
     const ok = await showDeleteConfirm(title);
@@ -172,15 +184,77 @@ function AdminQuizzes() {
           search: debouncedSearchTerm,
           status: selectedStatus,
           course_id: selectedCourse,
+          trash: showTrash,
+          period: selectedPeriod,
         });
       }
     }
   };
 
   /**
-   * Toggle quiz status badge
+   * Confirm and restore quiz
+   */
+  const handleRestore = async (id, title) => {
+    const ok = await showConfirmCustom({
+      title: isArabic ? "استعادة الاختبار" : "Restore Quiz",
+      message: isArabic
+        ? `هل أنت متأكد من استعادة الاختبار (${title}) إلى قائمة الاختبارات النشطة؟`
+        : `Are you sure you want to restore the quiz "${title}" to active quizzes?`,
+      icon: "question",
+      variant: "primary",
+      confirmText: isArabic ? "استعادة" : "Restore",
+    });
+
+    if (ok) {
+      const success = await restoreQuiz(id);
+      if (success) {
+        getQuizzes({
+          page: currentPage,
+          search: debouncedSearchTerm,
+          status: selectedStatus,
+          course_id: selectedCourse,
+          trash: showTrash,
+          period: selectedPeriod,
+        });
+      }
+    }
+  };
+
+  /**
+   * Confirm and permanently delete quiz
+   */
+  const handleForceDelete = async (id, title) => {
+    const ok = await showConfirmCustom({
+      title: isArabic ? "حذف نهائي للاختبار" : "Permanently Delete Quiz",
+      message: isArabic
+        ? `هل أنت متأكد من حذف الاختبار (${title}) نهائياً؟ لا يمكن استعادة هذا الاختبار بعد الحذف.`
+        : `Are you sure you want to permanently delete the quiz "${title}"? This action cannot be undone.`,
+      icon: "warning",
+      variant: "danger",
+      confirmText: isArabic ? "حذف نهائي" : "Delete Permanently",
+    });
+
+    if (ok) {
+      const success = await forceDeleteQuiz(id);
+      if (success) {
+        getQuizzes({
+          page: currentPage,
+          search: debouncedSearchTerm,
+          status: selectedStatus,
+          course_id: selectedCourse,
+          trash: showTrash,
+          period: selectedPeriod,
+        });
+      }
+    }
+  };
+
+  /**
+   * Toggle quiz status badge (active/inactive)
    */
   const handleStatusToggle = async (id, currentStatus) => {
+    if (showTrash) return; // Prevent status toggle in Trash mode
+
     const nextStatus = currentStatus === "active" ? "inactive" : "active";
     const ok = await showConfirmCustom({
       title: isArabic ? "تغيير حالة الاختبار" : "Change Quiz Status",
@@ -199,6 +273,8 @@ function AdminQuizzes() {
         search: debouncedSearchTerm,
         status: selectedStatus,
         course_id: selectedCourse,
+        trash: showTrash,
+        period: selectedPeriod,
       });
     }
   };
@@ -249,6 +325,8 @@ function AdminQuizzes() {
         search: debouncedSearchTerm,
         status: selectedStatus,
         course_id: selectedCourse,
+        trash: showTrash,
+        period: selectedPeriod,
       });
       handleBack();
     }
@@ -270,18 +348,45 @@ function AdminQuizzes() {
           {/* Header Title and Action Button */}
           <div className="ac-header d-flex justify-content-between align-items-center mb-4">
             <div>
-              <h2 className="ac-title">{t("quizzes_page.title")}</h2>
+              <h2 className="ac-title">
+                {showTrash ? t("quizzes_page.trash_title") : t("quizzes_page.title")}
+              </h2>
               <p className="ac-subtitle text-muted mb-0">
                 {t("quizzes_page.subtitle")}
               </p>
             </div>
-            <button
-              className="btn btn-danger ac-add-btn"
-              onClick={handleAddNew}
-            >
-              <i className="bi bi-plus-lg me-0 me-md-1"></i>
-              <span className="d-none d-md-inline">{t("quizzes_page.add_quiz")}</span>
-            </button>
+            <div className="d-flex gap-2">
+              {!showTrash && (
+                <button
+                  className="btn btn-danger ac-add-btn"
+                  onClick={handleAddNew}
+                >
+                  <i className="bi bi-plus-lg me-0 me-md-1"></i>
+                  <span className="d-none d-md-inline">{t("quizzes_page.add_quiz")}</span>
+                </button>
+              )}
+              <button
+                className="btn btn-outline-dark ac-add-btn"
+                style={{ color: "#ffffff" }}
+                onClick={() => {
+                  if (showTrash) {
+                    setShowTrash(false);
+                    setSelectedPeriod("all");
+                    setSelectedStatus("all");
+                    setSelectedCourse("all");
+                  } else {
+                    setShowTrash(true);
+                  }
+                }}
+              >
+                <i
+                  className={`bi ${showTrash ? "bi-arrow-left" : "bi-trash"} me-0 me-md-2`}
+                ></i>
+                <span className="d-none d-md-inline">
+                  {showTrash ? t("quizzes_page.back_to_active") : t("quizzes_page.trash")}
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="ac-table-card">
@@ -359,6 +464,29 @@ function AdminQuizzes() {
                         {t("quizzes_page.inactive_status")}
                       </option>
                     </select>
+
+                    {/* Date-Range Filter (All time, Last week, Last month, Last year) */}
+                    <select
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedPeriod !== "all"
+                        ? "border-danger bg-danger-subtle text-danger-emphasis"
+                        : "border-light bg-light text-muted"
+                        }`}
+                      value={selectedPeriod}
+                      onChange={(e) => setSelectedPeriod(e.target.value)}
+                    >
+                      <option value="all">
+                        {t("quizzes_page.all_time")}
+                      </option>
+                      <option value="last_week">
+                        {t("quizzes_page.last_week")}
+                      </option>
+                      <option value="last_month">
+                        {t("quizzes_page.last_month")}
+                      </option>
+                      <option value="last_year">
+                        {t("quizzes_page.last_year")}
+                      </option>
+                    </select>
                   </div>
                 </div>
 
@@ -398,7 +526,7 @@ function AdminQuizzes() {
                                   : "bg-danger-subtle text-danger"
                                   }`}
                                 style={{
-                                  cursor: "pointer",
+                                  cursor: showTrash ? "default" : "pointer",
                                   padding: "8px 16px",
                                 }}
                                 onClick={() => handleStatusToggle(quizItem.id, quizItem.status)}
@@ -416,27 +544,48 @@ function AdminQuizzes() {
                             </td>
                             <td className="text-center">
                               <div className="d-flex justify-content-center gap-2">
-                                <button
-                                  className="btn btn-sm ac-btn-view border-0"
-                                  title="View"
-                                  onClick={() => handleView(quizItem)}
-                                >
-                                  <i className="bi bi-eye fs-6"></i>
-                                </button>
-                                <button
-                                  className="btn btn-sm ac-btn-view border-0 text-primary"
-                                  title="Edit"
-                                  onClick={() => handleEdit(quizItem)}
-                                >
-                                  <i className="bi bi-pencil-square fs-6"></i>
-                                </button>
-                                <button
-                                  className="btn btn-sm ac-btn-deleteTable border-0"
-                                  title="Delete"
-                                  onClick={() => handleDelete(quizItem.id, quizItem.title)}
-                                >
-                                  <i className="bi bi-trash fs-6"></i>
-                                </button>
+                                {showTrash ? (
+                                  <>
+                                    <button
+                                      className="btn btn-sm ac-btn-view border-0 text-success"
+                                      title={t("quizzes_page.restore")}
+                                      onClick={() => handleRestore(quizItem.id, quizItem.title)}
+                                    >
+                                      <i className="bi bi-arrow-counterclockwise fs-6"></i>
+                                    </button>
+                                    <button
+                                      className="btn btn-sm ac-btn-deleteTable border-0"
+                                      title={t("quizzes_page.force_delete")}
+                                      onClick={() => handleForceDelete(quizItem.id, quizItem.title)}
+                                    >
+                                      <i className="bi bi-trash-fill fs-6"></i>
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      className="btn btn-sm ac-btn-view border-0"
+                                      title={t("quizzes_page.view_quiz")}
+                                      onClick={() => handleView(quizItem)}
+                                    >
+                                      <i className="bi bi-eye fs-6"></i>
+                                    </button>
+                                    <button
+                                      className="btn btn-sm ac-btn-view border-0 text-primary"
+                                      title={t("quizzes_page.edit_quiz")}
+                                      onClick={() => handleEdit(quizItem)}
+                                    >
+                                      <i className="bi bi-pencil-square fs-6"></i>
+                                    </button>
+                                    <button
+                                      className="btn btn-sm ac-btn-deleteTable border-0"
+                                      title={t("quizzes_page.delete_quiz")}
+                                      onClick={() => handleDelete(quizItem.id, quizItem.title)}
+                                    >
+                                      <i className="bi bi-trash fs-6"></i>
+                                    </button>
+                                  </>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -551,6 +700,22 @@ function AdminQuizzes() {
                 </select>
               </div>
 
+              {/* Quiz Description */}
+              <div className="mb-4">
+                <label className="form-label fw-bold text-dark">
+                  {t("quizzes_page.description")}
+                </label>
+                <textarea
+                  name="description"
+                  className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                  placeholder={t("quizzes_page.description_placeholder")}
+                  value={formData.description}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  rows="3"
+                />
+              </div>
+
               <div className="row mb-4">
                 {/* Quiz Duration in Minutes */}
                 <div className="col-md-6 mb-3 mb-md-0">
@@ -607,6 +772,19 @@ function AdminQuizzes() {
                   </option>
                 </select>
               </div>
+
+
+
+              <div className="d-flex justify-content-end mt-4 pt-4 border-top">
+                <button
+                  className="btn btn-success px-5 py-2 fw-medium rounded-3"
+                  onClick={() => navigate(`view-exam/${id || 1}`)}
+                >
+                  {isArabic ? "عرض الامتحان" : "View Exam"}
+                </button>
+              </div>
+
+
 
               {/* Footer Save Button for editing */}
               {isEditing && (
