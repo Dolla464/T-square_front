@@ -451,8 +451,8 @@ function AdminStudents() {
                       type="text"
                       // ضبطنا الـ padding من الشمال (ps-5) عشان الكلام ميبدأش من فوق الأيقونة
                       className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
-                          ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
-                          : "border-light bg-light text-muted"
+                        ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
+                        : "border-light bg-light text-muted"
                         }`}
                       placeholder={t("students_page.search_placeholder")}
                       value={searchTerm}
@@ -476,8 +476,8 @@ function AdminStudents() {
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
                       className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedStatus !== "all"
-                          ? "border-danger bg-danger-subtle text-danger-emphasis"
-                          : "border-light bg-light text-muted"
+                        ? "border-danger bg-danger-subtle text-danger-emphasis"
+                        : "border-light bg-light text-muted"
                         }`}
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
@@ -497,8 +497,8 @@ function AdminStudents() {
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
                       className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedGroup !== "all"
-                          ? "border-danger bg-danger-subtle text-danger-emphasis"
-                          : "border-light bg-light text-muted"
+                        ? "border-danger bg-danger-subtle text-danger-emphasis"
+                        : "border-light bg-light text-muted"
                         }`}
                       value={selectedGroup}
                       onChange={(e) => setSelectedGroup(e.target.value)}
@@ -518,8 +518,8 @@ function AdminStudents() {
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
                       className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedGender !== "all"
-                          ? "border-danger bg-danger-subtle text-danger-emphasis"
-                          : "border-light bg-light text-muted"
+                        ? "border-danger bg-danger-subtle text-danger-emphasis"
+                        : "border-light bg-light text-muted"
                         }`}
                       value={selectedGender}
                       onChange={(e) => setSelectedGender(e.target.value)}
@@ -814,7 +814,7 @@ function AdminStudents() {
                 </label>
                 <select
                   name="gender"
-                  className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
+                  className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
                   value={formData.gender}
                   onChange={handleChange}
                   disabled={!!viewingItem}
@@ -853,7 +853,7 @@ function AdminStudents() {
                 </label>
                 <select
                   name="group_id" // تأكد إن الاسم group_id عشان يتبعت للباك صح
-                  className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
+                  className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
                   value={formData.group_id}
                   onChange={handleChange}
                   disabled={!!viewingItem}
@@ -1013,10 +1013,10 @@ function AdminStudents() {
                                       disabled={course.is_completed}
                                       // 2. تلوين ديناميكي باستخدام كلاسات بوتستراب بناءً على حالة الكورس والجروب
                                       className={`form-control form-select-sm border-2 shadow-sm text-center rounded-3 py-2 px-3 ${course.is_completed
-                                          ? "border-light-subtle bg-body-secondary text-muted opacity-75" // شكل مطفي للكورس المكتمل
-                                          : !course.group_id
-                                            ? "border-warning bg-warning-subtle text-dark"
-                                            : "border-light-subtle bg-light text-secondary"
+                                        ? "border-light-subtle bg-body-secondary text-muted opacity-75" // شكل مطفي للكورس المكتمل
+                                        : !course.group_id
+                                          ? "border-warning bg-warning-subtle text-dark"
+                                          : "border-light-subtle bg-light text-secondary"
                                         }`}
                                       value={course.group_id || ""}
                                       // 3. تأكد من تمرير الدالة الصحيحة المتواجدة بالهوك لديك (يمكنك إضافة student.id إذا دعت الحاجة)
@@ -1064,8 +1064,8 @@ function AdminStudents() {
                                     type="button"
                                     // تحويل الـ Badge لـ Button باستخدام كلاسات بوتستراب لتغيير الخلفية والألوان بدون inline style
                                     className={`btn btn-sm rounded-pill fw-bold border-0 py-2 px-3 shadow-sm ${course.is_completed
-                                        ? "bg-success-subtle text-success-emphasis"
-                                        : "bg-primary-subtle text-primary-emphasis"
+                                      ? "bg-success-subtle text-success-emphasis"
+                                      : "bg-primary-subtle text-primary-emphasis"
                                       }`}
                                     style={{
                                       fontSize: "0.75rem",

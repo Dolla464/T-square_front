@@ -45,7 +45,7 @@
 }
 
 .ac-search-input-wrapper {
-  width: 50%  !important;
+  width: 50% !important;
   position: relative;
 }
 
@@ -81,7 +81,8 @@
   box-shadow: 0 0 0 0.2rem rgba(211, 47, 47, 0.25);
 }
 
-.ac-filter-select, .ac-form-select {
+.ac-filter-select,
+.ac-form-select {
   border-radius: 10px;
   border: 1px solid #eaeaea;
   background-color: #f9f9fb;
@@ -92,6 +93,8 @@
   transition: all 0.3s ease;
   cursor: pointer;
 }
+
+
 
 .ac-form-select:hover {
   border-color: #d32f2f;
@@ -112,6 +115,40 @@
 }
 
 .ac-form-select option:checked {
+  background-color: #d32f2f;
+  color: white;
+}
+
+.ac-form-select-full-width {
+  border-radius: 10px;
+  border: 1px solid #eaeaea;
+  background-color: #f9f9fb;
+  font-size: 0.95rem;
+  color: #4b5563;
+  width: 100% !important;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.ac-form-select-full-width:hover {
+  border-color: #d32f2f;
+  background-color: #fff;
+}
+
+.ac-form-select-full-width optgroup {
+  font-weight: 700;
+  color: #1a1a1a;
+  padding: 10px;
+  background-color: #f8fafc;
+}
+
+.ac-form-select-full-width option {
+  padding: 12px;
+  font-weight: 400;
+  color: #4b5563;
+}
+
+.ac-form-select-full-width option:checked {
   background-color: #d32f2f;
   color: white;
 }
@@ -273,6 +310,7 @@
   background-color: #f3f4f6 !important;
   transition: all 0.2s;
 }
+
 .ac-btn-whatsapp {
   color: #36ff0e !important;
   background-color: #0c8817 !important;
@@ -295,6 +333,7 @@
   background-color: #be1522 !important;
   color: #ffffff !important;
 }
+
 .ac-btn-whatsapp:hover {
   background-color: #0f5201 !important;
   color: #ffffff !important;
@@ -310,6 +349,7 @@
   background-color: #10ab357c !important;
   color: white !important;
 }
+
 .ac-tag-option.checked {
   border-color: #075e1ac5 !important;
   background-color: #05a72ba8 !important;
@@ -380,18 +420,20 @@
 .ac-btn-delete {
   min-width: 130px;
 }
+
 /* /////////////////////////////////////// */
 /* /////////////////////////////////////// */
 /* /////////////////////////////////////// */
 
-.form-check-inputS{
+.form-check-inputS {
   cursor: pointer;
   width: 40px !important;
   height: 20px !important;
   border: none;
 }
+
 .form-check-inputS:checked {
-  background-color: #dc3545 !important; 
+  background-color: #dc3545 !important;
   border-color: #dc3545 !important;
 }
 
@@ -424,17 +466,20 @@
 
 [dir="rtl"] .ac-form-select {
   background-position: left 1rem center !important;
-  padding-left: 3rem !important; /* reserve space for arrow */
+  padding-left: 3rem !important;
+  /* reserve space for arrow */
 }
 
 [dir="ltr"] .ac-form-select {
   background-position: right 1rem center !important;
-  padding-right: 3rem !important; /* reserve space for arrow */
+  padding-right: 3rem !important;
+  /* reserve space for arrow */
 }
 
 .cursor-pointer {
   cursor: pointer;
 }
+
 /* \\\\\\\\\\\\\\\\\\\\\ */
 .state {
   background-color: #ffffff;
@@ -445,31 +490,34 @@
   height: 120px;
   transition: all 0.4s ease;
   padding: 13px;
-  padding-left: 20px ;
+  padding-left: 20px;
   position: relative;
-    
 
-} .state-value{
-    font-size: 18px;
-       font-weight: bold;
-     }
+
+}
+
+.state-value {
+  font-size: 18px;
+  font-weight: bold;
+}
 
 /* Responsive Enhancements for Mobile/Tablet */
 @media (max-width: 767.98px) {
+
   /* Stack filters vertically and stretch them */
   .ac-filters-bar {
     flex-direction: column !important;
     align-items: stretch !important;
     gap: 1rem !important;
   }
-  
+
   /* Make search input take full width */
   .ac-search-input-wrapper {
     width: 100% !important;
   }
-  
+
   /* Use CSS Grid for the dropdowns container to auto-distribute equally */
-  .ac-filters-bar > div:last-child {
+  .ac-filters-bar>div:last-child {
     display: grid !important;
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem !important;
@@ -477,19 +525,21 @@
   }
 
   /* If the number of filters is odd (e.g. 3 filters), make the last one span full width */
-  .ac-filters-bar > div:last-child > :last-child:nth-child(odd) {
+  .ac-filters-bar>div:last-child> :last-child:nth-child(odd) {
     grid-column: span 2;
   }
-  
+
   /* Reset max-width so selects can fill the grid column */
-  .ac-form-select, .ac-filter-select {
+  .ac-form-select,
+  .ac-filter-select {
     max-width: none !important;
     width: 100% !important;
     min-width: 0 !important;
   }
-  
+
   /* Prevent table content from squashing */
-  .ac-table th, .ac-table td {
+  .ac-table th,
+  .ac-table td {
     white-space: nowrap;
   }
-}
+}
