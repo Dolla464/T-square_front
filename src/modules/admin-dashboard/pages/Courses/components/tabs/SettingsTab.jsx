@@ -5,12 +5,12 @@ function SettingsTab({ formData, handleChange, isReadOnly, isArabic, t }) {
 
       <div className="row mb-4">
         {/* Course language */}
-        <div className="col-12 mb-3">
+        <div className="col-md-6 mb-3">
           <label className="form-label fw-bold text-dark">
             {isArabic ? "لغة الكورس" : "Course Language"}
           </label>
           <select
-            className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
             name="language"
             value={formData.language}
             onChange={handleChange}
@@ -21,7 +21,21 @@ function SettingsTab({ formData, handleChange, isReadOnly, isArabic, t }) {
             <option value="en">{isArabic ? "الإنجليزية" : "English"}</option>
           </select>
         </div>
-
+        {/* Google Drive link */}
+        <div className="col-md-6 mb-3">
+          <label className="form-label fw-bold text-dark">
+            {isArabic ? "رابط جوجل درايف" : "Google Drive Link"}
+          </label>
+          <input
+            type="url"
+            className="form-control p-3 bg-light border-0 rounded-3"
+            name="google_drive_link"
+            placeholder="https://drive.google.com/..."
+            value={formData.google_drive_link}
+            onChange={handleChange}
+            disabled={isReadOnly}
+          />
+        </div>
         {/* Duration – weeks */}
         <div className="col-md-6 mb-3">
           <label className="form-label fw-bold text-dark">
@@ -54,21 +68,7 @@ function SettingsTab({ formData, handleChange, isReadOnly, isArabic, t }) {
           />
         </div>
 
-        {/* Google Drive link */}
-        <div className="col-md-12 mb-3">
-          <label className="form-label fw-bold text-dark">
-            {isArabic ? "رابط جوجل درايف" : "Google Drive Link"}
-          </label>
-          <input
-            type="url"
-            className="form-control p-3 bg-light border-0 rounded-3"
-            name="google_drive_link"
-            placeholder="https://drive.google.com/..."
-            value={formData.google_drive_link}
-            onChange={handleChange}
-            disabled={isReadOnly}
-          />
-        </div>
+
       </div>
 
       {/* Free course toggle */}

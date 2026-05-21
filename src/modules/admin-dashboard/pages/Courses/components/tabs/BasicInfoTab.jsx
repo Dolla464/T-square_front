@@ -97,7 +97,7 @@ function BasicInfoTab({
           </label>
           <select
             name="category_id"
-            className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
             value={formData.category_id ? String(formData.category_id) : ""}
             onChange={handleChange}
             disabled={isReadOnly}
@@ -112,7 +112,7 @@ function BasicInfoTab({
                     </option>
                   ))
                 ) : (
-                  <option value={cat.id} disabled>
+                  <option value={cat.id}  >
                     {cat.name} (No subcategories)
                   </option>
                 )}
@@ -126,7 +126,7 @@ function BasicInfoTab({
           </label>
           <select
             name="level"
-            className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
             value={formData.level}
             onChange={handleChange}
             disabled={isReadOnly}
@@ -147,7 +147,7 @@ function BasicInfoTab({
           </label>
           <select
             name="instructor_id"
-            className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
             value={formData.instructor_id}
             onChange={handleChange}
             disabled={isReadOnly}
@@ -169,7 +169,7 @@ function BasicInfoTab({
             {isArabic ? "نوع الحضور" : "Attendance Type"}
           </label>
           <select
-            className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
             name="attendance_type"
             value={formData.attendance_type}
             onChange={handleChange}
@@ -231,7 +231,7 @@ function BasicInfoTab({
                           type="checkbox"
                           className="form-check-input mt-0 cursor-pointer"
                           checked={isChecked}
-                          onChange={() => {}}
+                          onChange={() => { }}
                         />
                         <span
                           className={`small fw-medium ${isChecked ? "text-light" : "text-dark"}`}
