@@ -252,7 +252,32 @@ function EditExam() {
             </span>
           </button>
         </div>
+        {isAdd && (
+          <div>
 
+            <button
+              className="btn btn-danger ac-add-btn"
+              onClick={handleSave}
+              disabled={saving}
+              style={{
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "6px"
+              }}
+            >
+              {saving ? (
+                <span className="spinner-border spinner-border-sm" role="status"></span>
+              ) : (
+                <i className="bi bi-check2-all"></i>
+              )}
+              <span>
+                {isArabic ? "حفظ" : "Save"}
+              </span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Quiz Exam Editor */}
@@ -268,16 +293,66 @@ function EditExam() {
             </div>
           )}
 
-          {/* Question Text Input */}
-          <div className="quiz-question">
-            <input
-              type="text"
-              className="form-control border-0 bg-transparent fw-bold"
-              style={{ fontSize: "1.1rem", color: "#1a1a1a" }}
-              placeholder={isArabic ? "اكتب نص السؤال هنا..." : "Type question text here..."}
-              value={questionText}
-              onChange={(e) => handleQuestionTextChange(e.target.value)}
-            />
+          <div className="row">
+            <div className="col-md-6">
+              {/* Question Text Input */}
+              <div className="quiz-question h-75 d-flex align-items-center">
+                <input
+                  type="text"
+                  className="form-control border-0 bg-transparent fw-bold"
+                  style={{
+                    fontSize: "1.1rem",
+                    color: "#1a1a1a",
+                  }}
+                  placeholder={
+                    isArabic
+                      ? "اكتب نص السؤال هنا..."
+                      : "Type question text here..."
+                  }
+                  value={questionText}
+                  onChange={(e) => {
+                    let value = e.target.value;
+
+                    // يمنع تكرار علامة الاستفهام
+                    value = value.replace(/\?+$/, "");
+
+                    handleQuestionTextChange(`${value}?`);
+                  }}
+                />
+                <div
+                  className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm"
+                  style={{ width: "40px", height: "40px", flexShrink: 0 }}
+                  title="لا تضع علامة استفهام يتم وضعها بشكل تلقائي"
+                >
+                  <i className="bi bi-question-lg text-white"></i>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-6">
+              {/* Question Mark Input */}
+              <div className="d-flex align-items-center h-75 gap-3 mb-4 p-3 bg-light rounded-3">
+                <div
+                  className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm"
+                  style={{ width: "40px", height: "40px", flexShrink: 0 }}
+                >
+                  <i className="bi bi-star-fill text-white"></i>
+                </div>
+                <div className="flex-grow-1">
+                  <label className="form-label fw-bold text-dark mb-1" style={{ fontSize: "0.85rem" }}>
+                    {isArabic ? "درجة السؤال" : "Question Mark"}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    className="form-control border-0 bg-white rounded-3 p-2"
+                    value={marks}
+                    onChange={(e) => handleMarksChange(e.target.value)}
+                    min="0.5"
+                    style={{ maxWidth: "120px" }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Answer Options with Radio Buttons */}
@@ -327,33 +402,11 @@ function EditExam() {
             ))}
           </div>
 
-          {/* Question Mark Input */}
-          <div className="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-3">
-            <div
-              className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm"
-              style={{ width: "40px", height: "40px", flexShrink: 0 }}
-            >
-              <i className="bi bi-star-fill text-white"></i>
-            </div>
-            <div className="flex-grow-1">
-              <label className="form-label fw-bold text-dark mb-1" style={{ fontSize: "0.85rem" }}>
-                {isArabic ? "درجة السؤال" : "Question Mark"}
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                className="form-control border-0 bg-white rounded-3 p-2"
-                value={marks}
-                onChange={(e) => handleMarksChange(e.target.value)}
-                min="0.5"
-                style={{ maxWidth: "120px" }}
-              />
-            </div>
-          </div>
+
 
           {/* Footer Actions */}
           <div className="d-flex justify-content-end align-items-center gap-2 mt-4">
-            {isAdd && (
+            {isAdd ? (
               <button
                 className="btn btn-danger ac-add-btn"
                 onClick={handleNext}
@@ -372,31 +425,32 @@ function EditExam() {
                   <i className={`bi ${isArabic ? "bi-arrow-left" : "bi-arrow-right"}`}></i>
                 )}
                 <span>
-                  {isArabic ? "التالي" : "Next"}
+                  {isArabic ? "حفظ وإضافة سؤال جديد" : "Save and add new question"}
+                </span>
+              </button>
+            ) : (
+              <button
+                className="btn btn-danger ac-add-btn"
+                onClick={handleSave}
+                disabled={saving}
+                style={{
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px"
+                }}
+              >
+                {saving ? (
+                  <span className="spinner-border spinner-border-sm" role="status"></span>
+                ) : (
+                  <i className="bi bi-check2-all"></i>
+                )}
+                <span>
+                  {isArabic ? "حفظ" : "Save"}
                 </span>
               </button>
             )}
-            <button
-              className="btn btn-danger ac-add-btn"
-              onClick={handleSave}
-              disabled={saving}
-              style={{
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "6px"
-              }}
-            >
-              {saving ? (
-                <span className="spinner-border spinner-border-sm" role="status"></span>
-              ) : (
-                <i className="bi bi-check2-all"></i>
-              )}
-              <span>
-                {isArabic ? "حفظ" : "Save"}
-              </span>
-            </button>
           </div>
         </div>
       </div>

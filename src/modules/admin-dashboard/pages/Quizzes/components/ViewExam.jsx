@@ -188,6 +188,43 @@ function ViewExam() {
                                     </p>
                                 </div>
                             </div>
+                            <div className="d-flex gap-2">
+                                {/* Total Marks */}
+                                <div
+                                    className="bg-danger rounded-3 p-2  d-flex align-items-center justify-content-center shadow-sm gap-2"
+                                    style={{ minWidth: "40px", height: "40px" }}
+                                    title={isArabic ? "الدرجة الكلية" : "Total Marks"}
+                                >
+                                    <i className="bi bi-award-fill text-white"></i>
+                                    <span className="fw-bold text-white">
+                                        {quiz?.total_marks}
+                                    </span>
+                                </div>
+
+                                {/* Max Attempts */}
+                                <div
+                                    className="bg-danger rounded-3 p-2  d-flex align-items-center justify-content-center shadow-sm gap-2"
+                                    style={{ minWidth: "40px", height: "40px" }}
+                                    title={isArabic ? "الحد الأقصى للمحاولات" : "Max Attempts"}
+                                >
+                                    <i className="bi bi-arrow-repeat text-white"></i>
+                                    <span className="fw-bold text-white">
+                                        {quiz?.max_attempts}
+                                    </span>
+                                </div>
+
+                                {/* Duration */}
+                                <div
+                                    className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm gap-2"
+                                    style={{ minWidth: "40px", height: "40px" }}
+                                    title={isArabic ? "المدة" : "Duration"}
+                                >
+                                    <i className="bi bi-clock-fill text-white"></i>
+                                    <span className="fw-bold text-white">
+                                        {quiz?.duration}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="table-responsive">
@@ -302,7 +339,7 @@ function ViewExam() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 
