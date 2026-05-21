@@ -314,7 +314,7 @@ function AdminGroups() {
 
       getGroups({ page: currentPage });
       handleBack();
-    } catch (err) {}
+    } catch (err) { }
   };
 
   return (
@@ -710,7 +710,7 @@ function AdminGroups() {
                           </thead>
                           <tbody className="border-0">
                             {formData.students &&
-                            formData.students.length > 0 ? (
+                              formData.students.length > 0 ? (
                               formData.students.map((student) => (
                                 <tr
                                   key={`current-${student.id}`}
@@ -730,7 +730,7 @@ function AdminGroups() {
                                   {/* عمود الحالة التفاعلي داخل جدول الطلاب الحاليين */}
                                   <td className="py-3 text-center">
                                     {editingItem ? (
-                                      // 👈 في وضع التعديل فقط: يظهر كـ Select Box على شكل بادج دائري أنيق يغير الحالة محلياً
+                                      //  في وضع التعديل فقط: يظهر كـ Select Box على شكل بادج دائري أنيق يغير الحالة محلياً
                                       <select
                                         className="form-select form-select-sm rounded-pill px-3 fw-medium text-center border-0 shadow-sm d-inline-block transition-all"
                                         style={{
@@ -881,7 +881,7 @@ function AdminGroups() {
                             id="selectAllStudents"
                             checked={
                               selectedStudents.length ===
-                                filteredAvailableStudents.length &&
+                              filteredAvailableStudents.length &&
                               filteredAvailableStudents.length > 0
                             }
                             onChange={toggleSelectAllStudents}

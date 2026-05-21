@@ -18,6 +18,11 @@ const ADMIN_NAV = [
     icon: "bi-list",
   },
   {
+    key: "Quzies",
+    path: "/admin/quizzes",
+    icon: "bi-chat-right-quote",
+  },
+  {
     key: "groups",
     path: "/admin/groups",
     icon: "bi-people",
@@ -91,6 +96,9 @@ function AdminLayout() {
         return HomePageTitle;
       case "/admin/categories":
         return isArabic ? "التصنيفات" : "Categories";
+      case "/admin/quizzes":
+        return isArabic ? "الاختبارات" : "Quzzies";
+
       case "/admin/groups":
         return isArabic ? "المجموعات" : "Groups";
       case "/admin/courses":
@@ -120,7 +128,12 @@ function AdminLayout() {
         return isArabic ? "الإعدادات" : "Settings";
 
       default:
-        return "";
+        if (location.pathname.startsWith("/admin/quizzes/view-exam/")) {
+          return isArabic ? "عرض الاختبار" : "View Exam";
+        } else if (location.pathname.startsWith("/admin/quizzes/edit-exam/")) {
+          return isArabic ? "تعديل الاختبار" : "Edit Exam";
+        } else
+          return "";
     }
   };
   const pageTitle = getPageTitle(location.pathname);

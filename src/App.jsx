@@ -20,6 +20,7 @@ import Courses from "./pages/CoursesPage";
 import Solutions from "./pages/Solutions";
 import DetailsCourse from "./pages/CourseDetails";
 import VerifyEmailPage from "./pages/VerifyEmail/VerifyEmailPage";
+import NotFoundPage from "./pages/NotFound/NotFoundPage";
 
 // استيراد ملفات البوتستراب
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -60,6 +61,9 @@ import AdminReviews from "./modules/admin-dashboard/pages/Reviews/AdminReviews";
 import AdminSettings from "./modules/admin-dashboard/pages/Settings/AdminSettings";
 import AdminGroups from "./modules/admin-dashboard/pages/Groups/AdminGroups";
 import AdminCategories from "./modules/admin-dashboard/pages/Categories/AdminCategories";
+import AdminQuizzes from "./modules/admin-dashboard/pages/Quizzes/AdminQuizzes";
+import ViewExam from "./modules/admin-dashboard/pages/Quizzes/components/ViewExam";
+import EditExam from "./modules/admin-dashboard/pages/Quizzes/components/EditExam";
 
 
 // مكون فرعي للتحكم في عرض الـ Layout
@@ -69,7 +73,27 @@ function AppContent() {
   const { user } = useAuth();
 
   // تحديد الصفحات التي سيتم إخفاء النافبار والفوتر فيها
+  const validRoutes = [
+    "/",
+    "/login",
+    "/signup",
+    "/forgot_password",
+    "/update_password",
+    "/verify-email",
+    "/courses",
+    "/solutions",
+    "/team",
+    "/contact",
+  ];
+  const isValidRoute =
+    validRoutes.includes(location.pathname) ||
+    location.pathname.startsWith("/courses/course_details/") ||
+    location.pathname.startsWith("/payment/") ||
+    location.pathname.startsWith("/admin") ||
+    location.pathname.startsWith("/student");
+
   const hideLayout =
+    !isValidRoute ||
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
     location.pathname === "/forgot_password" ||
@@ -220,6 +244,9 @@ function AppContent() {
               <Route index element={<AdminOverview />} />
               <Route path="courses" element={<AdminCourses />} />
               <Route path="categories" element={<AdminCategories />} />
+              <Route path="quizzes" element={<AdminQuizzes />} />
+              <Route path="quizzes/view-exam/:id" element={<ViewExam />} />
+              <Route path="quizzes/edit-exam/:id" element={<EditExam />} />
               <Route path="groups" element={<AdminGroups />} />
               <Route path="solutions" element={<AdminSolutions />} />
               <Route path="students" element={<AdminStudents />} />
@@ -262,6 +289,9 @@ function AppContent() {
               />
             </Route>
           </Route>
+          
+          {/* Catch-all route for undefined paths */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
         {/* إظهار الفوتر فقط إذا لم نكن في صفحة اللوجين */}
         {!hideLayout && <AppFooter />}

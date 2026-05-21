@@ -26,6 +26,41 @@ function QuizExamPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [answers, setAnswers] = useState([]);
+
+  // Load saved state if the attempt matches
+  useEffect(() => {
+    if (!exam) return;
+    const savedState = localStorage.getItem(`quiz_state_${quizId}`);
+    if (savedState) {
+      try {
+        const { savedIndex, savedAnswers, attemptId } = JSON.parse(savedState);
+        if (attemptId === exam.attempt_id && typeof savedIndex === "number" && Array.isArray(savedAnswers)) {
+          setCurrentIndex(savedIndex);
+          setAnswers(savedAnswers);
+          return;
+        }
+      } catch (e) {
+        console.error("Failed to load saved quiz state", e);
+      }
+    }
+    // If no saved state or mismatch, start fresh
+    setCurrentIndex(0);
+    setAnswers([]);
+  }, [quizId, exam]);
+
+  // Save current progress to localStorage
+  useEffect(() => {
+    if (exam && exam.attempt_id) {
+      localStorage.setItem(
+        `quiz_state_${quizId}`,
+        JSON.stringify({
+          savedIndex: currentIndex,
+          savedAnswers: answers,
+          attemptId: exam.attempt_id
+        })
+      );
+    }
+  }, [currentIndex, answers, exam, quizId]);
   const [showResult, setShowResult] = useState(false);
   const [scoreResult, setScoreResult] = useState(null);
 
@@ -62,6 +97,7 @@ function QuizExamPage() {
       try {
         // Pass attempt_id to submit — NOT examId
         const result = await submitExam(exam.attempt_id);
+        localStorage.removeItem(`quiz_state_${quizId}`); // Clear saved state on success
 
         setScoreResult(result.results);
         setShowResult(true);
