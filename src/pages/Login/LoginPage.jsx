@@ -11,20 +11,32 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
-import tsquareLogo from "../../assets/logo-dark.webp"; // تأكد من مسار اللوجو
-import "./Login.css"; // ملف الـ CSS المرفق في الأسفل
+import tsquareLogo from "../../assets/logo-dark.webp"; 
+import "./Login.css"; 
 import { useLogin } from "../../hooks/useLogin";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "../../utils/validationSchemas";
 
 function LoginPage() {
   const { t, i18n } = useTranslation("auth");
   const isArabic = i18n.language === "ar";
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(true);
-  const { executeLogin, loading, error } = useLogin();
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const { executeLogin, loading, error: apiError } = useLogin();
+  const [rememberMe, setRememberMe] = useState(true);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
   // ── زر مؤقت للدخول بـ Role Admin للمعاينة ──
   const handleAdminBypass = () => {
@@ -43,6 +55,7 @@ function LoginPage() {
     login(mockAdminData, true);
     navigate("/admin");
   };
+
   const handleStudentBypass = () => {
     const mockAdminData = {
       token: "mock-token-admin",
@@ -60,15 +73,14 @@ function LoginPage() {
     navigate("/student/dashboard");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!email || !password) return;
+  const onSubmit = async (data) => {
     try {
-      await executeLogin({ email, password }, rememberMe);
+      await executeLogin(data, rememberMe);
     } catch (err) {
-      // Error state is managed by the
+      // Error state is managed by the hook
     }
   };
+
   return (
     <div className="login-wrapper" dir={isArabic ? "rtl" : "ltr"}>
       <Container className="d-flex justify-content-center align-items-center h-100">
@@ -89,7 +101,7 @@ function LoginPage() {
               {t("login_form.title")}
             </Card.Title>
 
-            {error && (
+            {apiError && (
               <Alert variant="danger">
                 {isArabic
                   ? "البريد الإلكتروني أو كلمة المرور غير صحيحة"
@@ -97,7 +109,7 @@ function LoginPage() {
               </Alert>
             )}
 
-            <Form onSubmit={handleSubmit}>
+            <Form onSubmit={handleSubmit(onSubmit)}>
               {/* حقل الإيميل */}
               <Form.Group
                 className={`mb-3 login-form-group ${isArabic ? "text-end" : "text-start"}`}
@@ -111,11 +123,14 @@ function LoginPage() {
                 <Form.Control
                   type="email"
                   placeholder={t("login_form.email_placeholder")}
-                  className="login-input"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  className={`login-input ${errors.email ? "is-invalid" : ""}`}
+                  {...register("email")}
                 />
+                {errors.email && (
+                  <Form.Control.Feedback type="invalid">
+                    {errors.email.message}
+                  </Form.Control.Feedback>
+                )}
               </Form.Group>
 
               {/* حقل الباسورد */}
@@ -137,11 +152,14 @@ function LoginPage() {
                 <Form.Control
                   type="password"
                   placeholder={t("login_form.password_placeholder")}
-                  className="login-input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  className={`login-input ${errors.password ? "is-invalid" : ""}`}
+                  {...register("password")}
                 />
+                {errors.password && (
+                  <Form.Control.Feedback type="invalid">
+                    {errors.password.message}
+                  </Form.Control.Feedback>
+                )}
               </Form.Group>
 
               {/* Remember me */}

@@ -1,42 +1,40 @@
-import { useState } from "react";
 import { Container, Card, Form, Button, Nav, Alert, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import tsquareLogo from "../../assets/logo-dark.webp";
 import "./Signup.css";
-import i18n from "../../i18n";
 import { useRegister } from "../../hooks/useRegister";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signupSchema } from "../../utils/validationSchemas";
 
 function SignupPage() {
-  const { t } = useTranslation("auth");
+  const { t, i18n } = useTranslation("auth");
   const isArabic = i18n.language === "ar";
   
-  const [formData, setFormData] = useState({
-    full_name: "",
-    phone: "",
-    email: "",
-    password: "",
-    password_confirmation: "",
-    role: "student" // default role, can be changed to "teacher" if needed
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      full_name: "",
+      phone: "",
+      email: "",
+      password: "",
+      password_confirmation: "",
+      role: "student",
+    },
   });
 
-  const { executeRegister, loading, error, successMsg } = useRegister();
+  const { executeRegister, loading, error: apiError, successMsg } = useRegister();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (formData.password !== formData.password_confirmation) {
-      // basic client validation before sending
-      return; 
-    }
-    
+  const onSubmit = async (data) => {
     try {
-      await executeRegister(formData);
+      await executeRegister(data);
     } catch (err) {
-      // Handled automatically by the hook state
+      // Handled by hook
     }
   };
 
@@ -60,100 +58,105 @@ function SignupPage() {
               {t("signup_form.title")}
             </Card.Title>
 
-            {error && <Alert variant="danger">{error}</Alert>}
+            {apiError && <Alert variant="danger">{apiError}</Alert>}
             {successMsg && <Alert variant="success">{successMsg}</Alert>}
             
-            {/* عرض خطأ لو الباسورد مش مطابق */}
-            {formData.password && formData.password_confirmation && formData.password !== formData.password_confirmation && (
-               <Alert variant="warning">{isArabic ? "كلمة المرور غير متطابقة" : "Passwords do not match"}</Alert>
-            )}
-
-            <Form onSubmit={handleSubmit}>
+            <Form onSubmit={handleSubmit(onSubmit)}>
               {/* حقل الاسم */}
-              <Form.Group className="mb-3  signup-form-group">
+              <Form.Group className="mb-3 signup-form-group">
                 <Form.Label className="signup-label">
                   {t("signup_form.name_label")}
                 </Form.Label>
                 <Form.Control
                   type="text"
-                  name="full_name"
                   placeholder={t("signup_form.name_placeholder")}
-                  className="signup-input"
-                  value={formData.full_name}
-                  onChange={handleChange}
-                  required
+                  className={`signup-input ${errors.full_name ? "is-invalid" : ""}`}
+                  {...register("full_name")}
                 />
+                {errors.full_name && (
+                  <Form.Control.Feedback type="invalid">
+                    {errors.full_name.message}
+                  </Form.Control.Feedback>
+                )}
               </Form.Group>
 
               {/* حقل رقم الهاتف */}
-              <Form.Group className="mb-3  signup-form-group">
+              <Form.Group className="mb-3 signup-form-group">
                 <Form.Label className="signup-label">
                   {t("signup_form.phone_label")}
                 </Form.Label>
                 <Form.Control
                   type="tel"
-                  name="phone"
                   placeholder={t("signup_form.phone_placeholder")}
-                  className="signup-input"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
+                  className={`signup-input ${errors.phone ? "is-invalid" : ""}`}
+                  {...register("phone")}
                 />
+                {errors.phone && (
+                  <Form.Control.Feedback type="invalid">
+                    {errors.phone.message}
+                  </Form.Control.Feedback>
+                )}
               </Form.Group>
 
               {/* حقل الإيميل */}
-              <Form.Group className="mb-3  signup-form-group">
+              <Form.Group className="mb-3 signup-form-group">
                 <Form.Label className="signup-label">
                   {t("signup_form.email_label")}
                 </Form.Label>
                 <Form.Control
                   type="email"
-                  name="email"
                   placeholder={t("signup_form.email_placeholder")}
-                  className="signup-input"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
+                  className={`signup-input ${errors.email ? "is-invalid" : ""}`}
+                  {...register("email")}
                 />
+                {errors.email && (
+                  <Form.Control.Feedback type="invalid">
+                    {errors.email.message}
+                  </Form.Control.Feedback>
+                )}
               </Form.Group>
 
               {/* حقل الباسورد */}
-              <Form.Group className="mb-4  signup-form-group">
+              <Form.Group className="mb-4 signup-form-group">
                 <Form.Label className="signup-label">
                   {t("signup_form.password_label")}
                 </Form.Label>
                 <Form.Control
                   type="password"
-                  name="password"
                   placeholder={t("signup_form.password_placeholder")}
-                  className="signup-input"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
+                  className={`signup-input ${errors.password ? "is-invalid" : ""}`}
+                  {...register("password")}
                 />
+                {errors.password && (
+                  <Form.Control.Feedback type="invalid">
+                    {errors.password.message}
+                  </Form.Control.Feedback>
+                )}
               </Form.Group>
 
               {/* حقل تأكيد الباسورد */}
-              <Form.Group className="mb-4  signup-form-group">
+              <Form.Group className="mb-4 signup-form-group">
                 <Form.Label className="signup-label">
                   {isArabic ? "تأكيد كلمة المرور" : "Confirm Password"}
                 </Form.Label>
                 <Form.Control
                   type="password"
-                  name="password_confirmation"
                   placeholder={isArabic ? "أعد إدخال كلمة المرور" : "Confirm your password"}
-                  className="signup-input"
-                  value={formData.password_confirmation}
-                  onChange={handleChange}
-                  required
+                  className={`signup-input ${errors.password_confirmation ? "is-invalid" : ""}`}
+                  {...register("password_confirmation")}
                 />
+                {errors.password_confirmation && (
+                  <Form.Control.Feedback type="invalid">
+                    {errors.password_confirmation.message}
+                  </Form.Control.Feedback>
+                )}
               </Form.Group>
 
               {/* زر التسجيل */}
               <Button
                 type="submit"
                 className="signup-btn btn-lg w-100 fs-6 fw-bold"
-                disabled={loading || (formData.password !== formData.password_confirmation && formData.password_confirmation !== "")}
+                disabled={loading}
               >
                 {loading ? <Spinner animation="border" size="sm" /> : t("signup_form.signup_btn")}
               </Button>

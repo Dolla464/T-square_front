@@ -44,7 +44,7 @@ export const deleteQuiz = async (id) => {
 // تعديل حالة الاختبار (نشط / غير نشط)
 // ----------------------------------------------------------------------------
 export const toggleQuizStatus = async (id, status) => {
-  const response = await axiosClient.patch("/admin/exams/toggle-status", {
+  const response = await axiosClient.patch(`/admin/exams/${id}/toggle-status`, {
     exam_id: id,
     is_active: status,
   });

@@ -1,28 +1,40 @@
-import { useState } from "react";
 import { Container, Card, Form, Button, Alert, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import tsquareLogo from "../../assets/logo-dark.webp";
 import "../../pages/forgot_password/forgot.css";  // css
 import { useForgotPassword } from "../../hooks/useForgotPassword";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { forgotPasswordSchema } from "../../utils/validationSchemas";
 
 function ForgotPassword() {
   const { t, i18n } = useTranslation("auth");
   const isArabic = i18n.language === "ar";
 
-  const [email, setEmail] = useState("");
-  const { executeForgotPassword, loading, error, successMsg } = useForgotPassword();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!email) return;
+  const { executeForgotPassword, loading, error: apiError, successMsg } = useForgotPassword();
+
+  const onSubmit = async (data) => {
     try {
-      await executeForgotPassword(email);
-      setEmail(""); // clear email after success
+      await executeForgotPassword(data.email);
+      reset(); // Clear form on success
     } catch (err) {
-      // error handled in hook
+      // Error handled by hook
     }
   };
+
   return (
     <div className="forgot-wrapper" dir={isArabic ? "rtl" : "ltr"}>
       <Container className="d-flex justify-content-center align-items-center h-100">
@@ -43,10 +55,19 @@ function ForgotPassword() {
               {t("forgot_form.reset_password")}
             </Card.Title>
 
-            {error && <Alert variant="danger">{isArabic ? "البريد الإلكتروني غير صحيح" : "Invalid email"}</Alert>}
-            {successMsg && <Alert variant="success">{isArabic ? "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني" : "Password reset link sent to your email"}</Alert>}
+            {apiError && <Alert variant="danger">{isArabic ? "البريد الإلكتروني غير صحيح" : "Invalid email"}</Alert>}
+            {successMsg && (
+              <Alert variant="success" className="d-flex align-items-center gap-2">
+                <i className="bi bi-check-circle-fill"></i>
+                <div>
+                  {isArabic 
+                    ? "تم إرسال رابط إعادة تعيين كلمة المرور بنجاح. يرجى التحقق من بريدك الإلكتروني (بما في ذلك البريد العشوائي)." 
+                    : "Password reset link sent successfully. Please check your email (including spam folder)."}
+                </div>
+              </Alert>
+            )}
 
-            <Form onSubmit={handleSubmit}>
+            <Form onSubmit={handleSubmit(onSubmit)}>
               {/* حقل الإيميل */}
               <Form.Group
                 className={`mb-3 forgot-form-group ${isArabic ? "text-end" : "text-start"}`}
@@ -59,15 +80,18 @@ function ForgotPassword() {
                 </Form.Label>
                 <Form.Control
                   type="email"
-                  required
                   placeholder={t("forgot_form.email_placeholder")}
-                  className="forgot-input"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  className={`forgot-input ${errors.email ? "is-invalid" : ""}`}
+                  {...register("email")}
                 />
+                {errors.email && (
+                  <Form.Control.Feedback type="invalid">
+                    {errors.email.message}
+                  </Form.Control.Feedback>
+                )}
               </Form.Group>
 
-              {/* زر الدخول */}
+              {/* زر الإرسال */}
               <Button
                 type="submit"
                 className="forgot-btn btn-lg w-100 fs-6 fw-bold"
@@ -75,6 +99,12 @@ function ForgotPassword() {
               >
                 {loading ? <Spinner animation="border" size="sm" /> : t("forgot_form.send_email")}
               </Button>
+              
+              <div className="mt-3">
+                <Link to="/login" className="text-muted text-decoration-none small">
+                  {isArabic ? "العودة لتسجيل الدخول" : "Back to Login"}
+                </Link>
+              </div>
             </Form>
 
           </Card.Body>
