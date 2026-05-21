@@ -294,7 +294,7 @@ function EditExam() {
           )}
 
           <div className="row">
-            <div className="col-md-6">
+            <div className="col-md-9">
               {/* Question Text Input */}
               <div className="quiz-question h-75 d-flex align-items-center">
                 <input
@@ -328,7 +328,7 @@ function EditExam() {
                 </div>
               </div>
             </div>
-            <div className="col-md-6">
+            <div className="col-md-3">
               {/* Question Mark Input */}
               <div className="d-flex align-items-center h-75 gap-3 mb-4 p-3 bg-light rounded-3">
                 <div
