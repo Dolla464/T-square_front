@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react"
 import {
   /* HashRouter */ BrowserRouter as Router,
   Routes,
@@ -9,27 +9,26 @@ import {
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import ScrollToTop from "./components/shared/ScrollToTop";
-import AppNavbar from "./components/layout/Navbar";
-import AppFooter from "./components/layout/Footer";
-import Home from "./pages/Home";
-import LoginPage from "./pages/Login/LoginPage";
-import SignupPage from "./pages/Signup/SignupPage";
-import ForgotPassword from "./pages/forgot_password/ForgotPassword";
-import UpdatePassword from "./pages/Update_Password/UpdatePassword";
-import Courses from "./pages/CoursesPage";
-import Solutions from "./pages/Solutions";
-import DetailsCourse from "./pages/CourseDetails";
-import VerifyEmailPage from "./pages/VerifyEmail/VerifyEmailPage";
-import NotFoundPage from "./pages/NotFound/NotFoundPage";
-
+import AppNavbar from "./components/layout/Navbar"
+import AppFooter from "./components/layout/Footer"
+const Home = lazy(() => import("./pages/Home"))
+const LoginPage = lazy(() => import("./pages/Login/LoginPage"))
+const SignupPage = lazy(() => import("./pages/Signup/SignupPage"))
+const ForgotPassword = lazy(() => import("./pages/forgot_password/ForgotPassword"))
+const UpdatePassword = lazy(() => import("./pages/Update_Password/UpdatePassword"))
+const Courses = lazy(() => import("./pages/CoursesPage"))
+const Solutions = lazy(() => import("./pages/Solutions"))
+const DetailsCourse = lazy(() => import("./pages/CourseDetails"))
+const VerifyEmailPage = lazy(() => import("./pages/VerifyEmail/VerifyEmailPage"))
+const NotFoundPage = lazy(() => import('./pages/NotFound/NotFoundPage'))
 // استيراد ملفات البوتستراب
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap.rtl.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
-import Team from "./pages/Team";
-import Contact from "./pages/Contact";
-import Payment from "./pages/Payment";
+const Team = lazy(() => import("./pages/Team"))
+const Contact = lazy(() => import("./pages/Contact"))
+const Payment = lazy(() => import("./pages/Payment"))
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
@@ -39,31 +38,33 @@ import ErrorBoundary from "./components/shared/ErrorBoundary";
 
 // ── وحدة داشبورد الطالب ──
 import DashboardLayout from "./modules/student-dashboard/layouts/DashboardLayout";
-import DashboardHome from "./modules/student-dashboard/pages/DashboardHome/DashboardHome";
-import DashboardCertificates from "./modules/student-dashboard/pages/DashboardCertificates/DashboardCertificates";
-import DashboardQuizzes from "./modules/student-dashboard/pages/DashboardQuizzes/DashboardQuizzes";
-import DashboardProfile from "./modules/student-dashboard/pages/DashboardProfile/DashboardProfile";
-import CourseDetails from "./modules/student-dashboard/pages/CourseDetails/CourseDetails";
-import NotificationsPage from "./modules/shared-dashboard/Notifications/NotificationsPage";
+const DashboardHome = lazy(() => import("./modules/student-dashboard/pages/DashboardHome/DashboardHome"));
+const DashboardCertificates = lazy(() => import("./modules/student-dashboard/pages/DashboardCertificates/DashboardCertificates"));
+const DashboardQuizzes = lazy(() => import("./modules/student-dashboard/pages/DashboardQuizzes/DashboardQuizzes"));
+const DashboardProfile = lazy(() => import("./modules/student-dashboard/pages/DashboardProfile/DashboardProfile"));
+const CourseDetails = lazy(() => import("./modules/student-dashboard/pages/CourseDetails/CourseDetails"));
+const NotificationsPage = lazy(() => import("./modules/shared-dashboard/Notifications/NotificationsPage"));
 import QuizExamPage from "./modules/student-dashboard/pages/QuizExam/QuizExamPage";
 
 // ── وحدة داشبورد الأدمن ──
-import AdminLayout from "./modules/admin-dashboard/layouts/AdminLayout";
-import AdminOverview from "./modules/admin-dashboard/pages/Overview/AdminOverview";
-import AdminCourses from "./modules/admin-dashboard/pages/Courses/AdminCourses";
-import AdminSolutions from "./modules/admin-dashboard/pages/Solutions/AdminSolutions";
-import AdminStudents from "./modules/admin-dashboard/pages/Students/AdminStudents";
-import AdminInstructors from "./modules/admin-dashboard/pages/Instructors/AdminInstructors";
-import AdminOrders from "./modules/admin-dashboard/pages/Orders/AdminOrders";
-import AdminAnalytics from "./modules/admin-dashboard/pages/Analytics/AdminAnalytics";
-import AdminCertificates from "./modules/admin-dashboard/pages/Certificates/AdminCertificates";
-import AdminReviews from "./modules/admin-dashboard/pages/Reviews/AdminReviews";
-import AdminSettings from "./modules/admin-dashboard/pages/Settings/AdminSettings";
-import AdminGroups from "./modules/admin-dashboard/pages/Groups/AdminGroups";
-import AdminCategories from "./modules/admin-dashboard/pages/Categories/AdminCategories";
-import AdminQuizzes from "./modules/admin-dashboard/pages/Quizzes/AdminQuizzes";
-import ViewExam from "./modules/admin-dashboard/pages/Quizzes/components/ViewExam";
-import EditExam from "./modules/admin-dashboard/pages/Quizzes/components/EditExam";
+const AdminLayout = lazy(() => import("./modules/admin-dashboard/layouts/AdminLayout"));
+const AdminOverview = lazy(() => import("./modules/admin-dashboard/pages/Overview/AdminOverview"));
+const AdminCourses = lazy(() => import("./modules/admin-dashboard/pages/Courses/AdminCourses"));
+const AdminSolutions = lazy(() => import("./modules/admin-dashboard/pages/Solutions/AdminSolutions"));
+const AdminStudents = lazy(() => import("./modules/admin-dashboard/pages/Students/AdminStudents"));
+const AdminInstructors = lazy(() => import("./modules/admin-dashboard/pages/Instructors/AdminInstructors"));
+const AdminOrders = lazy(() => import("./modules/admin-dashboard/pages/Orders/AdminOrders"));
+const AdminAnalytics = lazy(() => import("./modules/admin-dashboard/pages/Analytics/AdminAnalytics"));
+const AdminCertificates = lazy(() => import("./modules/admin-dashboard/pages/Certificates/AdminCertificates"));
+const AdminReviews = lazy(() => import("./modules/admin-dashboard/pages/Reviews/AdminReviews"));
+const AdminSettings = lazy(() => import("./modules/admin-dashboard/pages/Settings/AdminSettings"));
+const AdminGroups = lazy(() => import("./modules/admin-dashboard/pages/Groups/AdminGroups"));
+const AdminCategories = lazy(() => import("./modules/admin-dashboard/pages/Categories/AdminCategories"));
+const AdminQuizzes = lazy(() => import("./modules/admin-dashboard/pages/Quizzes/AdminQuizzes"));
+const ViewExam = lazy(() => import("./modules/admin-dashboard/pages/Quizzes/components/ViewExam"));
+const EditExam = lazy(() => import("./modules/admin-dashboard/pages/Quizzes/components/EditExam"));
+import Loading from "./Loading";
+import LoadingSpiner from "./LoadingSpiner";
 
 
 // مكون فرعي للتحكم في عرض الـ Layout
@@ -210,54 +211,148 @@ function AppContent() {
         )}
 
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/"
+            element={
+              <Suspense fallback={<Loading />}>
+                {<Home />}
+              </Suspense>
+            } />
 
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={
+            <Suspense fallback={<Loading />}>
+              <LoginPage />
+            </Suspense>} />
 
-          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/signup" element={
+            <Suspense fallback={<Loading />}>
+              <SignupPage />
+            </Suspense>} />
 
-          <Route path="/forgot_password" element={<ForgotPassword />} />
+          <Route path="/forgot_password" element={
+            <Suspense fallback={<LoadingSpiner />}>
+              <ForgotPassword />
+            </Suspense>
 
-          <Route path="/update_password" element={<UpdatePassword />} />
+          } />
 
-          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/update_password" element={
+            <Suspense fallback={<LoadingSpiner />}>
+              <UpdatePassword />
+            </Suspense>
+          } />
 
-          <Route path="/courses" element={<Courses />} />
+          <Route path="/verify-email" element={
+            <Suspense fallback={<LoadingSpiner />}>
+              <VerifyEmailPage />
+            </Suspense>
+          } />
+
+          <Route path="/courses" element={
+            <Suspense fallback={<LoadingSpiner />}>
+              <Courses />
+            </Suspense>
+          } />
 
           <Route
             path="/courses/course_details/:slug"
-            element={<DetailsCourse />}
+            element={<Suspense fallback={<LoadingSpiner />}>
+              <DetailsCourse />
+            </Suspense>}
           />
 
           <Route path="/payment" element={<Navigate to="/courses" replace />} />
-          <Route path="/payment/:slug" element={<Payment />} />
+          <Route path="/payment/:slug" element={<Suspense fallback={<LoadingSpiner />}>
+            <Payment />
+          </Suspense>} />
 
-          <Route path="/solutions" element={<Solutions />} />
+          <Route path="/solutions" element={
+            <Suspense fallback={<LoadingSpiner />}>
+              <Solutions />
+            </Suspense>
+          } />
 
-          <Route path="/team" element={<Team />} />
+          <Route path="/team" element={
+            <Suspense fallback={<LoadingSpiner />}>
+              <Team />
+            </Suspense>
+          } />
 
-          <Route path="/contact" element={<Contact />} />
+          <Route path="/contact" element={
+            <Suspense fallback={<LoadingSpiner />}>
+              <Contact />
+            </Suspense>
+          } />
 
           {/* Protected Routes — Admin Dashboard */}
           <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminOverview />} />
-              <Route path="courses" element={<AdminCourses />} />
-              <Route path="categories" element={<AdminCategories />} />
-              <Route path="quizzes" element={<AdminQuizzes />} />
-              <Route path="quizzes/view-exam/:id" element={<ViewExam />} />
-              <Route path="quizzes/edit-exam/:id" element={<EditExam />} />
-              <Route path="groups" element={<AdminGroups />} />
-              <Route path="solutions" element={<AdminSolutions />} />
-              <Route path="students" element={<AdminStudents />} />
-              <Route path="instructors" element={<AdminInstructors />} />
+            <Route index element={<Navigate to="/admin" replace />} />
 
-              <Route path="orders" element={<AdminOrders />} />
-              <Route path="analytics" element={<AdminAnalytics />} />
-              <Route path="certificates" element={<AdminCertificates />} />
-              <Route path="reviews" element={<AdminReviews />} />
-              <Route path="notifications" element={<NotificationsPage />} />
-              <Route path="settings" element={<AdminSettings />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={
+                <Suspense fallback={<Loading />}>
+                  {<AdminOverview />}
+                </Suspense>} />
+              <Route path="courses" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <AdminCourses />
+                </Suspense>} />
+              <Route path="categories" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <AdminCategories />
+                </Suspense>} />
+              <Route path="quizzes" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <AdminQuizzes />
+                </Suspense>} />
+              <Route path="quizzes/view-exam/:id" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <ViewExam />
+                </Suspense>} />
+              <Route path="quizzes/edit-exam/:id" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <EditExam />
+                </Suspense>} />
+              <Route path="groups" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <AdminGroups />
+                </Suspense>} />
+              <Route path="solutions" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <AdminSolutions />
+                </Suspense>} />
+              <Route path="students" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <AdminStudents />
+                </Suspense>} />
+              <Route path="instructors" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <AdminInstructors />
+                </Suspense>} />
+
+              <Route path="orders" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <AdminOrders />
+                </Suspense>} />
+              <Route path="analytics" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <AdminAnalytics />
+                </Suspense>} />
+              <Route path="certificates" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <AdminCertificates />
+                </Suspense>} />
+              <Route path="reviews" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <AdminReviews />
+                </Suspense>} />
+              <Route path="notifications" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <NotificationsPage />
+                </Suspense>} />
+              <Route path="settings" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <AdminSettings />
+                </Suspense>} />
             </Route>
           </Route>
 
@@ -266,33 +361,71 @@ function AppContent() {
             <Route path="/student" element={<DashboardLayout />}>
               {/* الصفحة الرئيسية */}
               <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<DashboardHome />} />
+              <Route path="dashboard" element={
+                <Suspense fallback={<Loading />}>
+                  {<DashboardHome />}
+                </Suspense>} />
               {/* Flat sub-pages — بدون /dashboard في المسار */}
-              <Route path="certificates" element={<DashboardCertificates />} />
-              <Route path="quizzes" element={<DashboardQuizzes />} />
-              <Route path="quizzes/:quizId" element={<QuizExamPage />} />
-              <Route path="profile" element={<DashboardProfile />} />
-              <Route path="notifications" element={<NotificationsPage />} />
-              <Route path="course/:id" element={<CourseDetails />} />
+              <Route path="certificates" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <DashboardCertificates />
+                </Suspense>} />
+              <Route path="quizzes" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <DashboardQuizzes />
+                </Suspense>} />
+              <Route path="quizzes/:quizId" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <QuizExamPage />
+                </Suspense>} />
+              <Route path="profile" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <DashboardProfile />
+                </Suspense>} />
+              <Route path="notifications" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <NotificationsPage />
+                </Suspense>} />
+              <Route path="course/:id" element={
+                <Suspense fallback={<LoadingSpiner />}>
+                  <CourseDetails />
+                </Suspense>} />
               {/* Aliases — لو جه من رابط قديم بـ /dashboard/xxx */}
               <Route
                 path="dashboard/certificates"
-                element={<Navigate to="/student/certificates" replace />}
+                element={
+                  <Suspense fallback={<LoadingSpiner />}>
+                    <Navigate to="/student/certificates" replace />
+                  </Suspense>
+                }
               />
               <Route
                 path="dashboard/quizzes"
-                element={<Navigate to="/student/quizzes" replace />}
+                element={
+                  <Suspense fallback={<LoadingSpiner />}>
+                    <Navigate to="/student/quizzes" replace />
+                  </Suspense>
+                }
               />
               <Route
                 path="dashboard/profile"
-                element={<Navigate to="/student/profile" replace />}
+                element={
+                  <Suspense fallback={<LoadingSpiner />}>
+                    <Navigate to="/student/profile" replace />
+                  </Suspense>
+                }
               />
             </Route>
           </Route>
-          
+
           {/* Catch-all route for undefined paths */}
-          <Route path="*" element={<NotFoundPage />} />
+          <Route path="*" element={
+            <Suspense fallback={<LoadingSpiner />}>
+              <NotFoundPage />
+            </Suspense>
+          } />
         </Routes>
+
         {/* إظهار الفوتر فقط إذا لم نكن في صفحة اللوجين */}
         {!hideLayout && <AppFooter />}
       </div>
