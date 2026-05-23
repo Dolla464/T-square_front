@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useQuizzes } from "../../../hooks/useQuizzes";
+import { useCallback, useEffect, useState } from "react";
 import { Spinner } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   showConfirmCustom,
   showDeleteConfirm,
 } from "../../../../../components/shared/ConfirmDialog/confirmDialog";
+import { useQuizzes } from "../../../hooks/useQuizzes";
 
 function ViewExam() {
   const { id } = useParams();

@@ -461,7 +461,7 @@ function AdminQuizzes() {
 
                 {/* Quizzes Table */}
                 <div className="table-responsive">
-                  <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
+                  <table className={`table ac-table mb-0 align-middle${showTrash ? " table-secondary" : ""}`}>
                     <thead>
                       <tr>
                         <th className="text-center">{t("quizzes_page.table_title")}</th>
@@ -490,16 +490,8 @@ function AdminQuizzes() {
                             </td>
                             <td className="text-center">
                               {showTrash ? (
-                                <span
-                                  className="badge rounded-pill 
-                                    bg-danger-subtle text-danger"
-                                  style={{
-                                    padding: "8px 16px",
-                                  }}
-                                >
-                                  <i
-                                    className={`bi bi-trash-fill me-1 small`}
-                                  ></i>
+                                <span className="badge bg-secondary px-3 py-2 rounded-pill">
+                                  <i className="bi bi-trash me-1"></i>
                                   {quizItem.deleted_at ? new Date(quizItem.deleted_at).toLocaleDateString() : ""}
                                 </span>
                               ) : (
@@ -531,15 +523,15 @@ function AdminQuizzes() {
                                 {showTrash ? (
                                   <>
                                     <button
-                                      className="btn btn-sm ac-btn-view border-0 text-success"
+                                      className="btn btn-sm btn-outline-success border-0"
                                       title={t("quizzes_page.restore")}
                                       onClick={() => handleRestore(quizItem.id, quizItem.title)}
                                     >
                                       <i className="bi bi-arrow-counterclockwise fs-6"></i>
                                     </button>
                                     <button
-                                      className="btn btn-sm ac-btn-deleteTable border-0"
-                                      title={t("quizzes_page.force_delete")}
+                                      className="btn btn-sm border-0"
+                                      style={{ color: "#7f1d1d", backgroundColor: "transparent" }} title={t("quizzes_page.force_delete")}
                                       onClick={() => handleForceDelete(quizItem.id, quizItem.title)}
                                     >
                                       <i className="bi bi-trash-fill fs-6"></i>
