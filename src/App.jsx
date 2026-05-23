@@ -285,7 +285,6 @@ function AppContent() {
 
           {/* Protected Routes — Admin Dashboard */}
           <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-            <Route index element={<Navigate to="/admin" replace />} />
 
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={
