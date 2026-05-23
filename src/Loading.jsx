@@ -8,7 +8,6 @@ import logo from './assets/logo-dark.webp';
  * Displays the brand logo with a subtle pulse animation and a branded spinner.
  */
 const Loading = () => {
-  const primaryRed = '#c51c24';
   
 
 
