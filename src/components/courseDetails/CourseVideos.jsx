@@ -1,269 +1,152 @@
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Modal, Spinner } from "react-bootstrap";
 import placeholderVideo from "../../assets/video/1625-148614367.mp4";
 import { FaPlay } from "react-icons/fa";
 
-const CourseVideos = () => {
+const CourseVideos = ({ course }) => {
   const { t, i18n } = useTranslation("coursesDetails");
   const isArabic = i18n?.language === "ar";
 
+  // استخراج قائمة فيديوهات المعاينة من بيانات الكورس
+  const previews = course?.previews;
+
+  // حالة لتخزين الفيديو النشط الذي يتم تشغيله حالياً في المودال
+  const [activeVideo, setActiveVideo] = useState(null);
+
+  // 1. حالة التحميل: إذا كانت بيانات الكورس غير متوفرة بعد أو لم يتم تحميلها
+  if (!course || previews === undefined) {
+    return (
+      <div className="d-flex justify-content-center align-items-center py-5">
+        <Spinner animation="border" variant="primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </div>
+    );
+  }
+
+  // 2. حالة عدم وجود بيانات: إذا كانت قائمة فيديوهات المعاينة فارغة
+  if (!Array.isArray(previews) || previews.length === 0) {
+    return (
+      <div className="mt-5" dir={isArabic ? "rtl" : "ltr"}>
+        <h3 className="fw-bold mb-3">{t("course_preview")}</h3>
+        <p className="text-muted mb-4 fs-5">{t("preview_description")}</p>
+        <div className="alert alert-info border-0 shadow-sm rounded-4 py-4 text-center">
+          <p className="mb-0 fs-5 fw-semibold">
+            {t("no_videos")}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-5" dir={isArabic ? "rtl" : "ltr"}>
-      <h3 className="fw-bold mb-3">{t("course_preview")}</h3>
+      {/* ستايل مخصص للمودال لضمان التوافق وحفظ التصميم الأصلي عبر الشاشات المختلفة */}
+      <style>{`
+        .custom-preview-modal {
+          max-width: 50% !important;
+        }
+        @media (max-width: 767px) {
+          .custom-preview-modal {
+            max-width: 95% !important;
+          }
+        }
+      `}</style>
 
+      <h3 className="fw-bold mb-3">{t("course_preview")}</h3>
       <p className="text-muted mb-4 fs-5">{t("preview_description")}</p>
 
       <div className="row g-4">
-        {/* Card 1 */}
-        <div className="col-lg-4 col-md-6">
-          <div className="card border-0 shadow rounded-4 overflow-hidden h-100">
-            {/* Title */}
-            <div className="card-body pb-2">
-              <h5 className="fw-bold mb-0 fs-6">Video Title </h5>
-            </div>
+        {previews.map((preview, index) => {
 
-            {/* Thumbnail */}
-            <div
-              className="position-relative px-3"
-              data-bs-toggle="modal"
-              data-bs-target="#videoModal1"
-              style={{ cursor: "pointer" }}
-            >
-              <img
-                src="https://images.unsplash.com/photo-1498050108023-c5249f4df085"
-                alt="video"
-                className="w-100 rounded-4"
-                style={{
-                  height: "220px",
-                  objectFit: "cover",
-                }}
-              />
+          const videoUrl =
+            // preview.video_url 
+            "https://images.unsplash.com/photo-1498050108023-c5249f4df085";
 
-              {/* Play Button */}
+          return (
+            <div className="col-lg-4 col-md-6" key={preview.id || index}>
+              <div className="card border-0 shadow rounded-4 overflow-hidden h-100">
+                {/* عنوان الفيديو */}
+                <div className="card-body pb-2">
+                  <h5 className="fw-bold mb-0 fs-6 text-truncate">
+                    {preview.title || (isArabic ? `فيديو معاينة ${index + 1}` : `Preview Video ${index + 1}`)}
+                  </h5>
+                </div>
 
-              <div
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  width: "70px",
-                  height: "70px",
-                  background: "rgba(0,0,0,0.6)",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <FaPlay className="text-white" size={24} />
+                {/* الصورة وزر التشغيل */}
+                <div
+                  className="position-relative px-3"
+                  onClick={() => setActiveVideo(preview)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <img
+                    src={videoUrl}
+                    alt={preview.title || "video preview"}
+                    className="w-100 rounded-4"
+                    style={{
+                      height: "220px",
+                      objectFit: "cover",
+                    }}
+                  />
+
+                  {/* أيقونة زر تشغيل الفيديو */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      width: "70px",
+                      height: "70px",
+                      background: "rgba(0,0,0,0.6)",
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <FaPlay className="text-white" size={24} />
+                  </div>
+                </div>
+
+                {/* وصف الفيديو القصير */}
+                <div className="card-body pt-3" dir={isArabic ? "rtl" : "ltr"}>
+                  <p className="text-muted small mb-0 text-truncate-2">
+                    {preview.description ||
+                      (isArabic
+                        ? "فيديو توضيحي لمشاهدة جودة المحتوى والتعرف على الكورس."
+                        : "A preview video to experience the content quality and learn about the course.")}
+                  </p>
+                </div>
               </div>
             </div>
-
-            {/* Description */}
-            <div className="card-body pt-3">
-              <p className="text-muted small mb-0">
-                Small description for this video content.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2 */}
-        <div className="col-lg-4 col-md-6">
-          <div className="card border-0 shadow rounded-4 overflow-hidden h-100">
-            <div className="card-body pb-2">
-              <h5 className="fw-bold mb-0 fs-6">Video Title </h5>
-            </div>
-
-            <div
-              className="position-relative px-3"
-              data-bs-toggle="modal"
-              data-bs-target="#videoModal2"
-              style={{ cursor: "pointer" }}
-            >
-              <img
-                src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3"
-                alt="video"
-                className="w-100 rounded-4"
-                style={{
-                  height: "220px",
-                  objectFit: "cover",
-                }}
-              />
-
-              <div
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  width: "70px",
-                  height: "70px",
-                  background: "rgba(0,0,0,0.6)",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <FaPlay className="text-white" size={24} />
-              </div>
-            </div>
-
-            <div className="card-body pt-3">
-              <p className="text-muted small mb-0">
-                Small description for this video content.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3 */}
-        <div className="col-lg-4 col-md-6">
-          <div className="card border-0 shadow rounded-4 overflow-hidden h-100">
-            <div className="card-body pb-2">
-              <h5 className="fw-bold mb-0 fs-6">Video Title </h5>
-            </div>
-
-            <div
-              className="position-relative px-3"
-              data-bs-toggle="modal"
-              data-bs-target="#videoModal3"
-              style={{ cursor: "pointer" }}
-            >
-              <img
-                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f"
-                alt="video"
-                className="w-100 rounded-4"
-                style={{
-                  height: "220px",
-                  objectFit: "cover",
-                }}
-              />
-
-              <div
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  width: "70px",
-                  height: "70px",
-                  background: "rgba(0,0,0,0.6)",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <FaPlay className="text-white" size={24} />
-              </div>
-            </div>
-
-            <div className="card-body pt-3">
-              <p className="text-muted small mb-0">
-                Small description for this video content.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Modal 1 */}
-        <div className="modal fade" id="videoModal1" tabIndex="-1">
-          <div
-            className="modal-dialog modal-dialog-centered"
-            style={{
-              maxWidth: window.innerWidth < 768 ? "95%" : "50%",
-            }}
-            onClick={() => {
-              const modal = document.getElementById("videoModal1");
-              const bsModal = window.bootstrap.Modal.getInstance(modal);
-              bsModal.hide();
-            }}
-          >
-            <div
-              className="modal-content bg-transparent border-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="modal-body p-0">
-                <video
-                  src={placeholderVideo}
-                  controls
-                  autoPlay
-                  className="w-100 rounded-4"
-                  style={{
-                    maxHeight: "85vh",
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Modal 2 */}
-        <div className="modal fade" id="videoModal2" tabIndex="-1">
-          <div
-            className="modal-dialog modal-dialog-centered"
-            style={{
-              maxWidth: window.innerWidth < 768 ? "95%" : "50%",
-            }}
-            onClick={() => {
-              const modal = document.getElementById("videoModal2");
-              const bsModal = window.bootstrap.Modal.getInstance(modal);
-              bsModal.hide();
-            }}
-          >
-            <div
-              className="modal-content bg-transparent border-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="modal-body p-0">
-                <video
-                  src={placeholderVideo}
-                  controls
-                  autoPlay
-                  className="w-100 rounded-4"
-                  style={{
-                    maxHeight: "85vh",
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Modal 3 */}
-        <div className="modal fade" id="videoModal3" tabIndex="-1">
-          <div
-            className="modal-dialog modal-dialog-centered"
-            style={{
-              maxWidth: window.innerWidth < 768 ? "95%" : "50%",
-            }}
-            onClick={() => {
-              const modal = document.getElementById("videoModal3");
-              const bsModal = window.bootstrap.Modal.getInstance(modal);
-              bsModal.hide();
-            }}
-          >
-            <div
-              className="modal-content bg-transparent border-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="modal-body p-0">
-                <video
-                  src={placeholderVideo}
-                  controls
-                  autoPlay
-                  className="w-100 rounded-4"
-                  style={{
-                    maxHeight: "85vh",
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+          );
+        })}
       </div>
+
+      {/* مودال موحد لتشغيل الفيديو - يتم إغلاق وتفريغ الفيديو من الذاكرة فور الإغلاق لتحسين الأداء */}
+      <Modal
+        show={!!activeVideo}
+        onHide={() => setActiveVideo(null)}
+        centered
+        dialogClassName="custom-preview-modal"
+        contentClassName="bg-transparent border-0"
+      >
+        <Modal.Body className="p-0">
+          {activeVideo && (
+            <video
+              src={activeVideo.video_url || placeholderVideo}
+              controls
+              autoPlay
+              className="w-100 rounded-4"
+              style={{
+                maxHeight: "85vh",
+              }}
+            />
+          )}
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };
