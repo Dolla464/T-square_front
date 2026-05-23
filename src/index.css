@@ -112,3 +112,15 @@ a,
   background: #be1522;
   color: #ffffff;
 }
+.custom-pagination .page-link {
+  color: #be1522;
+  border: none;
+  margin: 0 4px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.custom-pagination .page-item.active .page-link {
+  background-color: #be1522;
+  color: white;
+}
