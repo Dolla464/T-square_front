@@ -188,17 +188,54 @@ function ViewExam() {
                                     </p>
                                 </div>
                             </div>
+                            <div className="d-flex gap-2">
+                                {/* Total Marks */}
+                                <div
+                                    className="bg-danger rounded-3 p-2  d-flex align-items-center justify-content-center shadow-sm gap-2"
+                                    style={{ minWidth: "40px", height: "40px" }}
+                                    title={isArabic ? "الدرجة الكلية" : "Total Marks"}
+                                >
+                                    <i className="bi bi-award-fill text-white"></i>
+                                    <span className="fw-bold text-white">
+                                        {quiz?.total_marks}
+                                    </span>
+                                </div>
+
+                                {/* Max Attempts */}
+                                <div
+                                    className="bg-danger rounded-3 p-2  d-flex align-items-center justify-content-center shadow-sm gap-2"
+                                    style={{ minWidth: "40px", height: "40px" }}
+                                    title={isArabic ? "الحد الأقصى للمحاولات" : "Max Attempts"}
+                                >
+                                    <i className="bi bi-arrow-repeat text-white"></i>
+                                    <span className="fw-bold text-white">
+                                        {quiz?.max_attempts}
+                                    </span>
+                                </div>
+
+                                {/* Duration */}
+                                <div
+                                    className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm gap-2"
+                                    style={{ minWidth: "40px", height: "40px" }}
+                                    title={isArabic ? "المدة" : "Duration"}
+                                >
+                                    <i className="bi bi-clock-fill text-white"></i>
+                                    <span className="fw-bold text-white">
+                                        {quiz?.duration}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="table-responsive">
-                            <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
+                            <table className={`table ac-table mb-0 align-middle${showTrash ? " table-secondary" : ""}`}>
                                 <thead style={{
                                     borderBottom: "1px solid rgba(0,0,0,0.03)",
                                 }}>
                                     <tr>
                                         <th style={{ width: "35%" }}>{isArabic ? "السؤال" : "Question"}</th>
                                         <th className="text-center" style={{ width: "30%" }}>{isArabic ? "الإجابات" : "Answers"}</th>
-                                        {!showTrash && (<>    <th className="text-center" style={{ width: "20%" }}>{isArabic ? "الإجابة الصحيحة" : "Correct Answer"}</th>
+                                        {!showTrash && (<>
                                             <th className="text-center" style={{ width: "8%" }}>{isArabic ? "درجة السؤال" : "Question mark"}</th></>)
                                         }
                                         {showTrash && (<th className="text-center">{isArabic ? "تاريخ الحذف" : "Deleted at"}</th>)}
@@ -227,14 +264,6 @@ function ViewExam() {
                                                             </div>
                                                         ))}
                                                     </td>
-                                                    <td className="py-3 text-secondary text-center small fw-bold">
-                                                        {question?.choices?.find((ans) => ans.is_correct) && (
-                                                            <span className="badge rounded-pill cp bg-success-subtle text-success" style={{ padding: "8px 16px" }}>
-                                                                <i className="bi bi-patch-check-fill me-1"></i>
-                                                                {question?.choices?.find((ans) => ans.is_correct)?.choice_text}
-                                                            </span>
-                                                        )}
-                                                    </td>
                                                 </>)
                                                 }
 
@@ -242,16 +271,9 @@ function ViewExam() {
 
                                                 {showTrash && (
                                                     <td className="text-center">
-                                                        <span
-                                                            className="badge rounded-pill 
-                                    bg-danger-subtle text-danger"
-                                                            style={{
-                                                                padding: "8px 16px",
-                                                            }}
-                                                        >
-                                                            <i
-                                                                className={`bi bi-trash-fill me-1 small`}
-                                                            ></i>
+                                                        <span className="badge bg-secondary px-3 py-2 rounded-pill">
+                                                            <i className="bi bi-trash me-1"></i>
+
                                                             {question?.deleted_at ? new Date(question.deleted_at).toLocaleDateString() : ""}
                                                         </span>
                                                     </td>)
@@ -264,15 +286,17 @@ function ViewExam() {
                                                         {showTrash ? (
                                                             <>
                                                                 <button
-                                                                    className="btn btn-sm ac-btn-view border-0 text-success"
+                                                                    className="btn btn-sm btn-outline-success border-0"
                                                                     title={isArabic ? "استعادة" : "Restore question"}
                                                                     onClick={() => handleRestore(question.id, question.question_text)}
                                                                 >
                                                                     <i className="bi bi-arrow-counterclockwise fs-6"></i>
                                                                 </button>
+
                                                                 <button
-                                                                    className="btn btn-sm ac-btn-deleteTable border-0"
-                                                                    title={isArabic ? "حذف نهائي" : "Force delete question"}
+                                                                    className="btn btn-sm border-0"
+                                                                    style={{ color: "#7f1d1d", backgroundColor: "transparent" }}
+                                                                    title={isArabic ? "حذف نهائي" : "Permanent Delete"}
                                                                     onClick={() => handleForceDelete(question.id, question.question_text)}
                                                                 >
                                                                     <i className="bi bi-trash-fill fs-6"></i>
@@ -315,7 +339,7 @@ function ViewExam() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 
