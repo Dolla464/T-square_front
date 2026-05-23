@@ -37,6 +37,9 @@ function AllPayment() {
   const [submitted, setSubmitted] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
 
+  const [responseMessage, setResponseMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -69,6 +72,9 @@ function AllPayment() {
 
       toastSuccess(t("successMessage"));
 
+      setIsError(false);
+      setResponseMessage(response.data.message);
+
       const whatsappConfirm = await showConfirmCustom({
         title: t("whatsappTitle"),
         message: t("whatsappMessage"),
@@ -82,7 +88,11 @@ function AllPayment() {
         window.open(response.data.whatsapp_link, "_blank");
       }
     } catch (error) {
-      toastError(t("errorMessage"));
+      toastError(error.response?.data?.message || t("errorMessage"));
+
+      setIsError(true);
+
+      setResponseMessage(error.response?.data?.message || t("errorMessage"));
     }
     setSubmitted(true);
   };
@@ -260,10 +270,23 @@ function AllPayment() {
                   {submitted ? (
                     <div className="payment-success-card">
                       <div className="payment-success-icon">
-                        <i className="bi bi-check-circle-fill"></i>
+                        <i
+                          className={`bi ${
+                            isError
+                              ? "bi-x-circle-fill text-danger"
+                              : "bi-check-circle-fill text-success"
+                          }`}
+                        ></i>
                       </div>
-                      <h4>{t("payment:submitSection.successTitle")}</h4>
-                      <p>{t("payment:submitSection.successDesc")}</p>
+                      <h4>
+                        {isError
+                          ? t("payment:submitSection.paymenterror")
+                          : t("payment:submitSection.successTitle")}
+                      </h4>{" "}
+                      <p>
+                        {responseMessage ||
+                          t("payment:submitSection.successDesc")}
+                      </p>{" "}
                       <div className="payment-success-info">
                         <div className="success-info-item">
                           <i className="bi bi-envelope"></i>
@@ -276,7 +299,6 @@ function AllPayment() {
                           </span>
                         </div>
                       </div>
-
                       {/* WhatsApp fast-track section */}
                       <div className="whatsapp-section">
                         <p className="whatsapp-hint">
@@ -294,7 +316,6 @@ function AllPayment() {
                           </button>
                         </div>
                       </div>
-
                       <Link to="/courses" className="btn-back-courses">
                         {t("payment:submitSection.backToCourses")}
                       </Link>
