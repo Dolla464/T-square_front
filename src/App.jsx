@@ -63,7 +63,6 @@ const AdminCategories = lazy(() => import("./modules/admin-dashboard/pages/Categ
 const AdminQuizzes = lazy(() => import("./modules/admin-dashboard/pages/Quizzes/AdminQuizzes"));
 const ViewExam = lazy(() => import("./modules/admin-dashboard/pages/Quizzes/components/ViewExam"));
 const EditExam = lazy(() => import("./modules/admin-dashboard/pages/Quizzes/components/EditExam"));
-import Loading from "./Loading";
 import LoadingSpiner from "./LoadingSpiner";
 
 
@@ -210,220 +209,66 @@ function AppContent() {
           />
         )}
 
-        <Routes>
-          <Route path="/"
-            element={
-              <Suspense fallback={<Loading />}>
-                {<Home />}
-              </Suspense>
-            } />
+        <Suspense fallback={<LoadingSpiner />}>
+          <Routes>
 
-          <Route path="/login" element={
-            <Suspense fallback={<Loading />}>
-              <LoginPage />
-            </Suspense>} />
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot_password" element={<ForgotPassword />} />
+            <Route path="/update_password" element={<UpdatePassword />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
 
-          <Route path="/signup" element={
-            <Suspense fallback={<Loading />}>
-              <SignupPage />
-            </Suspense>} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/courses/course_details/:slug" element={<DetailsCourse />} />
 
-          <Route path="/forgot_password" element={
-            <Suspense fallback={<LoadingSpiner />}>
-              <ForgotPassword />
-            </Suspense>
+            <Route path="/payment" element={<Navigate to="/courses" replace />} />
+            <Route path="/payment/:slug" element={<Payment />} />
 
-          } />
+            <Route path="/solutions" element={<Solutions />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/contact" element={<Contact />} />
 
-          <Route path="/update_password" element={
-            <Suspense fallback={<LoadingSpiner />}>
-              <UpdatePassword />
-            </Suspense>
-          } />
-
-          <Route path="/verify-email" element={
-            <Suspense fallback={<LoadingSpiner />}>
-              <VerifyEmailPage />
-            </Suspense>
-          } />
-
-          <Route path="/courses" element={
-            <Suspense fallback={<LoadingSpiner />}>
-              <Courses />
-            </Suspense>
-          } />
-
-          <Route
-            path="/courses/course_details/:slug"
-            element={<Suspense fallback={<LoadingSpiner />}>
-              <DetailsCourse />
-            </Suspense>}
-          />
-
-          <Route path="/payment" element={<Navigate to="/courses" replace />} />
-          <Route path="/payment/:slug" element={<Suspense fallback={<LoadingSpiner />}>
-            <Payment />
-          </Suspense>} />
-
-          <Route path="/solutions" element={
-            <Suspense fallback={<LoadingSpiner />}>
-              <Solutions />
-            </Suspense>
-          } />
-
-          <Route path="/team" element={
-            <Suspense fallback={<LoadingSpiner />}>
-              <Team />
-            </Suspense>
-          } />
-
-          <Route path="/contact" element={
-            <Suspense fallback={<LoadingSpiner />}>
-              <Contact />
-            </Suspense>
-          } />
-
-          {/* Protected Routes — Admin Dashboard */}
-          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={
-                <Suspense fallback={<Loading />}>
-                  {<AdminOverview />}
-                </Suspense>} />
-              <Route path="courses" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <AdminCourses />
-                </Suspense>} />
-              <Route path="categories" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <AdminCategories />
-                </Suspense>} />
-              <Route path="quizzes" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <AdminQuizzes />
-                </Suspense>} />
-              <Route path="quizzes/view-exam/:id" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <ViewExam />
-                </Suspense>} />
-              <Route path="quizzes/edit-exam/:id" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <EditExam />
-                </Suspense>} />
-              <Route path="groups" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <AdminGroups />
-                </Suspense>} />
-              <Route path="solutions" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <AdminSolutions />
-                </Suspense>} />
-              <Route path="students" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <AdminStudents />
-                </Suspense>} />
-              <Route path="instructors" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <AdminInstructors />
-                </Suspense>} />
-
-              <Route path="orders" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <AdminOrders />
-                </Suspense>} />
-              <Route path="analytics" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <AdminAnalytics />
-                </Suspense>} />
-              <Route path="certificates" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <AdminCertificates />
-                </Suspense>} />
-              <Route path="reviews" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <AdminReviews />
-                </Suspense>} />
-              <Route path="notifications" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <NotificationsPage />
-                </Suspense>} />
-              <Route path="settings" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <AdminSettings />
-                </Suspense>} />
+            {/* ADMIN */}
+            <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminOverview />} />
+                <Route path="courses" element={<AdminCourses />} />
+                <Route path="categories" element={<AdminCategories />} />
+                <Route path="quizzes" element={<AdminQuizzes />} />
+                <Route path="quizzes/view-exam/:id" element={<ViewExam />} />
+                <Route path="quizzes/edit-exam/:id" element={<EditExam />} />
+                <Route path="groups" element={<AdminGroups />} />
+                <Route path="solutions" element={<AdminSolutions />} />
+                <Route path="students" element={<AdminStudents />} />
+                <Route path="instructors" element={<AdminInstructors />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="certificates" element={<AdminCertificates />} />
+                <Route path="reviews" element={<AdminReviews />} />
+                <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="settings" element={<AdminSettings />} />
+              </Route>
             </Route>
-          </Route>
 
-          {/* Protected Routes — Student Dashboard (nested) */}
-          <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
-            <Route path="/student" element={<DashboardLayout />}>
-              {/* الصفحة الرئيسية */}
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={
-                <Suspense fallback={<Loading />}>
-                  {<DashboardHome />}
-                </Suspense>} />
-              {/* Flat sub-pages — بدون /dashboard في المسار */}
-              <Route path="certificates" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <DashboardCertificates />
-                </Suspense>} />
-              <Route path="quizzes" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <DashboardQuizzes />
-                </Suspense>} />
-              <Route path="quizzes/:quizId" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <QuizExamPage />
-                </Suspense>} />
-              <Route path="profile" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <DashboardProfile />
-                </Suspense>} />
-              <Route path="notifications" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <NotificationsPage />
-                </Suspense>} />
-              <Route path="course/:id" element={
-                <Suspense fallback={<LoadingSpiner />}>
-                  <CourseDetails />
-                </Suspense>} />
-              {/* Aliases — لو جه من رابط قديم بـ /dashboard/xxx */}
-              <Route
-                path="dashboard/certificates"
-                element={
-                  <Suspense fallback={<LoadingSpiner />}>
-                    <Navigate to="/student/certificates" replace />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="dashboard/quizzes"
-                element={
-                  <Suspense fallback={<LoadingSpiner />}>
-                    <Navigate to="/student/quizzes" replace />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="dashboard/profile"
-                element={
-                  <Suspense fallback={<LoadingSpiner />}>
-                    <Navigate to="/student/profile" replace />
-                  </Suspense>
-                }
-              />
+            {/* STUDENT */}
+            <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
+              <Route path="/student" element={<DashboardLayout />}>
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<DashboardHome />} />
+                <Route path="certificates" element={<DashboardCertificates />} />
+                <Route path="quizzes" element={<DashboardQuizzes />} />
+                <Route path="quizzes/:quizId" element={<QuizExamPage />} />
+                <Route path="profile" element={<DashboardProfile />} />
+                <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="course/:id" element={<CourseDetails />} />
+              </Route>
             </Route>
-          </Route>
 
-          {/* Catch-all route for undefined paths */}
-          <Route path="*" element={
-            <Suspense fallback={<LoadingSpiner />}>
-              <NotFoundPage />
-            </Suspense>
-          } />
-        </Routes>
+            <Route path="*" element={<NotFoundPage />} />
+
+          </Routes>
+        </Suspense>
 
         {/* إظهار الفوتر فقط إذا لم نكن في صفحة اللوجين */}
         {!hideLayout && <AppFooter />}
