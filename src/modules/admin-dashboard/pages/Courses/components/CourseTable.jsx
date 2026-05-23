@@ -61,7 +61,7 @@ function CourseTable({
                   {item.total_revenue || item.revenue || "0.00"}
                 </td>
                 <td className="text-secondary text-center">
-                  {item.total_students ?? item.students_count ?? 0}
+                  {item.total_students || "N/A"}
                 </td>
 
                 {/* Status column */}
