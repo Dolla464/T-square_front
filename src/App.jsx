@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react"
 import {
   /* HashRouter */ BrowserRouter as Router,
   Routes,
@@ -9,27 +9,26 @@ import {
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import ScrollToTop from "./components/shared/ScrollToTop";
-import AppNavbar from "./components/layout/Navbar";
-import AppFooter from "./components/layout/Footer";
-import Home from "./pages/Home";
-import LoginPage from "./pages/Login/LoginPage";
-import SignupPage from "./pages/Signup/SignupPage";
-import ForgotPassword from "./pages/forgot_password/ForgotPassword";
-import UpdatePassword from "./pages/Update_Password/UpdatePassword";
-import Courses from "./pages/CoursesPage";
-import Solutions from "./pages/Solutions";
-import DetailsCourse from "./pages/CourseDetails";
-import VerifyEmailPage from "./pages/VerifyEmail/VerifyEmailPage";
-import NotFoundPage from "./pages/NotFound/NotFoundPage";
-
+import AppNavbar from "./components/layout/Navbar"
+import AppFooter from "./components/layout/Footer"
+const Home = lazy(() => import("./pages/Home"))
+const LoginPage = lazy(() => import("./pages/Login/LoginPage"))
+const SignupPage = lazy(() => import("./pages/Signup/SignupPage"))
+const ForgotPassword = lazy(() => import("./pages/forgot_password/ForgotPassword"))
+const UpdatePassword = lazy(() => import("./pages/Update_Password/UpdatePassword"))
+const Courses = lazy(() => import("./pages/CoursesPage"))
+const Solutions = lazy(() => import("./pages/Solutions"))
+const DetailsCourse = lazy(() => import("./pages/CourseDetails"))
+const VerifyEmailPage = lazy(() => import("./pages/VerifyEmail/VerifyEmailPage"))
+const NotFoundPage = lazy(() => import('./pages/NotFound/NotFoundPage'))
 // استيراد ملفات البوتستراب
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap.rtl.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
-import Team from "./pages/Team";
-import Contact from "./pages/Contact";
-import Payment from "./pages/Payment";
+const Team = lazy(() => import("./pages/Team"))
+const Contact = lazy(() => import("./pages/Contact"))
+const Payment = lazy(() => import("./pages/Payment"))
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
@@ -39,31 +38,32 @@ import ErrorBoundary from "./components/shared/ErrorBoundary";
 
 // ── وحدة داشبورد الطالب ──
 import DashboardLayout from "./modules/student-dashboard/layouts/DashboardLayout";
-import DashboardHome from "./modules/student-dashboard/pages/DashboardHome/DashboardHome";
-import DashboardCertificates from "./modules/student-dashboard/pages/DashboardCertificates/DashboardCertificates";
-import DashboardQuizzes from "./modules/student-dashboard/pages/DashboardQuizzes/DashboardQuizzes";
-import DashboardProfile from "./modules/student-dashboard/pages/DashboardProfile/DashboardProfile";
-import CourseDetails from "./modules/student-dashboard/pages/CourseDetails/CourseDetails";
-import NotificationsPage from "./modules/shared-dashboard/Notifications/NotificationsPage";
+const DashboardHome = lazy(() => import("./modules/student-dashboard/pages/DashboardHome/DashboardHome"));
+const DashboardCertificates = lazy(() => import("./modules/student-dashboard/pages/DashboardCertificates/DashboardCertificates"));
+const DashboardQuizzes = lazy(() => import("./modules/student-dashboard/pages/DashboardQuizzes/DashboardQuizzes"));
+const DashboardProfile = lazy(() => import("./modules/student-dashboard/pages/DashboardProfile/DashboardProfile"));
+const CourseDetails = lazy(() => import("./modules/student-dashboard/pages/CourseDetails/CourseDetails"));
+const NotificationsPage = lazy(() => import("./modules/shared-dashboard/Notifications/NotificationsPage"));
 import QuizExamPage from "./modules/student-dashboard/pages/QuizExam/QuizExamPage";
 
 // ── وحدة داشبورد الأدمن ──
-import AdminLayout from "./modules/admin-dashboard/layouts/AdminLayout";
-import AdminOverview from "./modules/admin-dashboard/pages/Overview/AdminOverview";
-import AdminCourses from "./modules/admin-dashboard/pages/Courses/AdminCourses";
-import AdminSolutions from "./modules/admin-dashboard/pages/Solutions/AdminSolutions";
-import AdminStudents from "./modules/admin-dashboard/pages/Students/AdminStudents";
-import AdminInstructors from "./modules/admin-dashboard/pages/Instructors/AdminInstructors";
-import AdminOrders from "./modules/admin-dashboard/pages/Orders/AdminOrders";
-import AdminAnalytics from "./modules/admin-dashboard/pages/Analytics/AdminAnalytics";
-import AdminCertificates from "./modules/admin-dashboard/pages/Certificates/AdminCertificates";
-import AdminReviews from "./modules/admin-dashboard/pages/Reviews/AdminReviews";
-import AdminSettings from "./modules/admin-dashboard/pages/Settings/AdminSettings";
-import AdminGroups from "./modules/admin-dashboard/pages/Groups/AdminGroups";
-import AdminCategories from "./modules/admin-dashboard/pages/Categories/AdminCategories";
-import AdminQuizzes from "./modules/admin-dashboard/pages/Quizzes/AdminQuizzes";
-import ViewExam from "./modules/admin-dashboard/pages/Quizzes/components/ViewExam";
-import EditExam from "./modules/admin-dashboard/pages/Quizzes/components/EditExam";
+const AdminLayout = lazy(() => import("./modules/admin-dashboard/layouts/AdminLayout"));
+const AdminOverview = lazy(() => import("./modules/admin-dashboard/pages/Overview/AdminOverview"));
+const AdminCourses = lazy(() => import("./modules/admin-dashboard/pages/Courses/AdminCourses"));
+const AdminSolutions = lazy(() => import("./modules/admin-dashboard/pages/Solutions/AdminSolutions"));
+const AdminStudents = lazy(() => import("./modules/admin-dashboard/pages/Students/AdminStudents"));
+const AdminInstructors = lazy(() => import("./modules/admin-dashboard/pages/Instructors/AdminInstructors"));
+const AdminOrders = lazy(() => import("./modules/admin-dashboard/pages/Orders/AdminOrders"));
+const AdminAnalytics = lazy(() => import("./modules/admin-dashboard/pages/Analytics/AdminAnalytics"));
+const AdminCertificates = lazy(() => import("./modules/admin-dashboard/pages/Certificates/AdminCertificates"));
+const AdminReviews = lazy(() => import("./modules/admin-dashboard/pages/Reviews/AdminReviews"));
+const AdminSettings = lazy(() => import("./modules/admin-dashboard/pages/Settings/AdminSettings"));
+const AdminGroups = lazy(() => import("./modules/admin-dashboard/pages/Groups/AdminGroups"));
+const AdminCategories = lazy(() => import("./modules/admin-dashboard/pages/Categories/AdminCategories"));
+const AdminQuizzes = lazy(() => import("./modules/admin-dashboard/pages/Quizzes/AdminQuizzes"));
+const ViewExam = lazy(() => import("./modules/admin-dashboard/pages/Quizzes/components/ViewExam"));
+const EditExam = lazy(() => import("./modules/admin-dashboard/pages/Quizzes/components/EditExam"));
+import LoadingSpiner from "./LoadingSpiner";
 
 
 // مكون فرعي للتحكم في عرض الـ Layout
@@ -209,90 +209,67 @@ function AppContent() {
           />
         )}
 
-        <Routes>
-          <Route path="/" element={<Home />} />
+        <Suspense fallback={<LoadingSpiner />}>
+          <Routes>
 
-          <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot_password" element={<ForgotPassword />} />
+            <Route path="/update_password" element={<UpdatePassword />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
 
-          <Route path="/signup" element={<SignupPage />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/courses/course_details/:slug" element={<DetailsCourse />} />
 
-          <Route path="/forgot_password" element={<ForgotPassword />} />
+            <Route path="/payment" element={<Navigate to="/courses" replace />} />
+            <Route path="/payment/:slug" element={<Payment />} />
 
-          <Route path="/update_password" element={<UpdatePassword />} />
+            <Route path="/solutions" element={<Solutions />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/contact" element={<Contact />} />
 
-          <Route path="/verify-email" element={<VerifyEmailPage />} />
-
-          <Route path="/courses" element={<Courses />} />
-
-          <Route
-            path="/courses/course_details/:slug"
-            element={<DetailsCourse />}
-          />
-
-          <Route path="/payment" element={<Navigate to="/courses" replace />} />
-          <Route path="/payment/:slug" element={<Payment />} />
-
-          <Route path="/solutions" element={<Solutions />} />
-
-          <Route path="/team" element={<Team />} />
-
-          <Route path="/contact" element={<Contact />} />
-
-          {/* Protected Routes — Admin Dashboard */}
-          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminOverview />} />
-              <Route path="courses" element={<AdminCourses />} />
-              <Route path="categories" element={<AdminCategories />} />
-              <Route path="quizzes" element={<AdminQuizzes />} />
-              <Route path="quizzes/view-exam/:id" element={<ViewExam />} />
-              <Route path="quizzes/edit-exam/:id" element={<EditExam />} />
-              <Route path="groups" element={<AdminGroups />} />
-              <Route path="solutions" element={<AdminSolutions />} />
-              <Route path="students" element={<AdminStudents />} />
-              <Route path="instructors" element={<AdminInstructors />} />
-
-              <Route path="orders" element={<AdminOrders />} />
-              <Route path="analytics" element={<AdminAnalytics />} />
-              <Route path="certificates" element={<AdminCertificates />} />
-              <Route path="reviews" element={<AdminReviews />} />
-              <Route path="notifications" element={<NotificationsPage />} />
-              <Route path="settings" element={<AdminSettings />} />
+            {/* ADMIN */}
+            <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminOverview />} />
+                <Route path="courses" element={<AdminCourses />} />
+                <Route path="categories" element={<AdminCategories />} />
+                <Route path="quizzes" element={<AdminQuizzes />} />
+                <Route path="quizzes/view-exam/:id" element={<ViewExam />} />
+                <Route path="quizzes/edit-exam/:id" element={<EditExam />} />
+                <Route path="groups" element={<AdminGroups />} />
+                <Route path="solutions" element={<AdminSolutions />} />
+                <Route path="students" element={<AdminStudents />} />
+                <Route path="instructors" element={<AdminInstructors />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="certificates" element={<AdminCertificates />} />
+                <Route path="reviews" element={<AdminReviews />} />
+                <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="settings" element={<AdminSettings />} />
+              </Route>
             </Route>
-          </Route>
 
-          {/* Protected Routes — Student Dashboard (nested) */}
-          <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
-            <Route path="/student" element={<DashboardLayout />}>
-              {/* الصفحة الرئيسية */}
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<DashboardHome />} />
-              {/* Flat sub-pages — بدون /dashboard في المسار */}
-              <Route path="certificates" element={<DashboardCertificates />} />
-              <Route path="quizzes" element={<DashboardQuizzes />} />
-              <Route path="quizzes/:quizId" element={<QuizExamPage />} />
-              <Route path="profile" element={<DashboardProfile />} />
-              <Route path="notifications" element={<NotificationsPage />} />
-              <Route path="course/:id" element={<CourseDetails />} />
-              {/* Aliases — لو جه من رابط قديم بـ /dashboard/xxx */}
-              <Route
-                path="dashboard/certificates"
-                element={<Navigate to="/student/certificates" replace />}
-              />
-              <Route
-                path="dashboard/quizzes"
-                element={<Navigate to="/student/quizzes" replace />}
-              />
-              <Route
-                path="dashboard/profile"
-                element={<Navigate to="/student/profile" replace />}
-              />
+            {/* STUDENT */}
+            <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
+              <Route path="/student" element={<DashboardLayout />}>
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<DashboardHome />} />
+                <Route path="certificates" element={<DashboardCertificates />} />
+                <Route path="quizzes" element={<DashboardQuizzes />} />
+                <Route path="quizzes/:quizId" element={<QuizExamPage />} />
+                <Route path="profile" element={<DashboardProfile />} />
+                <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="course/:id" element={<CourseDetails />} />
+              </Route>
             </Route>
-          </Route>
-          
-          {/* Catch-all route for undefined paths */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+
+            <Route path="*" element={<NotFoundPage />} />
+
+          </Routes>
+        </Suspense>
+
         {/* إظهار الفوتر فقط إذا لم نكن في صفحة اللوجين */}
         {!hideLayout && <AppFooter />}
       </div>

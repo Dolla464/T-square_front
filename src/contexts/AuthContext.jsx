@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios"; // تأكد من تثبيت axios
 import axiosClient from "../api/axios";
+import Loading from "../Loading";
 
 const AuthContext = createContext();
 
@@ -130,7 +131,7 @@ export const AuthProvider = ({ children }) => {
         isLoggedIn: !!token,
       }}
     >
-      {!loading && children}
+      {loading ? <Loading /> : children}
     </AuthContext.Provider>
   );
 };

@@ -26,8 +26,8 @@
     "and": "and",
     "privacyPolicy": "Privacy Policy"
   },
-    "errorMessage": "Something went wrong. Please try again later.",
-    "successMessage": "Payment request submitted successfully.",
+  "errorMessage": "Something went wrong. Please try again later.",
+  "successMessage": "Payment request submitted successfully.",
 
   "whatsappTitle": "Contact via WhatsApp",
   "whatsappMessage": "Do you want to continue the payment process via WhatsApp?",
@@ -40,8 +40,8 @@
   "cancel": "Cancel",
 
   "submitSection": {
-
     "submitRequest": "Submit Payment Request",
+    "paymenterror": "Payment Error !",
     "successTitle": "Payment Request Submitted!",
     "successDesc": "Your payment request has been successfully submitted. Our team will review your order and get back to you shortly.",
     "emailNotice": "You will receive a confirmation email with payment details.",

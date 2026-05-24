@@ -5,6 +5,7 @@ import {
   getReviews as fetchReviews,
   getReviewById as fetchReviewById,
   deleteReview as apiDeleteReview,
+  changeReviewStatus as apiChangeReviewStatus,
 } from "../services/reviewsService";
 
 export const useReviews = () => {
@@ -53,6 +54,25 @@ export const useReviews = () => {
     }
   }, [t]);
 
+  const changeReviewStatus = useCallback(async (id, status) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiChangeReviewStatus(id, status);
+      const data = response?.data || response;
+      setReview(data);
+      toastSuccess(t("adminDashboard:success.updated", "Updated successfully"));
+      return data;
+    } catch (err) {
+      console.error("Error changing review status:", err);
+      const errorMsg = err.response?.data?.message || t("adminDashboard:errors.fetch_failed", "Failed to fetch data");
+      setError(errorMsg);
+      toastError(errorMsg);
+    } finally {
+      setLoading(false);
+    } 
+  }, [t]);
+
   const deleteReview = async (id) => {
     setLoading(true);
     setError(null);
@@ -79,6 +99,7 @@ export const useReviews = () => {
     error,
     getReviews,
     getReviewById,
+    changeReviewStatus,
     deleteReview,
   };
 };

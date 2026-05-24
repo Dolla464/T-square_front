@@ -112,3 +112,34 @@ a,
   background: #be1522;
   color: #ffffff;
 }
+.custom-pagination .page-link {
+  color: #be1522;
+  border: none;
+  margin: 0 4px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.custom-pagination .page-item.active .page-link {
+  background-color: #be1522;
+  color: white;
+}
+
+/* --- Breadcrumbs --- */
+.breadcrumb-nav .breadcrumb-item .active {
+  color: #be1522 !important;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.breadcrumb-nav .breadcrumb-item {
+  color: #666;
+  text-decoration: none;
+  font-size: 0.8rem; /* Mobile-first */
+}
+
+.breadcrumb-separator {
+  color: #666;
+  font-size: 0.7rem; /* Mobile-first */
+}
+
