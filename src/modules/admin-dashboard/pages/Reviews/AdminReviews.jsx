@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { Pagination, Modal, Button } from "react-bootstrap";
 import { useReviews } from "../../hooks/useReviews";
-import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { showConfirmCustom, showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 
 import "./review.css";
 
@@ -14,6 +14,7 @@ function AdminReviews() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedReview, setSelectedReview] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
 
@@ -23,6 +24,7 @@ function AdminReviews() {
     loading,
     getReviews,
     getReviewById,
+    changeReviewStatus,
     deleteReview
   } = useReviews();
 
@@ -43,7 +45,11 @@ function AdminReviews() {
       ratingFilter === "all" ||
       Math.floor(Number(item.rating)) === Number(ratingFilter);
 
-    return matchSearch && matchRating;
+    const matchStatus =
+      statusFilter === "all" ||
+      item.status === statusFilter;
+
+    return matchSearch && matchRating && matchStatus;
   });
 
   const handlePageChange = (page) => {
@@ -55,6 +61,40 @@ function AdminReviews() {
     if (data) {
       setSelectedReview(data);
       setShowViewModal(true);
+    }
+  };
+
+  const handleStatusChange = async (id, currentStatus) => {
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
+    const ok = await showConfirmCustom({
+      title: newStatus === "active"
+        ? isArabic
+          ? "نشر التقييم"
+          : "Publish Review"
+        : isArabic
+          ? "إخفاء التقييم"
+          : "Hide Review",
+
+      message: newStatus === "inactive"
+        ? isArabic
+          ? "هل تريد إخفاء هذا التقييم؟"
+          : "Do you want to hide this review?"
+        : isArabic
+          ? "سيتم نشر التقييم وسيصبح متاحاً للمستخدمين."
+          : "The review will be published and visible to users.",
+
+      icon: newStatus == "inactive" ? "warning" : "info",
+      variant: newStatus == "inactive" ? "danger" : "primary",
+      confirmText: isArabic ? "استمرار" : "Proceed",
+    });
+
+    if (!ok) return;
+
+    try {
+      await changeReviewStatus(id, newStatus);
+      getReviews({ page: currentPage });
+    } catch (err) {
+      console.error("Status update failed:", err);
     }
   };
 
@@ -139,7 +179,8 @@ function AdminReviews() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="d-flex gap-md-3">
+            <div className="d-flex gap-3">
+
               <select
                 className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${ratingFilter !== "all"
                   ? "border-danger bg-danger-subtle text-danger-emphasis"
@@ -153,111 +194,122 @@ function AdminReviews() {
                   <option key={num} value={num}>{num} {isArabic ? "نجوم" : "Stars"}</option>
                 ))}
               </select>
+              <select
+                className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${ratingFilter !== "all"
+                  ? "border-danger bg-danger-subtle text-danger-emphasis"
+                  : "border-light bg-light text-muted"
+                  }`}
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">{isArabic ? "جميع الحالات" : "All Status"}</option>
+                <option value="active">{isArabic ? "منشورة" : "Published"}</option>
+                <option value="inactive">{isArabic ? "مخفية" : "Hidden"}</option>
+              </select>
             </div>
           </div>
 
           <div className="table-responsive">
             <table className="table ac-table mb-0 align-middle" dir="ltr">
               <thead className="ac-table">
-              <tr className="text-muted">
-                <th>{isArabic ? "الطالب" : "Student"}</th>
-                <th>{isArabic ? "الكورس" : "Course"}</th>
-                <th>{isArabic ? "التقييم" : "Rating"}</th>
-                <th>{isArabic ? "التعليق" : "Comment"}</th>
-                <th>{isArabic ? "الحالة" : "Status"}</th>
-                <th className="text-center">{isArabic ? "إجراءات" : "Actions"}</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-4">
-                    <div className="spinner-border text-danger" role="status"></div>
-                  </td>
+                <tr className="text-muted">
+                  <th>{isArabic ? "الطالب" : "Student"}</th>
+                  <th>{isArabic ? "الكورس" : "Course"}</th>
+                  <th>{isArabic ? "التقييم" : "Rating"}</th>
+                  <th>{isArabic ? "التعليق" : "Comment"}</th>
+                  <th>{isArabic ? "الحالة" : "Status"}</th>
+                  <th className="text-center">{isArabic ? "إجراءات" : "Actions"}</th>
                 </tr>
-              ) : filteredReviews.length > 0 ? (
-                filteredReviews.map((item) => (
-                  <tr key={item.id}>
-                    <td className="fw-medium text-dark">{item.student_name}</td>
-                    <td className="fw-medium text-dark">{item.course_title}</td>
-                    <td className="align-content-center">
-                      <span className="text-warning" style={{ fontSize: "12px" }}>
-                        {[1, 2, 3, 4, 5].map((star) => {
-                          const rating = Number(item.rating);
-                          if (rating >= star) return <i key={star} className="bi bi-star-fill"></i>;
-                          if (rating >= star - 0.5) return <i key={star} className="bi bi-star-half"></i>;
-                          return <i key={star} className="bi bi-star"></i>;
-                        })}
-                      </span>
-                    </td>
-                    <td className="ac-truncate-text text-secondary">{item.overall_comment}</td>
-                    <td>
+              </thead>
 
-                      {/* لما ال الريبونس يرجع الاستايتس هنشغلها */}
-                      {/* <span
-                        className={`badge rounded-pill cp ${item.status === "published" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"}`}
-                        style={{
-                          cursor: "pointer",
-                          padding: "8px 16px",
-                        }}
-                        onClick={() => handleStatusChange(item.id, item.status === "published" ? "draft" : "published")}
-                        onClick={() => alert("Salama say : لما ال الريسبونس يرجع الاستايتس هشغلها")}
-                      >
-                        <i
-                          className={`bi ${item.status === "published" ? "bi-patch-check-fill" : "bi-shield-exclamation"} me-1`}
-                        ></i>
-                        {item.status == "draft"
-                          ? isArabic ? "مسودة" : "Draft"
-                          : isArabic ? "منشور" : "Published"}
-                      </span> */}
-
-
-                      <span
-                        className="badge rounded-pill cp bg-success-subtle text-success "
-                        style={{
-                          cursor: "pointer",
-                          padding: "8px 16px",
-                        }}
-                        onClick={() => alert("Salama say : لما ال الريسبونس يرجع الاستايتس هشغلها")}
-                      >
-                        <i
-                          className="bi-patch-check-fill me-1"
-                        ></i>
-                        {isArabic ? "مقبول" : "Aproved"}
-                      </span>
-                    </td>
-                    <td className="text-center">
-
-
-                      <div className="d-flex justify-content-center gap-2">
-                        <button
-                          className="btn btn-sm ac-btn-view border-0"
-                          title="View"
-                          onClick={() => handleView(item.id)}                        >
-                          <i className="bi bi-eye fs-6"></i>
-                        </button>
-
-                        <button
-                          className="btn btn-sm ac-btn-deleteTable border-0"
-                          title="Delete"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          <i className="bi bi-trash fs-6"></i>
-                        </button>
-                      </div>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-4">
+                      <div className="spinner-border text-danger" role="status"></div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="text-center py-4 text-secondary fw-bold">
-                    {isArabic ? "لا توجد بيانات" : "No data found"}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                ) : filteredReviews.length > 0 ? (
+                  filteredReviews.map((item) => (
+                    <tr key={item.id}>
+                      <td className="fw-medium text-dark">{item.student_name}</td>
+                      <td className="fw-medium text-dark">{item.course_title}</td>
+                      <td className="align-content-center">
+                        <span className="text-warning" style={{ fontSize: "12px" }}>
+                          {[1, 2, 3, 4, 5].map((star) => {
+                            const rating = Number(item.rating);
+                            if (rating >= star) return <i key={star} className="bi bi-star-fill"></i>;
+                            if (rating >= star - 0.5) return <i key={star} className="bi bi-star-half"></i>;
+                            return <i key={star} className="bi bi-star"></i>;
+                          })}
+                        </span>
+                      </td>
+                      <td className="ac-truncate-text text-secondary">{item.overall_comment}</td>
+                      <td>
+
+                        {/* لما ال الريبونس يرجع الاستايتس هنشغلها */}
+                        <span
+                          className={`badge rounded-pill cp ${item.status === "active" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"}`}
+                          style={{
+                            cursor: "pointer",
+                            padding: "8px 16px",
+                          }}
+                          onClick={() => handleStatusChange(item.id, item.status)}
+                        >
+                          <i
+                            className={`bi ${item.status === "active" ? "bi-patch-check-fill" : "bi-shield-exclamation"} me-1`}
+                          ></i>
+                          {item.status == "inactive"
+                            ? isArabic ? "غير منشور" : "Unpublished"
+                            : isArabic ? "منشور" : "Published"}
+                        </span>
+
+
+                        {/* <span
+                          className="badge rounded-pill cp bg-success-subtle text-success "
+                          style={{
+                            cursor: "pointer",
+                            padding: "8px 16px",
+                          }}
+                          onClick={() => alert("Salama say : لما ال الريسبونس يرجع الاستايتس هشغلها")}
+                        >
+                          <i
+                            className="bi-patch-check-fill me-1"
+                          ></i>
+                          {isArabic ? "مقبول" : "Aproved"}
+                        </span> */}
+                      </td>
+                      <td className="text-center">
+
+
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm ac-btn-view border-0"
+                            title="View"
+                            onClick={() => handleView(item.id)}                        >
+                            <i className="bi bi-eye fs-6"></i>
+                          </button>
+
+                          <button
+                            className="btn btn-sm ac-btn-deleteTable border-0"
+                            title="Delete"
+                            onClick={() => handleDelete(item.id)}
+                          >
+                            <i className="bi bi-trash fs-6"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="text-center py-4 text-secondary fw-bold">
+                      {isArabic ? "لا توجد بيانات" : "No data found"}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
