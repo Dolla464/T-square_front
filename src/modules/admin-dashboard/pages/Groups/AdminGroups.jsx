@@ -72,7 +72,7 @@ function AdminGroups() {
   ]);
 
   useEffect(() => {
-    getCourses();
+    getCourses({ per_page: 100 });
     getInstructors({ per_page: 100 });
   }, [getCourses, getInstructors]);
 
