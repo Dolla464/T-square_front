@@ -45,7 +45,7 @@ function AllPayment() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const { createEnrollment, loading: apiLoading } = usePayment();
+  const { createEnrollment } = usePayment();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -88,11 +88,19 @@ function AllPayment() {
         window.open(response.data.whatsapp_link, "_blank");
       }
     } catch (error) {
-      toastError(error.response?.data?.message || t("errorMessage"));
+      // استخلاص رسالة الخطأ من السيرفر بشكل مرن سواء كانت ملقاة ككائن بيانات مباشرة أو كخطأ Axios
+      const serverMessage = 
+        error?.message || 
+        error?.response?.data?.message || 
+        (typeof error === "string" ? error : null);
 
+      const errorMessage = serverMessage === "Unauthorized access"
+        ? "أنت أدمن ليس لديك صلاحيات شراء كورس"
+        : (serverMessage || t("errorMessage"));
+
+      toastError(errorMessage);
       setIsError(true);
-
-      setResponseMessage(error.response?.data?.message || t("errorMessage"));
+      setResponseMessage(errorMessage);
     }
     setSubmitted(true);
   };
@@ -271,54 +279,58 @@ function AllPayment() {
                     <div className="payment-success-card">
                       <div className="payment-success-icon">
                         <i
-                          className={`bi ${
-                            isError
-                              ? "bi-x-circle-fill text-danger"
-                              : "bi-check-circle-fill text-success"
-                          }`}
+                          className={`bi ${isError
+                            ? "bi-x-circle-fill text-danger"
+                            : "bi-check-circle-fill text-success"
+                            }`}
                         ></i>
                       </div>
-                      <h4>
-                        {isError
-                          ? t("payment:submitSection.paymenterror")
-                          : t("payment:submitSection.successTitle")}
-                      </h4>{" "}
-                      <p>
-                        {responseMessage ||
-                          t("payment:submitSection.successDesc")}
-                      </p>{" "}
-                      <div className="payment-success-info">
-                        <div className="success-info-item">
-                          <i className="bi bi-envelope"></i>
-                          <span>{t("payment:submitSection.emailNotice")}</span>
-                        </div>
-                        <div className="success-info-item">
-                          <i className="bi bi-clock-history"></i>
-                          <span>
-                            {t("payment:submitSection.processingTime")}
-                          </span>
-                        </div>
-                      </div>
-                      {/* WhatsApp fast-track section */}
-                      <div className="whatsapp-section">
-                        <p className="whatsapp-hint">
-                          {t("payment:submitSection.whatsappHint")}
-                        </p>
-                        <div className="whatsapp-actions">
-                          <button
-                            type="button"
-                            onClick={whatsapp}
-                            className="btn-whatsapp"
-                            id="payment-whatsapp-btn"
-                          >
-                            <i className="bi bi-whatsapp"></i>
-                            {t("payment:submitSection.sendWhatsApp")}
-                          </button>
-                        </div>
-                      </div>
+                      {isError && (
+                        <>
+                          <h4>{t("payment:submitSection.paymenterror")}</h4>
+                          <p>{responseMessage}</p>
+                        </>
+                      )}
+
+
+                      {!isError && (
+                        <>
+                          <h4> {t("payment:submitSection.successTitle")}</h4>
+                          <div className="payment-success-info">
+                            <div className="success-info-item">
+                              <i className="bi bi-envelope"></i>
+                              <span>{t("payment:submitSection.emailNotice")}</span>
+                            </div>
+                            <div className="success-info-item">
+                              <i className="bi bi-clock-history"></i>
+                              <span>
+                                {t("payment:submitSection.processingTime")}
+                              </span>
+                            </div>
+                          </div>
+                          {/* WhatsApp fast-track section */}
+                          <div className="whatsapp-section">
+                            <p className="whatsapp-hint">
+                              {t("payment:submitSection.whatsappHint")}
+                            </p>
+                            <div className="whatsapp-actions">
+                              <button
+                                type="button"
+                                onClick={whatsapp}
+                                className="btn-whatsapp"
+                                id="payment-whatsapp-btn"
+                              >
+                                <i className="bi bi-whatsapp"></i>
+                                {t("payment:submitSection.sendWhatsApp")}
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
                       <Link to="/courses" className="btn-back-courses">
                         {t("payment:submitSection.backToCourses")}
                       </Link>
+
                     </div>
                   ) : (
                     <button
@@ -432,7 +444,7 @@ function AllPayment() {
           </Form>
         </Container>
       </div>
-    </div>
+    </div >
   );
 }
 

@@ -43,5 +43,6 @@
   "auth": "Authentication & Authorization",
 
   "course_preview": "Course Preview",
-  "preview_description": "Start by watching free videos to discover the quality of the content and decide to join with confidence."
+  "preview_description": "Start by watching free videos to discover the quality of the content and decide to join with confidence.",
+  "no_videos": "No videos to display"
 }
