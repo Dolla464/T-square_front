@@ -17,16 +17,19 @@ function CourseFilters({
       {/* Search input */}
       <div className="ac-search-input-wrapper position-relative ">
         <i
-          className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
-            }`}
+          className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${
+            searchTerm ? "text-danger fw-bold" : "text-muted"
+          }`}
           style={{ zIndex: 3 }}
         ></i>
         <input
           type="text"
-          className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
-            ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
-            : "border-light bg-light text-muted"
-            }`} placeholder={t("content.search_courses")}
+          className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${
+            searchTerm
+              ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
+              : "border-light bg-light text-muted"
+          }`}
+          placeholder={t("content.search_courses")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -43,17 +46,23 @@ function CourseFilters({
           >
             <option value="">{isArabic ? "كل الفترات" : "All Time"}</option>
             <option value="today">{isArabic ? "اليوم" : "Today"}</option>
-            <option value="last_month">{isArabic ? "الشهر الماضي" : "Last Month"}</option>
-            <option value="last_year">{isArabic ? "السنة الماضية" : "Last Year"}</option>
+            <option value="last_month">
+              {isArabic ? "الشهر الماضي" : "Last Month"}
+            </option>
+            <option value="last_year">
+              {isArabic ? "السنة الماضية" : "Last Year"}
+            </option>
           </select>
         ) : (
           /* Active mode – status + category */
           <>
             <select
-              className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedStatus !== "all"
-                ? "border-danger bg-danger-subtle text-danger-emphasis"
-                : "border-light bg-light text-muted"
-                }`} value={selectedStatus}
+              className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                selectedStatus !== "all"
+                  ? "border-danger bg-danger-subtle text-danger-emphasis"
+                  : "border-light bg-light text-muted"
+              }`}
+              value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
             >
               <option value="all">All Statuses</option>
@@ -61,35 +70,31 @@ function CourseFilters({
               <option value="draft">Draft</option>
             </select>
             <select
-              className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedCategory !== "all"
-                ? "border-danger bg-danger-subtle text-danger-emphasis"
-                : "border-light bg-light text-muted"
-                }`} value={selectedCategory}
+              className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                selectedCategory !== "all"
+                  ? "border-danger bg-danger-subtle text-danger-emphasis"
+                  : "border-light bg-light text-muted"
+              }`}
+              value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
               <option value="all">
-                {t("courses_page.all_categories", "All Categories")}
+                All Categories
               </option>
-              {categories.map((cat) => (
-                <optgroup key={cat.id} label={cat.name}>
-                  {cat.children && cat.children.length > 0 ? (
-                    cat.children.map((child) => (
-                      <option key={child.id} value={String(child.id)}>
-                        {child.name} ({cat.name})
-                      </option>
-                    ))
-                  ) : (
-                    <option value={String(cat.id)} disabled>
-                      {cat.name} (No subcategories)
+              {categories.map(
+                (cat) =>
+                  cat.children &&
+                  cat.children.map((child) => (
+                    <option key={child.id} value={String(child.id)}>
+                      {child.name} ({cat.name})
                     </option>
-                  )}
-                </optgroup>
-              ))}
+                  )),
+              )}
             </select>
           </>
         )}
       </div>
-    </div >
+    </div>
   );
 }
 

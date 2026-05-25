@@ -1,3 +1,5 @@
+import React from "react";
+
 function BasicInfoTab({
   formData,
   setFormData,
@@ -10,7 +12,7 @@ function BasicInfoTab({
   setThumbnailFile,
   coverFile,
   setCoverFile,
-  categories,
+  treeCategories,
   instructors,
   availableTags,
   viewingItem,
@@ -51,7 +53,7 @@ function BasicInfoTab({
           name="title"
           className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
           placeholder={t("content.form.fields.title_placeholder")}
-          value={formData.title}
+          value={formData.title || ""}
           onChange={handleChange}
           disabled={isReadOnly}
         />
@@ -66,8 +68,10 @@ function BasicInfoTab({
           name="short_description"
           className="form-control ac-form-textarea p-3 bg-light border-0 rounded-3"
           rows="2"
-          placeholder={isArabic ? "وصف مختصر للكورس" : "Brief course description"}
-          value={formData.short_description}
+          placeholder={
+            isArabic ? "وصف مختصر للكورس" : "Brief course description"
+          }
+          value={formData.short_description || ""}
           onChange={handleChange}
           disabled={isReadOnly}
         ></textarea>
@@ -83,7 +87,7 @@ function BasicInfoTab({
           className="form-control ac-form-textarea p-3 bg-light border-0 rounded-3"
           rows="4"
           placeholder={t("content.form.fields.description_placeholder")}
-          value={formData.description}
+          value={formData.description || ""}
           onChange={handleChange}
           disabled={isReadOnly}
         ></textarea>
@@ -102,22 +106,30 @@ function BasicInfoTab({
             onChange={handleChange}
             disabled={isReadOnly}
           >
-            <option value="">{t("content.form.fields.category_placeholder")}</option>
-            {categories.map((cat) => (
-              <optgroup key={cat.id} label={cat.name}>
-                {cat.children && cat.children.length > 0 ? (
-                  cat.children.map((child) => (
-                    <option key={child.id} value={String(child.id)}>
-                      {child.name} ({cat.name})
-                    </option>
-                  ))
-                ) : (
-                  <option value={cat.id}  >
-                    {cat.name} (No subcategories)
+            <option value="">
+              {t("content.form.fields.category_placeholder")}
+            </option>
+            {treeCategories &&
+              treeCategories.map((cat) => {
+                // إذا كان القسم الرئيسي يحتوي على أقسام فرعية، نعرضه كـ optgroup
+                if (cat.children && cat.children.length > 0) {
+                  return (
+                    <optgroup key={cat.id} label={cat.name}>
+                      {cat.children.map((child) => (
+                        <option key={child.id} value={String(child.id)}>
+                          {child.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  );
+                }
+                // إذا كان القسم الرئيسي لا يحتوي على فروع، يعرض كخيار عادي مباشر وقابل للاختيار
+                return (
+                  <option key={cat.id} value={String(cat.id)}>
+                    {cat.name}
                   </option>
-                )}
-              </optgroup>
-            ))}
+                );
+              })}
           </select>
         </div>
         <div className="col-md-6">
@@ -127,11 +139,13 @@ function BasicInfoTab({
           <select
             name="level"
             className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
-            value={formData.level}
+            value={formData.level || ""}
             onChange={handleChange}
             disabled={isReadOnly}
           >
-            <option value="">{t("content.form.fields.difficulty_placeholder")}</option>
+            <option value="">
+              {t("content.form.fields.difficulty_placeholder")}
+            </option>
             <option value="beginner">Beginner</option>
             <option value="intermediate">Intermediate</option>
             <option value="advanced">Advanced</option>
@@ -148,11 +162,13 @@ function BasicInfoTab({
           <select
             name="instructor_id"
             className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
-            value={formData.instructor_id}
+            value={formData.instructor_id || ""}
             onChange={handleChange}
             disabled={isReadOnly}
           >
-            <option value="">{t("content.form.fields.instructor_placeholder")}</option>
+            <option value="">
+              {t("content.form.fields.instructor_placeholder")}
+            </option>
             {instructors && instructors.length > 0 ? (
               instructors.map((inst) => (
                 <option key={inst.id} value={inst.id}>
@@ -171,13 +187,15 @@ function BasicInfoTab({
           <select
             className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
             name="attendance_type"
-            value={formData.attendance_type}
+            value={formData.attendance_type || "online"}
             onChange={handleChange}
             disabled={isReadOnly}
           >
             <option value="online">{isArabic ? "أونلاين" : "Online"}</option>
             <option value="offline">{isArabic ? "أوفلاين" : "Offline"}</option>
-            <option value="hybrid">{isArabic ? "هجين (Hybrid)" : "Hybrid"}</option>
+            <option value="hybrid">
+              {isArabic ? "هجين (Hybrid)" : "Hybrid"}
+            </option>
           </select>
         </div>
       </div>
@@ -213,25 +231,26 @@ function BasicInfoTab({
                 availableTags.map((tag) => {
                   const tagId = tag.tag_id || tag.id;
                   const isChecked =
-                    formData.tags.includes(parseInt(tagId, 10)) ||
-                    formData.tags.includes(tagId.toString());
+                    formData.tags?.includes(parseInt(tagId, 10)) ||
+                    formData.tags?.includes(tagId.toString());
                   return (
                     <div key={tagId} className="col-md-4 col-6">
                       <div
                         className={`ac-tag-option p-2 rounded-3 border bg-white cursor-pointer d-flex align-items-center gap-2 ${isChecked ? "checked" : ""}`}
                         onClick={() => {
                           const numericId = parseInt(tagId, 10);
+                          const currentTags = formData.tags || [];
                           const newTags = isChecked
-                            ? formData.tags.filter((id) => id !== numericId)
-                            : [...formData.tags, numericId];
+                            ? currentTags.filter((id) => id !== numericId)
+                            : [...currentTags, numericId];
                           setFormData((prev) => ({ ...prev, tags: newTags }));
                         }}
                       >
                         <input
                           type="checkbox"
                           className="form-check-input mt-0 cursor-pointer"
-                          checked={isChecked}
-                          onChange={() => { }}
+                          checked={isChecked || false}
+                          onChange={() => {}}
                         />
                         <span
                           className={`small fw-medium ${isChecked ? "text-light" : "text-dark"}`}
@@ -266,33 +285,36 @@ function BasicInfoTab({
         </div>
 
         <div className="d-flex flex-column gap-2">
-          {formData.learnings.map((learning, index) => (
-            <div key={index} className="d-flex gap-2 align-items-center">
-              <div className="flex-grow-1 position-relative">
-                <input
-                  type="text"
-                  className="form-control ac-form-input p-3 ps-5 bg-light border-0 rounded-3"
-                  placeholder={
-                    isArabic
-                      ? "مثال: تعلم أساسيات البرمجة"
-                      : "e.g. Learn the basics of programming"
-                  }
-                  value={learning}
-                  onChange={(e) => handleLearningChange(index, e.target.value)}
-                  disabled={isReadOnly}
-                />
+          {formData.learnings &&
+            formData.learnings.map((learning, index) => (
+              <div key={index} className="d-flex gap-2 align-items-center">
+                <div className="flex-grow-1 position-relative">
+                  <input
+                    type="text"
+                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                    placeholder={
+                      isArabic
+                        ? "مثال: تعلم أساسيات البرمجة"
+                        : "e.g. Learn the basics of programming"
+                    }
+                    value={learning || ""}
+                    onChange={(e) =>
+                      handleLearningChange(index, e.target.value)
+                    }
+                    disabled={isReadOnly}
+                  />
+                </div>
+                {!isReadOnly && formData.learnings.length > 1 && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-light text-danger border-0 rounded-3 p-2"
+                    onClick={() => removeLearning(index)}
+                  >
+                    <i className="bi bi-trash"></i>
+                  </button>
+                )}
               </div>
-              {!isReadOnly && formData.learnings.length > 1 && (
-                <button
-                  type="button"
-                  className="btn btn-sm btn-light text-danger border-0 rounded-3 p-2"
-                  onClick={() => removeLearning(index)}
-                >
-                  <i className="bi bi-trash"></i>
-                </button>
-              )}
-            </div>
-          ))}
+            ))}
         </div>
       </div>
 
@@ -314,7 +336,11 @@ function BasicInfoTab({
             <label
               htmlFor="thumbnailUpload"
               className="ac-thumbnail-upload w-100 mt-1 d-flex flex-column align-items-center justify-content-center p-5 text-center text-muted border-2 border-dashed rounded-3 bg-light"
-              style={{ borderStyle: "dashed", borderColor: "#d1d5db", cursor: "pointer" }}
+              style={{
+                borderStyle: "dashed",
+                borderColor: "#d1d5db",
+                cursor: "pointer",
+              }}
             >
               <i className="bi bi-cloud-arrow-up fs-1 mb-2 text-secondary"></i>
               <p className="mb-1">{t("content.form.fields.thumbnail_hint")}</p>
@@ -327,7 +353,11 @@ function BasicInfoTab({
                 style={{ height: "200px", maxWidth: "100%" }}
               >
                 <img
-                  src={thumbnailFile ? URL.createObjectURL(thumbnailFile) : formData.thumbnail}
+                  src={
+                    thumbnailFile
+                      ? URL.createObjectURL(thumbnailFile)
+                      : formData.thumbnail
+                  }
                   alt="thumbnail preview"
                   className="img-fluid"
                   style={{ maxHeight: "100%", objectFit: "contain" }}
@@ -377,11 +407,17 @@ function BasicInfoTab({
             <label
               htmlFor="coverUpload"
               className="ac-thumbnail-upload w-100 mt-1 d-flex flex-column align-items-center justify-content-center p-5 text-center text-muted border-2 border-dashed rounded-3 bg-light"
-              style={{ borderStyle: "dashed", borderColor: "#d1d5db", cursor: "pointer" }}
+              style={{
+                borderStyle: "dashed",
+                borderColor: "#d1d5db",
+                cursor: "pointer",
+              }}
             >
               <i className="bi bi-cloud-arrow-up fs-1 mb-2 text-secondary"></i>
               <p className="mb-1">
-                {isArabic ? "اضغط لرفع صورة الغلاف" : "Click to upload cover image"}
+                {isArabic
+                  ? "اضغط لرفع صورة الغلاف"
+                  : "Click to upload cover image"}
               </p>
               <small>
                 {isArabic
@@ -396,7 +432,11 @@ function BasicInfoTab({
                 style={{ height: "200px", maxWidth: "100%" }}
               >
                 <img
-                  src={coverFile ? URL.createObjectURL(coverFile) : formData.cover_image}
+                  src={
+                    coverFile
+                      ? URL.createObjectURL(coverFile)
+                      : formData.cover_image
+                  }
                   alt="cover preview"
                   className="img-fluid"
                   style={{ maxHeight: "100%", objectFit: "contain" }}
