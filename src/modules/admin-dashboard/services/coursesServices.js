@@ -48,6 +48,7 @@ export const updateCourse = async (id, data) => {
         const response = await axiosClient.post(`/admin/courses/${id}`, data, {
             headers: { "Content-Type": "multipart/form-data" },
         });
+        
         return response.data;
     }
     const response = await axiosClient.put(`/admin/courses/${id}`, data);
