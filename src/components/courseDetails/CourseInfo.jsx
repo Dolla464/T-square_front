@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import placeholderVideo from "../../assets/video/1625-148614367.mp4";
+// import placeholderVideo from "../../assets/video/1625-148614367.mp4";
 
 const CourseInfo = ({ course }) => {
   const { t, i18n } = useTranslation("coursesDetails");
@@ -38,17 +38,11 @@ const CourseInfo = ({ course }) => {
       <p className="text-muted mb-4 fs-5">{course.short_description}</p>
 
       <div className="mb-4">
-        {/* موقتا لحد لما يكون عندنا فيديوهات من الداتا بيز  */}
-        {/* {course?.previews?.length ? (
-          <video
-            src={course.previews[0].url}
-            className="w-100 rounded"
-            controls
-          />
-        ) : (
-          <video src={placeholderVideo} className="w-100 rounded" controls />
-        )} */}
-        <video src={placeholderVideo} className="w-100 rounded" controls />
+        <img
+          src={course.cover_image}
+          alt={course.title}
+          className="img-fluid rounded"
+        />
       </div>
 
       <h4 className="fw-bold mb-2">{t("about_program")}</h4>

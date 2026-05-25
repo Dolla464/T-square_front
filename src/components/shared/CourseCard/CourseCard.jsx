@@ -1,5 +1,5 @@
 import "./CourseCard.css";
-import courseThumb from "../../../assets/course-temp.png";
+// import courseThumb from "../../../assets/course-temp.png";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -16,7 +16,7 @@ const CourseCard = ({ course }) => {
       <div className="course-img-wrapper">
         {/* لما يكون عندنا صور الكورسات هنشيل courseThumb */}
         <img
-          src={courseThumb || course.image}
+          src={course.image}
           alt={course.title}
           className="course-img"
         />

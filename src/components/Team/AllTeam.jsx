@@ -3,7 +3,7 @@ import { Container, Row, Col } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "./AllTeam.css";
-import studentImg from "../../assets/student-avatar.jpg";
+// import studentImg from "../../assets/student-avatar.jpg";
 import i18n from "../../i18n";
 import { useInstructors } from "../../hooks/useInstructors";
 import CtaEnroll from "../shared/ctaEntroll/CtaEnroll";
@@ -73,7 +73,7 @@ function AllTeam() {
                     <div className="member-img-wrapper">
                       <img
                         //نغير الصوره لما تكون متوفره فالداتا بيز 
-                        src={studentImg || member.image}
+                        src={member.image}
                         alt={member.fullname || "Instructor"}
                         className="member-img"
                       />
