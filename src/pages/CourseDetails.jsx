@@ -6,7 +6,7 @@ import CourseVideos from "../components/courseDetails/CourseVideos";
 import CourseLayout from "../components/courseDetails/CourseLayout";
 import "../components/courseDetails/CourseDetails.css";
 import ContactSection from "../components/courses/ContactSection";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next";
 
 import LoadingSpiner from "../LoadingSpiner";
 
@@ -14,7 +14,7 @@ const CourseDetails = () => {
 
   const { slug } = useParams();
 
-  const { courseData, loading, error } = useCourseSlug(slug);
+  const { courseData, loading } = useCourseSlug(slug);
 
   if (loading) return <LoadingSpiner />;
   if (!courseData) return <p>No course found</p>;
