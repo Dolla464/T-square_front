@@ -3,6 +3,10 @@ import BasicInfoTab from "./tabs/BasicInfoTab";
 import CurriculumTab from "./tabs/CurriculumTab";
 import PricingTab from "./tabs/PricingTab";
 import SettingsTab from "./tabs/SettingsTab";
+import React, { useEffect } from "react";
+
+// 1. استيراد الـ Hook الخاص بالأقسام (تأكد من صحة مسار الملف في مشروعك)
+import { useCategories } from "../../../hooks/useCategories";
 
 function CourseForm({
   // View state
@@ -37,7 +41,7 @@ function CourseForm({
   goToNextTab,
   goToPrevTab,
   // Data deps
-  categories,
+  treeCategories: propsTreeCategories, // 2. أعدنا تسميته هنا لنفحصه
   instructors,
   availableTags,
   // Video modal
@@ -46,12 +50,29 @@ function CourseForm({
   isArabic,
   t,
 }) {
+  // 3. استدعاء الـ Hook محلياً للطوارئ في حال لم يرسل الأب البيانات
+  const { treeCategories: hookTreeCategories, getCategoriesTree } =
+    useCategories();
+
+  // 4. إذا كانت القادمة من الـ Props غير موجودة، نأخذ القادمة من الـ Hook
+  const finalTreeCategories = propsTreeCategories || hookTreeCategories || [];
+
+  // 5. جلب البيانات إذا كانت قادمة كـ undefined
+  useEffect(() => {
+    if (!propsTreeCategories && typeof getCategoriesTree === "function") {
+      getCategoriesTree();
+    }
+  }, [propsTreeCategories, getCategoriesTree]);
+
+
   return (
     <div className="ac-form-container">
       {/* Header: back button + save/publish actions */}
       <div className="ac-form-header d-flex justify-content-between align-items-center mb-4">
         <button className="ac-back-btn" onClick={handleBack}>
-          <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}></i>
+          <i
+            className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
+          ></i>
           <span className="ms-2 me-2 fs-5 fw-bold text-dark">
             {isReadOnly
               ? t("content.view_course")
@@ -140,7 +161,7 @@ function CourseForm({
             setThumbnailFile={setThumbnailFile}
             coverFile={coverFile}
             setCoverFile={setCoverFile}
-            categories={categories}
+            treeCategories={finalTreeCategories} // 6. مررنا المتغير النهائي المضمون هنا للـ Tab
             instructors={instructors}
             availableTags={availableTags}
             viewingItem={viewingItem}
@@ -193,7 +214,9 @@ function CourseForm({
             className={`btn btn-outline-secondary rounded-3 px-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === 0 ? "invisible" : ""}`}
             onClick={goToPrevTab}
           >
-            <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}></i>
+            <i
+              className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
+            ></i>
             {isArabic ? "السابق" : "Previous"}
           </button>
 
@@ -214,7 +237,9 @@ function CourseForm({
             onClick={goToNextTab}
           >
             {isArabic ? "التالي" : "Next"}
-            <i className={`bi ${isArabic ? "bi-arrow-left" : "bi-arrow-right"}`}></i>
+            <i
+              className={`bi ${isArabic ? "bi-arrow-left" : "bi-arrow-right"}`}
+            ></i>
           </button>
         </div>
       </div>
