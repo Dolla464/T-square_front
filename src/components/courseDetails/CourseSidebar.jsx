@@ -1,29 +1,47 @@
-import { use, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaPhone } from "react-icons/fa";
 import { Link, Navigate } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import i18n from "../../i18n";
-import { t } from "i18next";
+// import i18n from "../../i18n";
+// import { t } from "i18next";
 import { useAuth } from "../../contexts/AuthContext";
+import axiosClient from "../../api/axios";
+import { useState } from "react";
 
 const CourseSidebar = ({ course }) => {
   const { t, i18n } = useTranslation("coursesDetails");
   const { user } = useAuth();
-  const [show, setShow] = useState(false);
+  // const [show, setShow] = useState(false);
   const isArabic = i18n?.language === "ar";
   const navigate = useNavigate();
+
+  const [isChecking, setIsChecking] = useState(false);
 
   if (!course || course == null) {
     return <Navigate to="/courses" replace />;
   }
 
-  const handelPayment = (courseId) => {
+  const handelPayment = async (courseId, courseSlug) => {
     if (!user) {
       navigate("/login");
       return;
-    } else {
-      navigate(`/payment/${courseId}`);
+    }
+
+    try {
+      setIsChecking(true);
+      const response = await axiosClient.get(
+        `/student/courses/${courseId}/check-enrollment?_t=${Date.now()}`,
+      );
+      if (response.data && response.data.status === "success") {
+        return response.data.data.is_enrolled;
+      }
+
+      return false;
+    } catch (error) {
+      console.error("Error during check:", error);
+      return false;
+    } finally {
+      setIsChecking(false);
     }
   };
 
@@ -57,10 +75,24 @@ const CourseSidebar = ({ course }) => {
           </p>
           <button
             className="btn btn-danger w-100 mt-3"
-            disabled={!course}
-            onClick={() => handelPayment(course.slug)}
+            disabled={!course || isChecking}
+            onClick={async () => {
+              const isEnrolled = await handelPayment(course.id);
+
+              navigate(`/payment/${course.slug}`, {
+                state: { isEnrolled: isEnrolled },
+              });
+            }}
           >
-            {t("enroll_now")}
+            {isChecking ? (
+              <span
+                className="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            ) : (
+              t("enroll_now")
+            )}
           </button>
           <Link to={"/contact"} className="btn btn-outline-danger w-100 mt-2">
             <FaPhone style={{ transform: "rotate(90deg)" }} size={20} />{" "}

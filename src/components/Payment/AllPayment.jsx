@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Form } from "react-bootstrap";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 import courseTempImg from "../../assets/course-temp.png";
@@ -13,6 +13,8 @@ import usePayment from "../../hooks/usePayment";
 
 function AllPayment() {
   const { slug } = useParams();
+  const location = useLocation();
+  const isAlreadyEnrolled = location.state?.isEnrolled || false;
   const { courseData, loading, error } = useCourseSlug(slug);
   const { t } = useTranslation(["payment", "navbar", "courses"]);
   const isArabic = i18n.language === "ar";
@@ -279,10 +281,11 @@ function AllPayment() {
                     <div className="payment-success-card">
                       <div className="payment-success-icon">
                         <i
-                          className={`bi ${isError
-                            ? "bi-x-circle-fill text-danger"
-                            : "bi-check-circle-fill text-success"
-                            }`}
+                          className={`bi ${
+                            isError
+                              ? "bi-x-circle-fill text-danger"
+                              : "bi-check-circle-fill text-success"
+                          }`}
                         ></i>
                       </div>
                       {isError && (
@@ -292,14 +295,15 @@ function AllPayment() {
                         </>
                       )}
 
-
                       {!isError && (
                         <>
                           <h4> {t("payment:submitSection.successTitle")}</h4>
                           <div className="payment-success-info">
                             <div className="success-info-item">
                               <i className="bi bi-envelope"></i>
-                              <span>{t("payment:submitSection.emailNotice")}</span>
+                              <span>
+                                {t("payment:submitSection.emailNotice")}
+                              </span>
                             </div>
                             <div className="success-info-item">
                               <i className="bi bi-clock-history"></i>
@@ -330,15 +334,19 @@ function AllPayment() {
                       <Link to="/courses" className="btn-back-courses">
                         {t("payment:submitSection.backToCourses")}
                       </Link>
-
                     </div>
                   ) : (
                     <button
                       type="submit"
-                      className="btn-complete-payment"
+                      className={`btn-complete-payment ${isAlreadyEnrolled ? "bg-secondary border-0 text-white cursor-not-allowed" : ""}`}
                       id="payment-submit-btn"
+                      disabled={isAlreadyEnrolled} // 👈 سيتم قفل الزرار تماماً لو القيمة true
                     >
-                      {t("payment:submitSection.submitRequest")}
+                      {isAlreadyEnrolled
+                        ? isArabic
+                          ? "أنت مشترك بالفعل في هذا الكورس"
+                          : "You are already enrolled"
+                        : t("payment:submitSection.submitRequest")}
                     </button>
                   )}
                 </div>
@@ -371,7 +379,7 @@ function AllPayment() {
 
                   {/* Course Image */}
                   <img
-                    src={courseTempImg || course.image}
+                    src={course?.image}
                     alt={course?.title}
                     className="order-summary-image"
                   />
@@ -444,7 +452,7 @@ function AllPayment() {
           </Form>
         </Container>
       </div>
-    </div >
+    </div>
   );
 }
 
