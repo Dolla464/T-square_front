@@ -11,7 +11,7 @@ function AdminOrders() {
   const { t, i18n } = useTranslation("orderPayments");
   const isArabic = i18n.language?.startsWith("ar");
 
-  const { orders, loading, pagination, getOrders, getOrderById, updateOrderStatus, deleteOrder } = useOrders();
+  const { orders, loading, stats, pagination, getOrders, getOrderById, updateOrderStatus, deleteOrder } = useOrders();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -145,9 +145,9 @@ function AdminOrders() {
         <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state">
             <div className="stat-label">{t("totalRevenue")}</div>
-            <div className="stat-value my-2">$125,430</div>
+            <div className="stat-value my-2">{stats?.total_revenue} EGP</div>
             <div style={{ color: "#28a745" }} className="stat-sub">
-              +12.5% {t("fromLastMonth")}
+              {isArabic ? "هذا الشهر" : "This Month"}
             </div>
           </div>
         </div>
@@ -156,9 +156,9 @@ function AdminOrders() {
           <div className="state ">
             <div className="stat-label">{t("totalOrders")}</div>
             <div>
-              <div className="stat-value my-2">1,284</div>
+              <div className="stat-value my-2">{stats?.total_orders}</div>
               <div style={{ color: "#28a745" }} className="stat-sub">
-                +8.2% {t("fromLastMonth")}
+                {isArabic ? "هذا الشهر" : "This Month"}
               </div>
             </div>
           </div>
@@ -167,7 +167,7 @@ function AdminOrders() {
         <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{t("pending")}</div>
-            <div className="stat-value my-2 text-warning">24</div>
+            <div className="stat-value my-2 text-warning">{stats?.pending_count}</div>
             <div className="stat-sub text-muted">{t("awaitingPayment")}</div>
           </div>
         </div>
@@ -175,7 +175,7 @@ function AdminOrders() {
         <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{t("refunded")}</div>
-            <div className="stat-value my-2">8</div>
+            <div className="stat-value my-2">{stats?.refunded_count}</div>
             <div className="stat-sub text-muted">{t("thisMonth")}</div>
           </div>
         </div>
@@ -219,88 +219,88 @@ function AdminOrders() {
           <div className="table-responsive">
             <table className="table ac-table mb-0 align-middle" dir="ltr">
               <thead className="ac-table">
-              <tr className="text-muted">
-                <th>{t("orderId")}</th>
-                <th className="text-center">{t("student")}</th>
-                <th className="text-center">{t("course")}</th>
-                <th className="text-center">{t("amount")}</th>
-                <th className="text-center">{t("status")}</th>
-                <th className="text-center">{isArabic ? "الإجراءات" : "Actions"}</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-5">
-                    <div className="spinner-border text-danger" role="status">
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
-                  </td>
+                <tr className="text-muted">
+                  <th>{t("orderId")}</th>
+                  <th className="text-center">{t("student")}</th>
+                  <th className="text-center">{t("course")}</th>
+                  <th className="text-center">{t("amount")}</th>
+                  <th className="text-center">{t("status")}</th>
+                  <th className="text-center">{isArabic ? "الإجراءات" : "Actions"}</th>
                 </tr>
-              ) : filteredOrders.length > 0 ? (
-                filteredOrders.map((item) => (
-                  <tr key={item.id}>
-                    <td className="fw-bold text-dark">#{item.id}</td>
+              </thead>
 
-                    <td className="text-center fw-medium text-dark">
-                      {item["student.full_name"] || item.billing_name || "N/A"}
-                    </td>
-
-                    <td className="text-center fw-medium text-dark">
-                      {item["enrollments.course.title"] || "N/A"}
-                    </td>
-
-                    <td className="text-center fw-bold text-success"><span className="text-muted">EGP</span> {item.total_amount || 0}</td>
-
-
-
-                    <td className="text-center">
-                      <span
-                        className={`badge rounded-pill cp ${getStatusBadge(item.status || "pending")}`}
-                        style={{
-                          cursor: "pointer",
-                          padding: "8px 16px",
-                        }}
-                        onClick={() => handleStatusChange(item.id, item.status || "pending")}
-                      >
-                        <i className={`bi ${getStatusIcon(item.status || "pending")} me-1`}></i>
-                        {getStatusText(item.status || "pending")}
-                      </span>
-                    </td>
-
-                    <td className="text-center">
-                      <div className="d-flex justify-content-center gap-2">
-                        <button
-                          className="btn btn-sm ac-btn-view border-0"
-                          title={isArabic ? "عرض التفاصيل" : "View Details"}
-                          onClick={() => handleView(item.id)}
-                        >
-                          <i className="bi bi-eye fs-6"></i>
-                        </button>
-                        <button
-                          className="btn btn-sm ac-btn-deleteTable border-0"
-                          title={isArabic ? "حذف" : "Delete"}
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          <i className="bi bi-trash fs-6"></i>
-                        </button>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-5">
+                      <div className="spinner-border text-danger" role="status">
+                        <span className="visually-hidden">Loading...</span>
                       </div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="text-center py-5 text-secondary fw-bold">
-                    <div className="d-flex flex-column align-items-center justify-content-center">
-                      <i className="bi bi-inbox fs-1 text-muted mb-2"></i>
-                      {isArabic ? "لا توجد طلبات دفع" : "No payment orders found"}
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                ) : filteredOrders.length > 0 ? (
+                  filteredOrders.map((item) => (
+                    <tr key={item.id}>
+                      <td className="fw-bold text-dark">#{item.id}</td>
+
+                      <td className="text-center fw-medium text-dark">
+                        {item["student.full_name"] || item.billing_name || "N/A"}
+                      </td>
+
+                      <td className="text-center fw-medium text-dark">
+                        {item["enrollments.course.title"] || "N/A"}
+                      </td>
+
+                      <td className="text-center fw-bold text-success"><span className="text-muted">EGP</span> {item.total_amount || 0}</td>
+
+
+
+                      <td className="text-center">
+                        <span
+                          className={`badge rounded-pill cp ${getStatusBadge(item.status || "pending")}`}
+                          style={{
+                            cursor: "pointer",
+                            padding: "8px 16px",
+                          }}
+                          onClick={() => handleStatusChange(item.id, item.status || "pending")}
+                        >
+                          <i className={`bi ${getStatusIcon(item.status || "pending")} me-1`}></i>
+                          {getStatusText(item.status || "pending")}
+                        </span>
+                      </td>
+
+                      <td className="text-center">
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm ac-btn-view border-0"
+                            title={isArabic ? "عرض التفاصيل" : "View Details"}
+                            onClick={() => handleView(item.id)}
+                          >
+                            <i className="bi bi-eye fs-6"></i>
+                          </button>
+                          <button
+                            className="btn btn-sm ac-btn-deleteTable border-0"
+                            title={isArabic ? "حذف" : "Delete"}
+                            onClick={() => handleDelete(item.id)}
+                          >
+                            <i className="bi bi-trash fs-6"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="text-center py-5 text-secondary fw-bold">
+                      <div className="d-flex flex-column align-items-center justify-content-center">
+                        <i className="bi bi-inbox fs-1 text-muted mb-2"></i>
+                        {isArabic ? "لا توجد طلبات دفع" : "No payment orders found"}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
 
           {/* Pagination - Always visible if data exists */}

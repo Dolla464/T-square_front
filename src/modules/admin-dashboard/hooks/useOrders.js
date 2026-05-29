@@ -9,6 +9,7 @@ import {
 
 export const useOrders = () => {
   const [orders, setOrders] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState(null);
@@ -18,9 +19,10 @@ export const useOrders = () => {
     setError(null);
     try {
       const res = await getReviews(params);
-      const data = res?.data || res?.payments || [];
-      const paginationData = res?.pagination || res?.meta || null;
-
+      const stats = res?.data?.stats;
+      const data = res?.data?.orders || [];
+      const paginationData = res?.meta || null;
+      setStats(stats);
       setOrders(Array.isArray(data) ? data : []);
       setPagination(paginationData);
       return data;
@@ -68,6 +70,7 @@ export const useOrders = () => {
     orders,
     loading,
     error,
+    stats,
     pagination,
     getOrders,
     getOrderById,
