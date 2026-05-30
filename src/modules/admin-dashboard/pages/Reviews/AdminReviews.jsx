@@ -20,6 +20,7 @@ function AdminReviews() {
 
   const {
     reviews,
+    stats,
     pagination: apiPagination,
     loading,
     getReviews,
@@ -125,7 +126,7 @@ function AdminReviews() {
         <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state">
             <div className="stat-label">{isArabic ? "إجمالي التقييمات" : "Total Reviews"}</div>
-            <div className="stat-value my-2">{apiPagination?.total || 0}</div>
+            <div className="stat-value my-2">{stats?.total_reviews || 0}</div>
             <div style={{ color: "#28a745" }} className="stat-sub">+5% this month</div>
           </div>
         </div>
@@ -133,7 +134,7 @@ function AdminReviews() {
           <div className="state ">
             <div className="stat-label">{isArabic ? "متوسط التقييم" : "Avg Rating"}</div>
             <div className="d-flex align-items-center">
-              <div className="stat-value my-2">4.8</div>
+              <div className="stat-value my-2">{stats?.average_rating || 0}</div>
               <span className="text-warning fs-5 ms-2">
                 <i className="bi bi-star-fill"></i>
                 <i className="bi bi-star-fill"></i>
@@ -147,14 +148,14 @@ function AdminReviews() {
         <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{isArabic ? "بانتظار المراجعة" : "Pending Review"}</div>
-            <div className="stat-value my-2 text-warning">12</div>
+            <div className="stat-value my-2 text-warning">{stats?.pending_count || 0}</div>
             <div className="stat-sub text-muted">Awaiting</div>
           </div>
         </div>
         <div className="col-md-3 col-12 mb-3 mb-md-0">
           <div className="state ">
             <div className="stat-label">{isArabic ? "مرفوضة" : "Rejected"}</div>
-            <div className="stat-value my-2">3</div>
+            <div className="stat-value my-2">{stats?.rejected_count || 0}</div>
             <div className="stat-sub text-muted">All Time</div>
           </div>
         </div>
