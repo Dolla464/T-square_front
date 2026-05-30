@@ -195,7 +195,7 @@ function AdminReviews() {
                 ))}
               </select>
               <select
-                className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${ratingFilter !== "all"
+                className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${statusFilter !== "all"
                   ? "border-danger bg-danger-subtle text-danger-emphasis"
                   : "border-light bg-light text-muted"
                   }`}
