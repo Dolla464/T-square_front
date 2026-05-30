@@ -2,8 +2,6 @@ import { useTranslation } from "react-i18next";
 import { FaPhone } from "react-icons/fa";
 import { Link, Navigate } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-// import i18n from "../../i18n";
-// import { t } from "i18next";
 import { useAuth } from "../../contexts/AuthContext";
 import axiosClient from "../../api/axios";
 import { useState } from "react";
@@ -11,7 +9,6 @@ import { useState } from "react";
 const CourseSidebar = ({ course }) => {
   const { t, i18n } = useTranslation("coursesDetails");
   const { user } = useAuth();
-  // const [show, setShow] = useState(false);
   const isArabic = i18n?.language === "ar";
   const navigate = useNavigate();
 
@@ -21,35 +18,40 @@ const CourseSidebar = ({ course }) => {
     return <Navigate to="/courses" replace />;
   }
 
-  const handelPayment = async (courseId, courseSlug) => {
+  // 1. تعديل الدالة لتصبح المسؤولة بالكامل عن فحص التمكين وتوجيه المستخدم
+  const handleEnrollmentProcess = async () => {
+    // إذا لم يكن مسجلاً، وجهه فوراً لصفحة تسجيل الدخول واقطع تنفيذ الدالة
     if (!user) {
       navigate("/login");
       return;
     }
 
+    let isEnrolled = false;
+
     try {
       setIsChecking(true);
       const response = await axiosClient.get(
-        `/student/courses/${courseId}/check-enrollment?_t=${Date.now()}`,
+        `/student/courses/${course.id}/check-enrollment?_t=${Date.now()}`,
       );
       if (response.data && response.data.status === "success") {
-        return response.data.data.is_enrolled;
+        isEnrolled = response.data.data.is_enrolled;
       }
-
-      return false;
     } catch (error) {
       console.error("Error during check:", error);
-      return false;
     } finally {
       setIsChecking(false);
     }
+
+    // التوجيه لصفحة الدفع بعد انتهاء الفحص
+    navigate(`/payment/${course.slug}`, {
+      state: { isEnrolled: isEnrolled },
+    });
   };
 
   return (
     <>
       <div className="d-none d-lg-block h-100" dir={isArabic ? "rtl" : "ltr"}>
-        <div className="p-4 shadow  sidebar-card">
-          {" "}
+        <div className="p-4 shadow sidebar-card">
           <h3 className="fw-bold mb-2">
             {course.price.final} {isArabic ? "ج . م" : "EGP"}
           </h3>
@@ -73,16 +75,12 @@ const CourseSidebar = ({ course }) => {
             <span>{t("level")}</span>
             <span className="fw-bold">{course.level}</span>
           </p>
+
+          {/* 🟢 زر الشاشة الكبيرة المعدل */}
           <button
             className="btn btn-danger w-100 mt-3"
             disabled={!course || isChecking}
-            onClick={async () => {
-              const isEnrolled = await handelPayment(course.id);
-
-              navigate(`/payment/${course.slug}`, {
-                state: { isEnrolled: isEnrolled },
-              });
-            }}
+            onClick={handleEnrollmentProcess}
           >
             {isChecking ? (
               <span
@@ -94,6 +92,7 @@ const CourseSidebar = ({ course }) => {
               t("enroll_now")
             )}
           </button>
+
           <Link to={"/contact"} className="btn btn-outline-danger w-100 mt-2">
             <FaPhone style={{ transform: "rotate(90deg)" }} size={20} />{" "}
             {t("contact_us")}
@@ -101,7 +100,7 @@ const CourseSidebar = ({ course }) => {
         </div>
       </div>
 
-      {/* 🔵 Mobile Button */}
+      {/* 🔵 Mobile Floating Button Indicator */}
       <button
         className="btn btn-danger mobile-price-btn d-lg-none"
         type="button"
@@ -113,19 +112,15 @@ const CourseSidebar = ({ course }) => {
           top: "25%",
           zIndex: 999,
           padding: "40px 10px",
-
           left: isArabic ? "auto" : "-5px",
           right: isArabic ? "-5px" : "auto",
-
           borderRadius: isArabic ? "50px 0px 0px 50px" : "0px 50px 50px 0px",
         }}
       ></button>
 
       {/* 🟣 Offcanvas */}
       <div
-        className={`offcanvas ${
-          isArabic ? "offcanvas-start" : "offcanvas-end"
-        }`}
+        className={`offcanvas ${isArabic ? "offcanvas-start" : "offcanvas-end"}`}
         tabIndex="-1"
         id="offcanvasRight"
         aria-labelledby="offcanvasRightLabel"
@@ -144,7 +139,6 @@ const CourseSidebar = ({ course }) => {
           }}
         >
           <h3 style={{ fontWeight: "bold" }}>{t("Course_price")}</h3>
-
           <button
             type="button"
             className="btn-close"
@@ -155,8 +149,7 @@ const CourseSidebar = ({ course }) => {
 
         {/* Body */}
         <div className="offcanvas-body">
-          <div className="p-4 shadow  sidebar-card">
-            {" "}
+          <div className="p-4 shadow sidebar-card">
             <h3 className="fw-bold mb-2">
               {course.price.final} {isArabic ? "ج . م" : "EGP"}
             </h3>
@@ -180,13 +173,25 @@ const CourseSidebar = ({ course }) => {
               <span>{t("level")}</span>
               <span className="fw-bold">{course.level}</span>
             </p>
+
+            {/* 🟢 زر الموبايل المعدل والمحمي بالـ Loader أيضاً */}
             <button
               className="btn btn-danger w-100 mt-3"
-              disabled={!course}
-              onClick={() => handelPayment(course.slug)}
+              disabled={!course || isChecking}
+              onClick={handleEnrollmentProcess}
+              data-bs-dismiss="offcanvas" // يغلق الـ offcanvas تلقائياً عند الانتقال لصفحة اللوج ان أو الدفع
             >
-              {t("enroll_now")}
+              {isChecking ? (
+                <span
+                  className="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+              ) : (
+                t("enroll_now")
+              )}
             </button>
+
             <Link to={"/contact"} className="btn btn-outline-danger w-100 mt-2">
               <FaPhone style={{ transform: "rotate(90deg)" }} size={20} />{" "}
               {t("contact_us")}
