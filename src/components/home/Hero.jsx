@@ -1,16 +1,23 @@
 import { Container, Button, Row, Col } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import heroImg from "../../assets/hero-bg-min.webp";
-import "./Hero.css"; // استيراد ملف الـ CSS
+import { useHeroAndAboutData } from "../../hooks/useDiscovery"; // استدعاء الـ Hook الموحد
+import heroImg from "../../assets/hero-bg-min.webp"; // الصورة الافتراضية اللوكال
+import "./Hero.css";
 
 function Hero() {
   const { t, i18n } = useTranslation(["home", "common"]);
   const isAr = i18n.language === "ar";
 
-  // الـ Style الوحيد اللي هيفضل هنا هو الخلفية عشان المتغير heroImg
+  // 1. جلب صورة الهيرو المرفوعة من الأدمن عبر الـ Hook
+  const { heroImage } = useHeroAndAboutData();
+
+  // 2. تريكة الـ Fallback الذكية: لو الـ API رجع صورة نستخدمها، وإلا نرجع للصورة اللوكال
+  const currentBg = heroImage || heroImg;
+
+  // الـ Style الديناميكي صار يقرأ من المتغير الذكي currentBg
   const dynamicStyle = {
-    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.3)), url("${heroImg}")`,
+    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.3)), url("${currentBg}")`,
   };
 
   return (
@@ -18,9 +25,9 @@ function Hero() {
       className={`hero-section ${isAr ? "rtl-bg" : ""}`}
       style={dynamicStyle}
     >
- 
       <Container>
         <Row>
+          {/* ملحوظة وتعديل منطقي: لغوياً وعادةً في الـ RTL بنحتاج النص text-end أو text-start على حسب رغبتك في التصميم */}
           <Col md={7} className={isAr ? "text-start" : "text-end"}>
             <h1 className="display-3 fw-bold mb-3 hero-title">
               {t("hero_title_start")}

@@ -1,47 +1,102 @@
+import { useEffect, useState } from "react";
 import { Button, Container } from "react-bootstrap";
-import "./Discovery.css";
 import { useTranslation } from "react-i18next";
-// استورد الـ 5 صور الحقيقية هنا
+import { Link } from "react-router-dom";
+import { useDiscoveryMedia } from "../../hooks/useDiscovery";
+import "./Discovery.css";
+
+// الصور الافتراضية (Fallback)
 import img1 from "../../assets/discovery/1.png";
 import img2 from "../../assets/discovery/2.png";
 import img3 from "../../assets/discovery/3.png";
-import img4 from "../../assets/discovery/4.png"; // صورة إضافية
-import img5 from "../../assets/discovery/5.png"; // صورة إضافية
+import img4 from "../../assets/discovery/4.png";
+import img5 from "../../assets/discovery/5.png";
 import wavesBg from "../../assets/discovery/waves.png";
-import { Link } from "react-router-dom";
 
 function Discovery() {
   const { t } = useTranslation("discovery");
+
+  const { discoveryMedia, loading } = useDiscoveryMedia();
+
+  const initialImages =
+    !loading && discoveryMedia && discoveryMedia.length >= 5
+      ? discoveryMedia.slice(0, 5)
+      : [img1, img2, img3, img4, img5];
+
+  const [currentFive, setCurrentFive] = useState(initialImages);
+
+  useEffect(() => {
+    if (!loading && discoveryMedia && discoveryMedia.length >= 5) {
+      setCurrentFive(discoveryMedia.slice(0, 5));
+    }
+  }, [discoveryMedia, loading]);
+
+  useEffect(() => {
+    if (!discoveryMedia || discoveryMedia.length <= 5) return;
+
+    const interval = setInterval(() => {
+      setCurrentFive((prevFive) => {
+        const availableImages = discoveryMedia.filter(
+          (img) => !prevFive.includes(img),
+        );
+        if (availableImages.length === 0) return prevFive;
+
+        const randomNewImage =
+          availableImages[Math.floor(Math.random() * availableImages.length)];
+        const randomIndexToReplace = Math.floor(Math.random() * 5);
+
+        const updatedFive = [...prevFive];
+        updatedFive[randomIndexToReplace] = randomNewImage;
+
+        return updatedFive;
+      });
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [discoveryMedia]);
+
   return (
-    <section className="discovery-section  py-md-5 my-3 py-5">
+    <section className="discovery-section py-md-5 my-3 py-5">
       {/* Waves Background */}
       <img src={wavesBg} className="discovery-waves" alt={t("alt.waves")} />
 
       <Container className="discovery-container pt-1">
-        {/* الصور في شكل قوس أوسع (5 صور) */}
         <div className="position-relative">
           <div className="images-arc" dir="ltr">
             {/* أقصى اليسار */}
             <img
-              src={img1}
+              src={currentFive[0]}
               className="arc-img img-outer-left"
               alt="learning 1"
+              loading="lazy"
             />
             {/* اليسار الداخلي */}
-            <img src={img2} className="arc-img img-inner-left" alt="coding 2" />
+            <img
+              src={currentFive[1]}
+              className="arc-img img-inner-left"
+              alt="coding 2"
+              loading="lazy"
+            />
             {/* المنتصف - الأعلى */}
-            <img src={img3} className="arc-img img-centerX" alt="classroom 3" />
+            <img
+              src={currentFive[2]}
+              className="arc-img img-centerX"
+              alt="classroom 3"
+              loading="lazy"
+            />
             {/* اليمين الداخلي */}
             <img
-              src={img4}
+              src={currentFive[3]}
               className="arc-img img-inner-right"
               alt="collaboration 4"
+              loading="lazy"
             />
             {/* أقصى اليمين */}
             <img
-              src={img5}
+              src={currentFive[4]}
               className="arc-img img-outer-right"
               alt="student 5"
+              loading="lazy"
             />
           </div>
 
