@@ -12,6 +12,8 @@ import {
   updateStudentProfile,
   updateStudentPassword,
 } from "../../services/dashboardService";
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 function DashboardProfile() {
   const { t, i18n } = useTranslation("studentDashboard");
@@ -33,6 +35,10 @@ function DashboardProfile() {
   const [pwdLoading, setPwdLoading] = useState(false);
   const [profileError, setProfileError] = useState(null);
   const [imageError, setImageError] = useState(false);
+
+  // States for Lightbox functionality
+  const [lightboxSlides, setLightboxSlides] = useState([]);
+  const [lightboxIndex, setLightboxIndex] = useState(-1);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -179,7 +185,18 @@ function DashboardProfile() {
               {t("profile_page.personal_info")}
             </h6>
             <div className="profile-head-row">
-              <div className="profile-avatar" style={{ position: "relative" }}>
+              <div
+                className="profile-avatar position-relative overflow-hidden"
+                style={{
+                  cursor: user?.student?.avatar && !imageError ? "pointer" : "default",
+                }}
+                onClick={() => {
+                  if (user?.student?.avatar && !imageError) {
+                    setLightboxSlides([{ src: user.student.avatar }]);
+                    setLightboxIndex(0);
+                  }
+                }}
+              >
                 {saveLoading && (
                   <div
                     style={{
@@ -202,11 +219,27 @@ function DashboardProfile() {
     لو مفيش avatar أو لو الصورة حاولت تحمل وفشلت (imageError)، اعرض الـ initials 
   */}
                 {user?.student?.avatar && !imageError ? (
-                  <img
-                    src={user.student.avatar}
-                    alt="avatar"
-                    onError={() => setImageError(true)} // لو الصورة مكسورة، اقلب على الـ initials
-                  />
+                  <>
+                    <img
+                      src={user.student.avatar}
+                      alt="avatar"
+                      onError={() => setImageError(true)} // لو الصورة مكسورة، اقلب على الـ initials
+                    />
+                    {/* Hover Overlay */}
+                    <div
+                      className="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
+                      style={{
+                        backgroundColor: "rgba(190, 21, 34, 0.85)",
+                        opacity: 0,
+                        transition: "opacity 0.3s ease",
+                        zIndex: 3,
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
+                      onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
+                    >
+                      <i className="bi bi-eye-fill text-white" style={{ fontSize: "1.1rem" }}></i>
+                    </div>
+                  </>
                 ) : (
                   <span className="avatar-initials">{initials}</span>
                 )}
@@ -352,6 +385,15 @@ function DashboardProfile() {
           </div>
         </div>
       </div>
+
+      {/* ── سلايد شو عارض الصور التفاعلي (Lightbox Component) ── */}
+      <Lightbox
+        open={lightboxIndex >= 0}
+        index={lightboxIndex}
+        close={() => setLightboxIndex(-1)}
+        slides={lightboxSlides}
+        carousel={{ finite: true }}
+      />
     </div>
   );
 }

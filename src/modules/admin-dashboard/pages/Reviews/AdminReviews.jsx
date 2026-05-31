@@ -127,7 +127,6 @@ function AdminReviews() {
           <div className="state">
             <div className="stat-label">{isArabic ? "إجمالي التقييمات" : "Total Reviews"}</div>
             <div className="stat-value my-2">{stats?.total_reviews || 0}</div>
-            <div style={{ color: "#28a745" }} className="stat-sub">+5% this month</div>
           </div>
         </div>
         <div className="col-md-3 col-12 mb-3 mb-md-0">

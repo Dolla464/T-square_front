@@ -9,6 +9,8 @@ import { toastError } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { useGroups } from "../../hooks/useGroups";
 import { useStudents } from "../../hooks/useStudents";
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 /**
  * Default form data structure for creating or editing a student, ensuring all necessary fields are initialized to empty or default values to prevent uncontrolled input issues in the form components
@@ -24,6 +26,35 @@ const defaultFormData = {
   gender: "male",
   status: "active",
   avatar: null,
+};
+
+const defaultAvatar = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+
+const getAvatarSrc = (path) => {
+  if (!path) return defaultAvatar;
+
+  if (
+    path.startsWith("http://") ||
+    path.startsWith("https://") ||
+    path.startsWith("data:") ||
+    path.startsWith("blob:")
+  ) {
+    return path;
+  }
+
+  let apiURL = import.meta.env.VITE_API_URL || "";
+  apiURL = apiURL.replace(/\/api\/?$/, "");
+  const cleanBase = apiURL.endsWith("/") ? apiURL.slice(0, -1) : apiURL;
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (
+    !cleanPath.startsWith("/storage") &&
+    !cleanPath.startsWith("/public")
+  ) {
+    return `${cleanBase}/storage${cleanPath}`;
+  }
+
+  return `${cleanBase}${cleanPath}`;
 };
 
 function AdminStudents() {
@@ -53,6 +84,10 @@ function AdminStudents() {
   const [selectedGroup, setSelectedGroup] = useState("all");
   const [formData, setFormData] = useState(defaultFormData);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // States for Lightbox functionality
+  const [lightboxSlides, setLightboxSlides] = useState([]);
+  const [lightboxIndex, setLightboxIndex] = useState(-1);
 
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
@@ -547,6 +582,9 @@ function AdminStudents() {
                           {t("students_page.table_enrollment")}
                         </th>
                         <th className="text-center">
+                          {isArabic ? "الصورة" : "Image"}
+                        </th>
+                        <th className="text-center">
                           {t("students_page.table_name")}
                         </th>
                         <th className="text-center">
@@ -576,8 +614,68 @@ function AdminStudents() {
                             <td className="text-center fw-medium text-muted">
                               {student.enrollment_number}
                             </td>
+
+                            <td className="text-center">
+                              <div
+                                className="position-relative d-inline-block rounded-circle  shadow-sm mb-2"
+                                style={{
+                                  background: "linear-gradient(135deg, #dc3545 0%, #f1a80a 100%)",
+                                  padding: "2px",
+                                }}
+                              >
+                                <div
+                                  className="bg-white rounded-circle position-relative overflow-hidden"
+                                  style={{ width: "55px", height: "55px" }}
+                                >
+                                  <img
+                                    src={getAvatarSrc(student.avatar)}
+                                    alt={student.full_name}
+                                    className="rounded-circle w-100 h-100"
+                                    style={{
+                                      objectFit: "cover",
+                                    }}
+                                  />
+                                  {/* Hover Overlay */}
+                                  <div
+                                    className="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
+                                    style={{
+                                      backgroundColor: "rgba(190, 21, 34, 0.85)",
+                                      opacity: 0,
+                                      transition: "opacity 0.3s ease",
+                                      cursor: "pointer",
+                                      zIndex: 3,
+                                    }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
+                                    onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
+                                    onClick={() => {
+                                      setLightboxSlides([{ src: getAvatarSrc(student.avatar) }]);
+                                      setLightboxIndex(0);
+                                    }}
+                                  >
+                                    <button
+                                      type="button"
+                                      className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
+                                      style={{
+                                        width: "38px",
+                                        height: "38px",
+                                        transition: "transform 0.2s ease",
+                                        border: "none",
+                                        backgroundColor: "#ffffff",
+                                      }}
+                                      onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(0.9)")}
+                                      onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(0.8)")}
+                                    >
+                                      <i className="bi bi-eye-fill text-danger fs-4"></i>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
                             <td className="text-center fw-medium text-dark">
-                              {student.full_name}
+                              <div className="d-flex align-items-center justify-content-center gap-2">
+
+                                <span>{student.full_name}</span>
+                              </div>
                             </td>
                             <td className="text-center text-secondary">
                               {student.email}
@@ -746,16 +844,61 @@ function AdminStudents() {
               {viewingItem && (
                 <div className="mb-4 text-center">
                   <div
-                    className="ac-thumbnail-view border rounded-4 overflow-hidden shadow-sm d-inline-block"
-                    style={{ maxWidth: "100%", width: "600px" }}
+                    className="position-relative d-inline-block rounded-circle p-1 shadow-sm mb-2"
+                    style={{
+                      background: "linear-gradient(135deg, #dc3545 0%, #f1a80a 100%)",
+                    }}
                   >
-                    <img
-                      src={formData.avatar}
-                      alt={formData.full_name}
-                      className="img-fluid w-100"
-                      style={{ height: "300px", objectFit: "cover" }}
-                    />
+                    <div
+                      className="bg-white rounded-circle p-1 position-relative overflow-hidden"
+                      style={{ width: "200px", height: "200px" }}
+                    >
+                      <img
+                        src={getAvatarSrc(formData.avatar)}
+                        alt={formData.full_name}
+                        className="rounded-circle w-100 h-100"
+                        style={{
+                          objectFit: "cover",
+                          border: "3px solid #f8f9fa",
+                        }}
+                      />
+                      {/* Hover Overlay */}
+                      <div
+                        className="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
+                        style={{
+                          backgroundColor: "rgba(190, 21, 34, 0.85)",
+                          opacity: 0,
+                          transition: "opacity 0.3s ease",
+                          cursor: "pointer",
+                          zIndex: 3,
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
+                        onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
+                        onClick={() => {
+                          setLightboxSlides([{ src: getAvatarSrc(formData.avatar) }]);
+                          setLightboxIndex(0);
+                        }}
+                      >
+                        <button
+                          type="button"
+                          className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
+                          style={{
+                            width: "48px",
+                            height: "48px",
+                            transition: "transform 0.2s ease",
+                            border: "none",
+                            backgroundColor: "#ffffff",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.15)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                        >
+                          <i className="bi bi-eye-fill text-danger fs-4"></i>
+                        </button>
+                      </div>
+                    </div>
                   </div>
+                  <h4 className="fw-bold mt-2 text-dark mb-1">{formData.full_name}</h4>
+                  <p className="text-muted small mb-0">{isArabic ? `رقم القيد: ${formData.enrollment_number}` : `Enrollment ID: ${formData.enrollment_number}`}</p>
                 </div>
               )}
               {/* رقم القيد (يظهر فقط في العرض العام) */}
@@ -1120,6 +1263,15 @@ function AdminStudents() {
           </div>
         </div>
       )}
+
+      {/* ── سلايد شو عارض الصور التفاعلي (Lightbox Component) ── */}
+      <Lightbox
+        open={lightboxIndex >= 0}
+        index={lightboxIndex}
+        close={() => setLightboxIndex(-1)}
+        slides={lightboxSlides}
+        carousel={{ finite: true }}
+      />
     </div>
   );
 }

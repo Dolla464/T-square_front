@@ -8,6 +8,7 @@ import "yet-another-react-lightbox/styles.css";
 
 // استيراد ملف التنسيق المخصص والمدعوم بالتعليقات العربية للمطورين
 import "./settings.css";
+import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
 function AdminSettings() {
   const { i18n } = useTranslation("adminDashboard");
@@ -77,23 +78,48 @@ function AdminSettings() {
   // دالة مساعدة للحصول على رابط الصورة المباشر من الاستجابة (سهلة ومنظمة وبسيطة)
   const getImgSrc = (item) => {
     if (!item) return "";
-    const path = typeof item === "string" ? item : (item.image_url || item.url || item.path || item.value || "");
+
+    const path =
+      typeof item === "string"
+        ? item
+        : (item.image_url ||
+          item.url ||
+          item.path ||
+          item.value ||
+          "");
+
     if (!path) return "";
-    
-    // إذا كان الرابط كاملاً أو عبارة عن blob
-    if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:") || path.startsWith("blob:")) {
+
+    // لو URL كامل
+    if (
+      path.startsWith("http://") ||
+      path.startsWith("https://") ||
+      path.startsWith("data:") ||
+      path.startsWith("blob:")
+    ) {
       return path;
     }
-    
-    // الحصول على رابط الـ API الأساسي للباك إند
-    const apiURL = import.meta.env.VITE_API_URL || "";
-    const cleanBase = apiURL.endsWith("/") ? apiURL.slice(0, -1) : apiURL;
-    const cleanPath = path.startsWith("/") ? path : `/${path}`;
-    
-    // فحص إذا كان الرابط يشتمل بالفعل على storage لتجنب التكرار
-    if (!cleanPath.startsWith("/storage") && !cleanPath.startsWith("/public")) {
+
+    let apiURL = import.meta.env.VITE_API_URL || "";
+
+    // شيل /api من آخر الرابط لو موجودة
+    apiURL = apiURL.replace(/\/api\/?$/, "");
+
+    const cleanBase = apiURL.endsWith("/")
+      ? apiURL.slice(0, -1)
+      : apiURL;
+
+    const cleanPath = path.startsWith("/")
+      ? path
+      : `/${path}`;
+
+    if (
+      !cleanPath.startsWith("/storage") &&
+      !cleanPath.startsWith("/public")
+    ) {
       return `${cleanBase}/storage${cleanPath}`;
     }
+
     return `${cleanBase}${cleanPath}`;
   };
 
@@ -149,6 +175,15 @@ function AdminSettings() {
       if (aboutInputRef.current) aboutInputRef.current.value = "";
       return;
     }
+    if (aboutImages.length === 0 && files.length < 3) {
+      toastError(
+        isArabic
+          ? "غير مسموح برفع أقل من 3 صور يجب أن يحتوي المعرض على 3 صور على الأقل!"
+          : "Not allowed to upload less than 3 images the gallery must contain at least 3 images!"
+      );
+      if (aboutInputRef.current) aboutInputRef.current.value = "";
+      return;
+    }
 
     if (aboutAction === "append") {
       const currentCount = aboutImages.length;
@@ -172,11 +207,11 @@ function AdminSettings() {
       }
     } else {
       // وضع الاستبدال (Replace) لقسم الأبوت ميديا
-      if (files.length > 3) {
+      if (files.length !== 3) {
         toastError(
           isArabic
-            ? "الحد الأقصى للرفع هو 3 صور في وضع الاستبدال!"
-            : "Maximum limit to upload is 3 images in replace mode!"
+            ? "غير مسموح برفع الا 3 صور يجب أن يحتوي امعرض على 3 صور!"
+            : "Not allowed to upload other than 3 images the gallery must contain 3 images!"
         );
         return;
       }
@@ -206,6 +241,18 @@ function AdminSettings() {
   const handleDiscoveryChange = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
+
+    if (discoveryMedia.length === 0 && files.length < 5) {
+      toastError(
+        isArabic
+          ? "غير مسموح برفع أقل من 5 صور يجب أن يحتوي المعرض على 5 صور على الأقل!"
+          : "Not allowed to upload less than 5 images the gallery must contain at least 5 images!"
+      );
+      if (discoveryInputRef.current) discoveryInputRef.current.value = "";
+      return;
+    }
+
+    if (files.length < 5 && discoveryAction === "replace") return toastError(isArabic ? "ادخل علي الاقل خمس صور لتتمكن من تبديلهم" : "Uplad at least 5 images to replace");
 
     // فحص حجم الملفات بحد أقصى 3 ميجابايت لكل صورة
     const oversizedFile = files.find(file => file.size > 3 * 1024 * 1024);
@@ -496,13 +543,13 @@ function AdminSettings() {
                   <div className="fw-bold text-dark mb-1">{isArabic ? "طريقة رفع صور قسم عن الشركة:" : "Upload action pattern:"}</div>
                   <div className="text-muted small">
                     {isArabic
-                      ? "الرفع الإضافي يدمج مع الصور القديمة، بينما الاستبدال يعيد بناء القسم بالكامل."
-                      : "Append adds new pictures to existing ones, while Replace overrides the whole section."}
+                      ? "الاستبدال يعيد بناء القسم بالكامل."
+                      : "Replace overrides the whole section."}
                   </div>
                 </div>
                 <div className="col-md-6 d-flex justify-content-md-end">
                   <div className="action-radio-group">
-                    <label className="action-radio-label">
+                    {/* <label className="action-radio-label">
                       <input
                         type="radio"
                         name="aboutAction"
@@ -511,7 +558,7 @@ function AdminSettings() {
                         onChange={() => setAboutAction("append")}
                       />
                       <span>{isArabic ? "إضافة وإلحاق (Append)" : "Append & Add"}</span>
-                    </label>
+                    </label> */}
                     <label className="action-radio-label">
                       <input
                         type="radio"
@@ -559,7 +606,7 @@ function AdminSettings() {
                         >
                           <i className="bi bi-eye-fill text-dark fs-5"></i>
                         </button>
-                        <button
+                        {/* <button
                           type="button"
                           className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
                           style={{ width: "44px", height: "44px", transition: "transform 0.2s ease" }}
@@ -570,7 +617,7 @@ function AdminSettings() {
                           title={isArabic ? "حذف الصورة" : "Delete Image"}
                         >
                           <i className="bi bi-trash-fill text-danger fs-5"></i>
-                        </button>
+                        </button> */}
                       </div>
                     </div>
                   ))}
@@ -592,7 +639,7 @@ function AdminSettings() {
                 />
                 <label htmlFor="aboutUploadInput" className="btn btn-outline-danger px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2">
                   <i className="bi bi-plus-lg"></i>
-                  {isArabic ? "إضافة صور جديدة" : "Add New Images"}
+                  {isArabic ? "صور الاستبدال" : "Replacement Images"}
                 </label>
                 <span className="text-muted small ms-2 pe-none">
                   ({isArabic ? "الحد الأقصى 3 ميجابايت لكل صورة" : "Max size 3MB per image"})
