@@ -17,7 +17,15 @@ function Hero() {
 
   // الـ Style الديناميكي صار يقرأ من المتغير الذكي currentBg
   const dynamicStyle = {
-    backgroundImage: `linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0)), url("${currentBg}")`,
+    backgroundImage: `
+  linear-gradient(
+    to right,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.82) 40%,
+    rgba(0, 0, 0, 0.42) 100%
+  ),
+  url("${currentBg}")
+`,
   };
 
   return (
