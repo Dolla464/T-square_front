@@ -220,3 +220,51 @@ export const showPaymentStatusConfirm = async (currentStatus) => {
   });
 };
 
+/** نافذة مخصصة للتقييمات المعلقة (قبول، رفض، إلغاء) */
+export const showReviewPendingConfirm = async () => {
+  const rtl = isRTL();
+
+  return new Promise((resolve) => {
+    Swal.fire({
+      html: `
+        <div class="swal-inner" dir="${rtl ? "rtl" : "ltr"}">
+          <i class="bi bi-chat-left-dots swal-bs-icon swal-icon-info" style="color: #ffc107"></i>
+          <h2 class="swal-custom-title">${rtl ? "مراجعة التقييم المعلق" : "Review Pending Feedback"}</h2>
+          <p class="swal-custom-msg mb-4">${rtl ? "برجاء اختيار الإجراء المناسب لهذا التقييم المعلق:" : "Please select the appropriate action for this pending review:"}</p>
+          <div class="d-flex flex-row justify-content-center gap-2 mb-2 w-100">
+            <button id="btn-accept" class="btn btn-success flex-fill py-2 fw-bold text-white border-0" style="background-color: #166534">
+              <i class="bi bi-patch-check-fill me-1"></i> ${rtl ? "قبول ونشر" : "Accept"}
+            </button>
+            <button id="btn-reject" class="btn btn-danger flex-fill py-2 fw-bold text-white border-0" style="background-color: #be1522">
+              <i class="bi bi-shield-x me-1"></i> ${rtl ? "رفض وحظر" : "Reject"}
+            </button>
+          </div>
+        </div>
+      `,
+      showConfirmButton: false,
+      showCancelButton: true,
+      cancelButtonText: rtl ? "تراجع" : "Cancel",
+      cancelButtonColor: "#e5e7eb",
+      customClass: {
+        popup: "tsq-swal-popup",
+        cancelButton: "tsq-swal-cancel w-100 mt-2 py-2 fw-bold",
+      },
+      didOpen: () => {
+        document.getElementById("btn-accept").addEventListener("click", () => {
+          Swal.close();
+          resolve("accepted");
+        });
+        document.getElementById("btn-reject").addEventListener("click", () => {
+          Swal.close();
+          resolve("rejected");
+        });
+      }
+    }).then((result) => {
+      if (result.isDismissed) {
+        resolve(null);
+      }
+    });
+  });
+};
+
+
