@@ -304,7 +304,7 @@ function AdminOrders() {
           </div>
 
           {/* Pagination - Always visible if data exists */}
-          {pagination && pagination.last_page > 1 && (
+          {pagination  && (
             <div className="d-flex justify-content-center mt-5 pb-3" dir="ltr">
               <Pagination className="custom-pagination mb-0">
                 <Pagination.Prev

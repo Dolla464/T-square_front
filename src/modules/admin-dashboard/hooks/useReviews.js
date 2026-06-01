@@ -1,6 +1,9 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { toastSuccess, toastError } from "../../../components/shared/Toaster/toaster";
+import {
+  toastSuccess,
+  toastError,
+} from "../../../components/shared/Toaster/toaster";
 import {
   getReviews as fetchReviews,
   getReviewById as fetchReviewById,
@@ -15,81 +18,134 @@ export const useReviews = () => {
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [stats, setStats] = useState(null);
 
-  const getReviews = useCallback(async (params = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetchReviews(params);
-      const data = response?.data || [];
-      const paginationData = response?.pagination || null;
-      setReviews(Array.isArray(data) ? data : []);
-      setPagination(paginationData);
-      return { data, pagination: paginationData };
-    } catch (err) {
-      console.error("Error fetching reviews:", err);
-      const errorMsg = err.response?.data?.message || t("adminDashboard:errors.fetch_failed", "Failed to fetch data");
-      setError(errorMsg);
-      toastError(errorMsg);
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
+  const getReviews = useCallback(
+    async (params = {}) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetchReviews(params);
 
-  const getReviewById = useCallback(async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetchReviewById(id);
-      const data = response?.data || response;
-      setReview(data);
-      return data;
-    } catch (err) {
-      console.error("Error fetching review:", err);
-      const errorMsg = err.response?.data?.message || t("adminDashboard:errors.fetch_failed", "Failed to fetch data");
-      setError(errorMsg);
-      toastError(errorMsg);
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
+        const data = response?.reviews || [];
+        const paginationData = response?.meta
+          ? {
+            current_page: response.meta.current_page,
+            total_pages: response.meta.last_page,
+            total: response.meta.total,
+          }
+          : null;
+        const statsData = response?.data?.stats || null;
 
-  const changeReviewStatus = useCallback(async (id, status) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await apiChangeReviewStatus(id, status);
-      const data = response?.data || response;
-      setReview(data);
-      toastSuccess(t("adminDashboard:success.updated", "Updated successfully"));
-      return data;
-    } catch (err) {
-      console.error("Error changing review status:", err);
-      const errorMsg = err.response?.data?.message || t("adminDashboard:errors.fetch_failed", "Failed to fetch data");
-      setError(errorMsg);
-      toastError(errorMsg);
-    } finally {
-      setLoading(false);
-    } 
-  }, [t]);
+        setReviews(Array.isArray(data) ? data : []);
+        setStats(statsData);
+        setPagination(paginationData);
 
-  const deleteReview = async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      await apiDeleteReview(id);
-      toastSuccess(t("adminDashboard:success.deleted", "Deleted successfully"));
-      return true;
-    } catch (err) {
-      console.error("Error deleting review:", err);
-      const errorMsg = err.response?.data?.message || t("adminDashboard:errors.delete_failed", "Failed to delete");
-      setError(errorMsg);
-      toastError(errorMsg);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
+        return { data, pagination: paginationData, stats: statsData };
+      } catch (err) {
+        console.error("Error fetching reviews:", err);
+        const errorMsg =
+          err.response?.data?.message ||
+          t("adminDashboard:errors.fetch_failed", "Failed to fetch data");
+        setError(errorMsg);
+        toastError(errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [t],
+  );
+
+  const getReviewById = useCallback(
+    async (id) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetchReviewById(id);
+        const data = response?.data || response;
+        setReview(data);
+        return data;
+      } catch (err) {
+        console.error("Error fetching review:", err);
+        const errorMsg =
+          err.response?.data?.message ||
+          t("adminDashboard:errors.fetch_failed", "Failed to fetch data");
+        setError(errorMsg);
+        toastError(errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [t],
+  );
+
+  // 🛠️ التعديل هنا: تم تصحيح الدالة لتعتمد على الخدمة الخارجية وتحديث الـ State فوراً
+  const changeReviewStatus = useCallback(
+    async (id, newStatus) => {
+      setLoading(true);
+      setError(null);
+      try {
+        // 1. استدعاء الدالة المستوردة من الـ service (التي تستخدم axiosClient ومفتاح review_status)
+        const response = await apiChangeReviewStatus(id, newStatus);
+
+        // 2. التحديث الفوري للـ State ليعكس الحالة الجديدة في الجدول والـ Badges
+        if (response && response.status === "success") {
+          setReviews((prevReviews) =>
+            prevReviews.map((review) =>
+              review.id === id
+                ? { ...review, review_status: newStatus }
+                : review,
+            ),
+          );
+
+          toastSuccess(
+            t("adminDashboard:success.updated", "Updated successfully"),
+          );
+        }
+
+        return response;
+      } catch (err) {
+        console.error("Failed to update review status:", err);
+        const errorMsg =
+          err.response?.data?.message ||
+          t("adminDashboard:errors.update_failed", "Failed to update status");
+        setError(errorMsg);
+        toastError(errorMsg);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [t],
+  );
+
+  const deleteReview = useCallback(
+    async (id) => {
+      setLoading(true);
+      setError(null);
+      try {
+        await apiDeleteReview(id);
+
+        setReviews((prevReviews) => prevReviews.filter((r) => r.id !== id));
+
+        toastSuccess(
+          t("adminDashboard:success.deleted", "Deleted successfully"),
+        );
+        return true;
+      } catch (err) {
+        console.error("Error deleting review:", err);
+        const errorMsg =
+          err.response?.data?.message ||
+          t("adminDashboard:errors.delete_failed", "Failed to delete");
+        setError(errorMsg);
+        toastError(errorMsg);
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [t],
+  );
 
   return {
     reviews,
@@ -97,6 +153,7 @@ export const useReviews = () => {
     pagination,
     loading,
     error,
+    stats,
     getReviews,
     getReviewById,
     changeReviewStatus,

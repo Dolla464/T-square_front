@@ -33,7 +33,22 @@ export const useRegister = () => {
       return response;
     } catch (err) {
       // استخراج رسالة الخطأ بشكل دقيق من رد الباك-إند
-      const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please check the inputs.';
+      let errorMessage = err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please check the inputs.';
+
+      // التحقق من خطأ رقم الهاتف المكرر SQL واستبداله برسالة صديقة للمستخدم
+      if (
+        typeof errorMessage === 'string' &&
+        (errorMessage.includes('Duplicate entry') ||
+          errorMessage.includes('students_phone_unique') ||
+          errorMessage.includes('Integrity constraint violation'))
+      ) {
+        const isArabic = document.documentElement.lang === 'ar' ||
+          localStorage.getItem('i18nextLng')?.startsWith('ar');
+        errorMessage = isArabic
+          ? 'عذراً، رقم الهاتف هذا مستخدم بالفعل من قبل حساب آخر!'
+          : 'Sorry, this phone number is already registered by another account!';
+      }
+
       setError(errorMessage);
       throw err;
     } finally {

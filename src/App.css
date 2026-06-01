@@ -1,9 +1,9 @@
 html,
 body {
-  font-family: "Cairo", sans-serif !important;
+  font-family: "Inter", "Tajawal", sans-serif; /* تأكد من استدعاء الخطوط */
 }
 * {
-  font-family: "Cairo", sans-serif !important;
+  font-family: "Inter", "Tajawal", sans-serif; /* تأكد من استدعاء الخطوط */
 }
 /* ===== Global Scrollbar Styling ===== */
 
