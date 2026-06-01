@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from "react"
+import { useEffect, lazy, Suspense } from "react";
 import {
   /* HashRouter */ BrowserRouter as Router,
   Routes,
@@ -9,26 +9,32 @@ import {
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import ScrollToTop from "./components/shared/ScrollToTop";
-import AppNavbar from "./components/layout/Navbar"
-import AppFooter from "./components/layout/Footer"
-const Home = lazy(() => import("./pages/Home"))
-const LoginPage = lazy(() => import("./pages/Login/LoginPage"))
-const SignupPage = lazy(() => import("./pages/Signup/SignupPage"))
-const ForgotPassword = lazy(() => import("./pages/forgot_password/ForgotPassword"))
-const UpdatePassword = lazy(() => import("./pages/Update_Password/UpdatePassword"))
-const Courses = lazy(() => import("./pages/CoursesPage"))
-const Solutions = lazy(() => import("./pages/Solutions"))
-const DetailsCourse = lazy(() => import("./pages/CourseDetails"))
-const VerifyEmailPage = lazy(() => import("./pages/VerifyEmail/VerifyEmailPage"))
-const NotFoundPage = lazy(() => import('./pages/NotFound/NotFoundPage'))
+import AppNavbar from "./components/layout/Navbar";
+import AppFooter from "./components/layout/Footer";
+const Home = lazy(() => import("./pages/Home"));
+const LoginPage = lazy(() => import("./pages/Login/LoginPage"));
+const SignupPage = lazy(() => import("./pages/Signup/SignupPage"));
+const ForgotPassword = lazy(
+  () => import("./pages/forgot_password/ForgotPassword"),
+);
+const UpdatePassword = lazy(
+  () => import("./pages/Update_Password/UpdatePassword"),
+);
+const Courses = lazy(() => import("./pages/CoursesPage"));
+const Solutions = lazy(() => import("./pages/Solutions"));
+const DetailsCourse = lazy(() => import("./pages/CourseDetails"));
+const VerifyEmailPage = lazy(
+  () => import("./pages/VerifyEmail/VerifyEmailPage"),
+);
+const NotFoundPage = lazy(() => import("./pages/NotFound/NotFoundPage"));
 // استيراد ملفات البوتستراب
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap.rtl.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
-const Team = lazy(() => import("./pages/Team"))
-const Contact = lazy(() => import("./pages/Contact"))
-const Payment = lazy(() => import("./pages/Payment"))
+const Team = lazy(() => import("./pages/Team"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Payment = lazy(() => import("./pages/Payment"));
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
@@ -38,33 +44,81 @@ import ErrorBoundary from "./components/shared/ErrorBoundary";
 
 // ── وحدة داشبورد الطالب ──
 import DashboardLayout from "./modules/student-dashboard/layouts/DashboardLayout";
-const DashboardHome = lazy(() => import("./modules/student-dashboard/pages/DashboardHome/DashboardHome"));
-const DashboardCertificates = lazy(() => import("./modules/student-dashboard/pages/DashboardCertificates/DashboardCertificates"));
-const DashboardQuizzes = lazy(() => import("./modules/student-dashboard/pages/DashboardQuizzes/DashboardQuizzes"));
-const DashboardProfile = lazy(() => import("./modules/student-dashboard/pages/DashboardProfile/DashboardProfile"));
-const CourseDetails = lazy(() => import("./modules/student-dashboard/pages/CourseDetails/CourseDetails"));
-const NotificationsPage = lazy(() => import("./modules/shared-dashboard/Notifications/NotificationsPage"));
+const DashboardHome = lazy(
+  () => import("./modules/student-dashboard/pages/DashboardHome/DashboardHome"),
+);
+const DashboardCertificates = lazy(
+  () =>
+    import("./modules/student-dashboard/pages/DashboardCertificates/DashboardCertificates"),
+);
+const DashboardQuizzes = lazy(
+  () =>
+    import("./modules/student-dashboard/pages/DashboardQuizzes/DashboardQuizzes"),
+);
+const DashboardProfile = lazy(
+  () =>
+    import("./modules/student-dashboard/pages/DashboardProfile/DashboardProfile"),
+);
+const CourseDetails = lazy(
+  () => import("./modules/student-dashboard/pages/CourseDetails/CourseDetails"),
+);
+const NotificationsPage = lazy(
+  () => import("./modules/shared-dashboard/Notifications/NotificationsPage"),
+);
 import QuizExamPage from "./modules/student-dashboard/pages/QuizExam/QuizExamPage";
 
 // ── وحدة داشبورد الأدمن ──
-const AdminLayout = lazy(() => import("./modules/admin-dashboard/layouts/AdminLayout"));
-const AdminOverview = lazy(() => import("./modules/admin-dashboard/pages/Overview/AdminOverview"));
-const AdminCourses = lazy(() => import("./modules/admin-dashboard/pages/Courses/AdminCourses"));
-const AdminSolutions = lazy(() => import("./modules/admin-dashboard/pages/Solutions/AdminSolutions"));
-const AdminStudents = lazy(() => import("./modules/admin-dashboard/pages/Students/AdminStudents"));
-const AdminInstructors = lazy(() => import("./modules/admin-dashboard/pages/Instructors/AdminInstructors"));
-const AdminOrders = lazy(() => import("./modules/admin-dashboard/pages/Orders/AdminOrders"));
-const AdminAnalytics = lazy(() => import("./modules/admin-dashboard/pages/Analytics/AdminAnalytics"));
-const AdminCertificates = lazy(() => import("./modules/admin-dashboard/pages/Certificates/AdminCertificates"));
-const AdminReviews = lazy(() => import("./modules/admin-dashboard/pages/Reviews/AdminReviews"));
-const AdminSettings = lazy(() => import("./modules/admin-dashboard/pages/Settings/AdminSettings"));
-const AdminGroups = lazy(() => import("./modules/admin-dashboard/pages/Groups/AdminGroups"));
-const AdminCategories = lazy(() => import("./modules/admin-dashboard/pages/Categories/AdminCategories"));
-const AdminQuizzes = lazy(() => import("./modules/admin-dashboard/pages/Quizzes/AdminQuizzes"));
-const ViewExam = lazy(() => import("./modules/admin-dashboard/pages/Quizzes/components/ViewExam"));
-const EditExam = lazy(() => import("./modules/admin-dashboard/pages/Quizzes/components/EditExam"));
+import { AdminSettingsProvider } from "./modules/admin-dashboard/hooks/useAdminSettings";
+const AdminLayout = lazy(
+  () => import("./modules/admin-dashboard/layouts/AdminLayout"),
+);
+const AdminOverview = lazy(
+  () => import("./modules/admin-dashboard/pages/Overview/AdminOverview"),
+);
+const AdminCourses = lazy(
+  () => import("./modules/admin-dashboard/pages/Courses/AdminCourses"),
+);
+const AdminSolutions = lazy(
+  () => import("./modules/admin-dashboard/pages/Solutions/AdminSolutions"),
+);
+const AdminStudents = lazy(
+  () => import("./modules/admin-dashboard/pages/Students/AdminStudents"),
+);
+const AdminInstructors = lazy(
+  () => import("./modules/admin-dashboard/pages/Instructors/AdminInstructors"),
+);
+const AdminOrders = lazy(
+  () => import("./modules/admin-dashboard/pages/Orders/AdminOrders"),
+);
+const AdminAnalytics = lazy(
+  () => import("./modules/admin-dashboard/pages/Analytics/AdminAnalytics"),
+);
+const AdminCertificates = lazy(
+  () =>
+    import("./modules/admin-dashboard/pages/Certificates/AdminCertificates"),
+);
+const AdminReviews = lazy(
+  () => import("./modules/admin-dashboard/pages/Reviews/AdminReviews"),
+);
+const AdminSettings = lazy(
+  () => import("./modules/admin-dashboard/pages/Settings/AdminSettings"),
+);
+const AdminGroups = lazy(
+  () => import("./modules/admin-dashboard/pages/Groups/AdminGroups"),
+);
+const AdminCategories = lazy(
+  () => import("./modules/admin-dashboard/pages/Categories/AdminCategories"),
+);
+const AdminQuizzes = lazy(
+  () => import("./modules/admin-dashboard/pages/Quizzes/AdminQuizzes"),
+);
+const ViewExam = lazy(
+  () => import("./modules/admin-dashboard/pages/Quizzes/components/ViewExam"),
+);
+const EditExam = lazy(
+  () => import("./modules/admin-dashboard/pages/Quizzes/components/EditExam"),
+);
 import LoadingSpiner from "./LoadingSpiner";
-
 
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
@@ -172,12 +226,12 @@ function AppContent() {
 
         <meta
           property="og:url"
-        // content="https://yourdomain.com"
+          // content="https://yourdomain.com"
         />
 
         <meta
           property="og:image"
-        // content="https://yourdomain.com/preview.png"
+          // content="https://yourdomain.com/preview.png"
         />
 
         {/* Twitter Preview */}
@@ -185,7 +239,7 @@ function AppContent() {
 
         <meta
           name="twitter:title"
-        // content="LMS Platform | Programming Courses & Digital Solutions"
+          // content="LMS Platform | Programming Courses & Digital Solutions"
         />
 
         <meta
@@ -195,7 +249,7 @@ function AppContent() {
 
         <meta
           name="twitter:image"
-        // content="https://yourdomain.com/preview.png"
+          // content="https://yourdomain.com/preview.png"
         />
       </Helmet>
 
@@ -211,7 +265,6 @@ function AppContent() {
 
         <Suspense fallback={<LoadingSpiner />}>
           <Routes>
-
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
@@ -220,9 +273,15 @@ function AppContent() {
             <Route path="/verify-email" element={<VerifyEmailPage />} />
 
             <Route path="/courses" element={<Courses />} />
-            <Route path="/courses/course_details/:slug" element={<DetailsCourse />} />
+            <Route
+              path="/courses/course_details/:slug"
+              element={<DetailsCourse />}
+            />
 
-            <Route path="/payment" element={<Navigate to="/courses" replace />} />
+            <Route
+              path="/payment"
+              element={<Navigate to="/courses" replace />}
+            />
             <Route path="/payment/:slug" element={<Payment />} />
 
             <Route path="/solutions" element={<Solutions />} />
@@ -231,7 +290,14 @@ function AppContent() {
 
             {/* ADMIN */}
             <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-              <Route path="/admin" element={<AdminLayout />}>
+              <Route
+                path="/admin"
+                element={
+                  <AdminSettingsProvider>
+                    <AdminLayout />
+                  </AdminSettingsProvider>
+                }
+              >
                 <Route index element={<AdminOverview />} />
                 <Route path="courses" element={<AdminCourses />} />
                 <Route path="categories" element={<AdminCategories />} />
@@ -256,7 +322,10 @@ function AppContent() {
               <Route path="/student" element={<DashboardLayout />}>
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<DashboardHome />} />
-                <Route path="certificates" element={<DashboardCertificates />} />
+                <Route
+                  path="certificates"
+                  element={<DashboardCertificates />}
+                />
                 <Route path="quizzes" element={<DashboardQuizzes />} />
                 <Route path="quizzes/:quizId" element={<QuizExamPage />} />
                 <Route path="profile" element={<DashboardProfile />} />
@@ -266,7 +335,6 @@ function AppContent() {
             </Route>
 
             <Route path="*" element={<NotFoundPage />} />
-
           </Routes>
         </Suspense>
 

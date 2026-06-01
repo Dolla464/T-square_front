@@ -20,7 +20,7 @@ export const getReviewById = async (id) => {
 // تغيير حالة تقييم معين
 // ----------------------------------------------------------------------------
 export const changeReviewStatus = async (id, status) => {
-    const response = await axiosClient.put(`/admin/reviews/${id}`, { status });
+    const response = await axiosClient.put(`/admin/reviews/${id}`, { review_status: status });
     return response.data;
 };
 

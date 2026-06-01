@@ -27,7 +27,9 @@ export const useReviews = () => {
       try {
         const response = await fetchReviews(params);
 
-        const data = response?.data?.reviews || [];
+        const data = response?.reviews || response?.data || [];
+        const statsData = response?.analytics || response?.stats || null;
+
         const paginationData = response?.meta
           ? {
               current_page: response.meta.current_page,
@@ -35,13 +37,12 @@ export const useReviews = () => {
               total: response.meta.total,
             }
           : null;
-          const statsData = response?.data?.stats || null;
 
         setReviews(Array.isArray(data) ? data : []);
         setStats(statsData);
         setPagination(paginationData);
 
-        return { data, pagination: paginationData };
+        return { data, pagination: paginationData, stats: statsData };
       } catch (err) {
         console.error("Error fetching reviews:", err);
         const errorMsg =
@@ -79,25 +80,39 @@ export const useReviews = () => {
     [t],
   );
 
+  // 🛠️ التعديل هنا: تم تصحيح الدالة لتعتمد على الخدمة الخارجية وتحديث الـ State فوراً
   const changeReviewStatus = useCallback(
-    async (id, status) => {
+    async (id, newStatus) => {
       setLoading(true);
       setError(null);
       try {
-        const response = await apiChangeReviewStatus(id, status);
-        const data = response?.data || response;
-        setReview(data);
-        toastSuccess(
-          t("adminDashboard:success.updated", "Updated successfully"),
-        );
-        return data;
+        // 1. استدعاء الدالة المستوردة من الـ service (التي تستخدم axiosClient ومفتاح review_status)
+        const response = await apiChangeReviewStatus(id, newStatus);
+
+        // 2. التحديث الفوري للـ State ليعكس الحالة الجديدة في الجدول والـ Badges
+        if (response && response.status === "success") {
+          setReviews((prevReviews) =>
+            prevReviews.map((review) =>
+              review.id === id
+                ? { ...review, review_status: newStatus }
+                : review,
+            ),
+          );
+
+          toastSuccess(
+            t("adminDashboard:success.updated", "Updated successfully"),
+          );
+        }
+
+        return response;
       } catch (err) {
-        console.error("Error changing review status:", err);
+        console.error("Failed to update review status:", err);
         const errorMsg =
           err.response?.data?.message ||
-          t("adminDashboard:errors.fetch_failed", "Failed to fetch data");
+          t("adminDashboard:errors.update_failed", "Failed to update status");
         setError(errorMsg);
         toastError(errorMsg);
+        throw err;
       } finally {
         setLoading(false);
       }
@@ -105,25 +120,33 @@ export const useReviews = () => {
     [t],
   );
 
-  const deleteReview = async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      await apiDeleteReview(id);
-      toastSuccess(t("adminDashboard:success.deleted", "Deleted successfully"));
-      return true;
-    } catch (err) {
-      console.error("Error deleting review:", err);
-      const errorMsg =
-        err.response?.data?.message ||
-        t("adminDashboard:errors.delete_failed", "Failed to delete");
-      setError(errorMsg);
-      toastError(errorMsg);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const deleteReview = useCallback(
+    async (id) => {
+      setLoading(true);
+      setError(null);
+      try {
+        await apiDeleteReview(id);
+
+        setReviews((prevReviews) => prevReviews.filter((r) => r.id !== id));
+
+        toastSuccess(
+          t("adminDashboard:success.deleted", "Deleted successfully"),
+        );
+        return true;
+      } catch (err) {
+        console.error("Error deleting review:", err);
+        const errorMsg =
+          err.response?.data?.message ||
+          t("adminDashboard:errors.delete_failed", "Failed to delete");
+        setError(errorMsg);
+        toastError(errorMsg);
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [t],
+  );
 
   return {
     reviews,

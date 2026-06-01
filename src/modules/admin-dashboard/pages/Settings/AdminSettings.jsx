@@ -23,6 +23,7 @@ function AdminSettings() {
     uploading,
     fetchMediaSettings,
     saveGeneralSettings,
+    saveSetting,
     uploadMedia,
     deleteMedia,
   } = useAdminSettings();
@@ -66,7 +67,6 @@ function AdminSettings() {
   };
 
   // خيارات الرفع التلقائية والافتراضية هي الاستبدال (Replace) لجميع الأقسام
-  const [aboutAction, setAboutAction] = useState("replace");
   const [discoveryAction, setDiscoveryAction] = useState("replace");
 
   // جلب البيانات عند تحميل الصفحة
@@ -75,26 +75,36 @@ function AdminSettings() {
   }, [fetchMediaSettings]);
 
   // دالة مساعدة للحصول على رابط الصورة المباشر من الاستجابة (سهلة ومنظمة وبسيطة)
-  const getImgSrc = (item) => {
-    if (!item) return "";
-    const path = typeof item === "string" ? item : (item.image_url || item.url || item.path || item.value || "");
-    if (!path) return "";
-    
-    // إذا كان الرابط كاملاً أو عبارة عن blob
-    if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:") || path.startsWith("blob:")) {
-      return path;
+  const getImgSrc = (path) => {
+    if (!path || typeof path !== "string") return "";
+
+    // 1. تنظيف الرابط من السلاش المقلوبة إن وجدت (\/)
+    let cleanPath = path.replace(/\\+/g, "");
+
+    // 2. إذا كان الرابط كاملاً بالفعل من السيرفر
+    if (cleanPath.startsWith("http://") || cleanPath.startsWith("https://")) {
+      return cleanPath;
     }
-    
-    // الحصول على رابط الـ API الأساسي للباك إند
-    const apiURL = import.meta.env.VITE_API_URL || "";
-    const cleanBase = apiURL.endsWith("/") ? apiURL.slice(0, -1) : apiURL;
-    const cleanPath = path.startsWith("/") ? path : `/${path}`;
-    
-    // فحص إذا كان الرابط يشتمل بالفعل على storage لتجنب التكرار
-    if (!cleanPath.startsWith("/storage") && !cleanPath.startsWith("/public")) {
-      return `${cleanBase}/storage${cleanPath}`;
+
+    // 3. جلب رابط السيرفر الأساسي وتنظيفه
+    const apiURL = import.meta.env.VITE_API_URL || "http://t-square-lms.test";
+    let cleanBase = apiURL.endsWith("/") ? apiURL.slice(0, -1) : apiURL;
+
+    // 🔥 هنا السر: إذا كان الرابط ينتهي بـ /api، نقوم بحذفها من أجل روابط الصور
+    if (cleanBase.endsWith("/api")) {
+      cleanBase = cleanBase.slice(0, -4);
     }
-    return `${cleanBase}${cleanPath}`;
+
+    // ضبط السلاش في بداية مسار الصورة
+    cleanPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
+
+    // 4. الفحص الذكي لعدم تكرار الـ storage
+    if (cleanPath.startsWith("/storage") || cleanPath.startsWith("/public")) {
+      return `${cleanBase}${cleanPath}`;
+    }
+
+    // 5. إذا كان مساراً عادياً لا يحتوي على storage
+    return `${cleanBase}/storage${cleanPath}`;
   };
 
   // معالجة رفع صورة الهيرو (Hero Image) - استبدال دائماً وبالمفتاح hero_image المعتمد في الباك إند
@@ -107,7 +117,7 @@ function AdminSettings() {
       toastError(
         isArabic
           ? "عذراً، حجم الصورة يتجاوز الحد الأقصى المسموح به وهو 3 ميجابايت!"
-          : "Sorry, the image size exceeds the maximum limit of 3MB!"
+          : "Sorry, the image size exceeds the maximum limit of 3MB!",
       );
       if (heroInputRef.current) heroInputRef.current.value = "";
       return;
@@ -134,69 +144,50 @@ function AdminSettings() {
   };
 
   // معالجة رفع صور \"من نحن\" (About Media) بمفتاح about_media المعتمد في الباك إند
+  // معالجة رفع صور "من نحن" (About Media) - وضع الاستبدال (Replace) دائماً ومباشرة
   const handleAboutChange = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
     // فحص حجم الملفات بحد أقصى 3 ميجابايت لكل صورة
-    const oversizedFile = files.find(file => file.size > 3 * 1024 * 1024);
+    const oversizedFile = files.find((file) => file.size > 3 * 1024 * 1024);
     if (oversizedFile) {
       toastError(
         isArabic
           ? `عذراً، الصورة "${oversizedFile.name}" تتجاوز الحد الأقصى المسموح به وهو 3 ميجابايت!`
-          : `Sorry, the image "${oversizedFile.name}" exceeds the maximum limit of 3MB!`
+          : `Sorry, the image "${oversizedFile.name}" exceeds the maximum limit of 3MB!`,
       );
       if (aboutInputRef.current) aboutInputRef.current.value = "";
       return;
     }
 
-    if (aboutAction === "append") {
-      const currentCount = aboutImages.length;
-      if (currentCount >= 3) {
-        toastError(
-          isArabic
-            ? "لقد وصلت بالفعل للحد الأقصى وهو 3 صور لقسم عن الشركة!"
-            : "You have already reached the limit of 3 images for the About section!"
-        );
-        return;
-      }
-
-      const remainingSlots = 3 - currentCount;
-      if (files.length > remainingSlots) {
-        toastError(
-          isArabic
-            ? `لا يمكنك إضافة سوى ${remainingSlots} صورة إضافية لتجنب تجاوز الحد الأقصى.`
-            : `You can only add up to ${remainingSlots} more images to stay within the limit.`
-        );
-        return;
-      }
-    } else {
-      // وضع الاستبدال (Replace) لقسم الأبوت ميديا
-      if (files.length > 3) {
-        toastError(
-          isArabic
-            ? "الحد الأقصى للرفع هو 3 صور في وضع الاستبدال!"
-            : "Maximum limit to upload is 3 images in replace mode!"
-        );
-        return;
-      }
-
-      // إظهار نافذة التأكيد المخصصة للاستبدال الكامل
-      const confirmed = await showConfirmCustom({
-        title: isArabic ? "استبدال صور القسم" : "Replace Section Images",
-        message: isArabic
-          ? "هل أنت متأكد من حذف واستبدال جميع الصور الحالية بالصور الجديدة؟"
-          : "Are you sure you want to delete and replace all current images with the new ones?",
-        icon: "warning",
-        variant: "danger",
-      });
-      if (!confirmed) {
-        if (aboutInputRef.current) aboutInputRef.current.value = "";
-        return;
-      }
+    // بما أن الوضع أصبح استبدال دائماً، نتحقق من ألا يتجاوز عدد الصور المرفوعة دفعة واحدة 3 صور
+    if (files.length > 3) {
+      toastError(
+        isArabic
+          ? "الحد الأقصى للرفع هو 3 صور في وضع الاستبدال!"
+          : "Maximum limit to upload is 3 images in replace mode!",
+      );
+      if (aboutInputRef.current) aboutInputRef.current.value = "";
+      return;
     }
 
-    const success = await uploadMedia(files, "about_media", aboutAction);
+    // إظهار نافذة التأكيد المخصصة للاستبدال الكامل
+    const confirmed = await showConfirmCustom({
+      title: isArabic ? "استبدال صور القسم" : "Replace Section Images",
+      message: isArabic
+        ? "هل أنت متأكد من حذف واستبدال جميع الصور الحالية بالصور الجديدة؟"
+        : "Are you sure you want to delete and replace all current images with the new ones?",
+      icon: "warning",
+      variant: "danger",
+    });
+    if (!confirmed) {
+      if (aboutInputRef.current) aboutInputRef.current.value = "";
+      return;
+    }
+
+    // تمرير القيمة "replace" مباشرةً هنا في المعامل الثالث للدالة
+    const success = await uploadMedia(files, "about_media", "replace");
     if (success && aboutInputRef.current) {
       aboutInputRef.current.value = "";
     }
@@ -208,12 +199,12 @@ function AdminSettings() {
     if (files.length === 0) return;
 
     // فحص حجم الملفات بحد أقصى 3 ميجابايت لكل صورة
-    const oversizedFile = files.find(file => file.size > 3 * 1024 * 1024);
+    const oversizedFile = files.find((file) => file.size > 3 * 1024 * 1024);
     if (oversizedFile) {
       toastError(
         isArabic
           ? `عذراً، الصورة "${oversizedFile.name}" تتجاوز الحد الأقصى المسموح به وهو 3 ميجابايت!`
-          : `Sorry, the image "${oversizedFile.name}" exceeds the maximum limit of 3MB!`
+          : `Sorry, the image "${oversizedFile.name}" exceeds the maximum limit of 3MB!`,
       );
       if (discoveryInputRef.current) discoveryInputRef.current.value = "";
       return;
@@ -225,7 +216,7 @@ function AdminSettings() {
         toastError(
           isArabic
             ? "وصلت للحد الأقصى المسموح به وهو 30 صورة لمعرض الصور!"
-            : "You have reached the maximum limit of 30 images for the gallery!"
+            : "You have reached the maximum limit of 30 images for the gallery!",
         );
         return;
       }
@@ -234,7 +225,7 @@ function AdminSettings() {
         toastError(
           isArabic
             ? `لا يمكنك إضافة سوى ${remainingSlots} صورة إضافية فقط لتجنب تجاوز الحد الأقصى (30).`
-            : `You can only add up to ${remainingSlots} more images to stay within the limit (30).`
+            : `You can only add up to ${remainingSlots} more images to stay within the limit (30).`,
         );
         return;
       }
@@ -244,7 +235,7 @@ function AdminSettings() {
         toastError(
           isArabic
             ? "الحد الأقصى للرفع هو 30 صورة في وضع الاستبدال!"
-            : "Maximum limit to upload is 30 images in replace mode!"
+            : "Maximum limit to upload is 30 images in replace mode!",
         );
         return;
       }
@@ -264,23 +255,46 @@ function AdminSettings() {
       }
     }
 
-    const success = await uploadMedia(files, "discovery_media", discoveryAction);
+    const success = await uploadMedia(
+      files,
+      "discovery_media",
+      discoveryAction,
+    );
     if (success && discoveryInputRef.current) {
       discoveryInputRef.current.value = "";
     }
   };
 
+  // إلغاء التعديلات والتراجع عن التغييرات المحلية وإعادتها لقيم السيرفر الأصلية
+  const handleCancelGeneral = () => {
+    setIsEditingGeneral(false);
+    if (hookGeneralSettings) {
+      setLocalGeneralSettings({
+        site_name: hookGeneralSettings.site_name,
+        contact_email: hookGeneralSettings.contact_email,
+        whatsapp: hookGeneralSettings.whatsapp,
+        facebook_url: hookGeneralSettings.facebook_url,
+        maintenance_mode: String(hookGeneralSettings.maintenance_mode),
+      });
+    }
+  };
+
   // تهيئة الصور لشبكة ألبوم الصور التفاعلي (Lightbox)
-  const discoveryPhotos = (discoveryMedia || []).map((url) => ({
-    src: getImgSrc(url),
-  }));
+  const discoveryPhotos = Array.isArray(discoveryMedia)
+    ? discoveryMedia.map((url) => ({ src: getImgSrc(url) }))
+    : [];
 
   return (
-    <div className="admin-content-page admin-settings-page" dir={isArabic ? "rtl" : "ltr"}>
+    <div
+      className="admin-content-page admin-settings-page"
+      dir={isArabic ? "rtl" : "ltr"}
+    >
       {/* ── رأس الصفحة ── */}
       <div className="ac-header d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="ac-title">{isArabic ? "إعدادات المنصة" : "Platform Settings"}</h2>
+          <h2 className="ac-title">
+            {isArabic ? "إعدادات المنصة" : "Platform Settings"}
+          </h2>
           <p className="ac-subtitle text-muted mb-0">
             {isArabic
               ? "إدارة وتحديث جميع صور ومقاطع الموقع الرئيسية وديناميكية الألبومات والإعدادات العامة"
@@ -294,7 +308,9 @@ function AdminSettings() {
           <div className="spinner-border text-danger" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
-          <p className="mt-2 text-muted fw-semibold">{isArabic ? "جاري تحميل البيانات..." : "Loading content..."}</p>
+          <p className="mt-2 text-muted fw-semibold">
+            {isArabic ? "جاري تحميل البيانات..." : "Loading content..."}
+          </p>
         </div>
       )}
 
@@ -305,94 +321,213 @@ function AdminSettings() {
               ──────────────────────────────────────────────────────────────── */}
           <div className="general-settings-card shadow-sm">
             <div className="general-settings-header d-flex justify-content-between align-items-center">
-              <span className="fw-bold">{isArabic ? "الإعدادات العامة (General Settings)" : "General Settings"}</span>
-              <button
-                className="btn btn-sm btn-outline-danger px-3 py-1 rounded-3 fw-bold"
-                onClick={isEditingGeneral ? handleSaveGeneral : () => setIsEditingGeneral(true)}
-              >
-                <i className={`bi ${isEditingGeneral ? "bi-check-lg" : "bi-pencil"} me-1`}></i>
-                {isEditingGeneral ? (isArabic ? "حفظ التغييرات" : "Save Changes") : (isArabic ? "تعديل" : "Edit")}
-              </button>
+              <span className="fw-bold">
+                {isArabic
+                  ? "الإعدادات العامة (General Settings)"
+                  : "General Settings"}
+              </span>
+
+              <div className="d-flex gap-2">
+                {isEditingGeneral ? (
+                  <>
+                    {/* زر التراجع (Undo / Cancel) */}
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary px-3 py-1 rounded-3 fw-bold"
+                      onClick={handleCancelGeneral}
+                    >
+                      <i className="bi bi-arrow-counterclockwise me-1"></i>
+                      {isArabic ? "تراجع" : "Undo"}
+                    </button>
+
+                    {/* زر حفظ التغييرات (Save) */}
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger px-3 py-1 rounded-3 fw-bold"
+                      onClick={handleSaveGeneral}
+                    >
+                      <i className="bi bi-check-lg me-1"></i>
+                      {isArabic ? "حفظ التغييرات" : "Save Changes"}
+                    </button>
+                  </>
+                ) : (
+                  /* زر التعديل الافتراضي في حالة العرض فقط */
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-danger px-3 py-1 rounded-3 fw-bold"
+                    onClick={() => setIsEditingGeneral(true)}
+                  >
+                    <i className="bi bi-pencil me-1"></i>
+                    {isArabic ? "تعديل" : "Edit"}
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="general-settings-body">
               {/* Platform Name */}
               <div className="general-settings-row">
-                <span className="general-settings-label">{isArabic ? "Platform Name" : "Platform Name"}</span>
+                <span className="general-settings-label">
+                  {isArabic ? "Platform Name" : "Platform Name"}
+                </span>
                 {isEditingGeneral ? (
                   <input
                     type="text"
                     className="form-control form-control-sm w-50"
                     value={localGeneralSettings.site_name}
-                    onChange={(e) => setLocalGeneralSettings({ ...localGeneralSettings, site_name: e.target.value })}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        site_name: e.target.value,
+                      })
+                    }
                   />
                 ) : (
-                  <span className="general-settings-value text-secondary">{localGeneralSettings.site_name}</span>
+                  <span className="general-settings-value text-secondary">
+                    {localGeneralSettings.site_name}
+                  </span>
                 )}
               </div>
 
               {/* Support Email */}
               <div className="general-settings-row">
-                <span className="general-settings-label">{isArabic ? "Support Email" : "Support Email"}</span>
+                <span className="general-settings-label">
+                  {isArabic ? "Support Email" : "Support Email"}
+                </span>
                 {isEditingGeneral ? (
                   <input
                     type="email"
                     className="form-control form-control-sm w-50"
                     value={localGeneralSettings.contact_email}
-                    onChange={(e) => setLocalGeneralSettings({ ...localGeneralSettings, contact_email: e.target.value })}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        contact_email: e.target.value,
+                      })
+                    }
                   />
                 ) : (
-                  <span className="general-settings-value text-secondary">{localGeneralSettings.contact_email}</span>
+                  <span className="general-settings-value text-secondary">
+                    {localGeneralSettings.contact_email}
+                  </span>
                 )}
               </div>
 
               {/* Support Whatsapp */}
               <div className="general-settings-row">
-                <span className="general-settings-label">{isArabic ? "Support Whatsapp" : "Support Whatsapp"}</span>
+                <span className="general-settings-label">
+                  {isArabic ? "Support Whatsapp" : "Support Whatsapp"}
+                </span>
                 {isEditingGeneral ? (
                   <input
                     type="text"
                     className="form-control form-control-sm w-50"
                     value={localGeneralSettings.whatsapp}
-                    onChange={(e) => setLocalGeneralSettings({ ...localGeneralSettings, whatsapp: e.target.value })}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        whatsapp: e.target.value,
+                      })
+                    }
                   />
                 ) : (
-                  <span className="general-settings-value text-secondary">{localGeneralSettings.whatsapp}</span>
+                  <span className="general-settings-value text-secondary">
+                    {localGeneralSettings.whatsapp}
+                  </span>
                 )}
               </div>
 
               {/* Facebook URL */}
               <div className="general-settings-row">
-                <span className="general-settings-label">{isArabic ? "Facebook URL" : "Facebook URL"}</span>
+                <span className="general-settings-label">
+                  {isArabic ? "Facebook URL" : "Facebook URL"}
+                </span>
                 {isEditingGeneral ? (
                   <input
                     type="text"
                     className="form-control form-control-sm w-50"
                     value={localGeneralSettings.facebook_url}
-                    onChange={(e) => setLocalGeneralSettings({ ...localGeneralSettings, facebook_url: e.target.value })}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        facebook_url: e.target.value,
+                      })
+                    }
                   />
                 ) : (
-                  <span className="general-settings-value text-secondary">{localGeneralSettings.facebook_url}</span>
+                  <span className="general-settings-value text-secondary">
+                    {localGeneralSettings.facebook_url}
+                  </span>
                 )}
               </div>
 
               {/* Maintenance Mode */}
-              <div className="general-settings-row">
-                <span className="general-settings-label">{isArabic ? "Maintenance Mode" : "Maintenance Mode"}</span>
-                {isEditingGeneral ? (
-                  <select
-                    className="form-select form-select-sm w-50"
-                    value={localGeneralSettings.maintenance_mode}
-                    onChange={(e) => setLocalGeneralSettings({ ...localGeneralSettings, maintenance_mode: e.target.value })}
-                  >
-                    <option value="true">{isArabic ? "مفعل" : "Enabled"}</option>
-                    <option value="false">{isArabic ? "معطل" : "Disabled"}</option>
-                  </select>
-                ) : (
-                  <span className="general-settings-value text-secondary">
-                    {localGeneralSettings.maintenance_mode === "true" ? (isArabic ? "مفعل" : "Enabled") : (isArabic ? "معطل" : "Disabled")}
+              <div className="general-settings-row d-flex justify-content-between align-items-center py-3 border-bottom">
+                <div className="d-flex flex-column">
+                  <span className="general-settings-label fw-bold mb-1">
+                    {isArabic
+                      ? "وضع الصيانة (Maintenance Mode)"
+                      : "Maintenance Mode"}
                   </span>
-                )}
+                  <span className="text-muted small">
+                    {isArabic
+                      ? "عند التفعيل، سيتم حجب المنصة عن جميع الطلاب والمعلمين وتوجيههم لصفحة الصيانة."
+                      : "When enabled, the platform will be hidden from students and teachers."}
+                  </span>
+                </div>
+
+                <div className="form-check form-switch fs-4">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="maintenanceModeToggle"
+                    style={{ cursor: "pointer" }}
+                    checked={localGeneralSettings.maintenance_mode === "true"}
+                    disabled={uploading || loading}
+                    onChange={async (e) => {
+                      const nextStatus = e.target.checked;
+
+                      // 1. إظهار نافذة التأكيد المخصصة التفاعلية المعتمدة عندك في الكود
+                      const confirmed = await showConfirmCustom({
+                        title: isArabic
+                          ? "تغيير حالة المنصة"
+                          : "Change Platform Status",
+                        message: nextStatus
+                          ? isArabic
+                            ? "هل أنت متأكد من تفعيل وضع الصيانة؟ هذا سيؤدي إلى حجب المنصة عن الطلاب فوراً."
+                            : "Are you sure you want to enable maintenance mode? This will block students immediately."
+                          : isArabic
+                            ? "هل أنت متأكد من إيقاف وضع الصيانة وإتاحة المنصة للجميع؟"
+                            : "Are you sure you want to disable maintenance mode and make the platform public?",
+                        icon: "warning",
+                        variant: nextStatus ? "danger" : "success",
+                      });
+
+                      if (!confirmed) return;
+
+                      // 2. تحديث الحالة محلياً فوراً لتغيير شكل الزرار (Optimistic UI)
+                      setLocalGeneralSettings((prev) => ({
+                        ...prev,
+                        maintenance_mode: String(nextStatus),
+                      }));
+
+                      // 3. حفظ مفتاح الصيانة فقط (لا نلمس باقي الحقول حتى لا تُمسح بالخطأ)
+                      const success = await saveSetting(
+                        "maintenance_mode",
+                        String(nextStatus),
+                      );
+
+                      // 4. في حالة الفشل نرتد للحالة القديمة
+                      if (!success) {
+                        setLocalGeneralSettings((prev) => ({
+                          ...prev,
+                          maintenance_mode: String(!nextStatus),
+                        }));
+                      }
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -403,7 +538,11 @@ function AdminSettings() {
           <div className="settings-card">
             <div className="settings-section-title">
               <i className="bi bi-image text-danger fs-4"></i>
-              <span>{isArabic ? "صورة الهيرو الرئيسية (Hero Section)" : "Main Hero Background"}</span>
+              <span>
+                {isArabic
+                  ? "صورة الهيرو الرئيسية (Hero Section)"
+                  : "Main Hero Background"}
+              </span>
             </div>
             <div className="settings-title-divider"></div>
 
@@ -411,18 +550,28 @@ function AdminSettings() {
               {/* العمود الأيمن: الصورة الحالية مع إمكانية التكبير */}
               <div className="col-md-6 order-md-2">
                 <label className="form-label fw-bold text-secondary mb-2">
-                  {isArabic ? "الصورة الحالية على الموقع" : "Current Active Image"}
+                  {isArabic
+                    ? "الصورة الحالية على الموقع"
+                    : "Current Active Image"}
                 </label>
                 <div className="hero-current-preview shadow-sm position-relative">
                   {heroImage ? (
                     <>
-                      <img src={getImgSrc(heroImage)} alt="Hero Section" loading="lazy" />
+                      <img
+                        src={getImgSrc(heroImage)}
+                        alt="Hero Section"
+                        loading="lazy"
+                      />
                       {/* طبقة الأوفرلاي التفاعلية لتكبير صورة الهيرو */}
                       <div className="about-image-overlay d-flex justify-content-center align-items-center">
                         <button
                           type="button"
                           className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
-                          style={{ width: "48px", height: "48px", transition: "transform 0.2s ease" }}
+                          style={{
+                            width: "48px",
+                            height: "48px",
+                            transition: "transform 0.2s ease",
+                          }}
                           onClick={() => {
                             setLightboxSlides([{ src: getImgSrc(heroImage) }]);
                             setLightboxIndex(0);
@@ -436,7 +585,11 @@ function AdminSettings() {
                   ) : (
                     <div className="text-muted small d-flex flex-column align-items-center">
                       <i className="bi bi-image-fill fs-2 mb-2"></i>
-                      <span>{isArabic ? "لا توجد صورة حالية مرفوعة" : "No active hero image uploaded"}</span>
+                      <span>
+                        {isArabic
+                          ? "لا توجد صورة حالية مرفوعة"
+                          : "No active hero image uploaded"}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -445,7 +598,9 @@ function AdminSettings() {
               {/* العمود الأيسر: حقل رفع الصورة الجديدة (ديفولت ريبليس) */}
               <div className="col-md-6 order-md-1">
                 <label className="form-label fw-bold text-secondary mb-2">
-                  {isArabic ? "رفع صورة هيرو جديدة (استبدال)" : "Upload New Hero Image (Replace)"}
+                  {isArabic
+                    ? "رفع صورة هيرو جديدة (استبدال)"
+                    : "Upload New Hero Image (Replace)"}
                 </label>
                 <input
                   type="file"
@@ -462,7 +617,9 @@ function AdminSettings() {
                 >
                   <i className="bi bi-cloud-arrow-up-fill"></i>
                   <h5 className="fw-bold mb-1">
-                    {isArabic ? "اضغط لرفع صورة جديدة" : "Click to upload a new image"}
+                    {isArabic
+                      ? "اضغط لرفع صورة جديدة"
+                      : "Click to upload a new image"}
                   </h5>
                   <p className="text-muted small mb-0">
                     {isArabic
@@ -481,51 +638,17 @@ function AdminSettings() {
             <div className="settings-section-title d-flex justify-content-between align-items-center w-100">
               <div className="d-flex gap-2">
                 <i className="bi bi-building text-danger fs-4"></i>
-                <span>{isArabic ? "صور قسم عن المنصة (About Section)" : "About Section Media"}</span>
+                <span>
+                  {isArabic
+                    ? "صور قسم عن المنصة (About Section)"
+                    : "About Section Media"}
+                </span>
               </div>
               <span className="capacity-badge ">
                 {aboutImages.length} / 3 {isArabic ? "صور" : "Images"}
               </span>
             </div>
             <div className="settings-title-divider"></div>
-
-            {/* كارت خيارات وطريقة الرفع لقسم أبوت ميديا - الافتراضي هو ريبليس */}
-            <div className="action-selector-card shadow-sm mb-4">
-              <div className="row align-items-center g-3">
-                <div className="col-md-6">
-                  <div className="fw-bold text-dark mb-1">{isArabic ? "طريقة رفع صور قسم عن الشركة:" : "Upload action pattern:"}</div>
-                  <div className="text-muted small">
-                    {isArabic
-                      ? "الرفع الإضافي يدمج مع الصور القديمة، بينما الاستبدال يعيد بناء القسم بالكامل."
-                      : "Append adds new pictures to existing ones, while Replace overrides the whole section."}
-                  </div>
-                </div>
-                <div className="col-md-6 d-flex justify-content-md-end">
-                  <div className="action-radio-group">
-                    <label className="action-radio-label">
-                      <input
-                        type="radio"
-                        name="aboutAction"
-                        value="append"
-                        checked={aboutAction === "append"}
-                        onChange={() => setAboutAction("append")}
-                      />
-                      <span>{isArabic ? "إضافة وإلحاق (Append)" : "Append & Add"}</span>
-                    </label>
-                    <label className="action-radio-label">
-                      <input
-                        type="radio"
-                        name="aboutAction"
-                        value="replace"
-                        checked={aboutAction === "replace"}
-                        onChange={() => setAboutAction("replace")}
-                      />
-                      <span>{isArabic ? "مسح واستبدال (Replace)" : "Replace All"}</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             <div className="mb-4">
               <label className="form-label fw-bold text-secondary mb-3">
@@ -537,22 +660,38 @@ function AdminSettings() {
               {aboutImages.length === 0 ? (
                 <div className="text-center py-4 bg-light rounded-3 text-muted">
                   <i className="bi bi-folder-x fs-2 mb-2 d-block"></i>
-                  <span>{isArabic ? "لم يتم رفع أي صور حتى الآن" : "No images uploaded yet"}</span>
+                  <span>
+                    {isArabic
+                      ? "لم يتم رفع أي صور حتى الآن"
+                      : "No images uploaded yet"}
+                  </span>
                 </div>
               ) : (
                 <div className="about-images-grid">
                   {aboutImages.map((imgUrl, index) => (
                     <div key={index} className="about-image-item">
-                      <img src={getImgSrc(imgUrl)} alt={`About ${index + 1}`} loading="lazy" />
+                      <img
+                        src={getImgSrc(imgUrl)}
+                        alt={`About ${index + 1}`}
+                        loading="lazy"
+                      />
                       {/* طبقة الأوفرلاي التفاعلية لتكبير الصورة أو حذفها مباشرة */}
                       <div className="about-image-overlay d-flex justify-content-center align-items-center gap-3">
                         <button
                           type="button"
                           className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
-                          style={{ width: "44px", height: "44px", transition: "transform 0.2s ease" }}
+                          style={{
+                            width: "44px",
+                            height: "44px",
+                            transition: "transform 0.2s ease",
+                          }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            setLightboxSlides(aboutImages.map(img => ({ src: getImgSrc(img) })));
+                            setLightboxSlides(
+                              aboutImages.map((img) => ({
+                                src: getImgSrc(img),
+                              })),
+                            );
                             setLightboxIndex(index);
                           }}
                           title={isArabic ? "عرض كبر" : "Zoom View"}
@@ -562,10 +701,20 @@ function AdminSettings() {
                         <button
                           type="button"
                           className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
-                          style={{ width: "44px", height: "44px", transition: "transform 0.2s ease" }}
+                          style={{
+                            width: "44px",
+                            height: "44px",
+                            transition: "transform 0.2s ease",
+                          }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteMedia(imgUrl, "about_media", isArabic ? `الصورة رقم ${index + 1}` : `Image #${index + 1}`);
+                            deleteMedia(
+                              imgUrl,
+                              "about_media",
+                              isArabic
+                                ? `الصورة رقم ${index + 1}`
+                                : `Image #${index + 1}`,
+                            );
                           }}
                           title={isArabic ? "حذف الصورة" : "Delete Image"}
                         >
@@ -579,26 +728,31 @@ function AdminSettings() {
             </div>
 
             {/* حقل رفع إضافي للأبوت ميديا */}
-            {(aboutAction === "replace" || aboutImages.length < 3) && (
-              <div className="mt-3">
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleAboutChange}
-                  ref={aboutInputRef}
-                  id="aboutUploadInput"
-                  hidden
-                />
-                <label htmlFor="aboutUploadInput" className="btn btn-outline-danger px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2">
-                  <i className="bi bi-plus-lg"></i>
-                  {isArabic ? "إضافة صور جديدة" : "Add New Images"}
-                </label>
-                <span className="text-muted small ms-2 pe-none">
-                  ({isArabic ? "الحد الأقصى 3 ميجابايت لكل صورة" : "Max size 3MB per image"})
-                </span>
-              </div>
-            )}
+            <div className="mt-3">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleAboutChange}
+                ref={aboutInputRef}
+                id="aboutUploadInput"
+                hidden
+              />
+              <label
+                htmlFor="aboutUploadInput"
+                className="btn btn-outline-danger px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2"
+              >
+                <i className="bi bi-plus-lg"></i>
+                {isArabic ? "إضافة صور جديدة" : "Add New Images"}
+              </label>
+              <span className="text-muted small ms-2 pe-none">
+                (
+                {isArabic
+                  ? "الحد الأقصى 3 ميجابايت لكل صورة"
+                  : "Max size 3MB per image"}
+                )
+              </span>
+            </div>
           </div>
 
           {/* ────────────────────────────────────────────────────────────────
@@ -608,9 +762,15 @@ function AdminSettings() {
             <div className="settings-section-title d-flex justify-content-between align-items-center w-100">
               <div className="d-flex gap-2">
                 <i className="bi bi-images text-danger fs-4"></i>
-                <span>{isArabic ? "معرض الصور والألبوم (Discovery Gallery)" : "Discovery Gallery Album"}</span>
+                <span>
+                  {isArabic
+                    ? "معرض الصور والألبوم (Discovery Gallery)"
+                    : "Discovery Gallery Album"}
+                </span>
               </div>
-              <span className={`capacity-badge ${discoveryMedia.length >= 30 ? "danger" : discoveryMedia.length >= 25 ? "warning" : ""}`}>
+              <span
+                className={`capacity-badge ${discoveryMedia.length >= 30 ? "danger" : discoveryMedia.length >= 25 ? "warning" : ""}`}
+              >
                 {discoveryMedia.length} / 30 {isArabic ? "صورة" : "Photos"}
               </span>
             </div>
@@ -620,7 +780,11 @@ function AdminSettings() {
             <div className="action-selector-card shadow-sm mb-4">
               <div className="row align-items-center g-3">
                 <div className="col-md-6">
-                  <div className="fw-bold text-dark mb-1">{isArabic ? "طريقة رفع الصور المعرض:" : "Upload action pattern:"}</div>
+                  <div className="fw-bold text-dark mb-1">
+                    {isArabic
+                      ? "طريقة رفع الصور المعرض:"
+                      : "Upload action pattern:"}
+                  </div>
                   <div className="text-muted small">
                     {isArabic
                       ? "الرفع الإضافي يدمج مع الصور القديمة، بينما الاستبدال يعيد بناء الألبوم بالكامل."
@@ -637,7 +801,9 @@ function AdminSettings() {
                         checked={discoveryAction === "append"}
                         onChange={() => setDiscoveryAction("append")}
                       />
-                      <span>{isArabic ? "إضافة وإلحاق (Append)" : "Append & Add"}</span>
+                      <span>
+                        {isArabic ? "إضافة وإلحاق (Append)" : "Append & Add"}
+                      </span>
                     </label>
                     <label className="action-radio-label">
                       <input
@@ -647,7 +813,9 @@ function AdminSettings() {
                         checked={discoveryAction === "replace"}
                         onChange={() => setDiscoveryAction("replace")}
                       />
-                      <span>{isArabic ? "مسح واستبدال (Replace)" : "Replace All"}</span>
+                      <span>
+                        {isArabic ? "مسح واستبدال (Replace)" : "Replace All"}
+                      </span>
                     </label>
                   </div>
                 </div>
@@ -662,46 +830,76 @@ function AdminSettings() {
                   : "Interactive Gallery Album (hover on any image to reveal view or delete options)"}
               </label>
 
-              {discoveryMedia.length === 0 ? (
+              {!discoveryMedia ||
+              !Array.isArray(discoveryMedia) ||
+              discoveryMedia.length === 0 ? (
                 <div className="text-center py-5 bg-light rounded-3 text-muted">
                   <i className="bi bi-images fs-1 mb-2 d-block"></i>
-                  <span>{isArabic ? "الألبوم فارغ تماماً حالياً!" : "The album is currently empty!"}</span>
+                  <span>
+                    {isArabic
+                      ? "الألبوم فارغ تماماً حالياً!"
+                      : "The album is currently empty!"}
+                  </span>
                 </div>
               ) : (
                 <div className="about-images-grid">
-                  {discoveryMedia.map((url, index) => (
-                    <div key={index} className="about-image-item">
-                      <img src={getImgSrc(url)} alt={`Discovery ${index + 1}`} loading="lazy" />
-                      {/* طبقة الأوفرلاي التفاعلية لتكبير الصورة أو حذفها مباشرة */}
-                      <div className="about-image-overlay d-flex justify-content-center align-items-center gap-3">
-                        <button
-                          type="button"
-                          className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
-                          style={{ width: "44px", height: "44px", transition: "transform 0.2s ease" }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setLightboxSlides(discoveryPhotos);
-                            setLightboxIndex(index);
-                          }}
-                          title={isArabic ? "عرض كبر" : "Zoom View"}
-                        >
-                          <i className="bi bi-eye-fill text-dark fs-5"></i>
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
-                          style={{ width: "44px", height: "44px", transition: "transform 0.2s ease" }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteMedia(url, "discovery_media", isArabic ? `صورة المعرض رقم ${index + 1}` : `Gallery photo #${index + 1}`);
-                          }}
-                          title={isArabic ? "حذف الصورة" : "Delete Image"}
-                        >
-                          <i className="bi bi-trash-fill text-danger fs-5"></i>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                  {Array.isArray(discoveryMedia) &&
+                    discoveryMedia.map((url, index) => {
+                      // فحص إضافي: إذا كان الـ url القادم عبارة عن كائن بالخطأ وليس نصاً، نقوم بتجاوزه
+                      if (typeof url !== "string") return null;
+
+                      return (
+                        <div key={index} className="about-image-item">
+                          <img
+                            src={getImgSrc(url)}
+                            alt={`Discovery ${index + 1}`}
+                            loading="lazy"
+                          />
+                          {/* طبقة الأوفرلاي التفاعلية لتكبير الصورة أو حذفها مباشرة كما هي دون تغيير */}
+                          <div className="about-image-overlay d-flex justify-content-center align-items-center gap-3">
+                            <button
+                              type="button"
+                              className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
+                              style={{
+                                width: "44px",
+                                height: "44px",
+                                transition: "transform 0.2s ease",
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLightboxSlides(discoveryPhotos);
+                                setLightboxIndex(index);
+                              }}
+                              title={isArabic ? "عرض كبر" : "Zoom View"}
+                            >
+                              <i className="bi bi-eye-fill text-dark fs-5"></i>
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
+                              style={{
+                                width: "44px",
+                                height: "44px",
+                                transition: "transform 0.2s ease",
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteMedia(
+                                  url,
+                                  "discovery_media",
+                                  isArabic
+                                    ? `صورة المعرض رقم ${index + 1}`
+                                    : `Gallery photo #${index + 1}`,
+                                );
+                              }}
+                              title={isArabic ? "حذف الصورة" : "Delete Image"}
+                            >
+                              <i className="bi bi-trash-fill text-danger fs-5"></i>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                 </div>
               )}
             </div>
@@ -726,7 +924,11 @@ function AdminSettings() {
                   {isArabic ? "رفع وسائط المعرض" : "Upload Gallery Media"}
                 </label>
                 <span className="text-muted small ms-2 pe-none">
-                  ({isArabic ? "الحد الأقصى 3 ميجابايت لكل صورة" : "Max size 3MB per image"})
+                  (
+                  {isArabic
+                    ? "الحد الأقصى 3 ميجابايت لكل صورة"
+                    : "Max size 3MB per image"}
+                  )
                 </span>
               </div>
             )}
@@ -742,6 +944,40 @@ function AdminSettings() {
         slides={lightboxSlides}
         carousel={{ finite: true }}
       />
+
+      {/* ── شريط تحميل شفاف يغطي الشاشة أثناء رفع الملفات ── */}
+      {uploading && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            zIndex: 9999,
+            backdropFilter: "blur(4px)",
+            transition: "all 0.3s ease",
+          }}
+        >
+          <div
+            className="bg-white p-4 rounded-4 shadow-lg text-center d-flex flex-column align-items-center"
+            style={{ minWidth: "280px" }}
+          >
+            <div
+              className="spinner-border text-danger mb-3"
+              role="status"
+              style={{ width: "3rem", height: "3rem" }}
+            >
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <h5 className="fw-bold text-dark mb-1">
+              {isArabic ? "جاري رفع الملفات..." : "Uploading files..."}
+            </h5>
+            <p className="text-muted small mb-0">
+              {isArabic
+                ? "يرجى عدم إغلاق أو تحديث الصفحة"
+                : "Please do not close or refresh the page"}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
