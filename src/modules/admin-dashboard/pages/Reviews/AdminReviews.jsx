@@ -3,10 +3,7 @@ import { useTranslation } from "react-i18next";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { Pagination, Modal, Button } from "react-bootstrap";
 import { useReviews } from "../../hooks/useReviews";
-import {
-  showConfirmCustom,
-  showDeleteConfirm,
-} from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { showConfirmCustom, showDeleteConfirm, showReviewPendingConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 
 import "./review.css";
 
@@ -58,7 +55,11 @@ function AdminReviews() {
       ratingFilter === "all" ||
       Math.floor(Number(item.rating)) === Number(ratingFilter);
 
-    return matchRating;
+    const matchStatus =
+      statusFilter === "all" ||
+      item.review_status === statusFilter;
+
+    return matchSearch && matchRating && matchStatus;
   });
 
   const handlePageChange = (page) => {
@@ -75,40 +76,38 @@ function AdminReviews() {
 
   // 3. تعديل منطق تغيير الحالة ليتناسب مع الانتقال بين الحالات (accepted, pending, rejected)
   const handleStatusChange = async (id, currentStatus) => {
-    // دورة التنقل التلقائي عند الضغط على الـ Badge: من pending إلى accepted، ومن accepted إلى rejected، ومن rejected إلى pending
-    let newStatus = "pending";
-    if (currentStatus === "pending") newStatus = "accepted";
-    else if (currentStatus === "accepted") newStatus = "rejected";
+    let newStatus = "";
 
-    let title = isArabic ? "تغيير حالة التقييم" : "Change Status";
-    let message = isArabic
-      ? "هل تريد تغيير حالة هذا التقييم؟"
-      : "Do you want to change this review status?";
-    let variant = "primary";
+    if (currentStatus === "pending") {
+      const selectedAction = await showReviewPendingConfirm();
+      if (!selectedAction) return; // تم النقر على إلغاء/تراجع
+      newStatus = selectedAction;
+    } else {
+      newStatus = currentStatus === "accepted" ? "rejected" : "accepted";
+      const ok = await showConfirmCustom({
+        title: newStatus === "accepted"
+          ? isArabic
+            ? "قبول ونشر التقييم"
+            : "Accept and Publish Review"
+          : isArabic
+            ? "رفض وإخفاء التقييم"
+            : "Reject and Hide Review",
 
-    if (newStatus === "accepted") {
-      title = isArabic ? "نشر وقبول التقييم" : "Publish Review";
-      message = isArabic
-        ? "سيتم نشر التقييم وسيصبح متاحاً للمنتسبين."
-        : "The review will be published and visible.";
-      variant = "success";
-    } else if (newStatus === "rejected") {
-      title = isArabic ? "رفض وحجب التقييم" : "Reject Review";
-      message = isArabic
-        ? "سيتم نقل التقييم إلى المرفوضات وحجبه."
-        : "The review will be hidden and rejected.";
-      variant = "danger";
+        message: newStatus === "rejected"
+          ? isArabic
+            ? "هل تريد رفض وإخفاء هذا التقييم؟"
+            : "Do you want to reject and hide this review?"
+          : isArabic
+            ? "سيتم قبول التقييم ونشره ليصبح مرئياً للمستخدمين."
+            : "The review will be accepted and published to be visible to users.",
+
+        icon: newStatus === "rejected" ? "warning" : "info",
+        variant: newStatus === "rejected" ? "danger" : "primary",
+        confirmText: isArabic ? "استمرار" : "Proceed",
+      });
+
+      if (!ok) return;
     }
-
-    const ok = await showConfirmCustom({
-      title,
-      message,
-      icon: newStatus === "rejected" ? "warning" : "info",
-      variant,
-      confirmText: isArabic ? "استمرار" : "Proceed",
-    });
-
-    if (!ok) return;
 
     try {
       // بعد تعديل الـ Hook والـ Service، هذا السطر سيقوم بتحديث السيرفر والـ State محلياً فوراً
@@ -151,9 +150,6 @@ function AdminReviews() {
               {isArabic ? "إجمالي التقييمات" : "Total Reviews"}
             </div>
             <div className="stat-value my-2">{stats?.total_reviews || 0}</div>
-            <div style={{ color: "#28a745" }} className="stat-sub">
-              +5% this month
-            </div>
           </div>
         </div>
         <div className="col-md-3 col-12 mb-3 mb-md-0">
@@ -239,18 +235,10 @@ function AdminReviews() {
                   setCurrentPage(1);
                 }}
               >
-                <option value="all">
-                  {isArabic ? "جميع الحالات" : "All Status"}
-                </option>
-                <option value="pending">
-                  {isArabic ? "قيد الانتظار" : "Pending"}
-                </option>
-                <option value="accepted">
-                  {isArabic ? "منشورة / مقبولة" : "Accepted"}
-                </option>
-                <option value="rejected">
-                  {isArabic ? "مرفوضة" : "Rejected"}
-                </option>
+                <option value="all">{isArabic ? "جميع الحالات" : "All Status"}</option>
+                <option value="accepted">{isArabic ? "مقبولة" : "Accepted"}</option>
+                <option value="pending">{isArabic ? "قيد الانتظار" : "Pending"}</option>
+                <option value="rejected">{isArabic ? "مرفوضة" : "Rejected"}</option>
               </select>
             </div>
           </div>
@@ -313,36 +301,21 @@ function AdminReviews() {
                       </td>
                       <td>
                         <span
-                          className={`badge rounded-pill cp ${
-                            item.review_status === "accepted"
-                              ? "bg-success-subtle text-success"
-                              : item.review_status === "rejected"
-                                ? "bg-danger-subtle text-danger"
-                                : "bg-warning-subtle text-warning-emphasis"
-                          }`}
+                          className={`badge rounded-pill cp ${item.review_status === "accepted" ? "bg-success-subtle text-success" : item.review_status === "pending" ? "bg-warning-subtle text-warning" : "bg-danger-subtle text-danger"}`}
                           style={{
                             cursor: "pointer",
                             padding: "8px 16px",
                           }}
-                          onClick={() =>
-                            handleStatusChange(item.id, item.review_status)
-                          }
+                          onClick={() => handleStatusChange(item.id, item.review_status)}
                         >
                           <i
-                            className={`bi ${
-                              item.review_status === "accepted"
-                                ? "bi-patch-check-fill"
-                                : item.review_status === "rejected"
-                                  ? "bi-x-circle-fill"
-                                  : "bi-shield-exclamation"
-                            } me-1`}
+                            className={`bi ${item.review_status === "accepted" ? "bi-patch-check-fill" : item.review_status === "pending" ? "bi-exclamation-triangle-fill" : "bi-shield-exclamation"} me-1`}
                           ></i>
-                          {item.review_status === "pending" &&
-                            (isArabic ? "قيد الانتظار" : "Pending")}
-                          {item.review_status === "accepted" &&
-                            (isArabic ? "مقبول" : "Accepted")}
-                          {item.review_status === "rejected" &&
-                            (isArabic ? "مرفوض" : "Rejected")}
+                          {item.review_status == "pending"
+                            ? isArabic ? "قيد الانتظار" : "Pending"
+                            : item.review_status == "accepted"
+                              ? isArabic ? "مقبول" : "Accepted"
+                              : isArabic ? "مرفوض" : "Rejected"}
                         </span>
                       </td>
                       <td className="text-center">

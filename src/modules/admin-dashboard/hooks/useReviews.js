@@ -27,16 +27,15 @@ export const useReviews = () => {
       try {
         const response = await fetchReviews(params);
 
-        const data = response?.reviews || response?.data || [];
-        const statsData = response?.analytics || response?.stats || null;
-
+        const data = response?.reviews || [];
         const paginationData = response?.meta
           ? {
-              current_page: response.meta.current_page,
-              total_pages: response.meta.last_page,
-              total: response.meta.total,
-            }
+            current_page: response.meta.current_page,
+            total_pages: response.meta.last_page,
+            total: response.meta.total,
+          }
           : null;
+        const statsData = response?.data?.stats || null;
 
         setReviews(Array.isArray(data) ? data : []);
         setStats(statsData);

@@ -17,7 +17,15 @@ function Hero() {
 
   // الـ Style الديناميكي صار يقرأ من المتغير الذكي currentBg
   const dynamicStyle = {
-    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.3)), url("${currentBg}")`,
+    backgroundImage: `
+  linear-gradient(
+    to right,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.82) 40%,
+    rgba(0, 0, 0, 0.42) 100%
+  ),
+  url("${currentBg}")
+`,
   };
 
   return (
@@ -25,10 +33,11 @@ function Hero() {
       className={`hero-section ${isAr ? "rtl-bg" : ""}`}
       style={dynamicStyle}
     >
-      <Container>
-        <Row>
+      <Container >
+        <Row >
           {/* ملحوظة وتعديل منطقي: لغوياً وعادةً في الـ RTL بنحتاج النص text-end أو text-start على حسب رغبتك في التصميم */}
-          <Col md={7} className={isAr ? "text-start" : "text-end"}>
+          <Col md={7} className={isAr ? "text-start" : "text-end"}
+          >
             <h1 className="display-3 fw-bold mb-3 hero-title">
               {t("hero_title_start")}
               <span className="hero-highlight-wrapper">
@@ -65,7 +74,7 @@ function Hero() {
           </Col>
         </Row>
       </Container>
-    </section>
+    </section >
   );
 }
 

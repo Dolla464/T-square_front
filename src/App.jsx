@@ -119,6 +119,7 @@ const EditExam = lazy(
   () => import("./modules/admin-dashboard/pages/Quizzes/components/EditExam"),
 );
 import LoadingSpiner from "./LoadingSpiner";
+import AdminMessages from "./modules/admin-dashboard/pages/Messages/AdminMessages";
 
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
@@ -312,6 +313,7 @@ function AppContent() {
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="certificates" element={<AdminCertificates />} />
                 <Route path="reviews" element={<AdminReviews />} />
+                <Route path="messages" element={<AdminMessages />} />
                 <Route path="notifications" element={<NotificationsPage />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>

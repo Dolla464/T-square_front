@@ -19,13 +19,47 @@ const ADMIN_NAV = [
     path: "/admin/instructors",
     icon: "bi-person-lines-fill",
   },
-  { key: "orders", path: "/admin/orders", icon: "bi-cart3" },
-  { key: "solutions", path: "/admin/solutions", icon: "bi-laptop" },
-  { key: "analytics", path: "/admin/analytics", icon: "bi-bar-chart-line" },
-  { key: "certificates", path: "/admin/certificates", icon: "bi-award" },
-  { key: "reviews", path: "/admin/reviews", icon: "bi-chat-square-text" },
-  { key: "Notification", path: "/admin/notifications", icon: "bi-bell-fill" },
-  { key: "settings", path: "/admin/settings", icon: "bi-gear" },
+  {
+    key: "orders",
+    path: "/admin/orders",
+    icon: "bi-cart3",
+  },
+  {
+    key: "solutions",
+    path: "/admin/solutions",
+    icon: "bi-laptop",
+  },
+
+  {
+    key: "analytics",
+    path: "/admin/analytics",
+    icon: "bi-bar-chart-line",
+  },
+  {
+    key: "messages",
+    path: "/admin/messages",
+    icon: "bi-chat-left-text",
+  },
+  {
+    key: "certificates",
+    path: "/admin/certificates",
+    icon: "bi-award",
+  },
+  {
+    key: "reviews",
+    path: "/admin/reviews",
+    icon: "bi-chat-square-text",
+  },
+  {
+    key: "Notification",
+    path: "/admin/notifications",
+    icon: "bi-bell-fill",
+  },
+  {
+    key: "settings",
+    path: "/admin/settings",
+    icon: "bi-gear",
+  },
 ];
 
 function AdminLayout() {
@@ -73,6 +107,8 @@ function AdminLayout() {
         return isArabic ? "الطلبات / المدفوعات" : "Orders / Payments";
       case "/admin/analytics":
         return isArabic ? "الإحصائيات" : "Analytics";
+      case "/admin/messages":
+        return isArabic ? "الرسائل" : "Messages";
       case "/admin/reviews":
         return isArabic ? "التقييمات" : "Reviews";
       case "/admin/notifications":

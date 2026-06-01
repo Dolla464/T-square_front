@@ -8,6 +8,7 @@ import "yet-another-react-lightbox/styles.css";
 
 // استيراد ملف التنسيق المخصص والمدعوم بالتعليقات العربية للمطورين
 import "./settings.css";
+import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
 function AdminSettings() {
   const { i18n } = useTranslation("adminDashboard");
@@ -75,36 +76,51 @@ function AdminSettings() {
   }, [fetchMediaSettings]);
 
   // دالة مساعدة للحصول على رابط الصورة المباشر من الاستجابة (سهلة ومنظمة وبسيطة)
-  const getImgSrc = (path) => {
-    if (!path || typeof path !== "string") return "";
+  const getImgSrc = (item) => {
+    if (!item) return "";
 
-    // 1. تنظيف الرابط من السلاش المقلوبة إن وجدت (\/)
-    let cleanPath = path.replace(/\\+/g, "");
+    const path =
+      typeof item === "string"
+        ? item
+        : (item.image_url ||
+          item.url ||
+          item.path ||
+          item.value ||
+          "");
 
-    // 2. إذا كان الرابط كاملاً بالفعل من السيرفر
-    if (cleanPath.startsWith("http://") || cleanPath.startsWith("https://")) {
-      return cleanPath;
+    if (!path) return "";
+
+    // لو URL كامل
+    if (
+      path.startsWith("http://") ||
+      path.startsWith("https://") ||
+      path.startsWith("data:") ||
+      path.startsWith("blob:")
+    ) {
+      return path;
     }
 
-    // 3. جلب رابط السيرفر الأساسي وتنظيفه
-    const apiURL = import.meta.env.VITE_API_URL || "http://t-square-lms.test";
-    let cleanBase = apiURL.endsWith("/") ? apiURL.slice(0, -1) : apiURL;
+    let apiURL = import.meta.env.VITE_API_URL || "";
 
-    // 🔥 هنا السر: إذا كان الرابط ينتهي بـ /api، نقوم بحذفها من أجل روابط الصور
-    if (cleanBase.endsWith("/api")) {
-      cleanBase = cleanBase.slice(0, -4);
+    // شيل /api من آخر الرابط لو موجودة
+    apiURL = apiURL.replace(/\/api\/?$/, "");
+
+    const cleanBase = apiURL.endsWith("/")
+      ? apiURL.slice(0, -1)
+      : apiURL;
+
+    const cleanPath = path.startsWith("/")
+      ? path
+      : `/${path}`;
+
+    if (
+      !cleanPath.startsWith("/storage") &&
+      !cleanPath.startsWith("/public")
+    ) {
+      return `${cleanBase}/storage${cleanPath}`;
     }
 
-    // ضبط السلاش في بداية مسار الصورة
-    cleanPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
-
-    // 4. الفحص الذكي لعدم تكرار الـ storage
-    if (cleanPath.startsWith("/storage") || cleanPath.startsWith("/public")) {
-      return `${cleanBase}${cleanPath}`;
-    }
-
-    // 5. إذا كان مساراً عادياً لا يحتوي على storage
-    return `${cleanBase}/storage${cleanPath}`;
+    return `${cleanBase}${cleanPath}`;
   };
 
   // معالجة رفع صورة الهيرو (Hero Image) - استبدال دائماً وبالمفتاح hero_image المعتمد في الباك إند
@@ -160,16 +176,60 @@ function AdminSettings() {
       if (aboutInputRef.current) aboutInputRef.current.value = "";
       return;
     }
-
-    // بما أن الوضع أصبح استبدال دائماً، نتحقق من ألا يتجاوز عدد الصور المرفوعة دفعة واحدة 3 صور
-    if (files.length > 3) {
+    if (aboutImages.length === 0 && files.length < 3) {
       toastError(
         isArabic
-          ? "الحد الأقصى للرفع هو 3 صور في وضع الاستبدال!"
-          : "Maximum limit to upload is 3 images in replace mode!",
+          ? "غير مسموح برفع أقل من 3 صور يجب أن يحتوي المعرض على 3 صور على الأقل!"
+          : "Not allowed to upload less than 3 images the gallery must contain at least 3 images!"
       );
       if (aboutInputRef.current) aboutInputRef.current.value = "";
       return;
+    }
+
+    if (aboutAction === "append") {
+      const currentCount = aboutImages.length;
+      if (currentCount >= 3) {
+        toastError(
+          isArabic
+            ? "لقد وصلت بالفعل للحد الأقصى وهو 3 صور لقسم عن الشركة!"
+            : "You have already reached the limit of 3 images for the About section!"
+        );
+        return;
+      }
+
+      const remainingSlots = 3 - currentCount;
+      if (files.length > remainingSlots) {
+        toastError(
+          isArabic
+            ? `لا يمكنك إضافة سوى ${remainingSlots} صورة إضافية لتجنب تجاوز الحد الأقصى.`
+            : `You can only add up to ${remainingSlots} more images to stay within the limit.`
+        );
+        return;
+      }
+    } else {
+      // وضع الاستبدال (Replace) لقسم الأبوت ميديا
+      if (files.length !== 3) {
+        toastError(
+          isArabic
+            ? "غير مسموح برفع الا 3 صور يجب أن يحتوي امعرض على 3 صور!"
+            : "Not allowed to upload other than 3 images the gallery must contain 3 images!"
+        );
+        return;
+      }
+
+      // إظهار نافذة التأكيد المخصصة للاستبدال الكامل
+      const confirmed = await showConfirmCustom({
+        title: isArabic ? "استبدال صور القسم" : "Replace Section Images",
+        message: isArabic
+          ? "هل أنت متأكد من حذف واستبدال جميع الصور الحالية بالصور الجديدة؟"
+          : "Are you sure you want to delete and replace all current images with the new ones?",
+        icon: "warning",
+        variant: "danger",
+      });
+      if (!confirmed) {
+        if (aboutInputRef.current) aboutInputRef.current.value = "";
+        return;
+      }
     }
 
     // إظهار نافذة التأكيد المخصصة للاستبدال الكامل
@@ -197,6 +257,18 @@ function AdminSettings() {
   const handleDiscoveryChange = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
+
+    if (discoveryMedia.length === 0 && files.length < 5) {
+      toastError(
+        isArabic
+          ? "غير مسموح برفع أقل من 5 صور يجب أن يحتوي المعرض على 5 صور على الأقل!"
+          : "Not allowed to upload less than 5 images the gallery must contain at least 5 images!"
+      );
+      if (discoveryInputRef.current) discoveryInputRef.current.value = "";
+      return;
+    }
+
+    if (files.length < 5 && discoveryAction === "replace") return toastError(isArabic ? "ادخل علي الاقل خمس صور لتتمكن من تبديلهم" : "Uplad at least 5 images to replace");
 
     // فحص حجم الملفات بحد أقصى 3 ميجابايت لكل صورة
     const oversizedFile = files.find((file) => file.size > 3 * 1024 * 1024);
@@ -650,6 +722,44 @@ function AdminSettings() {
             </div>
             <div className="settings-title-divider"></div>
 
+            {/* كارت خيارات وطريقة الرفع لقسم أبوت ميديا - الافتراضي هو ريبليس */}
+            <div className="action-selector-card shadow-sm mb-4">
+              <div className="row align-items-center g-3">
+                <div className="col-md-6">
+                  <div className="fw-bold text-dark mb-1">{isArabic ? "طريقة رفع صور قسم عن الشركة:" : "Upload action pattern:"}</div>
+                  <div className="text-muted small">
+                    {isArabic
+                      ? "الاستبدال يعيد بناء القسم بالكامل."
+                      : "Replace overrides the whole section."}
+                  </div>
+                </div>
+                <div className="col-md-6 d-flex justify-content-md-end">
+                  <div className="action-radio-group">
+                    {/* <label className="action-radio-label">
+                      <input
+                        type="radio"
+                        name="aboutAction"
+                        value="append"
+                        checked={aboutAction === "append"}
+                        onChange={() => setAboutAction("append")}
+                      />
+                      <span>{isArabic ? "إضافة وإلحاق (Append)" : "Append & Add"}</span>
+                    </label> */}
+                    <label className="action-radio-label">
+                      <input
+                        type="radio"
+                        name="aboutAction"
+                        value="replace"
+                        checked={aboutAction === "replace"}
+                        onChange={() => setAboutAction("replace")}
+                      />
+                      <span>{isArabic ? "مسح واستبدال (Replace)" : "Replace All"}</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="mb-4">
               <label className="form-label fw-bold text-secondary mb-3">
                 {isArabic
@@ -698,7 +808,7 @@ function AdminSettings() {
                         >
                           <i className="bi bi-eye-fill text-dark fs-5"></i>
                         </button>
-                        <button
+                        {/* <button
                           type="button"
                           className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
                           style={{
@@ -719,7 +829,7 @@ function AdminSettings() {
                           title={isArabic ? "حذف الصورة" : "Delete Image"}
                         >
                           <i className="bi bi-trash-fill text-danger fs-5"></i>
-                        </button>
+                        </button> */}
                       </div>
                     </div>
                   ))}
@@ -728,31 +838,26 @@ function AdminSettings() {
             </div>
 
             {/* حقل رفع إضافي للأبوت ميديا */}
-            <div className="mt-3">
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleAboutChange}
-                ref={aboutInputRef}
-                id="aboutUploadInput"
-                hidden
-              />
-              <label
-                htmlFor="aboutUploadInput"
-                className="btn btn-outline-danger px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2"
-              >
-                <i className="bi bi-plus-lg"></i>
-                {isArabic ? "إضافة صور جديدة" : "Add New Images"}
-              </label>
-              <span className="text-muted small ms-2 pe-none">
-                (
-                {isArabic
-                  ? "الحد الأقصى 3 ميجابايت لكل صورة"
-                  : "Max size 3MB per image"}
-                )
-              </span>
-            </div>
+            {(aboutAction === "replace" || aboutImages.length < 3) && (
+              <div className="mt-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleAboutChange}
+                  ref={aboutInputRef}
+                  id="aboutUploadInput"
+                  hidden
+                />
+                <label htmlFor="aboutUploadInput" className="btn btn-outline-danger px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2">
+                  <i className="bi bi-plus-lg"></i>
+                  {isArabic ? "صور الاستبدال" : "Replacement Images"}
+                </label>
+                <span className="text-muted small ms-2 pe-none">
+                  ({isArabic ? "الحد الأقصى 3 ميجابايت لكل صورة" : "Max size 3MB per image"})
+                </span>
+              </div>
+            )}
           </div>
 
           {/* ────────────────────────────────────────────────────────────────

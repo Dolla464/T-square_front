@@ -4,6 +4,15 @@
    ========================================================================== */
 
 /* الحاوية الرئيسية لصفحة الإعدادات - تم تصفير الهوامش لتلائم تصميم باقي صفحات الأدمن تماماً */
+
+* {
+
+  font-family: "Inter", "Tajawal", sans-serif;
+  /* تأكد من استدعاء الخطوط */
+
+
+}
+
 .admin-settings-page {
   padding: 0 !important;
   background-color: transparent !important;
@@ -90,7 +99,8 @@
 .settings-title-divider {
   width: 50px;
   height: 4px;
-  background-color: #be1522; /* لون براند تي سكوير الأحمر المميز */
+  background-color: #be1522;
+  /* لون براند تي سكوير الأحمر المميز */
   border-radius: 2px;
   margin-bottom: 1.5rem;
 }
@@ -187,7 +197,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(190, 21, 34, 0.85); /* تغطية بلون براند أحمر مع شفافية */
+  background-color: rgba(190, 21, 34, 0.85);
+  /* تغطية بلون براند أحمر مع شفافية */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -257,7 +268,8 @@
 }
 
 .action-radio-label input[type="radio"] {
-  accent-color: #be1522; /* لون براند أحمر للراديو */
+  accent-color: #be1522;
+  /* لون براند أحمر للراديو */
   width: 18px;
   height: 18px;
 }
@@ -299,12 +311,13 @@
   .admin-settings-page {
     padding: 0.75rem;
   }
-  
+
   .settings-card {
     padding: 1.25rem;
   }
 
-  .hero-current-preview, .settings-file-uploader {
+  .hero-current-preview,
+  .settings-file-uploader {
     height: 200px;
   }
 
@@ -348,4 +361,3 @@
   background-color: #f9fafb !important;
   border: 1px solid #eaeaea !important;
 }
-

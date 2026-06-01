@@ -17,6 +17,7 @@ import {
   updateSetting as apiUpdateSetting,
 } from "../services/settingsService";
 
+<<<<<<< HEAD:src/modules/admin-dashboard/hooks/useAdminSettings.jsx
 // سياق مشترك للإعدادات حتى تتشارك كل المكونات (الـ Layout والصفحة) نفس الحالة
 // وبهذا يتفاعل شريط تنبيه الصيانة فوراً مع أي تغيير في الـ Toggle
 const AdminSettingsContext = createContext(null);
@@ -24,6 +25,12 @@ const AdminSettingsContext = createContext(null);
 const useAdminSettingsState = () => {
   const { t } = useTranslation(["adminDashboard"]);
 
+=======
+export const useAdminSettings = () => {
+  const { t, i18n } = useTranslation(["adminDashboard"]);
+  const isArabic = i18n.language == "ar";
+  const [siteLogo, setSiteLogo] = useState(null);
+>>>>>>> 9cea2ec37f1efaa950b783f9c3d4721752f2e7e3:src/modules/admin-dashboard/hooks/useAdminSettings.js
   const [heroImage, setHeroImage] = useState(null);
   const [aboutImages, setAboutImages] = useState([]);
   const [discoveryMedia, setDiscoveryMedia] = useState([]);
@@ -68,6 +75,17 @@ const useAdminSettingsState = () => {
 
     if (typeof data === "object") {
       if (data.value !== undefined && data.value !== null) return data.value;
+<<<<<<< HEAD:src/modules/admin-dashboard/hooks/useAdminSettings.jsx
+=======
+
+      // فحص الحقول البديلة لتجنب أي تعقيد
+      if (data.site_logo !== undefined && data.site_logo !== null) return data.site_logo;
+      if (data.hero !== undefined && data.hero !== null) return data.hero;
+      if (data.hero_image !== undefined && data.hero_image !== null) return data.hero_image;
+      if (data.about_section !== undefined && data.about_section !== null) return data.about_section;
+      if (data.about_media !== undefined && data.about_media !== null) return data.about_media;
+      if (data.about_images !== undefined && data.about_images !== null) return data.about_images;
+>>>>>>> 9cea2ec37f1efaa950b783f9c3d4721752f2e7e3:src/modules/admin-dashboard/hooks/useAdminSettings.js
 
       if (data.hero !== undefined && data.hero !== null) return data.hero;
       if (data.hero_image !== undefined && data.hero_image !== null)
@@ -182,10 +200,50 @@ const useAdminSettingsState = () => {
     }
   }, [handleError, extractValue]);
 
+<<<<<<< HEAD:src/modules/admin-dashboard/hooks/useAdminSettings.jsx
   // ================= حفظ وتحديث مجموعة من الإعدادات ربطاً بالباك إند الحقيقي =================
+=======
+  // ================= حفظ وتحديث إعداد فردي في قاعدة البيانات (وهمي حالياً حتى صدور الـ API) =================
+  // تعليق: قسم الإعدادات العامة النصية لا يملك حالياً API نشط في الباك إند،
+  // لذا قمنا ببناء محاكاة إرسال وهمية (Mock Request) لعرض شريط التحميل والنجاح بشكل واقعي وممتع.
+  // سيتم تفعيل الـ Endpoint الحقيقي (apiUpdateSetting) بمجرد صدوره من الباك إند.
+  const saveSetting = async (key, value) => {
+    setUploading(true);
+    const toastId = toastLoading(isArabic ? "جاري حفظ الاعدادات..." : "Saving setting");
+
+    try {
+      // محاكاة تأخير 800ms للشعور بطلب السيرفر الحقيقي
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      /* كود الـ API الحقيقي (معلق حالياً):
+      await apiUpdateSetting(key, value);
+      */
+
+      toastDismiss(toastId);
+      toastSuccess(t("success.updated", "تم تحديث الإعداد بنجاح"));
+
+      // تحديث الحالة المحلية مباشرة لضمان تجربة مستخدم سريعة
+      setGeneralSettings(prev => ({
+        ...prev,
+        [key]: value
+      }));
+      return true;
+    } catch (err) {
+      toastDismiss(toastId);
+      handleError(err, "errors.update_failed");
+      return false;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // ================= حفظ وتحديث مجموعة من الإعدادات دفعة واحدة مع توست موحد (وهمي حالياً حتى صدور الـ API) =================
+  // تعليق: هذا التحديث وهمي أيضاً بالكامل للتوافق مع غياب الـ API الخاص بالإعدادات العامة النصية،
+  // يمنح حفظاً سلساً وتجربة غاية في الاحترافية والجمال بإشعار موحد واحد فقط دون أي تكرار.
+>>>>>>> 9cea2ec37f1efaa950b783f9c3d4721752f2e7e3:src/modules/admin-dashboard/hooks/useAdminSettings.js
   const saveGeneralSettings = async (settingsObj) => {
     setUploading(true);
-    const toastId = toastLoading(t("settings.saving", "جاري حفظ الإعدادات..."));
+    const toastId = toastLoading(isArabic ? "جاري حفظ الاعدادات..." : "Saving setting");
 
     try {
       await Promise.all(
@@ -200,11 +258,20 @@ const useAdminSettingsState = () => {
           return apiUpdateSetting(key, payloadValue);
         }),
       );
+<<<<<<< HEAD:src/modules/admin-dashboard/hooks/useAdminSettings.jsx
+=======
+      */
+>>>>>>> 9cea2ec37f1efaa950b783f9c3d4721752f2e7e3:src/modules/admin-dashboard/hooks/useAdminSettings.js
 
       toastDismiss(toastId);
       toastSuccess(t("success.updated", "تم تحديث الإعدادات بنجاح"));
 
+<<<<<<< HEAD:src/modules/admin-dashboard/hooks/useAdminSettings.jsx
       setGeneralSettings((prev) => ({
+=======
+      // تحديث الحالة المحلية دفعة واحدة
+      setGeneralSettings(prev => ({
+>>>>>>> 9cea2ec37f1efaa950b783f9c3d4721752f2e7e3:src/modules/admin-dashboard/hooks/useAdminSettings.js
         ...prev,
         ...settingsObj,
       }));
@@ -256,7 +323,7 @@ const useAdminSettingsState = () => {
     if (!files || files.length === 0) return false;
 
     setUploading(true);
-    const toastId = toastLoading(t("settings.uploading", "جاري رفع الصور..."));
+    const toastId = toastLoading(isArabic ? "جاري رفع الصور..." : "Uploading images");
 
     try {
       const formData = new FormData();
@@ -291,7 +358,7 @@ const useAdminSettingsState = () => {
     if (!isConfirmed) return false;
 
     setLoading(true);
-    const toastId = toastLoading(t("settings.deleting", "جاري حذف الصورة..."));
+    const toastId = toastLoading(isArabic ? "جاري حذف الصور..." : "Deleting images..");
 
     try {
       await apiDeleteMedia(imageUrl, key);
