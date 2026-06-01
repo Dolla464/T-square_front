@@ -60,6 +60,11 @@ const ADMIN_NAV = [
     icon: "bi-bar-chart-line",
   },
   {
+    key: "messages",
+    path: "/admin/messages",
+    icon: "bi-chat-left-text",
+  },
+  {
     key: "certificates",
     path: "/admin/certificates",
     icon: "bi-award",
@@ -117,6 +122,8 @@ function AdminLayout() {
         return isArabic ? "الطلبات / المدفوعات" : "Orders / Payments";
       case "/admin/analytics":
         return isArabic ? "الإحصائيات" : "Analytics";
+      case "/admin/messages":
+        return isArabic ? "الرسائل" : "Messages";
       case "/admin/reviews":
         return isArabic ? "التقييمات" : "Reviews";
       case "/admin/notifications":

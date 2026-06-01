@@ -11,13 +11,13 @@ import {
 } from "../services/settingsService";
 
 export const useAdminSettings = () => {
-  const { t } = useTranslation(["adminDashboard"]);
-
+  const { t, i18n } = useTranslation(["adminDashboard"]);
+  const isArabic = i18n.language == "ar";
   const [siteLogo, setSiteLogo] = useState(null);
   const [heroImage, setHeroImage] = useState(null);
   const [aboutImages, setAboutImages] = useState([]);
   const [discoveryMedia, setDiscoveryMedia] = useState([]);
-  
+
   // الحالة المحلية للتحكم في الإعدادات العامة (General Settings) للمنصة
   const [generalSettings, setGeneralSettings] = useState({
     site_name: "T-Square LMS",
@@ -26,7 +26,7 @@ export const useAdminSettings = () => {
     facebook_url: "https://facebook.com/tsquare",
     maintenance_mode: "false",
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
@@ -58,7 +58,7 @@ export const useAdminSettings = () => {
     if (typeof data === "object") {
       // فحص حقل value المعتمد بقاعدة البيانات
       if (data.value !== undefined && data.value !== null) return data.value;
-      
+
       // فحص الحقول البديلة لتجنب أي تعقيد
       if (data.site_logo !== undefined && data.site_logo !== null) return data.site_logo;
       if (data.hero !== undefined && data.hero !== null) return data.hero;
@@ -167,7 +167,7 @@ export const useAdminSettings = () => {
   // سيتم تفعيل الـ Endpoint الحقيقي (apiUpdateSetting) بمجرد صدوره من الباك إند.
   const saveSetting = async (key, value) => {
     setUploading(true);
-    const toastId = toastLoading(t("settings.saving", "جاري حفظ الإعدادات..."));
+    const toastId = toastLoading(isArabic ? "جاري حفظ الاعدادات..." : "Saving setting");
 
     try {
       // محاكاة تأخير 800ms للشعور بطلب السيرفر الحقيقي
@@ -176,10 +176,10 @@ export const useAdminSettings = () => {
       /* كود الـ API الحقيقي (معلق حالياً):
       await apiUpdateSetting(key, value);
       */
-      
+
       toastDismiss(toastId);
       toastSuccess(t("success.updated", "تم تحديث الإعداد بنجاح"));
-      
+
       // تحديث الحالة المحلية مباشرة لضمان تجربة مستخدم سريعة
       setGeneralSettings(prev => ({
         ...prev,
@@ -200,7 +200,7 @@ export const useAdminSettings = () => {
   // يمنح حفظاً سلساً وتجربة غاية في الاحترافية والجمال بإشعار موحد واحد فقط دون أي تكرار.
   const saveGeneralSettings = async (settingsObj) => {
     setUploading(true);
-    const toastId = toastLoading(t("settings.saving", "جاري حفظ الإعدادات..."));
+    const toastId = toastLoading(isArabic ? "جاري حفظ الاعدادات..." : "Saving setting");
 
     try {
       // محاكاة تأخير 1000ms للشعور بطلب السيرفر الحقيقي دفعة واحدة
@@ -211,10 +211,10 @@ export const useAdminSettings = () => {
         Object.entries(settingsObj).map(([key, value]) => apiUpdateSetting(key, value))
       );
       */
-      
+
       toastDismiss(toastId);
       toastSuccess(t("success.updated", "تم تحديث الإعدادات بنجاح"));
-      
+
       // تحديث الحالة المحلية دفعة واحدة
       setGeneralSettings(prev => ({
         ...prev,
@@ -242,7 +242,7 @@ export const useAdminSettings = () => {
     if (!files || files.length === 0) return false;
 
     setUploading(true);
-    const toastId = toastLoading(t("settings.uploading", "جاري رفع الصور..."));
+    const toastId = toastLoading(isArabic ? "جاري رفع الصور..." : "Uploading images");
 
     try {
       const formData = new FormData();
@@ -279,7 +279,7 @@ export const useAdminSettings = () => {
     if (!isConfirmed) return false;
 
     setLoading(true);
-    const toastId = toastLoading(t("settings.deleting", "جاري حذف الصورة..."));
+    const toastId = toastLoading(isArabic ? "جاري حذف الصور..." : "Deleting images..");
 
     try {
       await apiDeleteMedia(imageUrl, key);
