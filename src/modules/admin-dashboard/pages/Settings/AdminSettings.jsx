@@ -1,14 +1,14 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAdminSettings } from "../../hooks/useAdminSettings";
-import { toastError } from "../../../../components/shared/Toaster/toaster";
-import { showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+import { showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { toastError } from "../../../../components/shared/Toaster/toaster";
+import { useAdminSettings } from "../../hooks/useAdminSettings";
 
 // استيراد ملف التنسيق المخصص والمدعوم بالتعليقات العربية للمطورين
-import "./settings.css";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
+import "./settings.css";
 
 function AdminSettings() {
   const { i18n } = useTranslation("adminDashboard");
@@ -68,6 +68,7 @@ function AdminSettings() {
   };
 
   // خيارات الرفع التلقائية والافتراضية هي الاستبدال (Replace) لجميع الأقسام
+  const [aboutAction, setAboutAction] = useState("replace");
   const [discoveryAction, setDiscoveryAction] = useState("replace");
 
   // جلب البيانات عند تحميل الصفحة
@@ -82,11 +83,7 @@ function AdminSettings() {
     const path =
       typeof item === "string"
         ? item
-        : (item.image_url ||
-          item.url ||
-          item.path ||
-          item.value ||
-          "");
+        : item.image_url || item.url || item.path || item.value || "";
 
     if (!path) return "";
 
@@ -105,18 +102,11 @@ function AdminSettings() {
     // شيل /api من آخر الرابط لو موجودة
     apiURL = apiURL.replace(/\/api\/?$/, "");
 
-    const cleanBase = apiURL.endsWith("/")
-      ? apiURL.slice(0, -1)
-      : apiURL;
+    const cleanBase = apiURL.endsWith("/") ? apiURL.slice(0, -1) : apiURL;
 
-    const cleanPath = path.startsWith("/")
-      ? path
-      : `/${path}`;
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
 
-    if (
-      !cleanPath.startsWith("/storage") &&
-      !cleanPath.startsWith("/public")
-    ) {
+    if (!cleanPath.startsWith("/storage") && !cleanPath.startsWith("/public")) {
       return `${cleanBase}/storage${cleanPath}`;
     }
 
@@ -180,7 +170,7 @@ function AdminSettings() {
       toastError(
         isArabic
           ? "غير مسموح برفع أقل من 3 صور يجب أن يحتوي المعرض على 3 صور على الأقل!"
-          : "Not allowed to upload less than 3 images the gallery must contain at least 3 images!"
+          : "Not allowed to upload less than 3 images the gallery must contain at least 3 images!",
       );
       if (aboutInputRef.current) aboutInputRef.current.value = "";
       return;
@@ -192,7 +182,7 @@ function AdminSettings() {
         toastError(
           isArabic
             ? "لقد وصلت بالفعل للحد الأقصى وهو 3 صور لقسم عن الشركة!"
-            : "You have already reached the limit of 3 images for the About section!"
+            : "You have already reached the limit of 3 images for the About section!",
         );
         return;
       }
@@ -202,7 +192,7 @@ function AdminSettings() {
         toastError(
           isArabic
             ? `لا يمكنك إضافة سوى ${remainingSlots} صورة إضافية لتجنب تجاوز الحد الأقصى.`
-            : `You can only add up to ${remainingSlots} more images to stay within the limit.`
+            : `You can only add up to ${remainingSlots} more images to stay within the limit.`,
         );
         return;
       }
@@ -212,7 +202,7 @@ function AdminSettings() {
         toastError(
           isArabic
             ? "غير مسموح برفع الا 3 صور يجب أن يحتوي امعرض على 3 صور!"
-            : "Not allowed to upload other than 3 images the gallery must contain 3 images!"
+            : "Not allowed to upload other than 3 images the gallery must contain 3 images!",
         );
         return;
       }
@@ -262,13 +252,18 @@ function AdminSettings() {
       toastError(
         isArabic
           ? "غير مسموح برفع أقل من 5 صور يجب أن يحتوي المعرض على 5 صور على الأقل!"
-          : "Not allowed to upload less than 5 images the gallery must contain at least 5 images!"
+          : "Not allowed to upload less than 5 images the gallery must contain at least 5 images!",
       );
       if (discoveryInputRef.current) discoveryInputRef.current.value = "";
       return;
     }
 
-    if (files.length < 5 && discoveryAction === "replace") return toastError(isArabic ? "ادخل علي الاقل خمس صور لتتمكن من تبديلهم" : "Uplad at least 5 images to replace");
+    if (files.length < 5 && discoveryAction === "replace")
+      return toastError(
+        isArabic
+          ? "ادخل علي الاقل خمس صور لتتمكن من تبديلهم"
+          : "Uplad at least 5 images to replace",
+      );
 
     // فحص حجم الملفات بحد أقصى 3 ميجابايت لكل صورة
     const oversizedFile = files.find((file) => file.size > 3 * 1024 * 1024);
@@ -726,7 +721,11 @@ function AdminSettings() {
             <div className="action-selector-card shadow-sm mb-4">
               <div className="row align-items-center g-3">
                 <div className="col-md-6">
-                  <div className="fw-bold text-dark mb-1">{isArabic ? "طريقة رفع صور قسم عن الشركة:" : "Upload action pattern:"}</div>
+                  <div className="fw-bold text-dark mb-1">
+                    {isArabic
+                      ? "طريقة رفع صور قسم عن الشركة:"
+                      : "Upload action pattern:"}
+                  </div>
                   <div className="text-muted small">
                     {isArabic
                       ? "الاستبدال يعيد بناء القسم بالكامل."
@@ -753,7 +752,9 @@ function AdminSettings() {
                         checked={aboutAction === "replace"}
                         onChange={() => setAboutAction("replace")}
                       />
-                      <span>{isArabic ? "مسح واستبدال (Replace)" : "Replace All"}</span>
+                      <span>
+                        {isArabic ? "مسح واستبدال (Replace)" : "Replace All"}
+                      </span>
                     </label>
                   </div>
                 </div>
@@ -849,12 +850,19 @@ function AdminSettings() {
                   id="aboutUploadInput"
                   hidden
                 />
-                <label htmlFor="aboutUploadInput" className="btn btn-outline-danger px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2">
+                <label
+                  htmlFor="aboutUploadInput"
+                  className="btn btn-outline-danger px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2"
+                >
                   <i className="bi bi-plus-lg"></i>
                   {isArabic ? "صور الاستبدال" : "Replacement Images"}
                 </label>
                 <span className="text-muted small ms-2 pe-none">
-                  ({isArabic ? "الحد الأقصى 3 ميجابايت لكل صورة" : "Max size 3MB per image"})
+                  (
+                  {isArabic
+                    ? "الحد الأقصى 3 ميجابايت لكل صورة"
+                    : "Max size 3MB per image"}
+                  )
                 </span>
               </div>
             )}
