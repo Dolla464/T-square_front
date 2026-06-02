@@ -21,7 +21,7 @@ function AdminReviews() {
   // حماية السيرفر من إرسال طلبات مكثفة أثناء الكتابة السريعة (Debounce)
   const [debouncedSearch, setDebouncedSearch] = useState("");
   useEffect(() => {
-    const handler = setTimeout(() => setSearchTerm(searchTerm), 500);
+    const handler = setTimeout(() => setDebouncedSearch(searchTerm), 500);
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
@@ -51,6 +51,13 @@ function AdminReviews() {
 
   // 2. الفلترة المتبقية بداخل الـ Frontend (مثل تقييم النجوم لتقليل حمل السيرفر)
   const filteredReviews = (reviews || []).filter((item) => {
+    const searchLower = searchTerm.toLowerCase();
+    const matchSearch =
+      !searchTerm ||
+      item.student_name?.toLowerCase().includes(searchLower) ||
+      item.course_title?.toLowerCase().includes(searchLower) ||
+      item.overall_comment?.toLowerCase().includes(searchLower);
+
     const matchRating =
       ratingFilter === "all" ||
       Math.floor(Number(item.rating)) === Number(ratingFilter);
