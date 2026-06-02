@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import ScrollToTop from "./components/shared/ScrollToTop";
 import AppNavbar from "./components/layout/Navbar";
 import AppFooter from "./components/layout/Footer";
-const Home = lazy(() => import("./pages/Home"));
+import Home from "./pages/Home";
 const LoginPage = lazy(() => import("./pages/Login/LoginPage"));
 const SignupPage = lazy(() => import("./pages/Signup/SignupPage"));
 const ForgotPassword = lazy(
@@ -120,7 +120,7 @@ const EditExam = lazy(
 );
 import LoadingSpiner from "./LoadingSpiner";
 import AdminMessages from "./modules/admin-dashboard/pages/Messages/AdminMessages";
-
+import MaintenancePage from "./pages/Maintenance/MaintenancePage";
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
   const { t, i18n } = useTranslation("common");
@@ -227,12 +227,12 @@ function AppContent() {
 
         <meta
           property="og:url"
-          // content="https://yourdomain.com"
+        // content="https://yourdomain.com"
         />
 
         <meta
           property="og:image"
-          // content="https://yourdomain.com/preview.png"
+        // content="https://yourdomain.com/preview.png"
         />
 
         {/* Twitter Preview */}
@@ -240,7 +240,7 @@ function AppContent() {
 
         <meta
           name="twitter:title"
-          // content="LMS Platform | Programming Courses & Digital Solutions"
+        // content="LMS Platform | Programming Courses & Digital Solutions"
         />
 
         <meta
@@ -250,7 +250,7 @@ function AppContent() {
 
         <meta
           name="twitter:image"
-          // content="https://yourdomain.com/preview.png"
+        // content="https://yourdomain.com/preview.png"
         />
       </Helmet>
 
@@ -266,28 +266,7 @@ function AppContent() {
 
         <Suspense fallback={<LoadingSpiner />}>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/forgot_password" element={<ForgotPassword />} />
-            <Route path="/update_password" element={<UpdatePassword />} />
-            <Route path="/verify-email" element={<VerifyEmailPage />} />
-
-            <Route path="/courses" element={<Courses />} />
-            <Route
-              path="/courses/course_details/:slug"
-              element={<DetailsCourse />}
-            />
-
-            <Route
-              path="/payment"
-              element={<Navigate to="/courses" replace />}
-            />
-            <Route path="/payment/:slug" element={<Payment />} />
-
-            <Route path="/solutions" element={<Solutions />} />
-            <Route path="/team" element={<Team />} />
-            <Route path="/contact" element={<Contact />} />
+            <Route path="/maintenance" element={<MaintenancePage />} />
 
             {/* ADMIN */}
             <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
@@ -319,30 +298,56 @@ function AppContent() {
               </Route>
             </Route>
 
-            {/* STUDENT */}
-            <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
-              <Route path="/student" element={<DashboardLayout />}>
-                <Route index element={<Navigate to="dashboard" replace />} />
-                <Route path="dashboard" element={<DashboardHome />} />
-                <Route
-                  path="certificates"
-                  element={<DashboardCertificates />}
-                />
-                <Route path="quizzes" element={<DashboardQuizzes />} />
-                <Route path="quizzes/:quizId" element={<QuizExamPage />} />
-                <Route path="profile" element={<DashboardProfile />} />
-                <Route path="notifications" element={<NotificationsPage />} />
-                <Route path="course/:id" element={<CourseDetails />} />
-              </Route>
-            </Route>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/forgot_password" element={<ForgotPassword />} />
+              <Route path="/update_password" element={<UpdatePassword />} />
+              <Route path="/verify-email" element={<VerifyEmailPage />} />
 
+              <Route path="/courses" element={<Courses />} />
+              <Route
+                path="/courses/course_details/:slug"
+                element={<DetailsCourse />}
+              />
+
+              <Route
+                path="/payment"
+                element={<Navigate to="/courses" replace />}
+              />
+              <Route path="/payment/:slug" element={<Payment />} />
+
+              <Route path="/solutions" element={<Solutions />} />
+              <Route path="/team" element={<Team />} />
+              <Route path="/contact" element={<Contact />} />
+
+
+
+              {/* STUDENT */}
+              <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
+                <Route path="/student" element={<DashboardLayout />}>
+                  <Route index element={<Navigate to="dashboard" replace />} />
+                  <Route path="dashboard" element={<DashboardHome />} />
+                  <Route
+                    path="certificates"
+                    element={<DashboardCertificates />}
+                  />
+                  <Route path="quizzes" element={<DashboardQuizzes />} />
+                  <Route path="quizzes/:quizId" element={<QuizExamPage />} />
+                  <Route path="profile" element={<DashboardProfile />} />
+                  <Route path="notifications" element={<NotificationsPage />} />
+                  <Route path="course/:id" element={<CourseDetails />} />
+              </Route>
+
+            </Route>
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
+
         </Suspense>
 
         {/* إظهار الفوتر فقط إذا لم نكن في صفحة اللوجين */}
         {!hideLayout && <AppFooter />}
-      </div>
+      </div >
     </>
   );
 }

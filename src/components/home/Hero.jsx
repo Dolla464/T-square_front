@@ -1,19 +1,23 @@
 import { Container, Button, Row, Col } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { useHeroAndAboutData } from "../../hooks/useDiscovery"; // استدعاء الـ Hook الموحد
-import heroImg from "../../assets/hero-bg-min.webp"; // الصورة الافتراضية اللوكال
 import "./Hero.css";
 
-function Hero() {
+function Hero({ heroImage, heroSettings }) {
   const { t, i18n } = useTranslation(["home", "common"]);
   const isAr = i18n.language === "ar";
+  const isArabic = isAr;
 
-  // 1. جلب صورة الهيرو المرفوعة من الأدمن عبر الـ Hook
-  const { heroImage } = useHeroAndAboutData();
+  // دالة مساعدة لتصفية قيم N/A والرجوع للترجمة الافتراضية
+  const getHeroText = (value, fallbackKey) => {
+    if (!value || value === "N/A" || value.trim() === "") {
+      return t(fallbackKey);
+    }
+    return value;
+  };
 
   // 2. تريكة الـ Fallback الذكية: لو الـ API رجع صورة نستخدمها، وإلا نرجع للصورة اللوكال
-  const currentBg = heroImage || heroImg;
+  const currentBg = heroImage || "";
 
   // الـ Style الديناميكي صار يقرأ من المتغير الذكي currentBg
   const dynamicStyle = {
@@ -39,10 +43,10 @@ function Hero() {
           <Col md={7} className={isAr ? "text-start" : "text-end"}
           >
             <h1 className="display-3 fw-bold mb-3 hero-title">
-              {t("hero_title_start")}
+              {isArabic ? getHeroText(heroSettings?.hero_title_ar, "") : getHeroText(heroSettings?.hero_title_en, "")}
               <span className="hero-highlight-wrapper">
                 <span className="highlight-text">
-                  {t("hero_title_highlight")}
+                  {isArabic ? getHeroText(heroSettings?.hero_title_highlight_ar, "") : getHeroText(heroSettings?.hero_title_highlight_en, "")}
                 </span>
                 {/* الـ Vector ده لوحده هيرسم الدايرتين */}
                 <div className="hero-vector"></div>
@@ -50,7 +54,7 @@ function Hero() {
             </h1>
 
             <p className="lead mb-5 hero-subtitle fw-normal">
-              {t("hero_subtitle")}
+              {isArabic ? getHeroText(heroSettings?.hero_subtitle_ar, "") : getHeroText(heroSettings?.hero_subtitle_en, "")}
             </p>
 
             <div className="d-flex gap-3 justify-content-start">

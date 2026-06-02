@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { clearHeroAndAboutCache } from "../../../hooks/useDiscovery";
 import {
   toastSuccess,
   toastError,
@@ -20,22 +21,31 @@ import {
 // 1. إنشاء الـ Context في البداية لمنع أخطاء الترتيب
 const AdminSettingsContext = createContext(null);
 
+// ذاكرة تخزين مؤقتة على مستوى المودول لمنع تكرار طلبات API أثناء التنقل بين الصفحات
+let settingsCache = null;
+
 // 2. تغيير اسم الهوك الداخلي ليصبح مسئولاً عن بناء الـ State
 export const useAdminSettingsState = () => {
   const { t, i18n } = useTranslation(["adminDashboard"]);
   const isArabic = i18n.language === "ar";
-  const [siteLogo, setSiteLogo] = useState(null);
-  const [heroImage, setHeroImage] = useState(null);
-  const [aboutImages, setAboutImages] = useState([]);
-  const [discoveryMedia, setDiscoveryMedia] = useState([]);
+  const [siteLogo, setSiteLogo] = useState(() => settingsCache?.siteLogo || null);
+  const [heroImage, setHeroImage] = useState(() => settingsCache?.heroImage || null);
+  const [aboutImages, setAboutImages] = useState(() => settingsCache?.aboutImages || []);
+  const [discoveryMedia, setDiscoveryMedia] = useState(() => settingsCache?.discoveryMedia || []);
 
   // الحالة المحلية للتحكم في الإعدادات العامة (General Settings) للمنصة
-  const [generalSettings, setGeneralSettings] = useState({
+  const [generalSettings, setGeneralSettings] = useState(() => settingsCache?.generalSettings || {
     site_name: "T-Square LMS",
-    contact_email: "info@tsquare.com",
-    whatsapp: "0201210608027",
-    facebook_url: "https://facebook.com/tsquare",
+    contact_email: "N/A",
+    whatsapp: "N/A",
+    facebook_url: "N/A",
     maintenance_mode: "false",
+    hero_title_en: "N/A",
+    hero_title_ar: "N/A",
+    hero_title_highlight_en: "N/A",
+    hero_title_highlight_ar: "N/A",
+    hero_subtitle_en: "N/A",
+    hero_subtitle_ar: "N/A",
   });
 
   const [loading, setLoading] = useState(false);
@@ -89,6 +99,12 @@ export const useAdminSettingsState = () => {
         "whatsapp",
         "facebook_url",
         "maintenance_mode",
+        "hero_title_en",
+        "hero_title_ar",
+        "hero_title_highlight_en",
+        "hero_title_highlight_ar",
+        "hero_subtitle_en",
+        "hero_subtitle_ar",
       ]) {
         if (data[k] !== undefined && data[k] !== null) return data[k];
       }
@@ -97,7 +113,11 @@ export const useAdminSettingsState = () => {
   }, []);
 
   // ================= جلب جميع الإعدادات والميديا بالتوازي وديناميكياً =================
-  const fetchMediaSettings = useCallback(async () => {
+  const fetchMediaSettings = useCallback(async (force = false) => {
+    if (settingsCache && !force) {
+      // تم تحميل الإعدادات مسبقاً، لا داعي لتكرار الـ API
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -110,6 +130,12 @@ export const useAdminSettingsState = () => {
         whatsappRes,
         facebookRes,
         maintenanceRes,
+        heroTitleEnRes,
+        heroTitleArRes,
+        heroTitleHighlightEnRes,
+        heroTitleHighlightArRes,
+        heroSubtitleEnRes,
+        heroSubtitleArRes,
       ] = await Promise.all([
         apiGetWebsiteMedia("hero_image")
           .catch(() => apiGetWebsiteMedia("hero"))
@@ -125,6 +151,12 @@ export const useAdminSettingsState = () => {
         apiGetSetting("whatsapp").catch(() => null),
         apiGetSetting("facebook_url").catch(() => null),
         apiGetMaintenanceStatus().catch(() => false),
+        apiGetSetting("hero_title_en").catch(() => null),
+        apiGetSetting("hero_title_ar").catch(() => null),
+        apiGetSetting("hero_title_highlight_en").catch(() => null),
+        apiGetSetting("hero_title_highlight_ar").catch(() => null),
+        apiGetSetting("hero_subtitle_en").catch(() => null),
+        apiGetSetting("hero_subtitle_ar").catch(() => null),
       ]);
 
       const hero = extractValue(heroRes);
@@ -166,19 +198,43 @@ export const useAdminSettingsState = () => {
       setDiscoveryMedia(Array.isArray(parsedDiscovery) ? parsedDiscovery : []);
 
       const site_name = extractValue(siteNameRes, "T-Square LMS");
-      const contact_email = extractValue(emailRes, "info@tsquare.com");
-      const whatsapp = extractValue(whatsappRes, "");
-      const facebook_url = extractValue(facebookRes, "");
+      const contact_email = extractValue(emailRes, "N/A") || "N/A";
+      const whatsapp = extractValue(whatsappRes, "N/A") || "N/A";
+      const facebook_url = extractValue(facebookRes, "N/A") || "N/A";
 
       const maintenance_mode = maintenanceRes === true ? "true" : "false";
 
-      setGeneralSettings({
+      const hero_title_en = extractValue(heroTitleEnRes, "N/A") || "N/A";
+      const hero_title_ar = extractValue(heroTitleArRes, "N/A") || "N/A";
+      const hero_title_highlight_en = extractValue(heroTitleHighlightEnRes, "N/A") || "N/A";
+      const hero_title_highlight_ar = extractValue(heroTitleHighlightArRes, "N/A") || "N/A";
+      const hero_subtitle_en = extractValue(heroSubtitleEnRes, "N/A") || "N/A";
+      const hero_subtitle_ar = extractValue(heroSubtitleArRes, "N/A") || "N/A";
+
+      const newGeneralSettings = {
         site_name,
         contact_email,
         whatsapp,
         facebook_url,
         maintenance_mode,
-      });
+        hero_title_en,
+        hero_title_ar,
+        hero_title_highlight_en,
+        hero_title_highlight_ar,
+        hero_subtitle_en,
+        hero_subtitle_ar,
+      };
+
+      setGeneralSettings(newGeneralSettings);
+
+      // تحديث ذاكرة التخزين المؤقت
+      settingsCache = {
+        siteLogo: null,
+        heroImage: hero,
+        aboutImages: Array.isArray(parsedAbout) ? parsedAbout : [],
+        discoveryMedia: Array.isArray(parsedDiscovery) ? parsedDiscovery : [],
+        generalSettings: newGeneralSettings,
+      };
     } catch (err) {
       handleError(err, "errors.fetch_failed");
     } finally {
@@ -200,14 +256,21 @@ export const useAdminSettingsState = () => {
       }
 
       await apiUpdateSetting(key, payloadValue);
+      clearHeroAndAboutCache();
 
       toastDismiss(toastId);
       toastSuccess(t("success.updated", "تم تحديث الإعداد بنجاح"));
 
-      setGeneralSettings((prev) => ({
-        ...prev,
-        [key]: value,
-      }));
+      setGeneralSettings((prev) => {
+        const next = {
+          ...prev,
+          [key]: value,
+        };
+        if (settingsCache) {
+          settingsCache.generalSettings = next;
+        }
+        return next;
+      });
       return true;
     } catch (err) {
       toastDismiss(toastId);
@@ -226,24 +289,38 @@ export const useAdminSettingsState = () => {
     );
 
     try {
-      await Promise.all(
-        Object.entries(settingsObj).map(([key, value]) => {
-          let payloadValue = value;
-          if (key === "maintenance_mode") {
-            const isMaintenanceOn = value === "true" || value === true;
-            payloadValue = isMaintenanceOn ? "1" : "0";
-          }
-          return apiUpdateSetting(key, payloadValue);
-        }),
-      );
+      // Find only the keys that have actually changed compared to the current generalSettings state
+      const changedSettings = Object.entries(settingsObj).filter(([key, value]) => {
+        return generalSettings[key] !== value;
+      });
+
+      if (changedSettings.length > 0) {
+        await Promise.all(
+          changedSettings.map(([key, value]) => {
+            let payloadValue = value;
+            if (key === "maintenance_mode") {
+              const isMaintenanceOn = value === "true" || value === true;
+              payloadValue = isMaintenanceOn ? "1" : "0";
+            }
+            return apiUpdateSetting(key, payloadValue);
+          }),
+        );
+        clearHeroAndAboutCache();
+      }
 
       toastDismiss(toastId);
       toastSuccess(t("success.updated", "تم تحديث الإعدادات بنجاح"));
 
-      setGeneralSettings((prev) => ({
-        ...prev,
-        ...settingsObj,
-      }));
+      setGeneralSettings((prev) => {
+        const next = {
+          ...prev,
+          ...settingsObj,
+        };
+        if (settingsCache) {
+          settingsCache.generalSettings = next;
+        }
+        return next;
+      });
       return true;
     } catch (err) {
       toastDismiss(toastId);
@@ -253,6 +330,7 @@ export const useAdminSettingsState = () => {
       setUploading(false);
     }
   };
+
 
   // ================= رفع الميديا =================
   const uploadMedia = async (files, key, action = "append") => {
@@ -273,11 +351,12 @@ export const useAdminSettingsState = () => {
       }
 
       const res = await apiUploadMedia(formData);
+      clearHeroAndAboutCache();
 
       toastDismiss(toastId);
       toastSuccess(t("success.created", "تم الرفع بنجاح"));
 
-      await fetchMediaSettings();
+      await fetchMediaSettings(true);
       return res;
     } catch (err) {
       toastDismiss(toastId);
@@ -302,11 +381,12 @@ export const useAdminSettingsState = () => {
 
     try {
       await apiDeleteMedia(imageUrl, key);
+      clearHeroAndAboutCache();
 
       toastDismiss(toastId);
       toastSuccess(t("success.deleted", "تم حذف الصورة بنجاح"));
 
-      await fetchMediaSettings();
+      await fetchMediaSettings(true);
       return true;
     } catch (err) {
       toastDismiss(toastId);
