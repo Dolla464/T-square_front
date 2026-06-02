@@ -46,25 +46,28 @@ function AdminSettings() {
     whatsapp: "",
     facebook_url: "",
     maintenance_mode: "false",
+    hero_title_en: "",
+    hero_title_ar: "",
+    hero_title_highlight_en: "",
+    hero_title_highlight_ar: "",
+    hero_subtitle_en: "",
+    hero_subtitle_ar: "",
   });
 
   // مزامنة البيانات المحلية عند اكتمال جلب الإعدادات من الهوك
   useEffect(() => {
     if (hookGeneralSettings) {
-      setLocalGeneralSettings({
-        site_name: hookGeneralSettings.site_name,
-        contact_email: hookGeneralSettings.contact_email,
-        whatsapp: hookGeneralSettings.whatsapp,
-        facebook_url: hookGeneralSettings.facebook_url,
-        maintenance_mode: String(hookGeneralSettings.maintenance_mode),
-      });
+      setLocalGeneralSettings({ ...hookGeneralSettings });
     }
   }, [hookGeneralSettings]);
 
   // حفظ الإعدادات العامة في قاعدة البيانات دفعة واحدة بالتوازي
   const handleSaveGeneral = async () => {
     setIsEditingGeneral(false);
-    await saveGeneralSettings(localGeneralSettings);
+    const success = await saveGeneralSettings(localGeneralSettings);
+    if (!success && hookGeneralSettings) {
+      setLocalGeneralSettings({ ...hookGeneralSettings });
+    }
   };
 
   // خيارات الرفع التلقائية والافتراضية هي الاستبدال (Replace) لجميع الأقسام
@@ -336,13 +339,7 @@ function AdminSettings() {
   const handleCancelGeneral = () => {
     setIsEditingGeneral(false);
     if (hookGeneralSettings) {
-      setLocalGeneralSettings({
-        site_name: hookGeneralSettings.site_name,
-        contact_email: hookGeneralSettings.contact_email,
-        whatsapp: hookGeneralSettings.whatsapp,
-        facebook_url: hookGeneralSettings.facebook_url,
-        maintenance_mode: String(hookGeneralSettings.maintenance_mode),
-      });
+      setLocalGeneralSettings({ ...hookGeneralSettings });
     }
   };
 
@@ -524,6 +521,150 @@ function AdminSettings() {
                 ) : (
                   <span className="general-settings-value text-secondary">
                     {localGeneralSettings.facebook_url}
+                  </span>
+                )}
+              </div>
+
+              {/* Hero Title (English) */}
+              <div className="general-settings-row">
+                <span className="general-settings-label">
+                  {isArabic ? "عنوان الهيرو (إنجليزي)" : "Hero Title (English)"}
+                </span>
+                {isEditingGeneral ? (
+                  <input
+                    type="text"
+                    className="form-control form-control-sm w-50"
+                    value={localGeneralSettings.hero_title_en}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        hero_title_en: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  <span className="general-settings-value text-secondary">
+                    {localGeneralSettings.hero_title_en}
+                  </span>
+                )}
+              </div>
+
+              {/* Hero Title (Arabic) */}
+              <div className="general-settings-row">
+                <span className="general-settings-label">
+                  {isArabic ? "عنوان الهيرو (عربي)" : "Hero Title (Arabic)"}
+                </span>
+                {isEditingGeneral ? (
+                  <input
+                    type="text"
+                    className="form-control form-control-sm w-50"
+                    value={localGeneralSettings.hero_title_ar}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        hero_title_ar: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  <span className="general-settings-value text-secondary">
+                    {localGeneralSettings.hero_title_ar}
+                  </span>
+                )}
+              </div>
+
+              {/* Hero Title Highlight (English) */}
+              <div className="general-settings-row">
+                <span className="general-settings-label">
+                  {isArabic ? "الكلمة المميزة للهيرو (إنجليزي)" : "Hero Title Highlight (English)"}
+                </span>
+                {isEditingGeneral ? (
+                  <input
+                    type="text"
+                    className="form-control form-control-sm w-50"
+                    value={localGeneralSettings.hero_title_highlight_en}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        hero_title_highlight_en: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  <span className="general-settings-value text-secondary">
+                    {localGeneralSettings.hero_title_highlight_en}
+                  </span>
+                )}
+              </div>
+
+              {/* Hero Title Highlight (Arabic) */}
+              <div className="general-settings-row">
+                <span className="general-settings-label">
+                  {isArabic ? "الكلمة المميزة للهيرو (عربي)" : "Hero Title Highlight (Arabic)"}
+                </span>
+                {isEditingGeneral ? (
+                  <input
+                    type="text"
+                    className="form-control form-control-sm w-50"
+                    value={localGeneralSettings.hero_title_highlight_ar}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        hero_title_highlight_ar: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  <span className="general-settings-value text-secondary">
+                    {localGeneralSettings.hero_title_highlight_ar}
+                  </span>
+                )}
+              </div>
+
+              {/* Hero Subtitle (English) */}
+              <div className="general-settings-row">
+                <span className="general-settings-label">
+                  {isArabic ? "العنوان الفرعي للهيرو (إنجليزي)" : "Hero Subtitle (English)"}
+                </span>
+                {isEditingGeneral ? (
+                  <textarea
+                    rows={2}
+                    className="form-control form-control-sm w-50"
+                    value={localGeneralSettings.hero_subtitle_en}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        hero_subtitle_en: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  <span className="general-settings-value text-secondary">
+                    {localGeneralSettings.hero_subtitle_en}
+                  </span>
+                )}
+              </div>
+
+              {/* Hero Subtitle (Arabic) */}
+              <div className="general-settings-row">
+                <span className="general-settings-label">
+                  {isArabic ? "العنوان الفرعي للهيرو (عربي)" : "Hero Subtitle (Arabic)"}
+                </span>
+                {isEditingGeneral ? (
+                  <textarea
+                    rows={2}
+                    className="form-control form-control-sm w-50"
+                    value={localGeneralSettings.hero_subtitle_ar}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        hero_subtitle_ar: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  <span className="general-settings-value text-secondary">
+                    {localGeneralSettings.hero_subtitle_ar}
                   </span>
                 )}
               </div>

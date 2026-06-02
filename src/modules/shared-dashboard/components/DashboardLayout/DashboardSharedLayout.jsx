@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import {
   Link,
   NavLink,
@@ -264,7 +264,13 @@ function DashboardSharedLayout({
                 </Button>
               </Alert>
             )}
-          <Outlet />
+          <Suspense fallback={
+            <div className="d-flex justify-content-center align-items-center w-100" style={{ minHeight: "300px" }}>
+              <Spinner animation="border" variant="danger" />
+            </div>
+          }>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>
