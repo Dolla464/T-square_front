@@ -17,7 +17,10 @@ function QuizCard({ quiz, t }) {
     remaining_attempts,
     attempts_count,
     max_attempts,
-    is_passed_before,
+    has_attempt,
+    duration,
+    description,
+    is_passed_before
   } = quiz;
 
   // تحديد الحالة بناءً على المنطق الجديد للمحاولات
@@ -40,36 +43,45 @@ function QuizCard({ quiz, t }) {
 
         {/* الـ Badge العلوي يتغير بذكاء */}
         <span
-          className={`quiz-badge ${is_passed_before ? "badge-success" : is_locked ? "badge-completed" : "badge-new"}`}
+          className="quiz-badge"
           style={
             is_passed_before
               ? { backgroundColor: "#d1fae5", color: "#065f46" }
-              : {}
+              : is_locked
+                ? { backgroundColor: "#ffcccc", color: "#990000" }
+                : { backgroundColor: "#c5e9ff", color: "#0d47a1" }
           }
         >
           {is_passed_before
             ? isArabic
-              ? "ناجح (متاح للتحسين)"
-              : "Passed (Improvement Open)"
+              ? "ناجح"
+              : "Passed"
             : is_locked
               ? isArabic
                 ? "مغلق"
                 : "Locked"
-              : isArabic
+              : !is_locked ? isArabic
                 ? "امتحان مفتوح"
-                : "Open"}
+                : "Open" : remaining_attempts == 0 && is_passed_before === false ?
+                isArabic
+                  ? "لم تجتاز الاختبار"
+                  : "Failed" : ""
+          }
         </span>
       </div>
 
       <div className="quiz-card-body">
         <h6 className="quiz-card-title">{quiz.title}</h6>
         <p className="quiz-card-meta">
+          <span>{quiz.description}</span>
+        </p>
+        <p className="quiz-card-meta">
           <span>{quiz.course_title}</span>
         </p>
 
         {/* عداد المحاولات المتبقية */}
         <div
-          className="quiz-attempts-counter mb-3"
+          className="quiz-attempts-counter mb-1"
           style={{ fontSize: "0.82rem", color: "#6c757d" }}
         >
           <i className="bi bi-info-circle me-1"></i>
@@ -84,6 +96,26 @@ function QuizCard({ quiz, t }) {
               {isArabic ? "المحاولات: غير محدودة" : "Attempts: Unlimited"}
             </span>
           )}
+
+        </div>
+        {/* الزمن */}
+        <div
+          className="quiz-attempts-counter mb-1"
+          style={{ fontSize: "0.82rem", color: "#6c757d" }}
+        >
+          <i className="bi bi-clock-history me-1"></i>
+          {duration ? (
+            <span>
+              {isArabic
+                ? ` الوقت المخصص: ${duration}`
+                : ` Time: ${duration}`}
+            </span>
+          ) : (
+            <span>
+              {isArabic ? "الوقت: غير محدد" : "Time: N/A"}
+            </span>
+          )}
+
         </div>
 
         <div className="d-flex gap-2">
@@ -111,14 +143,16 @@ function QuizCard({ quiz, t }) {
               onClick={handleStartQuiz}
               className="btn-continue flex-grow-1"
             >
-              <i className="bi bi-arrow-counterclockwise me-1"></i>
-              {is_passed_before
-                ? isArabic
-                  ? "تحسين الدرجة"
-                  : "Improve Score"
-                : isArabic
-                  ? "إعادة المحاولة"
-                  : "Retry"}
+              <i className={`${!has_attempt ? "bi bi-play-circle" : "bi bi-arrow-counterclockwise"} me-1`}></i>
+              {!has_attempt ?
+                isArabic ? "بدء الاختبار" : "Start Quiz"
+                : is_passed_before
+                  ? isArabic
+                    ? "تحسين الدرجة"
+                    : "Improve Score"
+                  : isArabic
+                    ? "إعادة المحاولة"
+                    : "Retry"}
             </button>
           )}
         </div>
