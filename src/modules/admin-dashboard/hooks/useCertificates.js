@@ -8,7 +8,6 @@ import {
   getCertificates as fetchCertificates,
   getCertificatePreview as fetchCertificatePreview,
   downloadCertificate as apiDownloadCertificate,
-  changeCertificateStatus as apiChangeCertificateStatus,
 } from "../services/certificatesService";
 
 export const useCertificates = () => {
@@ -138,48 +137,7 @@ export const useCertificates = () => {
     [t],
   );
 
-  const changeCertificateStatus = useCallback(
-    async (id, newStatus) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await apiChangeCertificateStatus(id, newStatus);
-        const dataObj = response?.data || {};
-        if (dataObj.certificates) {
-          const list = dataObj.certificates || [];
-          const statsObj = dataObj.statistics || {
-            issued: 0,
-            pending: 0,
-            revoked: 0,
-          };
-          setCertificates(Array.isArray(list) ? list : []);
-          setStats(statsObj);
-        } else {
-          setCertificates((prev) =>
-            prev.map((item) =>
-              item.id === id ? { ...item, status: newStatus } : item,
-            ),
-          );
-        }
-
-        toastSuccess(
-          t("adminDashboard:success.updated", "Updated successfully"),
-        );
-        return response;
-      } catch (err) {
-        console.error("Failed to update certificate status:", err);
-        const errorMsg =
-          err.response?.data?.message ||
-          t("adminDashboard:errors.update_failed", "Failed to update status");
-        setError(errorMsg);
-        toastError(errorMsg);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [t],
-  );
+  
 
   return {
     certificates,
@@ -190,6 +148,5 @@ export const useCertificates = () => {
     getCertificates,
     getCertificatePreview,
     downloadCertificate,
-    changeCertificateStatus,
   };
 };

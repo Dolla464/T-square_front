@@ -92,6 +92,150 @@ function QuizExamPage() {
   const totalQuestions = questions.length;
   const isLastQuestion = currentIndex === totalQuestions - 1;
 
+  // Timer & Auto-Submit State and Logic
+  const [timeLeft, setTimeLeft] = useState(null);
+
+  // Refs to avoid stale closures in the timer interval
+  const currentIndexRef = useRef(currentIndex);
+  currentIndexRef.current = currentIndex;
+
+  const selectedAnswerRef = useRef(selectedAnswer);
+  selectedAnswerRef.current = selectedAnswer;
+
+  const currentQuestionRef = useRef(currentQuestion);
+  currentQuestionRef.current = currentQuestion;
+
+  const submittingRef = useRef(submitting);
+  submittingRef.current = submitting;
+
+  const handleAutoSubmit = async () => {
+    if (submittingRef.current || !exam?.attempt_id) return;
+    
+    try {
+      const curQuestion = currentQuestionRef.current;
+      const selAnswer = selectedAnswerRef.current;
+      if (curQuestion && selAnswer !== null) {
+        await saveAnswer(curQuestion.id, selAnswer);
+      }
+
+      const result = await submitExam(exam.attempt_id);
+
+      // Clean storage
+      localStorage.removeItem(`quiz_state_${quizId}`);
+      localStorage.removeItem(`quiz_timer_${quizId}_${exam.attempt_id}`);
+
+      setScoreResult(result.results);
+      setShowResult(true);
+
+      toastCustom({
+        message: isArabic
+          ? "انتهى الوقت المخصص للاختبار! تم إرسال إجاباتك تلقائياً."
+          : "Exam duration has ended! Your answers were submitted automatically.",
+        type: "warning",
+        bsIcon: "bi-clock-history",
+        duration: 5000,
+      });
+    } catch (err) {
+      toastCustom({
+        message: isArabic
+          ? "حدث خطأ أثناء إرسال الإجابات تلقائياً بعد انتهاء الوقت"
+          : "Failed to automatically submit answers after time expired.",
+        type: "error",
+        bsIcon: "bi-x-circle",
+        duration: 5000,
+      });
+    }
+  };
+
+  const handleAutoSubmitRef = useRef(null);
+  useEffect(() => {
+    handleAutoSubmitRef.current = handleAutoSubmit;
+  }, [exam, answers, currentIndex, selectedAnswer]);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (!exam || !exam.duration) return;
+
+    const durationMins = parseFloat(exam.duration);
+    if (isNaN(durationMins) || durationMins <= 0) return;
+
+    const storageKey = `quiz_timer_${quizId}_${exam.attempt_id}`;
+    const savedEndTime = localStorage.getItem(storageKey);
+    let endTime;
+
+    if (savedEndTime) {
+      endTime = parseInt(savedEndTime, 10);
+    } else {
+      endTime = Date.now() + durationMins * 60 * 1000;
+      localStorage.setItem(storageKey, endTime.toString());
+    }
+
+    const calculateTimeLeft = () => {
+      const difference = endTime - Date.now();
+      if (difference <= 0) {
+        return 0;
+      }
+      return Math.floor(difference / 1000);
+    };
+
+    const initialTime = calculateTimeLeft();
+    setTimeLeft(initialTime);
+
+    if (initialTime <= 0) {
+      handleAutoSubmitRef.current();
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const remaining = calculateTimeLeft();
+      setTimeLeft(remaining);
+      if (remaining <= 0) {
+        clearInterval(interval);
+        localStorage.removeItem(storageKey);
+        if (handleAutoSubmitRef.current) {
+          handleAutoSubmitRef.current();
+        }
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [exam, quizId]);
+
+  // Prevent leaving tab by mistake
+  useEffect(() => {
+    if (!exam || showResult) return;
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [exam, showResult]);
+
+  const handleExitClick = () => {
+    const confirmExit = window.confirm(
+      isArabic
+        ? "هل أنت متأكد أنك تريد الخروج؟ قد تفقد إجاباتك الحالية."
+        : "Are you sure you want to exit? You might lose your current answers."
+    );
+    if (confirmExit) {
+      if (exam?.attempt_id) {
+        localStorage.removeItem(`quiz_timer_${quizId}_${exam.attempt_id}`);
+      }
+      handleExit();
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
   const handleSelectAnswer = (choiceId) => {
     setSelectedAnswer(choiceId); // تخزين الـ id مباشرة
 
@@ -162,6 +306,7 @@ function QuizExamPage() {
 
         // مسح الحالة من الـ localStorage فور النجاح لتنظيف المتصفح
         localStorage.removeItem(`quiz_state_${quizId}`);
+        localStorage.removeItem(`quiz_timer_${quizId}_${exam.attempt_id}`);
 
         setScoreResult(result.results);
         setShowResult(true);
@@ -365,12 +510,20 @@ function QuizExamPage() {
   return (
     <div className="quiz-exam-page">
       <div className="quiz-exam-container">
-        <button className="topbar-back-btn mb-3" onClick={handleExit}>
-          <i
-            className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
-          ></i>
-          {isArabic ? "خروج" : "Exit"}
-        </button>
+        <div className="quiz-header d-flex justify-content-between align-items-center mb-3">
+          <button className="topbar-back-btn mb-0" onClick={handleExitClick}>
+            <i
+              className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
+            ></i>
+            {isArabic ? "خروج" : "Exit"}
+          </button>
+          {timeLeft !== null && (
+            <div className={`quiz-timer-badge ${timeLeft < 60 ? "timer-warning" : ""}`}>
+              <i className="bi bi-clock me-1"></i>
+              <span>{formatTime(timeLeft)}</span>
+            </div>
+          )}
+        </div>
 
         <div className="quiz-progress">
           <span>

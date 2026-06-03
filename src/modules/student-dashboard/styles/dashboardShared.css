@@ -324,7 +324,18 @@
 
 /* ── Quiz Exam Page ── */
 .quiz-exam-page {
-  margin: 0 auto;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #f3f4f6;
+  z-index: 9999;
+  overflow-y: auto;
+  padding: 24px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 .btn-continueQuiz {
   width: 100%;
@@ -349,7 +360,42 @@
   background: #fff;
   border-radius: 14px;
   padding: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+}
+
+.quiz-timer-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #f3f4f6;
+  color: #374151;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1.5px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.quiz-timer-badge.timer-warning {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: #fca5a5;
+  animation: timerPulse 1s infinite alternate;
+}
+
+@keyframes timerPulse {
+  from {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(239, 68, 68, 0);
+  }
+  to {
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+  }
 }
 
 .quiz-exam-info {
@@ -534,7 +580,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000;
   animation: fadeIn 0.3s ease;
 }
 

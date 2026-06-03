@@ -138,8 +138,8 @@ function DashboardCard({ item, type, t }) {
         {/* معلومات إضافية للكويز (تاريخ الإنشاء) */}
         {isQuiz && (
           <p className="quiz-card-meta" style={{ fontSize: "0.72rem" }}>
-            <i className="bi bi-calendar3 me-1"></i>
-            {item.createdAt}
+            <i className="bi bi-alarm me-1"></i>
+            {item.duration} mins
           </p>
         )}
 
