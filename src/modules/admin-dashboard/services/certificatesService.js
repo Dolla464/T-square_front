@@ -57,12 +57,3 @@ export const downloadCertificate = async (id, certificateNum) => {
   return true;
 };
 
-// ----------------------------------------------------------------------------
-// Change certificate status (using POST with id and status)
-// ----------------------------------------------------------------------------
-export const changeCertificateStatus = async (id, status) => {
-  const response = await axiosClient.post("/admin/certificates/update", {
-    params: { id, status },
-  });
-  return response.data;
-};

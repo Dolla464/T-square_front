@@ -32,7 +32,6 @@ function AdminCertificates() {
     getCertificates,
     getCertificatePreview,
     downloadCertificate,
-    changeCertificateStatus,
   } = useCertificates();
 
   // Search Debouncing
@@ -107,40 +106,7 @@ function AdminCertificates() {
     }
   };
 
-  const handleStatusChange = async (id, currentStatus) => {
-    const newStatus = currentStatus === "issued" ? "revoked" : "issued";
-    const ok = await showConfirmCustom({
-      title:
-        newStatus === "issued"
-          ? isArabic
-            ? "إصدار الشهادة"
-            : "Issue Certificate"
-          : isArabic
-            ? "إلغاء الشهادة"
-            : "Revoke Certificate",
 
-      message:
-        newStatus === "revoked"
-          ? isArabic
-            ? "هل تريد إلغاء هذه الشهادة؟"
-            : "Do you want to revoke this certificate?"
-          : isArabic
-            ? "سيتم إصدار الشهادة وتصبح متاحة للوصول."
-            : "The certificate will be issued and become accessible.",
-
-      icon: newStatus === "revoked" ? "warning" : "info",
-      variant: newStatus === "revoked" ? "danger" : "primary",
-      confirmText: isArabic ? "استمرار" : "Proceed",
-    });
-
-    if (!ok) return;
-
-    try {
-      await changeCertificateStatus(id, newStatus);
-    } catch (err) {
-      console.error("Status update failed:", err);
-    }
-  };
 
   const handleDownload = async (id, certificateNum) => {
     await downloadCertificate(id, certificateNum || "certificate");
@@ -328,10 +294,8 @@ function AdminCertificates() {
                                 ? "bg-warning-subtle text-warning"
                                 : "bg-danger-subtle text-danger"
                           }`}
-                          style={{ padding: "8px 16px", cursor: "pointer" }}
-                          onClick={() =>
-                            handleStatusChange(item.id, item.status)
-                          }
+                          style={{ padding: "8px 16px" }}
+                         
                         >
                           <i
                             className={`bi ${
