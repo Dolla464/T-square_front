@@ -18,12 +18,13 @@ function DashboardQuizzes() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
 
-  // فلترة الكويزات حسب الحالة
+  // تعديل منطق الفلترة ليعتمد على جاهزية الامتحان وليس مجرد وجود محاولة سابقة
   const filtered = (quizzes || []).filter((q) => {
     const matchesFilter =
       filter === "all" ||
-      (filter === "Pending" && !q.has_attempt) ||
-      (filter === "completed" && q.has_attempt);
+      (filter === "Pending" && !q.is_locked) || // متاح للدخول
+      (filter === "completed" && q.is_locked); // مغلق تماماً لاستنفاد المحاولات
+
     const matchesSearch =
       q.title?.toLowerCase().includes(search.toLowerCase()) ||
       q.course_name?.toLowerCase().includes(search.toLowerCase());
@@ -69,8 +70,6 @@ function DashboardQuizzes() {
         </div>
       ) : (
         <>
-
-
           {/* إحصائيات */}
           <div className="stats-grid-quizzes">
             {STAT_CARDS.map(({ key, valueSuffix, ...cardProps }) => (

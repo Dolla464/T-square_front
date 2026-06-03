@@ -18,11 +18,11 @@ export const useQuizzes = () => {
         setQuizzes(quizzesData);
 
         const completed = quizzesData.filter(
-          (quiz) => quiz.has_attempt
+          (quiz) => quiz.is_locked, // تم قفله تماماً لاستنفاد المحاولات
         ).length;
 
         const pending = quizzesData.filter(
-          (quiz) => !quiz.has_attempt
+          (quiz) => !quiz.is_locked, // ما زال متاحاً للمحاولة (سواء دخله قبل كده أو لأ)
         ).length;
 
         setStats({

@@ -80,6 +80,7 @@ export const useQuizzes = () => {
           deleted: !!item.deleted_at,
           deleted_at: item.deleted_at || null,
           max_attempts: item.max_attempts || 0,
+          questions_per_attempt: item.questions_per_attempt || 0,
           total_mark: item.total_marks || item.total_mark || 0,
           passing_mark: item.passing_mark || 0,
           final_exam: !!item.is_final,
@@ -134,6 +135,7 @@ export const useQuizzes = () => {
           deleted: !!item.deleted_at,
           deleted_at: item.deleted_at || null,
           max_attempts: item.max_attempts || 0,
+          questions_per_attempt: item.questions_per_attempt || 0,
           total_marks: item.total_marks || item.total_mark || 0,
           passing_mark: item.passing_mark || 0,
           is_active: !!item.is_active,
@@ -169,6 +171,7 @@ export const useQuizzes = () => {
         is_active: payload.is_active !== undefined ? !!payload.is_active : (payload.status === "active"),
         is_final: !!payload.is_final,
         max_attempts: parseInt(payload.max_attempts) || 1,
+        questions_per_attempt: parseInt(payload.questions_per_attempt) || 1,
         shuffle_questions: !!payload.shuffle_questions,
       };
 
@@ -199,6 +202,7 @@ export const useQuizzes = () => {
         is_active: payload.is_active !== undefined ? !!payload.is_active : (payload.status === "active"),
         is_final: !!payload.is_final,
         max_attempts: parseInt(payload.max_attempts) || 1,
+        questions_per_attempt: parseInt(payload.questions_per_attempt) || 1,
         shuffle_questions: !!payload.shuffle_questions,
       };
 

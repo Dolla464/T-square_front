@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toastCustom } from "../../../../components/shared/Toaster/toaster";
@@ -12,14 +12,34 @@ import "../../styles/dashboardShared.css";
 function QuizExamPage() {
   const { quizId } = useParams();
   const navigate = useNavigate();
+  const hasStarted = useRef(false);
   const { i18n } = useTranslation("studentDashboard");
   const isArabic = i18n.language === "ar";
 
-  const { exam, loading, error, startExam, saveAnswer, submitExam, submitting } = useExam(quizId);
+  const {
+    exam,
+    loading,
+    error,
+    startExam,
+    saveAnswer,
+    submitExam,
+    submitting,
+  } = useExam(quizId);
 
   useEffect(() => {
+    // إذا تم إرسال الطلب بالفعل أو قيد التنفيذ، اخرج فوراً ولا تكرر
+    if (hasStarted.current) return;
+
+    // تفعيل القفل فوراً لمنع أي طلبات متزامنة أخرى
+    hasStarted.current = true;
+
     startExam();
-  }, [quizId]);
+
+    // اختياري: عند الخروج من الصفحة تماماً (Unmount) نفتح القفل للمرة القادمة
+    return () => {
+      hasStarted.current = false;
+    };
+  }, [quizId]); // ابقِ على الاعتمادية كما هي
 
   const questions = exam?.questions || [];
 
@@ -34,7 +54,11 @@ function QuizExamPage() {
     if (savedState) {
       try {
         const { savedIndex, savedAnswers, attemptId } = JSON.parse(savedState);
-        if (attemptId === exam.attempt_id && typeof savedIndex === "number" && Array.isArray(savedAnswers)) {
+        if (
+          attemptId === exam.attempt_id &&
+          typeof savedIndex === "number" &&
+          Array.isArray(savedAnswers)
+        ) {
           setCurrentIndex(savedIndex);
           setAnswers(savedAnswers);
           return;
@@ -56,8 +80,8 @@ function QuizExamPage() {
         JSON.stringify({
           savedIndex: currentIndex,
           savedAnswers: answers,
-          attemptId: exam.attempt_id
-        })
+          attemptId: exam.attempt_id,
+        }),
       );
     }
   }, [currentIndex, answers, exam, quizId]);
@@ -68,15 +92,32 @@ function QuizExamPage() {
   const totalQuestions = questions.length;
   const isLastQuestion = currentIndex === totalQuestions - 1;
 
-  const handleSelectAnswer = (index) => {
-    setSelectedAnswer(index);
+  const handleSelectAnswer = (choiceId) => {
+    setSelectedAnswer(choiceId); // تخزين الـ id مباشرة
+
+    // وتحديث مصفوفة الـ answers لتخزين الـ id
+    const updatedAnswers = [...answers];
+    updatedAnswers[currentIndex] = choiceId;
+    setAnswers(updatedAnswers);
+
+    // الحفظ في الـ localStorage
+    localStorage.setItem(
+      `quiz_state_${quizId}`,
+      JSON.stringify({
+        savedIndex: currentIndex,
+        savedAnswers: updatedAnswers, // أصبحت تحتوي على ids
+        attemptId: exam?.attempt_id,
+      }),
+    );
   };
 
   const handleNext = async () => {
     // CRITICAL GUARD: must have a valid attempt before any action
     if (!exam?.attempt_id) {
       toastCustom({
-        message: isArabic ? "الاختبار لم يُبدأ بعد، انتظر قليلاً" : "Exam not ready yet, please wait",
+        message: isArabic
+          ? "الاختبار لم يُبدأ بعد، انتظر قليلاً"
+          : "Exam not ready yet, please wait",
         type: "error",
         bsIcon: "bi-x-circle",
         duration: 3000,
@@ -84,33 +125,65 @@ function QuizExamPage() {
       return;
     }
 
+    // 1. حفظ الإجابة الحالية في السيرفر ومصفوفة الإجابات المحلية
+    let updatedAnswers = [...answers];
+
     if (currentQuestion && selectedAnswer !== null) {
-      const choiceId = currentQuestion.choices[selectedAnswer].id;
+      // بما أن selectedAnswer أصبح هو الـ choiceId مباشرة بعد التعديل
+      const choiceId = selectedAnswer;
+
+      // إرسال الطلب للسيرفر للحفظ المباشر
       await saveAnswer(currentQuestion.id, choiceId);
+
+      // تحديث مكان الإجابة في المصفوفة بناءً على الـ currentIndex لضمان دقة الترتيب
+      updatedAnswers[currentIndex] = choiceId;
+      setAnswers(updatedAnswers);
     }
 
-    const newAnswers = [...answers, selectedAnswer];
-    setAnswers(newAnswers);
-    setSelectedAnswer(null);
+    // 2. تحديث الـ LocalStorage بالخطوة القادمة والإجابات المحدثة لتأمين الـ Refresh
+    const nextIndex = currentIndex + 1;
 
+    if (!isLastQuestion) {
+      localStorage.setItem(
+        `quiz_state_${quizId}`,
+        JSON.stringify({
+          savedIndex: nextIndex, // نخزن الاندكس التالي عشان لما يفتح يلاقيه
+          savedAnswers: updatedAnswers,
+          attemptId: exam?.attempt_id,
+        }),
+      );
+    }
+
+    // 3. التحقق من حالة إنهاء الامتحان أو الانتقال للسؤال التالي
     if (isLastQuestion) {
       try {
         // Pass attempt_id to submit — NOT examId
         const result = await submitExam(exam.attempt_id);
-        localStorage.removeItem(`quiz_state_${quizId}`); // Clear saved state on success
+
+        // مسح الحالة من الـ localStorage فور النجاح لتنظيف المتصفح
+        localStorage.removeItem(`quiz_state_${quizId}`);
 
         setScoreResult(result.results);
         setShowResult(true);
       } catch (err) {
         toastCustom({
-          message: isArabic ? "حدث خطأ أثناء إرسال الإجابات" : "Failed to submit exam",
+          message: isArabic
+            ? "حدث خطأ أثناء إرسال الإجابات"
+            : "Failed to submit exam",
           type: "error",
           bsIcon: "bi-x-circle",
           duration: 3000,
         });
       }
     } else {
-      setCurrentIndex(currentIndex + 1);
+      // الانتقال للسؤال التالي وتجهيز الاختيار للسؤال الجديد
+      setCurrentIndex(nextIndex);
+
+      // مراجعة ما إذا كان الطالب قد أجاب على السؤال التالي مسبقاً لعرض إجابته، وإلا نتركها null
+      const nextQuestionAnswer = updatedAnswers[nextIndex];
+      setSelectedAnswer(
+        nextQuestionAnswer !== undefined ? nextQuestionAnswer : null,
+      );
     }
   };
 
@@ -122,8 +195,12 @@ function QuizExamPage() {
     const isFailed = scoreResult?.status === "failed";
     toastCustom({
       message: isFailed
-        ? isArabic ? "لم تجتز الاختبار، حاول مرة أخرى" : "You did not pass. Better luck next time!"
-        : isArabic ? "مبروك! اجتزت الاختبار بنجاح" : "Congratulations! You passed the exam!",
+        ? isArabic
+          ? "لم تجتز الاختبار، حاول مرة أخرى"
+          : "You did not pass. Better luck next time!"
+        : isArabic
+          ? "مبروك! اجتزت الاختبار بنجاح"
+          : "Congratulations! You passed the exam!",
       type: isFailed ? "error" : "success",
       bsIcon: isFailed ? "bi-x-circle" : "bi-check2-circle",
       duration: 4000,
@@ -134,20 +211,36 @@ function QuizExamPage() {
   if (loading) {
     return (
       <div className="quiz-exam-page">
-        <div className="quiz-exam-container d-flex justify-content-center align-items-center" style={{ minHeight: "300px" }}>
+        <div
+          className="quiz-exam-container d-flex justify-content-center align-items-center"
+          style={{ minHeight: "300px" }}
+        >
           <div className="spinner-border text-primary" role="status"></div>
         </div>
       </div>
     );
   }
 
+  // ابحث عن شرط عرض الخطأ واستبدله بهذا المنطق:
   if (error || (!loading && !exam)) {
+    // استخراج رسالة الخطأ القادمة من السيرفر إن وجدت
+    const serverErrorMessage = error?.response?.data?.message;
+
     return (
       <div className="quiz-exam-page">
         <div className="quiz-exam-container">
           <div className="quiz-exam-placeholder">
-            <i className="bi bi-exclamation-circle placeholder-icon"></i>
-            <h5>{isArabic ? "الكويز غير موجود أو حدث خطأ" : "Quiz not found or error occurred"}</h5>
+            <i
+              className="bi bi-exclamation-circle placeholder-icon"
+              style={{ color: "#ef4444" }}
+            ></i>
+            <h5>
+              {serverErrorMessage
+                ? serverErrorMessage
+                : isArabic
+                  ? "الكويز غير موجود أو حدث خطأ"
+                  : "Quiz not found or error occurred"}
+            </h5>
             <button className="btn-continue" onClick={handleExit}>
               <i className="bi bi-arrow-left me-1"></i>
               {isArabic ? "العودة" : "Back"}
@@ -176,7 +269,10 @@ function QuizExamPage() {
           </h4>
 
           {/* Animated Half-Circle gauge */}
-          <div className="result-circle-wrap" style={{ height: 130, marginBottom: 8 }}>
+          <div
+            className="result-circle-wrap"
+            style={{ height: 130, marginBottom: 8 }}
+          >
             <svg
               viewBox="0 0 200 110"
               xmlns="http://www.w3.org/2000/svg"
@@ -199,7 +295,8 @@ function QuizExamPage() {
                 strokeLinecap="round"
                 strokeDasharray={`${filled} ${HALF_CIRC}`}
                 style={{
-                  transition: "stroke-dasharray 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                  transition:
+                    "stroke-dasharray 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
                 }}
               />
               {/* Score text inside the arc */}
@@ -227,15 +324,30 @@ function QuizExamPage() {
           </div>
 
           {/* Percentage label */}
-          <p style={{ fontSize: "1.4rem", fontWeight: 700, color: strokeColor, margin: "0 0 6px" }}>
+          <p
+            style={{
+              fontSize: "1.4rem",
+              fontWeight: 700,
+              color: strokeColor,
+              margin: "0 0 6px",
+            }}
+          >
             {scoreResult?.percentage}
           </p>
 
           {/* Status label */}
-          <p className={isFailed ? "result-messageFailed" : "result-messageSucsses"}>
+          <p
+            className={
+              isFailed ? "result-messageFailed" : "result-messageSucsses"
+            }
+          >
             {isFailed
-              ? isArabic ? "رسبت - لم تجتز الحد الأدنى" : "Failed — Below passing mark"
-              : isArabic ? "مبروك! تجاوزت الحد الأدنى" : "Passed — Above passing mark"}
+              ? isArabic
+                ? "رسبت - لم تجتز الحد الأدنى"
+                : "Failed — Below passing mark"
+              : isArabic
+                ? "مبروك! تجاوزت الحد الأدنى"
+                : "Passed — Above passing mark"}
           </p>
 
           <button
@@ -254,36 +366,44 @@ function QuizExamPage() {
     <div className="quiz-exam-page">
       <div className="quiz-exam-container">
         <button className="topbar-back-btn mb-3" onClick={handleExit}>
-          <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}></i>
+          <i
+            className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
+          ></i>
           {isArabic ? "خروج" : "Exit"}
         </button>
 
         <div className="quiz-progress">
           <span>
-            {isArabic ? "سؤال" : "Question"} {currentIndex + 1} {isArabic ? "من" : "of"}{" "}
-            {totalQuestions}
+            {isArabic ? "سؤال" : "Question"} {currentIndex + 1}{" "}
+            {isArabic ? "من" : "of"} {totalQuestions}
           </span>
           <div className="progress-bar-wrap">
             <div
               className="progress-bar"
-              style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
+              style={{
+                width: `${((currentIndex + 1) / totalQuestions) * 100}%`,
+              }}
             ></div>
           </div>
         </div>
 
         <div className="quiz-question">
-          <h5 className="question-text">{currentQuestion?.question_text || currentQuestion?.question}</h5>
+          <h5 className="question-text">
+            {currentQuestion?.question_text || currentQuestion?.question}
+          </h5>
         </div>
 
         <div className="quiz-options">
           {currentQuestion?.choices?.map((choice, idx) => (
             <button
               key={choice.id}
-              className={`quiz-option ${selectedAnswer === idx ? "selected" : ""}`}
-              onClick={() => handleSelectAnswer(idx)}
+              // التعديل هنا: نقارن الـ id المخزن بالـ id الخاص بالاختيار الحالي
+              className={`quiz-option ${selectedAnswer === choice.id ? "selected" : ""}`}
+              onClick={() => handleSelectAnswer(choice.id)} // نمرر الـ id وليس الـ idx
             >
               <span className="option-letter">
-                {String.fromCharCode(65 + idx)}
+                {String.fromCharCode(65 + idx)}{" "}
+                {/* الحرف يظل ثابتاً بصرياً A, B, C */}
               </span>
               <span className="option-text">{choice.choice_text}</span>
             </button>
@@ -296,7 +416,11 @@ function QuizExamPage() {
           onClick={handleNext}
         >
           {submitting ? (
-            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            <span
+              className="spinner-border spinner-border-sm me-2"
+              role="status"
+              aria-hidden="true"
+            ></span>
           ) : null}
           {isLastQuestion
             ? isArabic
@@ -305,7 +429,9 @@ function QuizExamPage() {
             : isArabic
               ? "التالي"
               : "Next"}
-          <i className={`bi ${isLastQuestion ? "bi-check2-all" : "bi-arrow-right"} ms-2`}></i>
+          <i
+            className={`bi ${isLastQuestion ? "bi-check2-all" : "bi-arrow-right"} ms-2`}
+          ></i>
         </button>
       </div>
     </div>
