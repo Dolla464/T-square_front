@@ -35,7 +35,7 @@ export const useReviews = () => {
             total: response.meta.total,
           }
           : null;
-        const statsData = response?.data?.stats || null;
+        const statsData = response?.analytics || null;
 
         setReviews(Array.isArray(data) ? data : []);
         setStats(statsData);

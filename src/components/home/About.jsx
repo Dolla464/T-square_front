@@ -1,6 +1,5 @@
 import { Container, Row, Col } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
-import { useHeroAndAboutData } from "../../hooks/useDiscovery"; // تأكد من مسار الـ Hook الموحد عندك
 import "./About.css";
 
 // الصور الافتراضية (Fallback)
@@ -8,12 +7,9 @@ import about1 from "../../assets/about1.webp";
 import about2 from "../../assets/about2.webp";
 import about3 from "../../assets/about3.webp";
 
-function About() {
+function About({ aboutImages }) {
   const { t, i18n } = useTranslation("home");
   const isAr = i18n.language === "ar";
-
-  // 1. استدعاء بيانات الـ About من الـ Hook الموحد
-  const { aboutImages } = useHeroAndAboutData();
 
   // 2. التحقق من الصور: لو الأدمن رفع الـ 3 صور كاملين نقرأ منهم ديناميكياً، وإلا نثبت الـ Fallback
   const hasUploadedImages = aboutImages && aboutImages.length >= 3;

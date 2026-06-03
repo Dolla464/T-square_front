@@ -15,6 +15,7 @@ export const useExam = (examId) => {
       setExam(res.data.data);
     } catch (err) {
       console.error(err);
+      // نخزن الـ err بالكامل وليس رسالة نصية ثابتة ليتمكن الـ Component من فحص الـ status والـ message
       setError(err);
     } finally {
       setLoading(false);
