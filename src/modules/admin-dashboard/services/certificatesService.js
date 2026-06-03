@@ -1,4 +1,5 @@
 import axiosClient from "../../../api/axios";
+import { saveAs } from "file-saver";
 
 // ----------------------------------------------------------------------------
 // Get all certificates with optional filters (search, group_id, status, page)
@@ -15,21 +16,49 @@ export const getCertificatePreview = async (id) => {
   const response = await axiosClient.get(`/admin/certificates/${id}/view`, {
     responseType: "blob", // Fetch as blob for secure iframe visualization
   });
-  return response.data;
+
+  // تأكيد أن الـ blob ليس عبارة عن إيرور سري (JSON)
+  if (
+    response.data instanceof Blob &&
+    response.data.type === "application/json"
+  ) {
+    throw new Error("Invalid blob response");
+  }
+
+  // هنا نقوم بفرض نوع الـ PDF برمجياً داخل المتصفح بعد أن عبر بأمان من الـ IDM
+  const file = new Blob([response.data], { type: "application/pdf" });
+  const fileURL = URL.createObjectURL(file);
+  return fileURL;
 };
 
 // ----------------------------------------------------------------------------
 // Download certificate (PDF file)
 // ----------------------------------------------------------------------------
-export const downloadCertificate = async (id) => {
+export const downloadCertificate = async (id, certificateNum) => {
   const response = await axiosClient.get(`/admin/certificates/${id}/download`, {
     responseType: "blob",
   });
-  return response.data;
+
+  // تأكيد أن الـ blob واصل سليم ومش عبارة عن ايرور سري
+  if (
+    response.data instanceof Blob &&
+    response.data.type === "application/json"
+  ) {
+    throw new Error("Download failed");
+  }
+
+  // 1. صياغة الـ Blob كـ PDF
+  const blob = new Blob([response.data], { type: "application/pdf" });
+
+  // 2. استخدام file-saver للتحميل المباشر والنظيف
+  // هذا السطر يمنع التكرار تماماً ويجعل التنزيل متوافق مع المتصفح والـ IDM بسلاسة
+  saveAs(blob, `certificate-${certificateNum || id}.pdf`);
+
+  return true;
 };
 
 // ----------------------------------------------------------------------------
-// Change certificate status (using GET with id and status)
+// Change certificate status (using POST with id and status)
 // ----------------------------------------------------------------------------
 export const changeCertificateStatus = async (id, status) => {
   const response = await axiosClient.post("/admin/certificates/update", {
@@ -37,4 +66,3 @@ export const changeCertificateStatus = async (id, status) => {
   });
   return response.data;
 };
-

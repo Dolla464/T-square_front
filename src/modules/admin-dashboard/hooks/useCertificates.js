@@ -1,6 +1,9 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { toastSuccess, toastError } from "../../../components/shared/Toaster/toaster";
+import {
+  toastSuccess,
+  toastError,
+} from "../../../components/shared/Toaster/toaster";
 import {
   getCertificates as fetchCertificates,
   getCertificatePreview as fetchCertificatePreview,
@@ -22,18 +25,25 @@ export const useCertificates = () => {
       setError(null);
       try {
         const response = await fetchCertificates(params);
-        
-        // Response format is { status: "success", message: "...", data: { statistics: {...}, certificates: [...] } }
         const dataObj = response?.data || {};
         const list = dataObj.certificates || [];
-        const statsObj = dataObj.statistics || { issued: 0, pending: 0, revoked: 0 };
-        
-        // Support pagination metadata if returned by backend (e.g. meta or pagination)
-        const paginationData = response?.meta || dataObj?.meta || response?.pagination || dataObj?.pagination || null;
+        const statsObj = dataObj.statistics || {
+          issued: 0,
+          pending: 0,
+          revoked: 0,
+        };
+
+        const paginationData =
+          response?.meta ||
+          dataObj?.meta ||
+          response?.pagination ||
+          dataObj?.pagination ||
+          null;
         const formattedPagination = paginationData
           ? {
               current_page: paginationData.current_page,
-              total_pages: paginationData.last_page || paginationData.total_pages,
+              total_pages:
+                paginationData.last_page || paginationData.total_pages,
               total: paginationData.total,
             }
           : null;
@@ -54,26 +64,39 @@ export const useCertificates = () => {
         setLoading(false);
       }
     },
-    [t]
+    [t],
   );
 
   const getCertificatePreview = useCallback(
     async (id) => {
       setError(null);
       try {
-        const blob = await fetchCertificatePreview(id);
-        return blob;
+        // الـ service تقوم بإنشاء الـ Object URL للمعاينة وإعادته مباشرة
+        const fileURL = await fetchCertificatePreview(id);
+        return fileURL;
       } catch (err) {
         console.error("Error loading preview:", err);
-        const errorMsg =
-          err.response?.data?.message ||
-          t("adminDashboard:errors.fetch_failed", "Failed to load preview");
+
+        let errorMsg = t(
+          "adminDashboard:errors.fetch_failed",
+          "Failed to load preview",
+        );
+        if (err.response?.data instanceof Blob) {
+          const text = await err.response.data.text();
+          try {
+            const parsed = JSON.parse(text);
+            errorMsg = parsed.message || errorMsg;
+          } catch (_) {}
+        } else {
+          errorMsg = err.response?.data?.message || err.message || errorMsg;
+        }
+
         setError(errorMsg);
         toastError(errorMsg);
         throw err;
       }
     },
-    [t]
+    [t],
   );
 
   const downloadCertificate = useCallback(
@@ -81,25 +104,30 @@ export const useCertificates = () => {
       setLoading(true);
       setError(null);
       try {
-        const blob = await apiDownloadCertificate(id);
-        const url = window.URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `${certificateNum}.pdf`);
-        document.body.appendChild(link);
-        link.click();
-        link.parentNode.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        
+        // استدعاء السيرفيس التي تتكفل بالتحميل عبر file-saver بنجاح
+        await apiDownloadCertificate(id, certificateNum);
+
         toastSuccess(
-          t("adminDashboard:success.downloaded", "Downloaded successfully")
+          t("adminDashboard:success.downloaded", "Downloaded successfully"),
         );
         return true;
       } catch (err) {
         console.error("Error downloading certificate:", err);
-        const errorMsg =
-          err.response?.data?.message ||
-          t("adminDashboard:errors.download_failed", "Failed to download");
+
+        let errorMsg = t(
+          "adminDashboard:errors.download_failed",
+          "Failed to download",
+        );
+        if (err.response?.data instanceof Blob) {
+          const text = await err.response.data.text();
+          try {
+            const parsed = JSON.parse(text);
+            errorMsg = parsed.message || errorMsg;
+          } catch (_) {}
+        } else {
+          errorMsg = err.response?.data?.message || err.message || errorMsg;
+        }
+
         setError(errorMsg);
         toastError(errorMsg);
         return false;
@@ -107,7 +135,7 @@ export const useCertificates = () => {
         setLoading(false);
       }
     },
-    [t]
+    [t],
   );
 
   const changeCertificateStatus = useCallback(
@@ -116,25 +144,26 @@ export const useCertificates = () => {
       setError(null);
       try {
         const response = await apiChangeCertificateStatus(id, newStatus);
-        
-        // Response format might contain updated certificates/statistics since it calls getCertificates endpoint
         const dataObj = response?.data || {};
         if (dataObj.certificates) {
           const list = dataObj.certificates || [];
-          const statsObj = dataObj.statistics || { issued: 0, pending: 0, revoked: 0 };
+          const statsObj = dataObj.statistics || {
+            issued: 0,
+            pending: 0,
+            revoked: 0,
+          };
           setCertificates(Array.isArray(list) ? list : []);
           setStats(statsObj);
         } else {
-          // Optimistic local state update
           setCertificates((prev) =>
             prev.map((item) =>
-              item.id === id ? { ...item, status: newStatus } : item
-            )
+              item.id === id ? { ...item, status: newStatus } : item,
+            ),
           );
         }
 
         toastSuccess(
-          t("adminDashboard:success.updated", "Updated successfully")
+          t("adminDashboard:success.updated", "Updated successfully"),
         );
         return response;
       } catch (err) {
@@ -149,7 +178,7 @@ export const useCertificates = () => {
         setLoading(false);
       }
     },
-    [t]
+    [t],
   );
 
   return {
@@ -164,4 +193,3 @@ export const useCertificates = () => {
     changeCertificateStatus,
   };
 };
-

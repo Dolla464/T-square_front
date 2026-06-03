@@ -8,7 +8,7 @@ import { showConfirmCustom, showDeleteConfirm, showReviewPendingConfirm } from "
 import "./review.css";
 
 function AdminReviews() {
-  const { t, i18n } = useTranslation("adminDashboard");
+  const {  i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
 
   const [currentPage, setCurrentPage] = useState(1);
