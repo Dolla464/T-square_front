@@ -121,6 +121,8 @@ const EditExam = lazy(
 import LoadingSpiner from "./LoadingSpiner";
 import AdminMessages from "./modules/admin-dashboard/pages/Messages/AdminMessages";
 import MaintenancePage from "./pages/Maintenance/MaintenancePage";
+import InstructorOverview from "./modules/instructor-dashboard/pages/Overview/InstructorOverview";
+import InstructorLayout from "./modules/instructor-dashboard/layouts/InstractorLayout";
 // مكون فرعي للتحكم في عرض الـ Layout
 function AppContent() {
   const { t, i18n } = useTranslation("common");
@@ -297,46 +299,61 @@ function AppContent() {
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
             </Route>
-
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route path="/forgot_password" element={<ForgotPassword />} />
-              <Route path="/update_password" element={<UpdatePassword />} />
-              <Route path="/verify-email" element={<VerifyEmailPage />} />
-
-              <Route path="/courses" element={<Courses />} />
+            {/* INSTRUCTOR */}
+            <Route element={<ProtectedRoute allowedRoles={["instructor"]} />}>
               <Route
-                path="/courses/course_details/:slug"
-                element={<DetailsCourse />}
-              />
+                path="/instructor"
+                element={
+                  <InstructorLayout />
+                }
+              >
+                <Route index element={<InstructorOverview />} />
+                <Route path="notifications" element={<NotificationsPage />} />
 
-              <Route
-                path="/payment"
-                element={<Navigate to="/courses" replace />}
-              />
-              <Route path="/payment/:slug" element={<Payment />} />
+              </Route>
+            </Route>
 
-              <Route path="/solutions" element={<Solutions />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/contact" element={<Contact />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot_password" element={<ForgotPassword />} />
+            <Route path="/update_password" element={<UpdatePassword />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
+
+            <Route path="/courses" element={<Courses />} />
+            <Route
+              path="/courses/course_details/:slug"
+              element={<DetailsCourse />}
+            />
+
+            <Route
+              path="/payment"
+              element={<Navigate to="/courses" replace />}
+            />
+            <Route path="/payment/:slug" element={<Payment />} />
+
+            <Route path="/solutions" element={<Solutions />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/contact" element={<Contact />} />
 
 
 
-              {/* STUDENT */}
-              <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
-                <Route path="/student" element={<DashboardLayout />}>
-                  <Route index element={<Navigate to="dashboard" replace />} />
-                  <Route path="dashboard" element={<DashboardHome />} />
-                  <Route
-                    path="certificates"
-                    element={<DashboardCertificates />}
-                  />
-                  <Route path="quizzes" element={<DashboardQuizzes />} />
-                  <Route path="quizzes/:quizId" element={<QuizExamPage />} />
-                  <Route path="profile" element={<DashboardProfile />} />
-                  <Route path="notifications" element={<NotificationsPage />} />
-                  <Route path="course/:id" element={<CourseDetails />} />
+
+
+            {/* STUDENT */}
+            <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
+              <Route path="/student" element={<DashboardLayout />}>
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<DashboardHome />} />
+                <Route
+                  path="certificates"
+                  element={<DashboardCertificates />}
+                />
+                <Route path="quizzes" element={<DashboardQuizzes />} />
+                <Route path="quizzes/:quizId" element={<QuizExamPage />} />
+                <Route path="profile" element={<DashboardProfile />} />
+                <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="course/:slug" element={<CourseDetails />} />
               </Route>
 
             </Route>

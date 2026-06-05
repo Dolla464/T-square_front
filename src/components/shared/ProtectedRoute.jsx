@@ -17,6 +17,8 @@ const ProtectedRoute = ({ allowedRoles }) => {
       return <Navigate to="/admin" replace />;
     } else if (user.role === 'student') {
       return <Navigate to="/student" replace />;
+    } else if (user.role === 'instructor') {
+      return <Navigate to="/instructor" replace />;
     }
     // Fallback
     return <Navigate to="/" replace />;
