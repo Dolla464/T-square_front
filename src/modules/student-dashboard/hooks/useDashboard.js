@@ -31,13 +31,7 @@ export const useDashboard = () => {
         };
         fetchFromAPI();
 
-        // ── بيانات وهمية مؤقتة ──
-        // setTimeout(() => {
-        //     setStats(DASHBOARD_MOCK.stats);
-        //     setEnrolledCourses(DASHBOARD_MOCK.enrolledCourses);
-        //     setContinueLearning(DASHBOARD_MOCK.continueLearning);
-        //     setLoading(false);
-        // }, 300);
+      
     }, []);
 
     return { stats, enrolledCourses, continueLearning, loading, error };

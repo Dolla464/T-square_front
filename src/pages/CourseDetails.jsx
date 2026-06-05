@@ -1,8 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useCourseSlug } from "../hooks/useCousrsesSlug";
-import CourseInfo from "../components/courseDetails/CourseInfo";
-import CourseSidebar from "../components/courseDetails/CourseSidebar";
-import CourseVideos from "../components/courseDetails/CourseVideos";
+
 import CourseLayout from "../components/courseDetails/CourseLayout";
 import "../components/courseDetails/CourseDetails.css";
 import ContactSection from "../components/courses/ContactSection";
