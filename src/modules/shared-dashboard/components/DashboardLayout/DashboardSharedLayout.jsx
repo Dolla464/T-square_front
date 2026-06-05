@@ -148,13 +148,13 @@ function DashboardSharedLayout({
                 {t(`${translationNs}:course.back_to_courses`)}
               </button>
             ) : (
-                <button
-                  className="sidebar-toggle-btn"
-                  onClick={() => setSidebarOpen(true)}
-                  aria-label="Open menu"
-                >
-                  <i className="bi bi-list"></i>
-                </button>
+              <button
+                className="sidebar-toggle-btn"
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Open menu"
+              >
+                <i className="bi bi-list"></i>
+              </button>
             )}
 
             {/* 🔥 Page Title هنا في الشمال */}
@@ -205,17 +205,19 @@ function DashboardSharedLayout({
               onClick={() =>
                 userRoleName === "Student"
                   ? navigate("/student/profile")
-                  : navigate("/admin/settings")
+                  : userRoleName === "Instructor"
+                    ? navigate("/instructor/settings")
+                    : navigate("/admin/settings")
               }
-              title={userRoleName === "Student" ? "Profile & Settings" : ""}
+              title={userRoleName === "Student" ? "Profile & Settings" : userRoleName === "Instructor" ? "Profile & Settings" : ""}
             >
               <div className="topbar-avatar">
                 {userProfile?.student?.avatar || userProfile?.instructor?.avatar ? (
-                  <img 
-                    src={userProfile?.student?.avatar || userProfile?.instructor?.avatar} 
-                    alt={user?.name} 
-                    className="w-100 h-100 rounded-circle" 
-                    style={{ objectFit: 'cover' }} 
+                  <img
+                    src={userProfile?.student?.avatar || userProfile?.instructor?.avatar}
+                    alt={user?.name}
+                    className="w-100 h-100 rounded-circle"
+                    style={{ objectFit: 'cover' }}
                   />
                 ) : (
                   initials

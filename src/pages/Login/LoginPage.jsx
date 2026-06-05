@@ -11,8 +11,8 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
-import tsquareLogo from "../../assets/logo-dark.webp"; 
-import "./Login.css"; 
+import tsquareLogo from "../../assets/logo-dark.webp";
+import "./Login.css";
 import { useLogin } from "../../hooks/useLogin";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -39,39 +39,24 @@ function LoginPage() {
   });
 
   // ── زر مؤقت للدخول بـ Role Admin للمعاينة ──
-  const handleAdminBypass = () => {
+  const handleInstructorBypass = () => {
     const mockAdminData = {
       token: "mock-token-admin",
       user: {
         id: 1,
-        name: "Admin User",
-        email: "admin@tsquare.com",
-        role: "admin",
-        phone: "01016981295",
+        name: "Instructor User",
+        email: "instructor@test.com",
+        role: "instructor",
+        phone: "12345678",
         is_active: true,
         email_verified_at: "2026-04-22T13:54:21.000000Z",
       },
     };
     login(mockAdminData, true);
-    navigate("/admin");
+    navigate("/instructor");
   };
 
-  const handleStudentBypass = () => {
-    const mockAdminData = {
-      token: "mock-token-admin",
-      user: {
-        id: 1,
-        name: "Student User",
-        email: "student@tsquare.com",
-        role: "student",
-        is_active: true,
-        phone: "01016981295",
-        email_verified_at: null,
-      },
-    };
-    login(mockAdminData, true);
-    navigate("/student/dashboard");
-  };
+
 
   const onSubmit = async (data) => {
     try {
@@ -193,19 +178,12 @@ function LoginPage() {
               <Button
                 variant="outline-dark"
                 className="w-100 mt-3 border-secondary"
-                onClick={handleAdminBypass}
+                onClick={handleInstructorBypass}
                 style={{ borderStyle: "dashed" }}
               >
-                {isArabic ? "دخول سريع (Admin)" : "Quick Login (Admin)"}
+                {isArabic ? "دخول سريع (Instructor)" : "Quick Login (Instructor)"}
               </Button>
-              <Button
-                variant="outline-dark"
-                className="w-100 mt-3 border-secondary"
-                onClick={handleStudentBypass}
-                style={{ borderStyle: "dashed" }}
-              >
-                {isArabic ? "دخول سريع (Student)" : "Quick Login (Student)"}
-              </Button>
+
             </Form>
 
             {/* تسجيل حساب جديد */}

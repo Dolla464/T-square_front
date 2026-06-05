@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toastCustom } from "../../../components/shared/Toaster/toaster";
 import NotificationCard from "../../student-dashboard/components/NotificationCard";
@@ -16,7 +16,7 @@ function NotificationsPage() {
   const {
     notificationsData: rawNotificationsData,
     loading,
-    handleMarkAsRead, 
+    handleMarkAsRead,
     markNotificationAllRead,
   } = useNotifications();
 

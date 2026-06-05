@@ -284,12 +284,16 @@ function AppNavbar({ isLoggedIn, userName }) {
                         {t("user:my_courses")}
                       </NavDropdown.Item>
                     </>
-                    ) : (<>
+                    ) : user.role == "instructor" ? (<>
+                      <NavDropdown.Item as={Link} to="/instructor">
+                        {isArabic() ? "لوحة التحكم" : "Instructor Dashboard"}
+                      </NavDropdown.Item>
+
+                    </>) :
                       <NavDropdown.Item as={Link} to="/admin">
                         {isArabic() ? "لوحة التحكم" : "Admin Dashboard"}
                       </NavDropdown.Item>
-
-                    </>)}
+                  }
                   <NavDropdown.Divider />
                   <NavDropdown.Item
                     className="text-danger"
