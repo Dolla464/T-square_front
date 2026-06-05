@@ -8,7 +8,8 @@ import { saveAs } from "file-saver";
  */
 export const getStudentCourses = () =>
   axiosClient.get("/student/dashboard/courses");
-
+export const getCourseSlug = (slug) =>
+  axiosClient.get(`/student/courses/${slug}`);
 /**
  * جلب شهادات الطالب
  */

@@ -1,0 +1,57 @@
+/* ================================================================
+   Coming Soon — صفحة قريباً
+   ================================================================ */
+
+.coming-soon-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.coming-soon-page-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.coming-soon-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 80px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  text-align: center;
+  min-height: 360px;
+  justify-content: center;
+}
+
+.coming-soon-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #fff5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #be1522;
+  margin-bottom: 4px;
+}
+
+.coming-soon-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.coming-soon-subtitle {
+  font-size: 0.9rem;
+  color: #888;
+  margin: 0;
+  max-width: 360px;
+}

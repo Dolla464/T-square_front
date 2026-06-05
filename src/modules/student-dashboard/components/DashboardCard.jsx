@@ -59,19 +59,10 @@ function DashboardCard({ item, type, t }) {
       buttonClass += " btn-review";
     } else {
       // الكورس قيد التنفيذ — الذهاب لصفحة تفاصيل الكورس
-      linkTo = `/student/course/${item.id}`;
+      linkTo = `/student/course/slug:${item.slug}`;
       buttonText = t("course.continue");
     }
-  } else if (isQuiz) {
-    if (isCompleted) {
-      linkTo = `/student/quizzes/`;
-      buttonText = t("active_courses.review");
-      buttonClass += " btn-review";
-    } else {
-      linkTo = `/student/quizzes/${item.id}`;
-      buttonText = t("quizzes.continue");
-    }
-  }
+  } 
 
   // معالج حدث الضغط — ينتقل للرابط مع تمرير بيانات الكورس
   const handleClick = () => {
