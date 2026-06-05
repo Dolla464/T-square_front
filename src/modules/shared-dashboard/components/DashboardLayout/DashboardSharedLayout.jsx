@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { showLogoutConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastCustom } from "../../../../components/shared/Toaster/toaster";
-import logoDark from "../../../../assets/logo-dark.png";
+import logoDark from "../../../../assets/logo-dark.webp";
 import "./DashboardSharedLayout.css";
 import { resendVerificationNotification } from '../../../../services/register';
 import toast from "react-hot-toast";
@@ -100,7 +100,7 @@ function DashboardSharedLayout({
         >
           {/* اللوجو */}
           <Link to="/" className="sidebar-logo text-decoration-none">
-            <img src={logoDark} alt="T-Square" height="48" />
+            <img src={logoDark} alt="T-Square" height="50" />
           </Link>
 
           {/* روابط التنقل */}
