@@ -1,31 +1,29 @@
 // صفحة تفاصيل الكورس
-import React from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { getStudentCourses } from "../../hooks/useCourses";
 import "./CourseDetails.css";
+import { useCourseSlug } from "../../hooks/useCousrsesSlug";
 
 function CourseDetails() {
-  const { id } = useParams();
-  const { state } = useLocation();
+  const { slug } = useParams();
   const { t } = useTranslation("studentDashboard");
-  const { enrolledCourses } = getStudentCourses();
 
   // استخدام البيانات من ملف الموك الرئيسي — مع فولباك من state لو متاح
-  const course =
-    enrolledCourses.find((c) => String(c.id) === String(id)) ||
-    state?.course ||
-    null;
+  const { courseData } = useCourseSlug(slug);
+  console.log(slug);
+
   const handeDrive = () =>
-    course.google_drive_link != null && course.google_drive_link != ""
-      ? window.open(course.google_drive_link || "")
+    courseData.google_drive_link != null && courseData.google_drive_link != ""
+      ? window.open(courseData.google_drive_link || "")
       : null;
   return (
     <div className="course-details-page" dir="ltr">
       <Helmet>
         <title>
-          {t("course.details_title")} - {course.title} | T-Square
+          {courseData
+            ? `${t("course.details_title")} - ${courseData.title} | T-Square`
+            : `${t("course.details_title")} | T-Square`}
         </title>
       </Helmet>
 
@@ -34,22 +32,18 @@ function CourseDetails() {
         <div className="course-details-hero-row">
           {/* القسم الأيسر — معلومات الكورس */}
           <div className="course-details-hero-content">
-            <h1>{course.title}</h1>
-            <p className="course-details-hero-desc">{course.description}</p>
+            <h1>{courseData?.title}</h1>
+            <p className="course-details-hero-desc">{courseData?.description}</p>
 
             {/* معلومات الميتا — دروس، ساعات، طلاب */}
             <div className="course-details-meta">
               <div className="course-details-meta-item">
-                <i className="bi bi-book"></i>
-                <span>{course.lessonsCount} Lessons</span>
-              </div>
-              <div className="course-details-meta-item">
                 <i className="bi bi-clock"></i>
-                <span>{course.duration} Hours</span>
+                <span>{courseData?.duration_hours} Hours</span>
               </div>
               <div className="course-details-meta-item">
-                <i className="bi bi-people"></i>
-                <span>{course.studentsCount} Students</span>
+                <i className="bi bi-calendar"></i>
+                <span>{courseData?.duration_weeks} Weeks</span>
               </div>
             </div>
 
@@ -66,7 +60,7 @@ function CourseDetails() {
           {/* القسم الأيمن — نسبة التقدم */}
           {/* <div className="course-details-progress-box">
             <div className="course-details-progress-pct">
-              {course.progress}%
+              {courseData.progress}%
             </div>
             <p className="course-details-progress-label">
               {t("course.complete")}
@@ -93,11 +87,11 @@ function CourseDetails() {
         <div className="course-details-instructor-row">
           {/* أفاتار المدرب */}
           <div className="course-details-instructor-avatar">
-            {course.instructorInitials}
+            {courseData?.instructorInitials}
           </div>
           {/* معلومات المدرب */}
           <div className="course-details-instructor-info">
-            <h5>{course.instructor.full_name}</h5>
+            <h5>{courseData?.instructor.full_name}</h5>
           </div>
         </div>
       </div>
