@@ -68,6 +68,8 @@ function Discovery() {
               src={currentFive[0]}
               className="arc-img img-outer-left"
               alt="learning 1"
+              width="250"
+              height="160"
               loading="lazy"
             />
             {/* اليسار الداخلي */}
@@ -75,6 +77,8 @@ function Discovery() {
               src={currentFive[1]}
               className="arc-img img-inner-left"
               alt="coding 2"
+              width="250"
+              height="160"
               loading="lazy"
             />
             {/* المنتصف - الأعلى */}
@@ -82,6 +86,8 @@ function Discovery() {
               src={currentFive[2]}
               className="arc-img img-centerX"
               alt="classroom 3"
+              width="250"
+              height="160"
               loading="lazy"
             />
             {/* اليمين الداخلي */}
@@ -89,6 +95,8 @@ function Discovery() {
               src={currentFive[3]}
               className="arc-img img-inner-right"
               alt="collaboration 4"
+              width="250"
+              height="160"
               loading="lazy"
             />
             {/* أقصى اليمين */}
@@ -96,6 +104,8 @@ function Discovery() {
               src={currentFive[4]}
               className="arc-img img-outer-right"
               alt="student 5"
+              width="250"
+              height="160"
               loading="lazy"
             />
           </div>

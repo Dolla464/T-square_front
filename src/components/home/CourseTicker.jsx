@@ -20,7 +20,7 @@ function CourseTicker() {
         {/* بنكرر القائمة مرتين عشان الحركة تبان لا نهائية */}
         {[...courses, ...courses].map((course, index) => (
           <div className="ticker-item" key={index}>
-            <img src={tIcon} alt="icon" className="ticker-icon" />
+            <img src={tIcon} alt="icon" className="ticker-icon" width="25" height="25" loading="lazy" />
             <span>{course}</span>
           </div>
         ))}

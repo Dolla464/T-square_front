@@ -1,14 +1,25 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { fetchUserCourses, fetchUserCategories } from "../api/courses";
+import { cache } from "../utils/cache";
 
-export const useCourses = () => {
-  const [courses, setCourses] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    lastPage: 1,
-    total: 0,
+export const useCourses = (type = "sub") => {
+  const cacheKey = `initial_courses_data_${type}`;
+  const [courses, setCourses] = useState(() => {
+    const cached = cache.get(cacheKey);
+    return cached ? cached.courses : [];
+  });
+  const [categories, setCategories] = useState(() => {
+    const cached = cache.get(cacheKey);
+    return cached ? cached.categories : [];
+  });
+  const [pagination, setPagination] = useState(() => {
+    const cached = cache.get(cacheKey);
+    return cached ? cached.pagination : {
+      currentPage: 1,
+      lastPage: 1,
+      total: 0,
+    };
   });
   const [loading, setLoading] = useState(false);
   const abortControllerRef = useRef(null);
@@ -22,31 +33,58 @@ export const useCourses = () => {
     };
   }, []);
 
-    // فانكشن تجيب الداتا لأول مرة (كورسات وأقسام)
-    const loadInitialData = async (
-      params = { per_page: 6, type: "sub" },
-    ) => {
+  // فانكشن تجيب الداتا لأول مرة (كورسات وأقسام)
+  const loadInitialData = async (
+    params = { per_page: 6, type },
+  ) => {
+    const activeType = params.type || type;
+    const activeCacheKey = `initial_courses_data_${activeType}`;
+    const cached = cache.get(activeCacheKey);
+    const isStale = cache.isStale(activeCacheKey, 120000);
+
+    // If cache exists and is not stale, skip the request entirely
+    if (cached && !isStale) {
+      setLoading(false);
+      return;
+    }
+
+    // If cache already exists, skip loaders to avoid visual layouts shifting
+    if (cached) {
+      setLoading(false);
+    } else {
       setLoading(true);
-      try {
-        const [catRes, courseRes] = await Promise.all([
-          fetchUserCategories({ type: params.type }),
-          fetchUserCourses(params),
-        ]);
-        setCategories(catRes.data.data);
-        setCourses(courseRes.data.data);
-        
-        const meta = courseRes.data.meta;
-        setPagination({
-          currentPage: meta.current_page,
-          lastPage: meta.last_page,
-          total: meta.total,
-        });
-      } catch (error) {
-        console.error("Error loading initial data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    }
+
+    try {
+      const [catRes, courseRes] = await Promise.all([
+        fetchUserCategories({ type: params.type || activeType }),
+        fetchUserCourses(params),
+      ]);
+      const fetchedCategories = catRes.data.data;
+      const fetchedCourses = courseRes.data.data;
+      const meta = courseRes.data.meta;
+      const fetchedPagination = {
+        currentPage: meta.current_page,
+        lastPage: meta.last_page,
+        total: meta.total,
+      };
+
+      setCategories(fetchedCategories);
+      setCourses(fetchedCourses);
+      setPagination(fetchedPagination);
+
+      // Save initial page dataset to cache
+      cache.set(activeCacheKey, {
+        courses: fetchedCourses,
+        categories: fetchedCategories,
+        pagination: fetchedPagination,
+      });
+    } catch (error) {
+      console.error("Error loading initial data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // فانكشن للفلترة فقط
   const filterCourses = async (params) => {

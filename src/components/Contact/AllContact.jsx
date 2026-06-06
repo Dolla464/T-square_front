@@ -15,9 +15,9 @@ function AllContact() {
   const { whatsapp, contact_email, facebook_url, loading } = useContactInfo();
 
   return (
-    <div className="contact-page ">
+    <div className="contact-page py-5   mt-5 ">
       {/* Main Header & Form Section */}
-      <div className="py-5 px-2 mt-5">
+      <div className="">
         <Container >
           {/* Breadcrumbs */}
           <nav className="breadcrumb-nav mb-4 flex items-center rtl:flex-row-reverse">
@@ -41,7 +41,7 @@ function AllContact() {
           </nav>
 
           {/* Header */}
-          <div className="text-center mb-5 contact-header pt-3">
+          <div className="text-center mb-5 contact-header">
             <span className="badge-first-title">{t("contact:titleBadge")}</span>
             <h2 className="fw-bold mt-4 mb-3">{t("contact:title")}</h2>
             <p className="text-muted ">{t("contact:subtitle")}</p>
@@ -69,7 +69,7 @@ function AllContact() {
                   <Col sm={6} xs={12}>
                     <div className="info-card h-100">
                       <div className="info-icon">
-                         <i className="bi bi-telephone text-danger"></i>
+                        <i className="bi bi-telephone text-danger"></i>
                       </div>
                       <div>
                         <h6 className="mb-0 fw-bold">{t("contact:phone")}</h6>

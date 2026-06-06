@@ -1,12 +1,20 @@
+import { useState, useEffect } from "react";
 import { Container, Button, Row, Col } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import "./Hero.css";
 
+// ذاكرة تخزين مؤقتة على مستوى الموديول للاحتفاظ بحالة الصور المحملة ومنع الـ Shimmer من العمل عند تكرار الدخول
+const loadedImagesCache = new Set();
+
 function Hero({ heroImage, heroSettings }) {
   const { t, i18n } = useTranslation(["home", "common"]);
   const isAr = i18n.language === "ar";
   const isArabic = isAr;
+
+  const [imageLoaded, setImageLoaded] = useState(() => 
+    heroImage ? loadedImagesCache.has(heroImage) : false
+  );
 
   // دالة مساعدة لتصفية قيم N/A والرجوع للترجمة الافتراضية
   const getHeroText = (value, fallbackKey) => {
@@ -16,20 +24,39 @@ function Hero({ heroImage, heroSettings }) {
     return value;
   };
 
-  // 2. تريكة الـ Fallback الذكية: لو الـ API رجع صورة نستخدمها، وإلا نرجع للصورة اللوكال
-  const currentBg = heroImage || "";
+  useEffect(() => {
+    if (!heroImage) {
+      setImageLoaded(false);
+      return;
+    }
+    
+    // إذا كانت الصورة محملة مسبقاً، لا داعي للتحميل مرة أخرى
+    if (loadedImagesCache.has(heroImage)) {
+      setImageLoaded(true);
+      return;
+    }
 
-  // الـ Style الديناميكي صار يقرأ من المتغير الذكي currentBg
+    const img = new Image();
+    img.src = heroImage;
+    img.onload = () => {
+      loadedImagesCache.add(heroImage);
+      setImageLoaded(true);
+    };
+    img.onerror = () => {
+      setImageLoaded(false);
+    };
+  }, [heroImage]);
+
+  // الـ Style الديناميكي صار يقرأ من المتغير الذكي heroImage عند تحميله بالكامل
   const dynamicStyle = {
-    backgroundImage: `
-  linear-gradient(
-    to right,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0.82) 40%,
-    rgba(0, 0, 0, 0.42) 100%
-  ),
-  url("${currentBg}")
-`,
+    backgroundImage: heroImage && imageLoaded
+      ? `linear-gradient(
+          to right,
+          rgba(0, 0, 0, 1) 0%,
+          rgba(0, 0, 0, 0.82) 40%,
+          rgba(0, 0, 0, 0.42) 100%
+        ), url("${heroImage}")`
+      : "none",
   };
 
   return (
@@ -37,16 +64,24 @@ function Hero({ heroImage, heroSettings }) {
       className={`hero-section ${isAr ? "rtl-bg" : ""}`}
       style={dynamicStyle}
     >
+      {/* وسم التحميل المتدرج المحمر المتحرك */}
+      <div
+        className="hero-shimmer-overlay"
+        style={{
+          opacity: imageLoaded && heroImage ? 0 : 1,
+          transition: "opacity 0.8s ease-in-out",
+        }}
+      ></div>
       <Container >
         <Row >
           {/* ملحوظة وتعديل منطقي: لغوياً وعادةً في الـ RTL بنحتاج النص text-end أو text-start على حسب رغبتك في التصميم */}
           <Col md={7} className={isAr ? "text-start" : "text-end"}
           >
             <h1 className="display-3 fw-bold mb-3 hero-title">
-              {isArabic ? getHeroText(heroSettings?.hero_title_ar, "") : getHeroText(heroSettings?.hero_title_en, "")}
+              {isArabic ? getHeroText(heroSettings?.hero_title_ar, "hero_title_start") : getHeroText(heroSettings?.hero_title_en, "hero_title_start")}
               <span className="hero-highlight-wrapper">
                 <span className="highlight-text">
-                  {isArabic ? getHeroText(heroSettings?.hero_title_highlight_ar, "") : getHeroText(heroSettings?.hero_title_highlight_en, "")}
+                  {isArabic ? getHeroText(heroSettings?.hero_title_highlight_ar, "hero_title_highlight") : getHeroText(heroSettings?.hero_title_highlight_en, "hero_title_highlight")}
                 </span>
                 {/* الـ Vector ده لوحده هيرسم الدايرتين */}
                 <div className="hero-vector"></div>
@@ -54,7 +89,7 @@ function Hero({ heroImage, heroSettings }) {
             </h1>
 
             <p className="lead mb-5 hero-subtitle fw-normal">
-              {isArabic ? getHeroText(heroSettings?.hero_subtitle_ar, "") : getHeroText(heroSettings?.hero_subtitle_en, "")}
+              {isArabic ? getHeroText(heroSettings?.hero_subtitle_ar, "hero_subtitle") : getHeroText(heroSettings?.hero_subtitle_en, "hero_subtitle")}
             </p>
 
             <div className="d-flex gap-3 justify-content-start">

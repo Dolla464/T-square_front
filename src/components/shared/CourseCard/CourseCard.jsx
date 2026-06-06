@@ -20,6 +20,9 @@ const CourseCard = ({ course }) => {
           src={course.image}
           alt={course.title}
           className="course-img"
+          width="400"
+          height="200"
+          loading="lazy"
         />
         <span
           className={`course-badge badge-${course.attendance_type.toLowerCase()}`}

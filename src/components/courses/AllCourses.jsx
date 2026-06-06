@@ -20,7 +20,7 @@ function AllCourses() {
     loading,
     loadInitialData,
     filterCourses,
-  } = useCourses();
+  } = useCourses("parent");
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const isMounted = useRef(false);

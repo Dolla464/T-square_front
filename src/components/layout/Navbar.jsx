@@ -199,7 +199,7 @@ function AppNavbar({ isLoggedIn, userName }) {
           </Nav>
 
           <div className="d-flex align-items-center gap-3">
-            <SearchDropdown isDarkMode={!isDarkMode} />
+            <SearchDropdown isDarkMode={!isDarkMode} Tbtn={Tbtn} />
 
             <div
               className={`d-flex align-items-center cursor-pointer lang-switch ${Tbtn

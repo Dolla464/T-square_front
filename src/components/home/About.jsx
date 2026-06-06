@@ -67,18 +67,24 @@ function About({ aboutImages }) {
                 src={currentImg1} // ديناميكي
                 alt="class"
                 className="about-img img-side left"
+                width="180"
+                height="350"
                 loading="lazy"
               />
               <img
                 src={currentImg2} // ديناميكي
                 alt="students"
                 className="about-img img-center"
+                width="200"
+                height="450"
                 loading="lazy"
               />
               <img
                 src={currentImg3} // ديناميكي
                 alt="mentor"
                 className="about-img img-side right"
+                width="180"
+                height="350"
                 loading="lazy"
               />
             </div>

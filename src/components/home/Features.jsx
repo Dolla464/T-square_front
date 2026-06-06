@@ -45,6 +45,9 @@ function Features() {
                     src={f.icon}
                     alt={`${f.title} Icon`}
                     className="feature-icon-img"
+                    width="40"
+                    height="40"
+                    loading="lazy"
                   />
                 </div>
                 <div>
@@ -58,7 +61,7 @@ function Features() {
           {/* العمود الثاني: اللوجو اللي في النص */}
           <Col lg={2} className="d-none d-lg-block">
             <div className="center-logo-wrapper">
-              <img src={logoFull} alt="T-Square Logo" className="center-logo" />
+              <img src={logoFull} alt="T-Square Logo" className="center-logo" width="300" height="80" loading="lazy" />
             </div>
           </Col>
 
@@ -76,6 +79,9 @@ function Features() {
                     src={f.icon}
                     alt={`${f.title} Icon`}
                     className="feature-icon-img"
+                    width="40"
+                    height="40"
+                    loading="lazy"
                   />
                 </div>
                 <div>
@@ -102,6 +108,9 @@ function Features() {
                     src={f.icon}
                     alt={`${f.title} Icon`}
                     className="feature-icon-img"
+                    width="40"
+                    height="40"
+                    loading="lazy"
                   />
                 </div>
                 <div>

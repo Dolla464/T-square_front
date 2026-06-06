@@ -23,6 +23,9 @@ function ContactSection() {
                   src={classroomImg}
                   alt="Classroom"
                   className="contact-img"
+                  width="600"
+                  height="550"
+                  loading="lazy"
                 />
               </div>
             </div>

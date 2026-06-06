@@ -180,7 +180,7 @@
   height: 100%;
 
   /* استبدل المسار بمسار صورتك الحقيقي */
-  background-image: url("../../assets/waves2.png");
+  background-image: url("../../assets/waves2.webp");
 
   background-size: cover;
   background-position: center;

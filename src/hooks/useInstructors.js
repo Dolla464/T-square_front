@@ -1,20 +1,35 @@
 import { useEffect, useState } from "react";
 import { getInstructors } from "../services/instructors";
+import { cache } from "../utils/cache";
 
 export const useInstructors = () => {
-    const [instructors, setInstructors] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [instructors, setInstructors] = useState(() => {
+        return cache.get("instructors_data") || [];
+    });
+    const [loading, setLoading] = useState(() => {
+        return !cache.get("instructors_data");
+    });
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        const cached = cache.get("instructors_data");
+        const isStale = cache.isStale("instructors_data", 120000);
+
+        if (cached && !isStale) {
+            setLoading(false);
+            return;
+        }
+
         const fetchInstructors = async () => {
             try {
-                setLoading(true);
+                if (!cached) setLoading(true);
 
                 const res = await getInstructors();
 
                 // تحديث حالة المدربين بالبيانات الراجعة
-                setInstructors(res.data.data || []);
+                const data = res?.data?.data || [];
+                cache.set("instructors_data", data);
+                setInstructors(data);
 
             } catch (err) {
                 setError(err);

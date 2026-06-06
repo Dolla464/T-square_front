@@ -14,7 +14,7 @@ const STATIC_PAGES = [
   { key: "login", path: "/login", icon: "bi-box-arrow-in-right" },
 ];
 
-function SearchDropdown({ isDarkMode }) {
+function SearchDropdown({ isDarkMode, tbn }) {
   const { t, i18n } = useTranslation(["navbar", "common"]);
   const navigate = useNavigate();
   const isArabic = i18n.language === "ar";
@@ -22,7 +22,7 @@ function SearchDropdown({ isDarkMode }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const dropdownRef = useRef(null);
   const abortControllerRef = useRef(null);
 
@@ -60,10 +60,10 @@ function SearchDropdown({ isDarkMode }) {
         );
 
         const apiCourses = res.data.data || [];
-        
+
         // Filter static pages locally
         const normalizedQuery = query.toLowerCase();
-        const matchedStatic = STATIC_PAGES.filter(page => 
+        const matchedStatic = STATIC_PAGES.filter(page =>
           t(`navbar:${page.key}`, { defaultValue: page.key }).toLowerCase().includes(normalizedQuery) ||
           page.key.toLowerCase().includes(normalizedQuery)
         );
@@ -111,7 +111,7 @@ function SearchDropdown({ isDarkMode }) {
   }, [navigate]);
 
   return (
-    <div className={`search-dropdown-wrapper ${isDarkMode ? "dark-theme" : "light-theme"}`} ref={dropdownRef}>
+    <div className={`search-dropdown-wrapper ${isDarkMode ? "dark-theme " : "light-theme "} ${tbn}`} ref={dropdownRef}>
       <div className="search-input-container">
         <i className="bi bi-search search-icon"></i>
         <input

@@ -17,10 +17,6 @@ const Home = () => {
   const { i18n } = useTranslation("common");
   const isArabic = i18n.language === "ar";
 
-  if (loading) {
-    return <LoadingSpiner />;
-  }
-
   return (
     <>
       <Helmet>
