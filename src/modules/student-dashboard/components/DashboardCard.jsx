@@ -1,7 +1,6 @@
 // مكون كارد مشترك للكورسات والكويزات في الداشبورد
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import courseImg from "../../../assets/about1.webp";
 
 /**
  * مكون كارد مشترك للكورسات والكويزات في الداشبورد
@@ -54,19 +53,20 @@ function DashboardCard({ item, type, t }) {
   if (isCourse) {
     if (isCompleted) {
       // الكورس مكتمل — الذهاب للشهادات
-      linkTo = "/student/certificates";
       buttonText = t("active_courses.review");
       buttonClass += " btn-review";
     } else {
       // الكورس قيد التنفيذ — الذهاب لصفحة تفاصيل الكورس
-      linkTo = `/student/course/${item.id}`;
       buttonText = t("course.continue");
     }
   }
 
   // معالج حدث الضغط — ينتقل للرابط مع تمرير بيانات الكورس
   const handleClick = () => {
-    navigate(linkTo, { state: { course: item } });
+    navigate(`/student/course/${item.id}`);
+  };
+  const handleCertificateClick = () => {
+    navigate("/student/certificates");
   };
 
   return (
@@ -159,12 +159,23 @@ function DashboardCard({ item, type, t }) {
         )}
 
         {/* زر الإجراء — الانتقال للكورس أو الكويز */}
-        <button onClick={handleClick} className={buttonClass}>
-          <i
-            className={`${isCourse && !isCompleted ? "bi bi-play-fill" : "bi bi-eye"} me-1`}
-          ></i>
-          {buttonText}
-        </button>
+        <div className="d-flex gap-1">
+          <button onClick={handleClick} className={buttonClass + " " + (isCompleted ? " " : "")}>
+            <i
+              className={`${isCourse && !isCompleted ? "bi bi-play-fill " : "bi bi-eye "} me-1`}
+            ></i>
+            {buttonText}
+          </button>
+          {item.enrollment?.status === "completed" && (
+            <button onClick={handleCertificateClick} className={buttonClass} style={{ width: "fit-content" }}>
+              <i
+                className="bi bi-file-earmark-pdf me-1"
+              ></i>
+            </button>
+          )}
+        </div>
+
+
       </div>
     </div>
   );

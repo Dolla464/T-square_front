@@ -1,5 +1,5 @@
 // صفحة تفاصيل الكورس — للمشترك فقط (لا يوجد سعر أو شراء)
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import i18next from "i18next";
@@ -85,6 +85,8 @@ function VideoLightbox({ video, onClose }) {
    الصفحة الرئيسية
 ════════════════════════════════════════════ */
 function CourseDetails() {
+  const navigate = useNavigate();
+
   const { courseId } = useParams();
   const { t } = useTranslation("studentDashboard");
   const isArabic = i18next.language === "ar";
@@ -128,7 +130,9 @@ function CourseDetails() {
 
   const statusInfo = getStatusLabel(enrollment?.status, isArabic);
   const langFlag = language === "ar" ? "ar" : language === "en" ? "en" : "🌐";
-
+  const handleCertificateClick = () => {
+    navigate("/student/certificates");
+  };
   return (
     <div className="cd-page" dir={isArabic ? "rtl" : "ltr"}>
       <Helmet>
@@ -192,6 +196,15 @@ function CourseDetails() {
                   <i className="bi bi-play-circle-fill"></i>
                   {isArabic ? "متابعة التعلم" : "Continue Learning"}
                 </button>
+              )}
+              {enrollment.status === "completed" && (
+                <button onClick={handleCertificateClick} className="cd-btn-certificate">
+                  <i
+                    className="bi bi-file-earmark-pdf me-1"
+                  ></i>
+                  {isArabic ? "عرض الشهادة" : "View Certificate"}
+                </button>
+
               )}
               {previews?.length > 0 && (
                 <button

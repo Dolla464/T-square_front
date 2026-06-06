@@ -230,6 +230,20 @@
   text-decoration: none;
   transition: all 0.22s ease;
 }
+.cd-btn-certificate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: hsl(113, 70%, 91%);
+  color: #169e04;
+  border: 1.5px solid #169e04;
+  border-radius: 12px;
+  padding: 12px 26px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.22s ease;
+}
 
 .cd-btn-ghost:hover {
   background: rgba(255, 255, 255, 0.12);

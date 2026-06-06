@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { Helmet } from "react-helmet-async";
 import {
   Container,
   Card,
@@ -63,7 +64,7 @@ function LoginPage() {
     }
   }, [user, navigate, location.state]);
 
-  const handleInstructorBypass = () => {
+  const handleInstructorBypass = useCallback(() => {
     const mockAdminData = {
       token: "mock-token-admin",
       user: {
@@ -77,18 +78,22 @@ function LoginPage() {
       },
     };
     login(mockAdminData, true);
-  };
+  }, [login]);
 
-  const onSubmit = async (data) => {
+  const onSubmit = useCallback(async (data) => {
     try {
       await executeLogin(data, rememberMe);
     } catch (err) {
       console.error("Login component execution error: ", err);
     }
-  };
+  }, [executeLogin, rememberMe]);
 
   return (
     <div className="login-wrapper" dir={isArabic ? "rtl" : "ltr"}>
+      <Helmet>
+        <title>{isArabic ? "تسجيل الدخول - T-Square" : "Login - T-Square"}</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <Container className="d-flex justify-content-center align-items-center h-100">
         <Card className="login-card shadow border-0 p-4">
           <Card.Body className="text-center p-0">

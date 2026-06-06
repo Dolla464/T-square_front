@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { Helmet } from "react-helmet-async";
 import { Container, Row, Col, Pagination, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next"; // التعديل هنا
@@ -51,7 +52,7 @@ function AllCourses() {
     });
   }, []);
 
-  const handleCategoryChange = (categoryId) => {
+  const handleCategoryChange = useCallback((categoryId) => {
     setSelectedCategoryId(categoryId);
     filterCourses({
       per_page: coursesPerPage,
@@ -59,9 +60,9 @@ function AllCourses() {
       search: searchTerm,
       page: 1, // دي تضمن إننا بنرجع لأول صفحة لما نغير القسم
     });
-  };
+  }, [filterCourses, coursesPerPage, searchTerm]);
 
-  const handlePageChange = (pageNumber) => {
+  const handlePageChange = useCallback((pageNumber) => {
     filterCourses({
       per_page: coursesPerPage,
       category_id: selectedCategoryId,
@@ -69,10 +70,25 @@ function AllCourses() {
       page: pageNumber,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  }, [filterCourses, coursesPerPage, selectedCategoryId, searchTerm]);
 
   return (
     <div className="all-courses-page py-5 mt-5">
+      <Helmet>
+        <title>{isArabic ? "الكورسات والمسارات البرمجية - T-Square" : "Programming Courses & Tracks - T-Square"}</title>
+        <meta name="description" content={isArabic 
+          ? "تصفح الكورسات والمخططات التدريبية المتميزة في البرمجة وتطوير الويب والشبكات على منصة T-Square."
+          : "Browse professional programming, web development, and networking courses on the T-Square platform."
+        } />
+        <link rel="canonical" href={`${window.location.origin}/courses`} />
+        <meta property="og:title" content={isArabic ? "كورسات برمجة وتدريب تقني مميز" : "Professional Programming & Tech Courses"} />
+        <meta property="og:description" content={isArabic 
+          ? "تطوير مهاراتك مع كورسات T-Square العملية."
+          : "Upgrade your technical skills with practical T-Square courses."
+        } />
+        <meta property="og:url" content={`${window.location.origin}/courses`} />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <Container>
         {/* Breadcrumbs */}
         <nav className="breadcrumb-nav mb-4 flex items-center rtl:flex-row-reverse">
