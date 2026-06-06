@@ -47,13 +47,21 @@ function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      if (user.role === "instructor" && !location.state?.from) {
-        navigate("/instructor", { replace: true });
+      if (location.state?.from) {
+        navigate(location.state.from, { replace: true });
       } else {
-        navigate(from, { replace: true });
+        if (user.role === "instructor") {
+          navigate("/instructor", { replace: true });
+        } else if (user.role === "student") {
+          navigate("/student", { replace: true });
+        } else if (user.role === "admin") {
+          navigate("/admin", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
       }
     }
-  }, [user, from, navigate, location.state]);
+  }, [user, navigate, location.state]);
 
   const handleInstructorBypass = () => {
     const mockAdminData = {

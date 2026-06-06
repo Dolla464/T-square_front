@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import axios from "axios";
 import { fetchUserCourses, fetchUserCategories } from "../api/courses";
 
 export const useCourses = () => {
@@ -10,6 +11,16 @@ export const useCourses = () => {
     total: 0,
   });
   const [loading, setLoading] = useState(false);
+  const abortControllerRef = useRef(null);
+
+  // Cleanup abort controller on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
     // فانكشن تجيب الداتا لأول مرة (كورسات وأقسام)
     const loadInitialData = async (
@@ -39,9 +50,14 @@ export const useCourses = () => {
 
   // فانكشن للفلترة فقط
   const filterCourses = async (params) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     setLoading(true);
     try {
-      const res = await fetchUserCourses(params);
+      const res = await fetchUserCourses(params, { signal: abortControllerRef.current.signal });
       setCourses(res.data.data);
       const meta = res.data.meta;
       setPagination({
@@ -50,6 +66,10 @@ export const useCourses = () => {
         total: meta.total,
       });
     } catch (error) {
+      if (axios.isCancel(error)) {
+        console.log("Request canceled", error.message);
+        return; // لا تغير حالة التحميل إذا تم إلغاء الطلب
+      }
       console.error("Filter error:", error);
     } finally {
       setLoading(false);

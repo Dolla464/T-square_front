@@ -6,12 +6,12 @@ import { useDiscoveryMedia } from "../../hooks/useDiscovery";
 import "./Discovery.css";
 
 // الصور الافتراضية (Fallback)
-import img1 from "../../assets/discovery/1.png";
-import img2 from "../../assets/discovery/2.png";
-import img3 from "../../assets/discovery/3.png";
-import img4 from "../../assets/discovery/4.png";
-import img5 from "../../assets/discovery/5.png";
-import wavesBg from "../../assets/discovery/waves.png";
+import img1 from "../../assets/discovery/1.webp";
+import img2 from "../../assets/discovery/2.webp";
+import img3 from "../../assets/discovery/3.webp";
+import img4 from "../../assets/discovery/4.webp";
+import img5 from "../../assets/discovery/5.webp";
+import wavesBg from "../../assets/discovery/waves.webp";
 
 function Discovery() {
   const { t } = useTranslation("discovery");

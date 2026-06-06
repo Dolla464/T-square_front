@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { getStudentCourses } from "../../hooks/useCourses";
 import StatCard from "../../components/StatCard";
 import DashboardItemsSection from "../../components/DashboardItemsSection";
+import { Spinner } from "react-bootstrap";
 
 import "../../styles/dashboardShared.css";
 
@@ -16,20 +17,22 @@ function DashboardHome() {
   const [filter, setFilter] = useState("all");
 
   // فلترة الكورسات
-  const filtered = (enrolledCourses || []).filter((c) => {
-    const status = c.enrollment?.status;
+  const filtered = useMemo(() => {
+    return (enrolledCourses || []).filter((c) => {
+      const status = c.enrollment?.status;
 
-    const matchesFilter =
-      filter === "all" ||
-      (filter === "in_progress" && status === "in_progress") ||
-      (filter === "completed" && status === "completed");
+      const matchesFilter =
+        filter === "all" ||
+        (filter === "in_progress" && status === "in_progress") ||
+        (filter === "completed" && status === "completed");
 
-    const matchesSearch = c.title?.toLowerCase().includes(search.toLowerCase());
+      const matchesSearch = c.title?.toLowerCase().includes(search.toLowerCase());
 
-    return matchesFilter && matchesSearch;
-  });
+      return matchesFilter && matchesSearch;
+    });
+  }, [enrolledCourses, filter, search]);
 
-  const STAT_CARDS = [
+  const STAT_CARDS = useMemo(() => [
     {
       icon: "bi-journals",
       iconBg: "#fff0f0",
@@ -58,7 +61,7 @@ function DashboardHome() {
       key: "total_enrolled",
       label: t("stats.purchased_courses"),
     },
-  ];
+  ], [t]);
  
   return (
     <div className="dash-home">
@@ -68,8 +71,8 @@ function DashboardHome() {
       </h4>
 
       {loading ? (
-        <div className="dash-loading">
-          <div className="spinner-border text-danger" role="status" />
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "60vh" }}>
+          <Spinner animation="border" variant="danger" />
         </div>
       ) : (
         <>

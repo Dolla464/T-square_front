@@ -58,6 +58,13 @@ function AdminCourses() {
   const [showTrash, setShowTrash] = useState(false);
   const [trashPeriod, setTrashPeriod] = useState("");
 
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   // ─── Video modal state ─────────────────────────────────────────────────────
   const [videoPreviewUrl, setVideoPreviewUrl] = useState(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -70,7 +77,7 @@ function AdminCourses() {
   useEffect(() => {
     const params = {
       page: currentPage,
-      search: searchTerm || undefined,
+      search: debouncedSearch || undefined,
       status: selectedStatus === "all" ? undefined : selectedStatus,
       category_id: selectedCategory === "all" ? undefined : selectedCategory,
     };
@@ -84,7 +91,7 @@ function AdminCourses() {
     currentPage,
     getCourses,
     getTrashedCourses,
-    searchTerm,
+    debouncedSearch,
     selectedStatus,
     selectedCategory,
     showTrash,
@@ -93,7 +100,7 @@ function AdminCourses() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedStatus, selectedCategory, showTrash, trashPeriod]);
+  }, [debouncedSearch, selectedStatus, selectedCategory, showTrash, trashPeriod]);
 
   useEffect(() => {
     getCategoriesTree();
@@ -130,7 +137,7 @@ function AdminCourses() {
   // ─── Helpers ───────────────────────────────────────────────────────────────
   const buildFetchParams = () => ({
     page: currentPage,
-    search: searchTerm || undefined,
+    search: debouncedSearch || undefined,
     status: selectedStatus === "all" ? undefined : selectedStatus,
     category_id: selectedCategory === "all" ? undefined : selectedCategory,
   });

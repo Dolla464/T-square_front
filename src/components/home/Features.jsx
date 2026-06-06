@@ -1,8 +1,8 @@
 import { Container, Row, Col } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import "./Features.css";
-import starIconImg from "../../assets/featureIcon.png";
-import logoFull from "../../assets/logo-dark.png";
+import starIconImg from "../../assets/featureIcon.webp";
+import logoFull from "../../assets/logo-dark.webp";
 
 function Features() {
   const { t } = useTranslation("features");

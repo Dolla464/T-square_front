@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Container, Row, Col, Pagination, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next"; // التعديل هنا
@@ -21,7 +21,28 @@ function AllCourses() {
     filterCourses,
   } = useCourses();
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const isMounted = useRef(false);
   const coursesPerPage = 6;
+
+  // Debounce logic for searching
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(() => {
+      filterCourses({
+        per_page: coursesPerPage,
+        category_id: selectedCategoryId,
+        search: searchTerm,
+        page: 1,
+      });
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
 
   useEffect(() => {
     loadInitialData({
@@ -35,6 +56,7 @@ function AllCourses() {
     filterCourses({
       per_page: coursesPerPage,
       category_id: categoryId,
+      search: searchTerm,
       page: 1, // دي تضمن إننا بنرجع لأول صفحة لما نغير القسم
     });
   };
@@ -43,6 +65,7 @@ function AllCourses() {
     filterCourses({
       per_page: coursesPerPage,
       category_id: selectedCategoryId,
+      search: searchTerm,
       page: pageNumber,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -79,6 +102,18 @@ function AllCourses() {
             {t("title1")} <span className="text-danger">{t("title2")}</span>
           </h2>
           <p className="text-muted fs-5">{t("subtitle")}</p>
+        </div>
+
+        {/* Search Bar */}
+        <div className="courses-search-container">
+          <i className="bi bi-search courses-search-icon"></i>
+          <input
+            type="text"
+            className="form-control courses-search-input w-100"
+            placeholder={isArabic ? "ابحث عن كورس..." : "Search for a course..."}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
 
         {/* Filters */}

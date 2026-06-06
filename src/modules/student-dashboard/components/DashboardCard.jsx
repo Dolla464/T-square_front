@@ -1,7 +1,7 @@
 // مكون كارد مشترك للكورسات والكويزات في الداشبورد
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import courseImg from "../../../assets/about1.png";
+import courseImg from "../../../assets/about1.webp";
 
 /**
  * مكون كارد مشترك للكورسات والكويزات في الداشبورد

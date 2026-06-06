@@ -165,8 +165,8 @@ function DashboardProfile() {
     );
   }
 
-  console.log("Full User Object:", user);
-  console.log("Is Verified Type:", typeof user?.is_verified);
+  // console.log("Full User Object:", user);
+  // console.log("Is Verified Type:", typeof user?.is_verified);
   return (
     <div className="dash-profile">
       <input

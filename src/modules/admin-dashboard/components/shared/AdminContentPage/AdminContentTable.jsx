@@ -1,7 +1,46 @@
 import { useTranslation } from "react-i18next";
 import { Spinner } from "react-bootstrap";
 import "./AdminContentPage.css";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import React from "react";
+
+const AdminContentTableRow = React.memo(({ item, onView, onEdit, onDelete }) => {
+  return (
+    <tr>
+      <td className="fw-medium text-dark">
+        {item.name || item.title || "Untitled"}
+      </td>
+      <td className="text-secondary ac-truncate-text">
+        {item.description || "N/A"}
+      </td>
+      <td className="text-center">
+        <div className="d-flex justify-content-center gap-2">
+          <button
+            className="btn btn-sm ac-btn-view border-0"
+            onClick={() => onView(item)}
+            title="View"
+          >
+            <i className="bi bi-eye fs-6"></i>
+          </button>
+          <button
+            className="btn btn-sm ac-btn-edit border-0"
+            onClick={() => onEdit(item)}
+            title="Edit"
+          >
+            <i className="bi bi-pencil-square fs-6"></i>
+          </button>
+          <button
+            className="btn btn-sm ac-btn-deleteTable border-0"
+            onClick={() => onDelete(item.id)}
+            title="Delete"
+          >
+            <i className="bi bi-trash fs-6"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+});
 
 function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
   const { t } = useTranslation("adminDashboard");
@@ -12,17 +51,20 @@ function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
     setSearchTerm(e.target.value);
   };
 
-  const filteredData = data.filter((item) => {
-    const matchesSearch =
-      (item.title || item.name || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+    return data.filter((item) => {
+      const matchesSearch =
+        (item.title || item.name || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
 
-    const matchesFilter =
-      selectedFilter === "all" || item.status === selectedFilter;
+      const matchesFilter =
+        selectedFilter === "all" || item.status === selectedFilter;
 
-    return matchesSearch && matchesFilter;
-  });
+      return matchesSearch && matchesFilter;
+    });
+  }, [data, searchTerm, selectedFilter]);
 
   return (
     <div className="ac-table-container">
@@ -62,43 +104,13 @@ function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
             <tbody>
               {filteredData && filteredData.length > 0 ? (
                 filteredData.map((item, index) => (
-                  <tr key={item.id || index}>
-                    <td className="fw-medium text-dark">
-                      {item.name || item.title || "Untitled"}
-                    </td>
-
-                    <td className="text-secondary ac-truncate-text">
-                      {item.description || "N/A"}
-                    </td>
-
-                    
-
-                    <td className="text-center">
-                      <div className="d-flex justify-content-center gap-2">
-                        <button
-                          className="btn btn-sm ac-btn-view border-0"
-                          onClick={() => onView(item)}
-                          title="View"
-                        >
-                          <i className="bi bi-eye fs-6"></i>
-                        </button>
-                        <button
-                          className="btn btn-sm ac-btn-edit border-0"
-                          onClick={() => onEdit(item)}
-                          title="Edit"
-                        >
-                          <i className="bi bi-pencil-square fs-6"></i>
-                        </button>
-                        <button
-                          className="btn btn-sm ac-btn-deleteTable border-0"
-                          onClick={() => onDelete(item.id)}
-                          title="Delete"
-                        >
-                          <i className="bi bi-trash fs-6"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                  <AdminContentTableRow 
+                    key={item.id || index} 
+                    item={item} 
+                    onView={onView} 
+                    onEdit={onEdit} 
+                    onDelete={onDelete} 
+                  />
                 ))
               ) : (
                 <tr>
@@ -116,4 +128,4 @@ function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
   );
 }
 
-export default AdminContentTable;
+export default React.memo(AdminContentTable);

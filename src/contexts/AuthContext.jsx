@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useState, useContext, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 import axiosClient from "../api/axios";
 import Loading from "../Loading";
@@ -13,19 +13,19 @@ export const AuthProvider = ({ children }) => {
   const [isMaintenance, setIsMaintenance] = useState(false);
 
   // دالة مساعدة لتحديد نوع التخزين
-  const getStorage = (rememberMe) => {
+  const getStorage = useCallback((rememberMe) => {
     return rememberMe ? localStorage : sessionStorage;
-  };
+  }, []);
 
   // دالة مساعدة لمسح البيانات من كلا النوعين
-  const clearAllStorage = () => {
+  const clearAllStorage = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
-  };
+  }, []);
 
-  const fetchUserProfile = async (tokenToUse) => {
+  const fetchUserProfile = useCallback(async (tokenToUse) => {
     try {
       const response = await axiosClient.get("/profile", {
         headers: {
@@ -38,10 +38,10 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
     }
-  };
+  }, []);
 
   // ── جلب حالة الصيانة من السيرفر بشكل ديناميكي ──
-  const checkMaintenanceStatus = async () => {
+  const checkMaintenanceStatus = useCallback(async () => {
     try {
       const response = await axiosClient.get("/settings/maintenance_mode");
 
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }) => {
       console.error("Failed to fetch maintenance status:", error);
       return false;
     }
-  };
+  }, []);
 
   // ── تهيئة التطبيق وفحص التوكن والصيانة عند الإقلاع ──
   useEffect(() => {
@@ -106,7 +106,7 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = (responseData, rememberMe = true) => {
+  const login = useCallback((responseData, rememberMe = true) => {
     const { token, user } = responseData;
     setToken(token);
     setUser(user);
@@ -117,9 +117,9 @@ export const AuthProvider = ({ children }) => {
     storage.setItem("user", JSON.stringify(user));
 
     fetchUserProfile(token);
-  };
+  }, [clearAllStorage, getStorage, fetchUserProfile]);
 
-  const updateUser = (updatedUser) => {
+  const updateUser = useCallback((updatedUser) => {
     setUser(updatedUser);
     const storage = localStorage.getItem("token")
       ? localStorage
@@ -127,9 +127,9 @@ export const AuthProvider = ({ children }) => {
         ? sessionStorage
         : localStorage;
     storage.setItem("user", JSON.stringify(updatedUser));
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -149,24 +149,35 @@ export const AuthProvider = ({ children }) => {
       clearAllStorage();
       setLoading(false);
     }
-  };
+  }, [token, clearAllStorage]);
+
+  const contextValue = useMemo(() => ({
+    user,
+    userProfile,
+    token,
+    login,
+    logout,
+    updateUser,
+    fetchUserProfile,
+    loading,
+    isMaintenance,
+    checkMaintenanceStatus,
+    isLoggedIn: !!token,
+  }), [
+    user,
+    userProfile,
+    token,
+    login,
+    logout,
+    updateUser,
+    fetchUserProfile,
+    loading,
+    isMaintenance,
+    checkMaintenanceStatus,
+  ]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        userProfile,
-        token,
-        login,
-        logout,
-        updateUser,
-        fetchUserProfile,
-        loading,
-        isMaintenance,
-        checkMaintenanceStatus,
-        isLoggedIn: !!token,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {loading ? <Loading /> : children}
     </AuthContext.Provider>
   );

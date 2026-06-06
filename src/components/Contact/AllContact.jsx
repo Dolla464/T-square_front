@@ -7,10 +7,12 @@ import TestimonialsSection from "../shared/TestimonialsSection/TestimonialsSecti
 import "./AllContact.css";
 import i18n from "../../i18n";
 import CtaEnroll from "../shared/ctaEntroll/CtaEnroll";
+import { useContactInfo } from "../../hooks/useDiscovery";
 
 function AllContact() {
   const { t } = useTranslation(["contact", "cta", "testimonials", "navbar"]);
   const isArabic = i18n.language === "ar";
+  const { whatsapp, contact_email, facebook_url, loading } = useContactInfo();
 
   return (
     <div className="contact-page ">
@@ -67,12 +69,12 @@ function AllContact() {
                   <Col sm={6} xs={12}>
                     <div className="info-card h-100">
                       <div className="info-icon">
-                        <i className="bi bi-telephone text-danger"></i>
+                         <i className="bi bi-telephone text-danger"></i>
                       </div>
                       <div>
                         <h6 className="mb-0 fw-bold">{t("contact:phone")}</h6>
                         <small className="text-muted" dir="ltr">
-                          +20 1234 33213
+                          {loading ? "..." : whatsapp || "+20 1234 33213"}
                         </small>
                       </div>
                     </div>
@@ -84,7 +86,9 @@ function AllContact() {
                       </div>
                       <div>
                         <h6 className="mb-0 fw-bold">{t("contact:email")}</h6>
-                        <small className="text-muted">TSquare@gmail.com</small>
+                        <small className="text-muted">
+                          {loading ? "..." : contact_email || "TSquare@gmail.com"}
+                        </small>
                       </div>
                     </div>
                   </Col>
@@ -93,18 +97,26 @@ function AllContact() {
                 <div className="social-media-block d-flex align-items-center ps-md-0 ps-2 gap-4">
                   <span className="text-muted">{t("contact:social")}</span>
                   <div className="social-links d-flex gap-2">
-                    <a href="#" className="social-icon" aria-label="Email">
-                      <i className="bi bi-envelope-fill"></i>
-                    </a>
-                    <a href="#" className="social-icon" aria-label="Instagram">
-                      <i className="bi bi-instagram"></i>
-                    </a>
-                    <a href="#" className="social-icon" aria-label="LinkedIn">
-                      <i className="bi bi-linkedin"></i>
-                    </a>
-                    <a href="#" className="social-icon" aria-label="Facebook">
-                      <i className="bi bi-facebook"></i>
-                    </a>
+                    {facebook_url && (
+                      <a href={facebook_url} target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="Facebook">
+                        <i className="bi bi-facebook"></i>
+                      </a>
+                    )}
+                    {contact_email && (
+                      <a href={`mailto:${contact_email}`} className="social-icon" aria-label="Email">
+                        <i className="bi bi-envelope-fill"></i>
+                      </a>
+                    )}
+                    {whatsapp && (
+                      <>
+                        <a href={`tel:${whatsapp}`} className="social-icon" aria-label="Phone">
+                          <i className="bi bi-telephone-fill"></i>
+                        </a>
+                        <a href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="WhatsApp">
+                          <i className="bi bi-whatsapp"></i>
+                        </a>
+                      </>
+                    )}
                   </div>
                 </div>
               </Col>

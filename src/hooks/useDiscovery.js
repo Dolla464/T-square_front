@@ -78,15 +78,11 @@ export const useHeroAndAboutData = () => {
     }
   });
 
-  const [loading, setLoading] = useState(() => {
-    try {
-      return !sessionStorage.getItem("hero_and_about_data");
-    } catch {
-      return true;
-    }
-  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+
+    // Otherwise check session storage
     try {
       if (sessionStorage.getItem("hero_and_about_data")) {
         setLoading(false);
@@ -99,7 +95,6 @@ export const useHeroAndAboutData = () => {
     const fetchContent = async () => {
       try {
         setLoading(true);
-        // جلب البيانات بالتوازي من الـ API الموحد
         const [
           heroRes,
           aboutRes,
@@ -172,4 +167,62 @@ export const useHeroAndAboutData = () => {
   }, []);
 
   return { heroImage, aboutImages, heroSettings, loading };
+};
+
+export const useContactInfo = () => {
+  const [contactInfo, setContactInfo] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem("contact_info_settings");
+      return cached ? JSON.parse(cached) : { whatsapp: "", contact_email: "", facebook_url: "" };
+    } catch {
+      return { whatsapp: "", contact_email: "", facebook_url: "" };
+    }
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      try {
+        const [whatsappRes, emailRes, facebookRes] = await Promise.all([
+          getSetting("whatsapp").catch(() => null),
+          getSetting("contact_email").catch(() => null),
+          getSetting("facebook_url").catch(() => null),
+        ]);
+
+        const extractVal = (res) => {
+          if (!res) return "";
+          const body = res.data !== undefined ? res.data : res;
+          if (!body) return "";
+          if (typeof body === "string") return body;
+          const data = body.data !== undefined ? body.data : body;
+          if (!data) return "";
+          if (typeof data === "string") return data;
+          if (typeof data === "object" && data.value !== undefined && data.value !== null) {
+            return data.value;
+          }
+          return "";
+        };
+
+        const info = {
+          whatsapp: extractVal(whatsappRes),
+          contact_email: extractVal(emailRes),
+          facebook_url: extractVal(facebookRes),
+        };
+
+        try {
+          sessionStorage.setItem("contact_info_settings", JSON.stringify(info));
+        } catch (e) {
+          console.error("Failed to save to sessionStorage:", e);
+        }
+        setContactInfo(info);
+      } catch (err) {
+        console.error("Error fetching contact info:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchContactInfo();
+  }, []);
+
+  return { ...contactInfo, loading };
 };

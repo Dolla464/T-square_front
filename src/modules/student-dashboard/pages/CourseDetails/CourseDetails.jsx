@@ -6,6 +6,7 @@ import i18next from "i18next";
 import { useState, useEffect, useCallback } from "react";
 import "./CourseDetails.css";
 import { useCourseDetails } from "../../hooks/useCousrsesDetails";
+import { Spinner } from "react-bootstrap";
 
 /* ── دوال مساعدة ──────────────────────────────────────── */
 const getLevelIcon = (level) => {
@@ -98,9 +99,8 @@ function CourseDetails() {
   /* ── شاشة التحميل ── */
   if (loading) {
     return (
-      <div className="cd-loading">
-        <div className="cd-spinner"></div>
-        <p>{isArabic ? "جاري التحميل…" : "Loading…"}</p>
+      <div className="cd-page d-flex justify-content-center align-items-center" style={{ minHeight: "60vh" }}>
+        <Spinner animation="border" variant="danger" />
       </div>
     );
   }
@@ -117,7 +117,7 @@ function CourseDetails() {
 
   const {
     title, short_description, description,
-    thumbnail, cover_image,
+    thumbnail,
     level, language,
     duration_hours, duration_weeks,
     avg_rating, total_reviews, total_students,
@@ -127,7 +127,7 @@ function CourseDetails() {
   } = courseData;
 
   const statusInfo = getStatusLabel(enrollment?.status, isArabic);
-  const langFlag = language === "ar" ? "🇸🇦" : language === "en" ? "🇬🇧" : "🌐";
+  const langFlag = language === "ar" ? "ar" : language === "en" ? "en" : "🌐";
 
   return (
     <div className="cd-page" dir={isArabic ? "rtl" : "ltr"}>

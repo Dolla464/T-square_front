@@ -25,4 +25,4 @@ function StatCard({ icon, iconBg, iconColor, value, label }) {
   );
 }
 
-export default StatCard;
+export default React.memo(StatCard);

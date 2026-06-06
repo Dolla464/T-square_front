@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { useQuizzes } from "../../hooks/useQuizzes";
@@ -19,21 +19,23 @@ function DashboardQuizzes() {
   const [filter, setFilter] = useState("all");
 
   // تعديل منطق الفلترة ليعتمد على جاهزية الامتحان وليس مجرد وجود محاولة سابقة
-  const filtered = (quizzes || []).filter((q) => {
-    const matchesFilter =
-      filter === "all" ||
-      (filter === "Pending" && !q.is_locked) || // متاح للدخول
-      (filter === "completed" && q.is_locked); // مغلق تماماً لاستنفاد المحاولات
+  const filtered = useMemo(() => {
+    return (quizzes || []).filter((q) => {
+      const matchesFilter =
+        filter === "all" ||
+        (filter === "Pending" && !q.is_locked) || // متاح للدخول
+        (filter === "completed" && q.is_locked); // مغلق تماماً لاستنفاد المحاولات
 
-    const matchesSearch =
-      q.title?.toLowerCase().includes(search.toLowerCase()) ||
-      q.course_name?.toLowerCase().includes(search.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+      const matchesSearch =
+        q.title?.toLowerCase().includes(search.toLowerCase()) ||
+        q.course_name?.toLowerCase().includes(search.toLowerCase());
+      return matchesFilter && matchesSearch;
+    });
+  }, [quizzes, filter, search]);
   
 
   // كروت الإحصائيات
-  const STAT_CARDS = [
+  const STAT_CARDS = useMemo(() => [
     {
       icon: "bi-pencil-square",
       iconBg: "#fff0f0",
@@ -56,7 +58,7 @@ function DashboardQuizzes() {
       key: "completed",
       label: t("quizzes.stats.completed"),
     },
-  ];
+  ], [t]);
 
   return (
     <div className="dash-quizzes">

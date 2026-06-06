@@ -1,6 +1,6 @@
 import "./CourseTicker.css";
 // افترضنا إن عندك أيقونة الـ T-Square في Assets
-import tIcon from "../../assets/icon.png";
+import tIcon from "../../assets/icon.webp";
 
 const courses = [
   "Kids Coding",
