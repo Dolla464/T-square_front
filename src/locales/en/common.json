@@ -7,5 +7,13 @@
   "logout": "Logout",
   "enroll": "Enroll now",
   "contact_us": "Contact us",
-  "explore_courses": "Explore Courses"
+  "explore_courses": "Explore Courses",
+
+  "maintenance": {
+    "backToHome": "Back to Home",
+    "title": "Site Under Maintenance!",
+    "description": "We are currently upgrading and optimizing our platform to bring you the best possible educational experience. We will be back online shortly!",
+    "adminAccess": "Admin Control Panel Access",
+    "refresh": "Refresh Page"
+  }
 }

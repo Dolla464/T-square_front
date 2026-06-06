@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import axios from "axios"; // تأكد من تثبيت axios
+import axios from "axios";
 import axiosClient from "../api/axios";
 import Loading from "../Loading";
 
@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isMaintenance, setIsMaintenance] = useState(false);
 
   // دالة مساعدة لتحديد نوع التخزين
   const getStorage = (rememberMe) => {
@@ -28,8 +29,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axiosClient.get("/profile", {
         headers: {
-          Authorization: `Bearer ${tokenToUse}`
-        }
+          Authorization: `Bearer ${tokenToUse}`,
+        },
       });
       if (response.data.status === "success") {
         setUserProfile(response.data.data);
@@ -39,45 +40,82 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    // الأولوية للـ localStorage (Remember Me)
-    const storedToken = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
+  // ── جلب حالة الصيانة من السيرفر بشكل ديناميكي ──
+  const checkMaintenanceStatus = async () => {
+    try {
+      const response = await axiosClient.get("/settings/maintenance_mode");
 
-    // إذا مفيش في localStorage، نجرب sessionStorage
-    const sessionToken = !storedToken ? sessionStorage.getItem("token") : null;
-    const sessionUser = !storedUser ? sessionStorage.getItem("user") : null;
+      // console.log("Maintenance API Response:", response.data);
 
-    const finalToken = storedToken || sessionToken;
-    const finalUser = storedUser || sessionUser;
+      if (response.data && response.data.data) {
+        const maintenanceValue = response.data.data.value;
 
-    if (finalToken && finalUser) {
-      setToken(finalToken);
-      try {
-        setUser(JSON.parse(finalUser));
-        fetchUserProfile(finalToken);
-      } catch (e) {
-        console.error("Failed to parse user data from storage", e);
-        // تنظيف البيانات التالفة
-        clearAllStorage();
+        // تحويل القيمة لـ Boolean حقيقي للتأكيد
+        const isTrueMaintenance =
+          maintenanceValue === true ||
+          maintenanceValue === 1 ||
+          maintenanceValue === "1" ||
+          maintenanceValue === "true";
+
+        setIsMaintenance(isTrueMaintenance);
+        // console.log("Is Maintenance Mode Active? ", isTrueMaintenance);
+
+        return isTrueMaintenance; // إرجاع القيمة مباشرة للاستخدام الفوري عند الـ await
       }
+      return false;
+    } catch (error) {
+      console.error("Failed to fetch maintenance status:", error);
+      return false;
     }
-    setLoading(false);
+  };
+
+  // ── تهيئة التطبيق وفحص التوكن والصيانة عند الإقلاع ──
+  useEffect(() => {
+    const initializeAuth = async () => {
+      // الأولوية للـ localStorage (Remember Me)
+      const storedToken = localStorage.getItem("token");
+      const storedUser = localStorage.getItem("user");
+
+      // إذا مفيش في localStorage، نجرب sessionStorage
+      const sessionToken = !storedToken
+        ? sessionStorage.getItem("token")
+        : null;
+      const sessionUser = !storedUser ? sessionStorage.getItem("user") : null;
+
+      const finalToken = storedToken || sessionToken;
+      const finalUser = storedUser || sessionUser;
+
+      // 💥 ننتظر فحص الصيانة أولاً من السيرفر قبل إيقاف الـ Loading
+      await checkMaintenanceStatus();
+
+      if (finalToken && finalUser) {
+        setToken(finalToken);
+        try {
+          setUser(JSON.parse(finalUser));
+          await fetchUserProfile(finalToken);
+        } catch (e) {
+          console.error("Failed to parse user data from storage", e);
+          clearAllStorage();
+        }
+      }
+
+      // نقفل الـ Loading بعد التأكد التام من حالة الصيانة وحالة المستخدم
+      setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const login = (responseData, rememberMe = true) => {
     const { token, user } = responseData;
     setToken(token);
     setUser(user);
-    // مسح أي بيانات قديمة قبل حفظ الجديدة
     clearAllStorage();
 
-    // حفظ البيانات في نوع التخزين المحدد
     const storage = getStorage(rememberMe);
     storage.setItem("token", token);
     storage.setItem("user", JSON.stringify(user));
-    
-    // جلب بيانات البروفايل بعد اللوج ان
+
     fetchUserProfile(token);
   };
 
@@ -91,29 +129,25 @@ export const AuthProvider = ({ children }) => {
     storage.setItem("user", JSON.stringify(updatedUser));
   };
 
-  // --- التعديل هنا لربط اللوج اوت بالباك ---
   const logout = async () => {
     try {
-      // نبعت طلب للباك إيند لإلغاء التوكن
-      // ملاحظة: تأكد إن مسار الـ API صح (مثلاً /api/logout)
+      setLoading(true);
+
       await axios.post(
         `${import.meta.env.VITE_API_URL}/logout`,
         {},
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         },
       );
     } catch (e) {
       console.error("Server-side logout failed:", e);
-      // بنكمل مسح البيانات من الجهاز حتى لو السيرفر رجع Error
     } finally {
-      // تنظيف كل شيء من الجهاز (الفرونت إيند)
       setToken(null);
       setUser(null);
       setUserProfile(null);
       clearAllStorage();
+      setLoading(false);
     }
   };
 
@@ -128,6 +162,8 @@ export const AuthProvider = ({ children }) => {
         updateUser,
         fetchUserProfile,
         loading,
+        isMaintenance,
+        checkMaintenanceStatus,
         isLoggedIn: !!token,
       }}
     >
