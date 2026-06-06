@@ -301,5 +301,9 @@
     "create_failed": "Failed to create",
     "update_failed": "Failed to update",
     "delete_failed": "Failed to delete"
+  },
+  "hero_live_cta": {
+    "contact_us": "Contact Us",
+    "explore_courses": "Explore Courses"
   }
 }

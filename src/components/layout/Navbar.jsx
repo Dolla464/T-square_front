@@ -277,10 +277,6 @@ function AppNavbar({ isLoggedIn, userName }) {
                   {user.role == "student" ?
                     (<>
                       <NavDropdown.Item as={Link} to="/student">
-                        {t("user:profile")}
-                      </NavDropdown.Item>
-                      <NavDropdown.Divider />
-                      <NavDropdown.Item as={Link} to="/student">
                         {t("user:my_courses")}
                       </NavDropdown.Item>
                     </>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Container,
   Card,
@@ -7,8 +7,9 @@ import {
   Nav,
   Alert,
   Spinner,
+  InputGroup, // 💥 تم إضافة InputGroup هنا لتنسيق زر العين
 } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import tsquareLogo from "../../assets/logo-dark.webp";
@@ -22,9 +23,15 @@ function LoginPage() {
   const { t, i18n } = useTranslation("auth");
   const isArabic = i18n.language === "ar";
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const location = useLocation();
+  const { login, user } = useAuth();
   const { executeLogin, loading, error: apiError } = useLogin();
   const [rememberMe, setRememberMe] = useState(true);
+
+  // 💥 الـ State السحرية للتحكم في ظهور كلمة المرور
+  const [showPassword, setShowPassword] = useState(false);
+
+  const from = location.state?.from || "/";
 
   const {
     register,
@@ -38,7 +45,16 @@ function LoginPage() {
     },
   });
 
-  // ── زر مؤقت للدخول بـ Role Admin للمعاينة ──
+  useEffect(() => {
+    if (user) {
+      if (user.role === "instructor" && !location.state?.from) {
+        navigate("/instructor", { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
+    }
+  }, [user, from, navigate, location.state]);
+
   const handleInstructorBypass = () => {
     const mockAdminData = {
       token: "mock-token-admin",
@@ -53,16 +69,13 @@ function LoginPage() {
       },
     };
     login(mockAdminData, true);
-    navigate("/instructor");
   };
-
-
 
   const onSubmit = async (data) => {
     try {
       await executeLogin(data, rememberMe);
     } catch (err) {
-      // Error state is managed by the hook
+      console.error("Login component execution error: ", err);
     }
   };
 
@@ -118,7 +131,7 @@ function LoginPage() {
                 )}
               </Form.Group>
 
-              {/* حقل الباسورد */}
+              {/* حقل الباسورد (💥 تم التعديل هنا باستخدام InputGroup و الـ Eye Button) */}
               <Form.Group
                 className={`mb-3 login-form-group ${isArabic ? "text-end" : "text-start"}`}
               >
@@ -134,17 +147,45 @@ function LoginPage() {
                     {t("login_form.forgot_password")}
                   </Nav.Link>
                 </div>
-                <Form.Control
-                  type="password"
-                  placeholder={t("login_form.password_placeholder")}
-                  className={`login-input ${errors.password ? "is-invalid" : ""}`}
-                  {...register("password")}
-                />
-                {errors.password && (
-                  <Form.Control.Feedback type="invalid">
-                    {errors.password.message}
-                  </Form.Control.Feedback>
-                )}
+
+                <InputGroup className="position-relative">
+                  <Form.Control
+                    type={showPassword ? "text" : "password"} // ديناميكي بناءً على الـ State
+                    placeholder={t("login_form.password_placeholder")}
+                    className={`login-input ${errors.password ? "is-invalid" : ""}`}
+                    style={{
+                      paddingLeft: isArabic ? "45px" : "12px",
+                      paddingRight: isArabic ? "12px" : "45px",
+                    }} // تأمين مساحة العين حسب اللغة لكي لا تغطي على النص
+                    {...register("password")}
+                  />
+
+                  {/* زر العين الشفاف المدمج هندسياً داخل الـ Input */}
+                  <Button
+                    variant="link"
+                    className="position-absolute text-danger p-0 d-flex align-items-center"
+                    style={{
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      left: isArabic ? "15px" : "auto",
+                      right: isArabic ? "auto" : "15px",
+                      zIndex: 5,
+                      textDecoration: "none",
+                    }}
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex="-1" // تخطي الزر عند استخدام زر Tab لتجربة مستخدم احترافية
+                  >
+                    <i
+                      className={`bi ${showPassword ? "bi-eye-slash-fill" : "bi-eye-fill"} fs-5`}
+                    ></i>
+                  </Button>
+
+                  {errors.password && (
+                    <Form.Control.Feedback type="invalid" className="d-block">
+                      {errors.password.message}
+                    </Form.Control.Feedback>
+                  )}
+                </InputGroup>
               </Form.Group>
 
               {/* Remember me */}
@@ -181,9 +222,10 @@ function LoginPage() {
                 onClick={handleInstructorBypass}
                 style={{ borderStyle: "dashed" }}
               >
-                {isArabic ? "دخول سريع (Instructor)" : "Quick Login (Instructor)"}
+                {isArabic
+                  ? "دخول سريع (Instructor)"
+                  : "Quick Login (Instructor)"}
               </Button>
-
             </Form>
 
             {/* تسجيل حساب جديد */}
