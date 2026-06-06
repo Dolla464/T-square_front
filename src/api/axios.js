@@ -42,7 +42,8 @@ axiosClient.interceptors.response.use(
                                 error.response.status === 504;
 
       if (isConnectionError) {
-        if (window.location.pathname !== "/maintenance" && window.location.pathname !== "/login") {
+        const cleanPath = window.location.pathname.toLowerCase().replace(/\/$/, "");
+        if (cleanPath !== "/maintenance" && cleanPath !== "/login") {
           window.location.href = "/maintenance";
         }
       }
