@@ -2,6 +2,7 @@ import axios from "axios";
 
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
+  timeout: 8000,
   // تم حذف withCredentials: true لأننا نستخدم Bearer Token
   headers: {
     "Content-Type": "application/json",
@@ -35,7 +36,9 @@ axiosClient.interceptors.response.use(
     // ── التعديل السحري لمنع الـ Loop ──
     // حوّل لصفحة الصيانة فقط لو السيرفر رجع 503 وبشرط إن المستخدم ملوش توكن (زائر عادي)
     if (error.response && error.response.status === 503 && !token) {
-      window.location.href = "/maintenance";
+      if (window.location.pathname !== "/maintenance" && window.location.pathname !== "/login") {
+        window.location.href = "/maintenance";
+      }
     }
 
     // لو معاه توكن ورجع 503، ده معناه إن التوكن لسه مسمعش في السيرفر أو فيه مشكلة في الـ Guard

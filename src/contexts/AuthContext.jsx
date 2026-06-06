@@ -40,38 +40,39 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // مرجع لتخزين حالة الصيانة ومنع التكرار اللانهائي في الاعتماديات
+  const isMaintenanceRef = React.useRef(false);
+
   // ── جلب حالة الصيانة من السيرفر بشكل ديناميكي ──
-const checkMaintenanceStatus = useCallback(async () => {
-  try {
-    const response = await axiosClient.get("/settings/maintenance_mode");
+  const checkMaintenanceStatus = useCallback(async () => {
+    try {
+      const response = await axiosClient.get("/settings/maintenance_mode");
 
-    if (response?.data?.data) {
-      const maintenanceValue = response.data.data.value;
+      if (response?.data?.data) {
+        const maintenanceValue = response.data.data.value;
 
-      const isTrueMaintenance =
-        maintenanceValue === true ||
-        maintenanceValue === 1 ||
-        maintenanceValue === "1" ||
-        maintenanceValue === "true";
+        const isTrueMaintenance =
+          maintenanceValue === true ||
+          maintenanceValue === 1 ||
+          maintenanceValue === "1" ||
+          maintenanceValue === "true";
 
-      setIsMaintenance((prev) => {
-        // 🧠 منع إعادة render غير ضروري لو نفس القيمة
-        if (prev === isTrueMaintenance) return prev;
+        setIsMaintenance((prev) => {
+          if (prev === isTrueMaintenance) return prev;
+          return isTrueMaintenance;
+        });
+        isMaintenanceRef.current = isTrueMaintenance;
+
         return isTrueMaintenance;
-      });
+      }
 
-      return isTrueMaintenance;
+      return false;
+    } catch (error) {
+      console.error("Failed to fetch maintenance status:", error);
+      // 🚑 العودة لآخر حالة مسجلة بدلاً من القيمة الافتراضية لمنع الدخول في loop
+      return isMaintenanceRef.current;
     }
-
-    return false;
-  } catch (error) {
-    console.error("Failed to fetch maintenance status:", error);
-
-    // 🚑 مهم جدًا: ما تعملش fallback يخلي app يدخل loop
-    // رجّع آخر state بدل false ثابت
-    return isMaintenance ?? false;
-  }
-}, [isMaintenance]);
+  }, []);
 
   // ── تهيئة التطبيق وفحص التوكن والصيانة عند الإقلاع ──
   useEffect(() => {
@@ -89,8 +90,15 @@ const checkMaintenanceStatus = useCallback(async () => {
       const finalToken = storedToken || sessionToken;
       const finalUser = storedUser || sessionUser;
 
-      // 💥 ننتظر فحص الصيانة أولاً من السيرفر قبل إيقاف الـ Loading
-      await checkMaintenanceStatus();
+      // 💥 فحص الصيانة مع تايم آوت 2 ثانية لضمان عدم تعليق التطبيق نهائياً
+      try {
+        await Promise.race([
+          checkMaintenanceStatus(),
+          new Promise((resolve) => setTimeout(resolve, 2000))
+        ]);
+      } catch (e) {
+        console.error("Maintenance check timed out or failed:", e);
+      }
 
       if (finalToken && finalUser) {
         setToken(finalToken);
@@ -108,7 +116,7 @@ const checkMaintenanceStatus = useCallback(async () => {
     };
 
     initializeAuth();
-  }, []);
+  }, [checkMaintenanceStatus, fetchUserProfile, clearAllStorage]);
 
   const login = useCallback((responseData, rememberMe = true) => {
     const { token, user } = responseData;

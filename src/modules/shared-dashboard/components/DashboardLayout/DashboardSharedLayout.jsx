@@ -7,6 +7,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { showLogoutConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastCustom } from "../../../../components/shared/Toaster/toaster";
@@ -84,6 +85,9 @@ function DashboardSharedLayout({
   };
   return (
     <div className="shared-dashboard-wrapper">
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       {/* Overlay للموبايل */}
       {sidebarOpen && (
         <div
