@@ -33,7 +33,7 @@ function DashboardSharedLayout({
 
   const isCourseDetailsPage = location.pathname.includes("/student/course/");
   const isExmam = location.pathname.includes("/student/quizzes/");
-
+  const isLeaveReviewPage = location.pathname.includes("/student/review/");
   const { notificationsData } = useNotifications();
   // const totalNotifications = notificationsData.total;
   const unreadCount = notificationsData.unread_count;
@@ -91,9 +91,10 @@ function DashboardSharedLayout({
           onClick={() => setSidebarOpen(false)}
         />
       )}
+      
 
       {/* ── Sidebar ── */}
-      {!isCourseDetailsPage && (
+      {!isCourseDetailsPage && !isLeaveReviewPage && (
         <aside
           className={`shared-dashboard-sidebar ${sidebarOpen ? "sidebar-open" : ""
             }`}
@@ -137,7 +138,7 @@ function DashboardSharedLayout({
         <header className="shared-dashboard-topbar">
           {/* Left Section */}
           <div className="topbar-left">
-            {isCourseDetailsPage ? (
+            {isCourseDetailsPage || isLeaveReviewPage ? (
               <button
                 className="topbar-back-btn"
                 onClick={() => navigate("/student/dashboard")}

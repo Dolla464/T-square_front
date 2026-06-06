@@ -64,6 +64,9 @@ const DashboardProfile = lazy(
 const CourseDetails = lazy(
   () => import("./modules/student-dashboard/pages/CourseDetails/CourseDetails"),
 );
+const LeaveReview = lazy(
+  () => import("./modules/student-dashboard/pages/LeaveReview/LeaveReview"),
+);
 const NotificationsPage = lazy(
   () => import("./modules/shared-dashboard/Notifications/NotificationsPage"),
 );
@@ -335,6 +338,7 @@ function AppContent() {
                       element={<NotificationsPage />}
                     />
                     <Route path="course/:courseId" element={<CourseDetails />} />
+                    <Route path="review/:courseId" element={<LeaveReview />} />
                   </Route>
                 </Route>
 

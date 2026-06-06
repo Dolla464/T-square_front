@@ -133,6 +133,9 @@ function CourseDetails() {
   const handleCertificateClick = () => {
     navigate("/student/certificates");
   };
+  const handleReviewClick = () => {
+    navigate(`/student/review/${courseId}`);
+  };
   return (
     <div className="cd-page" dir={isArabic ? "rtl" : "ltr"}>
       <Helmet>
@@ -198,13 +201,21 @@ function CourseDetails() {
                 </button>
               )}
               {enrollment.status === "completed" && (
-                <button onClick={handleCertificateClick} className="cd-btn-certificate">
-                  <i
-                    className="bi bi-file-earmark-pdf me-1"
-                  ></i>
-                  {isArabic ? "عرض الشهادة" : "View Certificate"}
-                </button>
+                <>
+                  <button onClick={handleCertificateClick} className="cd-btn-certificate">
+                    <i
+                      className="bi bi-file-earmark-pdf me-1"
+                    ></i>
+                    {isArabic ? "عرض الشهادة" : "View Certificate"}
+                  </button>
+                  <button onClick={handleReviewClick} className="cd-btn-certificate">
+                    <i
+                      className="bi bi-file-earmark-text me-1"
+                    ></i>
+                    {isArabic ? "اترك تقييم" : "Leave Review"}
+                  </button>
 
+                </>
               )}
               {previews?.length > 0 && (
                 <button
