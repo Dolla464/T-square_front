@@ -1,5 +1,5 @@
 /* ================================================================
-   Shared Dashboard Layout CSS 
+   Shared Dashboard Layout CSS - Refined & Bulletproof
    ================================================================ */
 
 .shared-dashboard-wrapper {
@@ -23,7 +23,8 @@
   padding: 0;
   flex-shrink: 0;
   z-index: 100;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* تنعيم الحركة بشكل فيزيائي مريح */
+  will-change: transform; /* إجبار كارت الشاشة على تسريع حركة السايد بار في الموبايل */
   box-sizing: border-box;
   background-color: rgb(26, 26, 26);
   overflow: hidden; /* منع السايد بار بالكامل من عمل سكرول */
@@ -40,8 +41,8 @@
 }
 
 .sidebar-logo img {
-  height: 48px;
-  filter: brightness(0) invert(1); /* جعل اللوجو الدارك يظهر كأنه أبيض ليناسب الخلفية الغامقة */
+  height: 50px;
+  filter: grayscale(1) brightness(0) invert(1) contrast(10); /* جعل اللوجو الدارك يظهر كأنه أبيض ليناسب الخلفية الغامقة */
 }
 
 /* روابط التنقل (محتوى اللينكات - سكرول مستقل) */
@@ -125,7 +126,6 @@
   text-align: center;
 }
 
-
 .sidebar-logout-btn {
   color: #be1522 !important;
   display: flex;
@@ -135,7 +135,6 @@
   padding: 11px 14px;
   background: none;
   border: none;
-  color: #888;
   font-size: 0.88rem;
   font-weight: 500;
   cursor: pointer;
@@ -149,7 +148,6 @@
   color: #be1522;
 }
 
-
 /* ══════════════ Main Area ══════════════ */
 .shared-dashboard-main {
   flex: 1;
@@ -162,14 +160,11 @@
 }
 
 /* ══════════════ Topbar ══════════════ */
-
 .dash-page-title {
   font-size: 1.3rem;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
-
-
 }
 
 .shared-dashboard-topbar {
@@ -380,11 +375,19 @@
 
 /* ══════════════ Overlay (Mobile) ══════════════ */
 .shared-dashboard-overlay {
-  display: none;
+  display: none; /* مخفي افتراضياً لكي لا يغلق الشاشة */
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.5);
   z-index: 99;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+/* يظهر الـ Overlay فقط عندما تقوم بإضافة هذا الكلاس برمجياً عبر الـ JS عند فتح القائمة */
+.shared-dashboard-overlay.overlay-open {
+  display: block;
+  opacity: 1;
 }
 
 /* ══════════════ Responsive ══════════════ */
@@ -407,10 +410,6 @@
 
   .sidebar-toggle-btn {
     display: flex;
-  }
-  
-  .shared-dashboard-overlay {
-    display: block;
   }
   
   .shared-dashboard-content {

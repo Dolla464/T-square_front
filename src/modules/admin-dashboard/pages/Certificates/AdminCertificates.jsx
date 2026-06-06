@@ -391,7 +391,7 @@ function AdminCertificates() {
         show={showViewModal}
         onHide={() => setShowViewModal(false)}
         centered
-        size="md"
+        size="lg"
         className="cert-detail-modal"
       >
         <div
@@ -428,7 +428,7 @@ function AdminCertificates() {
                     src={previewUrl}
                     title="Certificate Preview"
                     width="100%"
-                    height="350px"
+                    height="400px"
                     style={{ border: "none", borderRadius: "8px" }}
                   />
                 ) : (

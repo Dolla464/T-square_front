@@ -26,46 +26,44 @@
 
 .gear-main {
     font-size: 4.5rem;
-    color: #c51c24;
     position: absolute;
     top: -5px;
     left: 0px;
     animation: spin 12s linear infinite;
     display: inline-block;
+}
+
+/* تطبيق الجراديانت على الـ before الخاص بالأيقونة لمنع اختفائها */
+.gear-main::before {
     background: linear-gradient(135deg, #c51c24 0%, #7e1015 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 4px 10px rgba(197, 28, 36, 0.1);
+    filter: drop-shadow(0 4px 10px rgba(197, 28, 36, 0.2));
 }
 
 .gear-sub {
     font-size: 2.5rem;
-    color: #4b5563;
     position: absolute;
     bottom: -5px;
     right: -10px;
     animation: spin-reverse 8s linear infinite;
     display: inline-block;
+}
+
+/* تطبيق الجراديانت على الـ before الخاص بالأيقونة الفرعية */
+.gear-sub::before {
     background: linear-gradient(135deg, #6b7280 0%, #374151 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 4px 10px rgba(75, 85, 99, 0.1);
+    filter: drop-shadow(0 4px 10px rgba(75, 85, 99, 0.2));
 }
 
 @keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 @keyframes spin-reverse {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(-360deg);
-    }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
 }

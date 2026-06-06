@@ -1,6 +1,6 @@
 import { useEffect, lazy, Suspense } from "react";
 import {
-  /* HashRouter */ BrowserRouter as Router,
+  BrowserRouter as Router,
   Routes,
   Route,
   useLocation,
@@ -12,6 +12,7 @@ import ScrollToTop from "./components/shared/ScrollToTop";
 import AppNavbar from "./components/layout/Navbar";
 import AppFooter from "./components/layout/Footer";
 import Home from "./pages/Home";
+
 const LoginPage = lazy(() => import("./pages/Login/LoginPage"));
 const SignupPage = lazy(() => import("./pages/Signup/SignupPage"));
 const ForgotPassword = lazy(
@@ -27,6 +28,7 @@ const VerifyEmailPage = lazy(
   () => import("./pages/VerifyEmail/VerifyEmailPage"),
 );
 const NotFoundPage = lazy(() => import("./pages/NotFound/NotFoundPage"));
+
 // استيراد ملفات البوتستراب
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap.rtl.min.css";
@@ -123,11 +125,12 @@ import AdminMessages from "./modules/admin-dashboard/pages/Messages/AdminMessage
 import MaintenancePage from "./pages/Maintenance/MaintenancePage";
 import InstructorOverview from "./modules/instructor-dashboard/pages/Overview/InstructorOverview";
 import InstructorLayout from "./modules/instructor-dashboard/layouts/InstractorLayout";
-// مكون فرعي للتحكم في عرض الـ Layout
+
+// مكون فرعي للتحكم في عرض الـ Layout والتوجيه
 function AppContent() {
   const { t, i18n } = useTranslation("common");
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, isMaintenance, loading } = useAuth();
 
   // تحديد الصفحات التي سيتم إخفاء النافبار والفوتر فيها
   const validRoutes = [
@@ -149,7 +152,12 @@ function AppContent() {
     location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/student");
 
+  // إذا كان الموقع قيد الصيانة والمستخدم ليس أدمن، نقوم بإخفاء الهيكل العام (Navbar/Footer) تلقائياً
+  const isEffectiveMaintenance =
+    !loading && isMaintenance && user?.role !== "admin";
+
   const hideLayout =
+    isEffectiveMaintenance ||
     !isValidRoute ||
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
@@ -180,84 +188,33 @@ function AppContent() {
       <Helmet>
         {/* Primary Meta */}
         <title>T-Square</title>
-
         <meta
           name="description"
           content="منصة تعليمية متخصصة في الكورسات التقنية والحلول الرقمية في مصر والسعودية. نقدم مسارات تدريبية عملية، تطوير مواقع وتطبيقات، وحلول برمجية تساعد الأفراد والشركات على النمو الرقمي بثقة. | A professional LMS platform providing technical courses and digital solutions in Egypt and Saudi Arabia."
         />
-
         <meta
           name="keywords"
-          content="
-            LMS Egypt,
-            LMS Saudi Arabia,
-            منصة تعليمية,
-            كورسات برمجة اونلاين,
-            تعلم البرمجة من الصفر,
-            software solutions Egypt,
-            digital solutions Saudi Arabia,
-            web development courses,
-            frontend courses,
-            backend courses,
-            full stack courses,
-            programming learning platform
-          "
+          content="LMS Egypt, LMS Saudi Arabia, منصة تعليمية, كورسات برمجة اونلاين, تعلم البرمجة من الصفر, software solutions Egypt, digital solutions Saudi Arabia, web development courses, frontend courses, backend courses, full stack courses, programming learning platform"
         />
-
         <meta name="author" content="T-Square" />
         <link rel="icon" href="/favicon-32x32.png" />
-
-        {/* Theme Color (Mobile UI) */}
         <meta name="theme-color" content="#000000" />
-
-        {/* Safari iOS Support */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-
-        {/* Open Graph (Facebook / WhatsApp / LinkedIn) */}
         <meta
           property="og:title"
           content="Professional LMS & Digital Solutions Platform"
         />
-
         <meta
           property="og:description"
           content="Learn modern tech skills and build real-world projects. نقدم كورسات تقنية وحلول رقمية للأفراد والشركات في مصر والسعودية."
         />
-
         <meta property="og:type" content="website" />
-
-        <meta
-          property="og:url"
-        // content="https://yourdomain.com"
-        />
-
-        <meta
-          property="og:image"
-        // content="https://yourdomain.com/preview.png"
-        />
-
-        {/* Twitter Preview */}
         <meta name="twitter:card" content="summary_large_image" />
-
-        <meta
-          name="twitter:title"
-        // content="LMS Platform | Programming Courses & Digital Solutions"
-        />
-
-        <meta
-          name="twitter:description"
-          content="Tech learning paths and digital transformation solutions for students and companies in Egypt & Saudi Arabia."
-        />
-
-        <meta
-          name="twitter:image"
-        // content="https://yourdomain.com/preview.png"
-        />
       </Helmet>
 
       <div className="min-h-screen">
-        {/* إظهار النافبار فقط فاللاندينج بيدج */}
+        {/* إظهار النافبار بناءً على الشروط الديناميكية */}
         {!hideLayout && (
           <AppNavbar
             isLoggedIn={!!user}
@@ -268,103 +225,129 @@ function AppContent() {
 
         <Suspense fallback={<LoadingSpiner />}>
           <Routes>
+            {/* المسارات المتاحة دائماً تحت أي ظرف للمسؤولين ولعرض شاشة الصيانة */}
             <Route path="/maintenance" element={<MaintenancePage />} />
-
-            {/* ADMIN */}
-            <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-              <Route
-                path="/admin"
-                element={
-                  <AdminSettingsProvider>
-                    <AdminLayout />
-                  </AdminSettingsProvider>
-                }
-              >
-                <Route index element={<AdminOverview />} />
-                <Route path="courses" element={<AdminCourses />} />
-                <Route path="categories" element={<AdminCategories />} />
-                <Route path="quizzes" element={<AdminQuizzes />} />
-                <Route path="quizzes/view-exam/:id" element={<ViewExam />} />
-                <Route path="quizzes/edit-exam/:id" element={<EditExam />} />
-                <Route path="groups" element={<AdminGroups />} />
-                <Route path="solutions" element={<AdminSolutions />} />
-                <Route path="students" element={<AdminStudents />} />
-                <Route path="instructors" element={<AdminInstructors />} />
-                <Route path="orders" element={<AdminOrders />} />
-                <Route path="analytics" element={<AdminAnalytics />} />
-                <Route path="certificates" element={<AdminCertificates />} />
-                <Route path="reviews" element={<AdminReviews />} />
-                <Route path="messages" element={<AdminMessages />} />
-                <Route path="notifications" element={<NotificationsPage />} />
-                <Route path="settings" element={<AdminSettings />} />
-              </Route>
-            </Route>
-            {/* INSTRUCTOR */}
-            <Route element={<ProtectedRoute allowedRoles={["instructor"]} />}>
-              <Route
-                path="/instructor"
-                element={
-                  <InstructorLayout />
-                }
-              >
-                <Route index element={<InstructorOverview />} />
-                <Route path="notifications" element={<NotificationsPage />} />
-
-              </Route>
-            </Route>
-
-            <Route path="/" element={<Home />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/forgot_password" element={<ForgotPassword />} />
-            <Route path="/update_password" element={<UpdatePassword />} />
-            <Route path="/verify-email" element={<VerifyEmailPage />} />
 
-            <Route path="/courses" element={<Courses />} />
-            <Route
-              path="/courses/course_details/:slug"
-              element={<DetailsCourse />}
-            />
+            {/* قفل الشاشة وحقن التوجيه الإجباري إذا كانت الصيانة نشطة والمستخدم ليس أدمن */}
+            {isEffectiveMaintenance ? (
+              <Route
+                path="*"
+                element={<Navigate to="/maintenance" replace />}
+              />
+            ) : (
+              // المسارات الطبيعية للموقع تعمل عندما يكون الوضع طبيعياً أو عندما يكون المستخدم Admin
+              <>
+                {/* ADMIN */}
+                <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+                  <Route
+                    path="/admin"
+                    element={
+                      <AdminSettingsProvider>
+                        <AdminLayout />
+                      </AdminSettingsProvider>
+                    }
+                  >
+                    <Route index element={<AdminOverview />} />
+                    <Route path="courses" element={<AdminCourses />} />
+                    <Route path="categories" element={<AdminCategories />} />
+                    <Route path="quizzes" element={<AdminQuizzes />} />
+                    <Route
+                      path="quizzes/view-exam/:id"
+                      element={<ViewExam />}
+                    />
+                    <Route
+                      path="quizzes/edit-exam/:id"
+                      element={<EditExam />}
+                    />
+                    <Route path="groups" element={<AdminGroups />} />
+                    <Route path="solutions" element={<AdminSolutions />} />
+                    <Route path="students" element={<AdminStudents />} />
+                    <Route path="instructors" element={<AdminInstructors />} />
+                    <Route path="orders" element={<AdminOrders />} />
+                    <Route path="analytics" element={<AdminAnalytics />} />
+                    <Route
+                      path="certificates"
+                      element={<AdminCertificates />}
+                    />
+                    <Route path="reviews" element={<AdminReviews />} />
+                    <Route path="messages" element={<AdminMessages />} />
+                    <Route
+                      path="notifications"
+                      element={<NotificationsPage />}
+                    />
+                    <Route path="settings" element={<AdminSettings />} />
+                  </Route>
+                </Route>
 
-            <Route
-              path="/payment"
-              element={<Navigate to="/courses" replace />}
-            />
-            <Route path="/payment/:slug" element={<Payment />} />
-
-            <Route path="/solutions" element={<Solutions />} />
-            <Route path="/team" element={<Team />} />
-            <Route path="/contact" element={<Contact />} />
-
-
-
-
-
-            {/* STUDENT */}
-            <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
-              <Route path="/student" element={<DashboardLayout />}>
-                <Route index element={<Navigate to="dashboard" replace />} />
-                <Route path="dashboard" element={<DashboardHome />} />
+                {/* INSTRUCTOR */}
                 <Route
-                  path="certificates"
-                  element={<DashboardCertificates />}
+                  element={<ProtectedRoute allowedRoles={["instructor"]} />}
+                >
+                  <Route path="/instructor" element={<InstructorLayout />}>
+                    <Route index element={<InstructorOverview />} />
+                    <Route
+                      path="notifications"
+                      element={<NotificationsPage />}
+                    />
+                  </Route>
+                </Route>
+
+                {/* PUBLIC ROUTES */}
+                <Route path="/" element={<Home />} />
+                <Route path="/signup" element={<SignupPage />} />
+                <Route path="/forgot_password" element={<ForgotPassword />} />
+                <Route path="/update_password" element={<UpdatePassword />} />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route
+                  path="/courses/course_details/:slug"
+                  element={<DetailsCourse />}
                 />
-                <Route path="quizzes" element={<DashboardQuizzes />} />
-                <Route path="quizzes/:quizId" element={<QuizExamPage />} />
-                <Route path="profile" element={<DashboardProfile />} />
-                <Route path="notifications" element={<NotificationsPage />} />
-                <Route path="course/:slug" element={<CourseDetails />} />
-              </Route>
 
-            </Route>
-            <Route path="*" element={<NotFoundPage />} />
+                <Route
+                  path="/payment"
+                  element={<Navigate to="/courses" replace />}
+                />
+                <Route path="/payment/:slug" element={<Payment />} />
+
+                <Route path="/solutions" element={<Solutions />} />
+                <Route path="/team" element={<Team />} />
+                <Route path="/contact" element={<Contact />} />
+
+                {/* STUDENT */}
+                <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
+                  <Route path="/student" element={<DashboardLayout />}>
+                    <Route
+                      index
+                      element={<Navigate to="dashboard" replace />}
+                    />
+                    <Route path="dashboard" element={<DashboardHome />} />
+                    <Route
+                      path="certificates"
+                      element={<DashboardCertificates />}
+                    />
+                    <Route path="quizzes" element={<DashboardQuizzes />} />
+                    <Route path="quizzes/:quizId" element={<QuizExamPage />} />
+                    <Route path="profile" element={<DashboardProfile />} />
+                    <Route
+                      path="notifications"
+                      element={<NotificationsPage />}
+                    />
+                    <Route path="course/:slug" element={<CourseDetails />} />
+                  </Route>
+                </Route>
+
+                {/* 404 NotFound */}
+                <Route path="*" element={<NotFoundPage />} />
+              </>
+            )}
           </Routes>
-
         </Suspense>
 
-        {/* إظهار الفوتر فقط إذا لم نكن في صفحة اللوجين */}
+        {/* إظهار الفوتر بناءً على الشروط الديناميكية */}
         {!hideLayout && <AppFooter />}
-      </div >
+      </div>
     </>
   );
 }
@@ -374,7 +357,7 @@ function App() {
     <AuthProvider>
       <Router>
         <ErrorBoundary>
-          {/* مكون الإشعارات العالمي - يجب أن يكون على مستوى الـ App */}
+          {/* مكون الإشعارات العالمي */}
           <Toaster position="top-center" reverseOrder={false} />
           <AppContent />
           <ScrollToTop />

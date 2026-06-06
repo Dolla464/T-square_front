@@ -8,8 +8,8 @@ import { showLogoutConfirm } from "../shared/ConfirmDialog/confirmDialog";
 import { toastCustom } from "../shared/Toaster/toaster";
 import "./Navbar.css";
 
-import logoWhite from "../../assets/logo-white.png";
-import logoDark from "../../assets/logo-dark.png";
+import logoWhite from "../../assets/logo-white.webp";
+import logoDark from "../../assets/logo-dark.webp";
 import { isArabic } from "../../i18n";
 
 function AppNavbar({ isLoggedIn, userName }) {
