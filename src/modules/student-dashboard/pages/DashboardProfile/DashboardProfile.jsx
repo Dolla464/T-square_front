@@ -73,7 +73,6 @@ function DashboardProfile() {
     // بناء الـ FormData يدوياً لضمان الـ Binary
     const formData = new FormData();
     formData.append("avatar", file);
-    formData.append("_method", "PUT");
 
     setSaveLoading(true);
     try {
