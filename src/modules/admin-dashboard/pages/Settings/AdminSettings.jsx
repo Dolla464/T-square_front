@@ -11,7 +11,7 @@ import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import "./settings.css";
 
 function AdminSettings() {
-  const { i18n } = useTranslation("adminDashboard");
+  const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
 
   // استدعاء الهوك المخصص لإدارة حالة الميديا والاتصال بالـ APIs المحددة
@@ -40,6 +40,7 @@ function AdminSettings() {
 
   // حالة لتعديل وإدارة الإعدادات العامة (General Settings) محلياً للمزامنة مع قاعدة البيانات
   const [isEditingGeneral, setIsEditingGeneral] = useState(false);
+  const [heroPreviewLang, setHeroPreviewLang] = useState("en");
   const [localGeneralSettings, setLocalGeneralSettings] = useState({
     site_name: "",
     contact_email: "",
@@ -343,6 +344,18 @@ function AdminSettings() {
     }
   };
 
+  // تهيئة دوال حفظ وإلغاء تعديل نصوص الهيرو بشكل منفصل عن الإعدادات العامة
+  const handleSaveHero = async () => {
+    const success = await saveGeneralSettings(localGeneralSettings);
+    if (!success && hookGeneralSettings) {
+      setLocalGeneralSettings({ ...hookGeneralSettings });
+    }
+  };
+
+  const handleCancelHero = () => {
+    if (hookGeneralSettings) setLocalGeneralSettings({ ...hookGeneralSettings });
+  };
+
   // تهيئة الصور لشبكة ألبوم الصور التفاعلي (Lightbox)
   const discoveryPhotos = Array.isArray(discoveryMedia)
     ? discoveryMedia.map((url) => ({ src: getImgSrc(url) }))
@@ -525,150 +538,6 @@ function AdminSettings() {
                 )}
               </div>
 
-              {/* Hero Title (English) */}
-              <div className="general-settings-row">
-                <span className="general-settings-label">
-                  {isArabic ? "عنوان الهيرو (إنجليزي)" : "Hero Title (English)"}
-                </span>
-                {isEditingGeneral ? (
-                  <input
-                    type="text"
-                    className="form-control form-control-sm w-50"
-                    value={localGeneralSettings.hero_title_en}
-                    onChange={(e) =>
-                      setLocalGeneralSettings({
-                        ...localGeneralSettings,
-                        hero_title_en: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
-                  <span className="general-settings-value text-secondary">
-                    {localGeneralSettings.hero_title_en}
-                  </span>
-                )}
-              </div>
-
-              {/* Hero Title (Arabic) */}
-              <div className="general-settings-row">
-                <span className="general-settings-label">
-                  {isArabic ? "عنوان الهيرو (عربي)" : "Hero Title (Arabic)"}
-                </span>
-                {isEditingGeneral ? (
-                  <input
-                    type="text"
-                    className="form-control form-control-sm w-50"
-                    value={localGeneralSettings.hero_title_ar}
-                    onChange={(e) =>
-                      setLocalGeneralSettings({
-                        ...localGeneralSettings,
-                        hero_title_ar: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
-                  <span className="general-settings-value text-secondary">
-                    {localGeneralSettings.hero_title_ar}
-                  </span>
-                )}
-              </div>
-
-              {/* Hero Title Highlight (English) */}
-              <div className="general-settings-row">
-                <span className="general-settings-label">
-                  {isArabic ? "الكلمة المميزة للهيرو (إنجليزي)" : "Hero Title Highlight (English)"}
-                </span>
-                {isEditingGeneral ? (
-                  <input
-                    type="text"
-                    className="form-control form-control-sm w-50"
-                    value={localGeneralSettings.hero_title_highlight_en}
-                    onChange={(e) =>
-                      setLocalGeneralSettings({
-                        ...localGeneralSettings,
-                        hero_title_highlight_en: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
-                  <span className="general-settings-value text-secondary">
-                    {localGeneralSettings.hero_title_highlight_en}
-                  </span>
-                )}
-              </div>
-
-              {/* Hero Title Highlight (Arabic) */}
-              <div className="general-settings-row">
-                <span className="general-settings-label">
-                  {isArabic ? "الكلمة المميزة للهيرو (عربي)" : "Hero Title Highlight (Arabic)"}
-                </span>
-                {isEditingGeneral ? (
-                  <input
-                    type="text"
-                    className="form-control form-control-sm w-50"
-                    value={localGeneralSettings.hero_title_highlight_ar}
-                    onChange={(e) =>
-                      setLocalGeneralSettings({
-                        ...localGeneralSettings,
-                        hero_title_highlight_ar: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
-                  <span className="general-settings-value text-secondary">
-                    {localGeneralSettings.hero_title_highlight_ar}
-                  </span>
-                )}
-              </div>
-
-              {/* Hero Subtitle (English) */}
-              <div className="general-settings-row">
-                <span className="general-settings-label">
-                  {isArabic ? "العنوان الفرعي للهيرو (إنجليزي)" : "Hero Subtitle (English)"}
-                </span>
-                {isEditingGeneral ? (
-                  <textarea
-                    rows={2}
-                    className="form-control form-control-sm w-50"
-                    value={localGeneralSettings.hero_subtitle_en}
-                    onChange={(e) =>
-                      setLocalGeneralSettings({
-                        ...localGeneralSettings,
-                        hero_subtitle_en: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
-                  <span className="general-settings-value text-secondary">
-                    {localGeneralSettings.hero_subtitle_en}
-                  </span>
-                )}
-              </div>
-
-              {/* Hero Subtitle (Arabic) */}
-              <div className="general-settings-row">
-                <span className="general-settings-label">
-                  {isArabic ? "العنوان الفرعي للهيرو (عربي)" : "Hero Subtitle (Arabic)"}
-                </span>
-                {isEditingGeneral ? (
-                  <textarea
-                    rows={2}
-                    className="form-control form-control-sm w-50"
-                    value={localGeneralSettings.hero_subtitle_ar}
-                    onChange={(e) =>
-                      setLocalGeneralSettings({
-                        ...localGeneralSettings,
-                        hero_subtitle_ar: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
-                  <span className="general-settings-value text-secondary">
-                    {localGeneralSettings.hero_subtitle_ar}
-                  </span>
-                )}
-              </div>
-
               {/* Maintenance Mode */}
               <div className="general-settings-row d-flex justify-content-between align-items-center py-3 border-bottom">
                 <div className="d-flex flex-column">
@@ -743,99 +612,287 @@ function AdminSettings() {
           {/* ────────────────────────────────────────────────────────────────
               1. سكشن الهيرو (Hero Section)
               ──────────────────────────────────────────────────────────────── */}
-          <div className="settings-card">
+
+          <div className="settings-card hero-unified-card">
+            {/* Card Header */}
             <div className="settings-section-title">
-              <i className="bi bi-image text-danger fs-4"></i>
+              <i className="bi bi-display text-danger fs-4"></i>
               <span>
                 {isArabic
-                  ? "صورة الهيرو الرئيسية (Hero Section)"
-                  : "Main Hero Background"}
+                  ? "محتوى وصورة الهيرو الرئيسية (Hero Section)"
+                  : "Hero Section Content & Background"}
               </span>
             </div>
             <div className="settings-title-divider"></div>
 
-            <div className="row g-4 align-items-center">
-              {/* العمود الأيمن: الصورة الحالية مع إمكانية التكبير */}
-              <div className="col-md-6 order-md-2">
-                <label className="form-label fw-bold text-secondary mb-2">
-                  {isArabic
-                    ? "الصورة الحالية على الموقع"
-                    : "Current Active Image"}
-                </label>
-                <div className="hero-current-preview shadow-sm position-relative">
-                  {heroImage ? (
-                    <>
-                      <img
-                        src={getImgSrc(heroImage)}
-                        alt="Hero Section"
-                        loading="lazy"
-                      />
-                      {/* طبقة الأوفرلاي التفاعلية لتكبير صورة الهيرو */}
-                      <div className="about-image-overlay d-flex justify-content-center align-items-center">
+            <div className="row g-4 align-items-stretch">
+              {/* ── Left: Live Preview (real header look) ── */}
+              <div className="col-lg-7 d-flex flex-column">
+                <div
+                  className={`hero-live-stage${heroImage ? "" : " no-image"}`}
+                  style={
+                    heroImage
+                      ? { backgroundImage: `url(${getImgSrc(heroImage)})` }
+                      : undefined
+                  }
+                >
+                  {/* readability overlay */}
+                  <div className="hero-live-overlay"></div>
+
+                  {/* top toolbar: live badge + lang toggle + compact uploader */}
+                  <div className="hero-live-toolbar">
+                    <div className="hero-mock-live-badge">
+                      <span className="live-dot"></span>
+                      {isArabic ? "معاينة مباشرة" : "Live Preview"}
+                    </div>
+
+                    <div className="hero-live-tools">
+                      <div className="hero-mock-lang-toggle">
                         <button
                           type="button"
-                          className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
-                          style={{
-                            width: "48px",
-                            height: "48px",
-                            transition: "transform 0.2s ease",
-                          }}
-                          onClick={() => {
-                            setLightboxSlides([{ src: getImgSrc(heroImage) }]);
-                            setLightboxIndex(0);
-                          }}
-                          title={isArabic ? "عرض تكبير" : "Zoom View"}
+                          className={`hero-mock-lang-btn${heroPreviewLang === "en" ? " active" : ""}`}
+                          onClick={() => setHeroPreviewLang("en")}
                         >
-                          <i className="bi bi-eye-fill text-dark fs-4"></i>
+                          EN
+                        </button>
+                        <button
+                          type="button"
+                          className={`hero-mock-lang-btn${heroPreviewLang === "ar" ? " active" : ""}`}
+                          onClick={() => setHeroPreviewLang("ar")}
+                        >
+                          AR
                         </button>
                       </div>
-                    </>
-                  ) : (
-                    <div className="text-muted small d-flex flex-column align-items-center">
-                      <i className="bi bi-image-fill fs-2 mb-2"></i>
-                      <span>
-                        {isArabic
-                          ? "لا توجد صورة حالية مرفوعة"
-                          : "No active hero image uploaded"}
+
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleHeroChange}
+                        ref={heroInputRef}
+                        id="heroUploadInput"
+                        hidden
+                      />
+                      <label
+                        htmlFor="heroUploadInput"
+                        className="hero-compact-upload"
+                        title={isArabic ? "تغيير الخلفية" : "Change background"}
+                        style={{
+                          cursor: uploading ? "not-allowed" : "pointer",
+                        }}
+                      >
+                        <i className="bi bi-camera-fill"></i>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* overlaid hero text */}
+                  <div
+                    className="hero-live-content"
+                    dir={heroPreviewLang === "ar" ? "rtl" : "ltr"}
+                  >
+                    <h2 className="hero-live-title">
+                      {localGeneralSettings[
+                        `hero_title_${heroPreviewLang}`
+                      ] || (
+                        <span className="hero-live-placeholder">
+                          {heroPreviewLang === "ar"
+                            ? "عنوان الهيرو"
+                            : "Hero Title"}
+                        </span>
+                      )}{" "}
+                      {localGeneralSettings[
+                        `hero_title_highlight_${heroPreviewLang}`
+                      ] && (
+                        <span className="hero-live-highlight">
+                          {
+                            localGeneralSettings[
+                              `hero_title_highlight_${heroPreviewLang}`
+                            ]
+                          }
+                        </span>
+                      )}
+                    </h2>
+                    <p className="hero-live-subtitle">
+                      {localGeneralSettings[
+                        `hero_subtitle_${heroPreviewLang}`
+                      ] || (
+                        <span className="hero-live-placeholder">
+                          {heroPreviewLang === "ar"
+                            ? "النص الوصفي للهيرو يظهر هنا"
+                            : "Hero subtitle text appears here"}
+                        </span>
+                      )}
+                    </p>
+                    {/* Multi-language CTA buttons block dynamically translated */}
+                    <div className="hero-live-cta d-flex gap-2">
+                      <span className="btn btn-danger btn-sm px-3 rounded-pill fw-bold">
+                        {t("hero_live_cta.contact_us")}
+                      </span>
+                      <span className="btn btn-outline-light btn-sm px-3 rounded-pill fw-bold">
+                        {t("hero_live_cta.explore_courses")}
                       </span>
                     </div>
-                  )}
+                  </div>
                 </div>
+
+                <p className="hero-upload-hint">
+                  <i className="bi bi-info-circle me-1"></i>
+                  {isArabic
+                    ? "اضغط على أيقونة الكاميرا لتغيير صورة الخلفية (PNG / JPG / WEBP — بحد أقصى 3 ميجابايت)"
+                    : "Click the camera icon to change the background image (PNG / JPG / WEBP — max 3MB)"}
+                </p>
               </div>
 
-              {/* العمود الأيسر: حقل رفع الصورة الجديدة (ديفولت ريبليس) */}
-              <div className="col-md-6 order-md-1">
-                <label className="form-label fw-bold text-secondary mb-2">
-                  {isArabic
-                    ? "رفع صورة هيرو جديدة (استبدال)"
-                    : "Upload New Hero Image (Replace)"}
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleHeroChange}
-                  ref={heroInputRef}
-                  id="heroUploadInput"
-                  hidden
-                />
-                <label
-                  htmlFor="heroUploadInput"
-                  className="settings-file-uploader shadow-sm"
-                  style={{ cursor: uploading ? "not-allowed" : "pointer" }}
-                >
-                  <i className="bi bi-cloud-arrow-up-fill"></i>
-                  <h5 className="fw-bold mb-1">
-                    {isArabic
-                      ? "اضغط لرفع صورة جديدة"
-                      : "Click to upload a new image"}
-                  </h5>
-                  <p className="text-muted small mb-0">
-                    {isArabic
-                      ? "PNG, JPG أو WEBP (الحد الأقصى 3 ميجابايت)"
-                      : "PNG, JPG or WEBP (Max size 3MB)"}
-                  </p>
-                </label>
+              {/* ── Right: Text fields (EN + AR) ── */}
+              <div className="col-lg-5 d-flex flex-column">
+                <div className="hero-fields-wrapper flex-grow-1">
+                  {/* English */}
+                  <div className="hero-lang-section lang-en">
+                    <div className="hero-lang-section-title">
+                      <i className="bi bi-translate"></i>
+                      English Content
+                    </div>
+                    <div className="d-flex flex-column gap-2">
+                      <div>
+                        <label className="hero-field-label">
+                          {isArabic ? "العنوان الرئيسي" : "Main Title"}
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm hero-text-input"
+                          placeholder="e.g. Discover Your Learning"
+                          value={localGeneralSettings.hero_title_en}
+                          onChange={(e) =>
+                            setLocalGeneralSettings({
+                              ...localGeneralSettings,
+                              hero_title_en: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="hero-field-label">
+                          {isArabic ? "النص المميز" : "Highlighted Text"}
+                          <span className="hero-highlight-badge">
+                            {isArabic ? "ملون" : "Colored"}
+                          </span>
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm hero-text-input hero-highlight-input"
+                          placeholder="e.g. Potential"
+                          value={localGeneralSettings.hero_title_highlight_en}
+                          onChange={(e) =>
+                            setLocalGeneralSettings({
+                              ...localGeneralSettings,
+                              hero_title_highlight_en: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="hero-field-label">
+                          {isArabic ? "النص الوصفي" : "Subtitle"}
+                        </label>
+                        <textarea
+                          rows={2}
+                          className="form-control form-control-sm hero-text-input"
+                          placeholder="Short description under the title..."
+                          value={localGeneralSettings.hero_subtitle_en}
+                          onChange={(e) =>
+                            setLocalGeneralSettings({
+                              ...localGeneralSettings,
+                              hero_subtitle_en: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Arabic */}
+                  <div className="hero-lang-section lang-ar" dir="rtl">
+                    <div className="hero-lang-section-title">
+                      <i className="bi bi-translate"></i>
+                      المحتوى العربي
+                    </div>
+                    <div className="d-flex flex-column gap-2">
+                      <div>
+                        <label className="hero-field-label">
+                          العنوان الرئيسي
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm hero-text-input"
+                          placeholder="مثال: اكتشف إمكاناتك"
+                          value={localGeneralSettings.hero_title_ar}
+                          onChange={(e) =>
+                            setLocalGeneralSettings({
+                              ...localGeneralSettings,
+                              hero_title_ar: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="hero-field-label">
+                          النص المميز
+                          <span className="hero-highlight-badge">ملون</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm hero-text-input hero-highlight-input"
+                          placeholder="مثال: التعليمية"
+                          value={localGeneralSettings.hero_title_highlight_ar}
+                          onChange={(e) =>
+                            setLocalGeneralSettings({
+                              ...localGeneralSettings,
+                              hero_title_highlight_ar: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="hero-field-label">النص الوصفي</label>
+                        <textarea
+                          rows={2}
+                          className="form-control form-control-sm hero-text-input"
+                          placeholder="وصف قصير يظهر تحت العنوان..."
+                          value={localGeneralSettings.hero_subtitle_ar}
+                          onChange={(e) =>
+                            setLocalGeneralSettings({
+                              ...localGeneralSettings,
+                              hero_subtitle_ar: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
+
+            {/* ── Unified footer actions ── */}
+            <div className="hero-card-footer">
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-secondary px-3 rounded-3 fw-bold"
+                onClick={handleCancelHero}
+                disabled={uploading}
+              >
+                <i className="bi bi-arrow-counterclockwise me-1"></i>
+                {isArabic ? "تراجع" : "Reset"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-danger px-4 rounded-3 fw-bold"
+                onClick={handleSaveHero}
+                disabled={uploading}
+              >
+                <i className="bi bi-check-lg me-1"></i>
+                {isArabic ? "حفظ التغييرات" : "Save Changes"}
+              </button>
             </div>
           </div>
 

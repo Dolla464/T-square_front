@@ -301,5 +301,9 @@
     "create_failed": "فشل في الإنشاء",
     "update_failed": "فشل في التعديل",
     "delete_failed": "فشل في الحذف"
+  },
+  "hero_live_cta": {
+    "contact_us": "تواصل معنا",
+    "explore_courses": "تصفح الكورسات"
   }
 }

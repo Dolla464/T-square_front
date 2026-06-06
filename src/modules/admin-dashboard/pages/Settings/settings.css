@@ -106,59 +106,240 @@
 }
 
 /* --------------------------------------------------------------------------
-   سكشن الهيرو (Hero Section) - تصميم مقسم لعمودين
+   سكشن الهيرو الموحّد (Unified Hero Section) - معاينة مباشرة + حقول التحرير
    -------------------------------------------------------------------------- */
 
-/* إطار عرض صورة الهيرو الحالية */
-.hero-current-preview {
-  height: 250px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 2px solid #e5e7eb;
-  background-color: #f3f4f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* مسرح المعاينة المباشرة: الخلفية = صورة الهيرو الفعلية على الموقع */
+.hero-live-stage {
   position: relative;
-  transition: border-color 0.3s ease;
-}
-
-.hero-current-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* حقل الرفع المخصص (Uploader) المستوحى من تفاصيل الكورس */
-.settings-file-uploader {
-  border: 2px dashed #d1d5db;
-  border-radius: 12px;
-  background-color: #fafafa;
-  padding: 2rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  height: 250px;
+  flex: 1 1 auto;
+  min-height: 320px;
+  border-radius: 14px;
+  overflow: hidden;
+  background-color: #0f172a;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* خلفية بديلة أنيقة في حال عدم وجود صورة */
+.hero-live-stage.no-image {
+  background-image: linear-gradient(135deg, #0f172a 0%, #1e293b 65%, #0f172a 100%);
+}
+
+/* طبقة التعتيم لضمان وضوح النص فوق أي صورة */
+.hero-live-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.35) 0%,
+    rgba(15, 23, 42, 0.55) 55%,
+    rgba(15, 23, 42, 0.85) 100%
+  );
+  z-index: 1;
+}
+
+/* الشريط العلوي: شارة المعاينة + التبديل + رفع مدمج */
+.hero-live-toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  gap: 0.75rem;
+}
+
+.hero-live-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* شارة المعاينة المباشرة */
+.hero-mock-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(15, 23, 42, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  color: #fca5a5;
+  padding: 0.3rem 0.8rem;
+  border-radius: 50px;
+}
+
+.hero-mock-live-badge .live-dot {
+  width: 6px;
+  height: 6px;
+  min-width: 6px;
+  background: #f87171;
+  border-radius: 50%;
+  animation: hero-pulse-dot 1.8s ease-in-out infinite;
+}
+
+@keyframes hero-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.7); }
+}
+
+/* زر تبديل لغة المعاينة */
+.hero-mock-lang-toggle {
+  display: flex;
+  gap: 0.25rem;
+  background: rgba(15, 23, 42, 0.5);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-radius: 8px;
+  padding: 0.15rem;
+}
+
+.hero-mock-lang-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 0.18rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.03em;
+}
+
+.hero-mock-lang-btn.active {
+  background: #be1522;
+  color: #fff;
+}
+
+.hero-mock-lang-btn:hover:not(.active) {
+  color: #fff;
+}
+
+/* زر الرفع المدمج (أيقونة كاميرا) */
+.hero-compact-upload {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.5);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  margin: 0;
 }
 
-.settings-file-uploader:hover {
+.hero-compact-upload:hover {
+  background: #be1522;
   border-color: #be1522;
-  background-color: rgba(190, 21, 34, 0.02);
+  transform: translateY(-1px);
 }
 
-.settings-file-uploader i {
-  font-size: 3rem;
+/* المحتوى النصي المعروض فوق الخلفية */
+.hero-live-content {
+  position: relative;
+  z-index: 2;
+  padding: 1.5rem 1.75rem 1.75rem;
+}
+
+.hero-live-title {
+  font-size: clamp(1.25rem, 2.4vw, 1.9rem);
+  font-weight: 800;
+  line-height: 1.25;
+  color: #f8fafc;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+  margin-bottom: 0.6rem;
+}
+
+.hero-live-highlight {
+  color: #f87171;
+}
+
+.hero-live-subtitle {
+  font-size: clamp(0.82rem, 1.3vw, 0.95rem);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+  max-width: 90%;
+  margin-bottom: 1.1rem;
+}
+
+.hero-live-placeholder {
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* أزرار CTA وهمية للإيحاء بشكل الهيدر الحقيقي */
+.hero-live-cta {
+  display: flex;
+  color: #ffffff;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.hero-live-btn {
+  display: inline-block;
+  height: 30px;
+  /* width: 96px; */
+  border-radius: 8px;
+  background: #be1522;
+  box-shadow: 0 4px 12px rgba(190, 21, 34, 0.4);
+}
+
+.hero-live-btn.ghost {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  /* width: 74px; */
+  box-shadow: none;
+}
+
+/* تلميح أسفل المعاينة */
+.hero-upload-hint {
+  font-size: 0.78rem;
   color: #9ca3af;
-  margin-bottom: 1rem;
-  transition: color 0.3s ease;
+  margin: 0.65rem 0 0;
 }
 
-.settings-file-uploader:hover i {
-  color: #be1522;
+/* حاوية حقول التحرير (EN + AR) */
+.hero-fields-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+/* تذييل البطاقة الموحّد لأزرار الحفظ */
+.hero-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid #eaeaea;
+}
+
+[dir="rtl"] .hero-card-footer {
+  justify-content: flex-start;
 }
 
 /* --------------------------------------------------------------------------
@@ -208,8 +389,7 @@
   z-index: 2;
 }
 
-.about-image-item:hover .about-image-overlay,
-.hero-current-preview:hover .about-image-overlay {
+.about-image-item:hover .about-image-overlay {
   opacity: 1;
 }
 
@@ -316,11 +496,6 @@
     padding: 1.25rem;
   }
 
-  .hero-current-preview,
-  .settings-file-uploader {
-    height: 200px;
-  }
-
   .about-images-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 1rem;
@@ -356,8 +531,96 @@
   color: #be1522 !important;
 }
 
-/* تنسيق متناسق لإطار شعار المنصة وصور الهيرو لتبدو مدمجة وبراقة */
-.hero-current-preview {
-  background-color: #f9fafb !important;
-  border: 1px solid #eaeaea !important;
+/* ==========================================================================
+   Hero Section — Text Edit Fields (EN + AR)
+   ========================================================================== */
+
+.hero-lang-section {
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+
+.hero-lang-section.lang-en {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+}
+
+.hero-lang-section.lang-ar {
+  background: #fff1f2;
+  border: 1px solid #fecaca;
+}
+
+.hero-lang-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.hero-lang-section.lang-en .hero-lang-section-title {
+  color: #0369a1;
+}
+
+.hero-lang-section.lang-ar .hero-lang-section-title {
+  color: #be1522;
+}
+
+.hero-field-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 0.3rem;
+}
+
+.hero-highlight-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: rgba(190, 21, 34, 0.1);
+  color: #be1522;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+.hero-text-input {
+  border-radius: 8px !important;
+  border-color: #d1d5db !important;
+  font-size: 0.88rem !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.hero-text-input:focus {
+  border-color: #be1522 !important;
+  box-shadow: 0 0 0 3px rgba(190, 21, 34, 0.1) !important;
+}
+
+.hero-highlight-input {
+  border-left: 3px solid #be1522 !important;
+}
+
+[dir="rtl"] .hero-highlight-input {
+  border-left: none !important;
+  border-right: 3px solid #be1522 !important;
+}
+
+/* تحسينات الموبايل للهيرو */
+@media (max-width: 768px) {
+  .hero-live-stage {
+    min-height: 240px;
+  }
+
+  .hero-live-content {
+    padding: 1.25rem 1.1rem 1.35rem;
+  }
+
+  .hero-card-footer {
+    flex-wrap: wrap;
+  }
 }

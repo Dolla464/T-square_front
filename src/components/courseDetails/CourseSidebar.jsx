@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { FaPhone } from "react-icons/fa";
-import { Link, Navigate } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import axiosClient from "../../api/axios";
 import { useState } from "react";
@@ -11,6 +10,7 @@ const CourseSidebar = ({ course }) => {
   const { user } = useAuth();
   const isArabic = i18n?.language === "ar";
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [isChecking, setIsChecking] = useState(false);
 
@@ -20,9 +20,8 @@ const CourseSidebar = ({ course }) => {
 
   // 1. تعديل الدالة لتصبح المسؤولة بالكامل عن فحص التمكين وتوجيه المستخدم
   const handleEnrollmentProcess = async () => {
-    // إذا لم يكن مسجلاً، وجهه فوراً لصفحة تسجيل الدخول واقطع تنفيذ الدالة
     if (!user) {
-      navigate("/login");
+      navigate("/login", { state: { from: location.pathname } });
       return;
     }
 
