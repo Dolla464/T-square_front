@@ -41,33 +41,37 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // ── جلب حالة الصيانة من السيرفر بشكل ديناميكي ──
-  const checkMaintenanceStatus = useCallback(async () => {
-    try {
-      const response = await axiosClient.get("/settings/maintenance_mode");
+const checkMaintenanceStatus = useCallback(async () => {
+  try {
+    const response = await axiosClient.get("/settings/maintenance_mode");
 
-      // console.log("Maintenance API Response:", response.data);
+    if (response?.data?.data) {
+      const maintenanceValue = response.data.data.value;
 
-      if (response.data && response.data.data) {
-        const maintenanceValue = response.data.data.value;
+      const isTrueMaintenance =
+        maintenanceValue === true ||
+        maintenanceValue === 1 ||
+        maintenanceValue === "1" ||
+        maintenanceValue === "true";
 
-        // تحويل القيمة لـ Boolean حقيقي للتأكيد
-        const isTrueMaintenance =
-          maintenanceValue === true ||
-          maintenanceValue === 1 ||
-          maintenanceValue === "1" ||
-          maintenanceValue === "true";
+      setIsMaintenance((prev) => {
+        // 🧠 منع إعادة render غير ضروري لو نفس القيمة
+        if (prev === isTrueMaintenance) return prev;
+        return isTrueMaintenance;
+      });
 
-        setIsMaintenance(isTrueMaintenance);
-        // console.log("Is Maintenance Mode Active? ", isTrueMaintenance);
-
-        return isTrueMaintenance; // إرجاع القيمة مباشرة للاستخدام الفوري عند الـ await
-      }
-      return false;
-    } catch (error) {
-      console.error("Failed to fetch maintenance status:", error);
-      return false;
+      return isTrueMaintenance;
     }
-  }, []);
+
+    return false;
+  } catch (error) {
+    console.error("Failed to fetch maintenance status:", error);
+
+    // 🚑 مهم جدًا: ما تعملش fallback يخلي app يدخل loop
+    // رجّع آخر state بدل false ثابت
+    return isMaintenance ?? false;
+  }
+}, [isMaintenance]);
 
   // ── تهيئة التطبيق وفحص التوكن والصيانة عند الإقلاع ──
   useEffect(() => {

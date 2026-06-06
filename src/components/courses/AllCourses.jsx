@@ -32,8 +32,10 @@ function AllCourses() {
       isMounted.current = true;
       return;
     }
+  }, []);
 
-    const delayDebounceFn = setTimeout(() => {
+  useEffect(() => {
+    const handler = setTimeout(() => {
       filterCourses({
         per_page: coursesPerPage,
         category_id: selectedCategoryId,
@@ -42,8 +44,8 @@ function AllCourses() {
       });
     }, 500);
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm]);
+    return () => clearTimeout(handler);
+  }, [searchTerm, selectedCategoryId, coursesPerPage]);
 
   useEffect(() => {
     loadInitialData({
@@ -76,13 +78,13 @@ function AllCourses() {
     <div className="all-courses-page py-5 mt-5">
       <Helmet>
         <title>{isArabic ? "الكورسات والمسارات البرمجية - T-Square" : "Programming Courses & Tracks - T-Square"}</title>
-        <meta name="description" content={isArabic 
+        <meta name="description" content={isArabic
           ? "تصفح الكورسات والمخططات التدريبية المتميزة في البرمجة وتطوير الويب والشبكات على منصة T-Square."
           : "Browse professional programming, web development, and networking courses on the T-Square platform."
         } />
         <link rel="canonical" href={`${window.location.origin}/courses`} />
         <meta property="og:title" content={isArabic ? "كورسات برمجة وتدريب تقني مميز" : "Professional Programming & Tech Courses"} />
-        <meta property="og:description" content={isArabic 
+        <meta property="og:description" content={isArabic
           ? "تطوير مهاراتك مع كورسات T-Square العملية."
           : "Upgrade your technical skills with practical T-Square courses."
         } />
