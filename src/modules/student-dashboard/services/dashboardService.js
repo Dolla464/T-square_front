@@ -71,17 +71,18 @@ export const downloadStudentCertificate = async (
   return true;
 };
 
-
 // الكويزات و الاختبارات و الاجابات بتاعتهم
 export const getStudentExams = () => axiosClient.get("/exams");
 
-export const startExam = (examId) => axiosClient.post("/exams/start", { exam_id: examId });
+export const startExam = (examId) =>
+  axiosClient.post("/exams/start", { exam_id: examId });
 
-export const saveExamAnswer = (payload) => axiosClient.post("/exams/save-answer", payload);
+export const saveExamAnswer = (payload) =>
+  axiosClient.post("/exams/save-answer", payload);
 
 // Submit uses the attempt_id (not exam_id) so backend can authorize ownership
-export const submitExam = (attemptId) => axiosClient.post(`/exams/${attemptId}/submit`);
-
+export const submitExam = (attemptId) =>
+  axiosClient.post(`/exams/${attemptId}/submit`);
 
 /**
  * جلب بيانات ملف الطالب الشخصية
@@ -89,31 +90,32 @@ export const submitExam = (attemptId) => axiosClient.post(`/exams/${attemptId}/s
 export const getStudentProfile = () => axiosClient.get("/profile");
 
 /**
- * تحديث بيانات الملف الشخصي
+ * تحديث بيانات الملف الشخصي والصورة (POST صريح يدعم الـ FormData)
  */
 export const updateStudentProfile = (profileData) => {
-  // لو بعت FormData جاهزة من الكومبوننت
+  // 1. إذا كانت البيانات المارة عبارة عن FormData (رفع الصورة والبيانات)
   if (profileData instanceof FormData) {
     return axiosClient.post("/profile", profileData, {
       headers: {
-        "Content-Type": "multipart/form-data", // تأكيد للـ axios
+        "Content-Type": "multipart/form-data", // تأكيد للـ axios لمعالجة الباينري
       },
     });
   }
 
-  // البيانات النصية العادية
+  // 2. إذا كانت بيانات نصية صافية عادية
   return axiosClient.post("/profile", {
-    ...profileData,
-    _method: "PUT",
+    full_name: profileData.name || profileData.full_name,
+    gender: profileData.gender,
   });
 };
 
 /**
- * تحديث كلمة المرور
+ * تحديث كلمة المرور (PUT صريح ونقي متوافق مع Route::put الجديد)
  */
 export const updateStudentPassword = (passwordData) => {
-  return axiosClient.post("/profile", {
-    ...passwordData,
-    _method: "PUT",
+  return axiosClient.put("/profile/password", {
+    current_password: passwordData.current_password,
+    password: passwordData.password,
+    password_confirmation: passwordData.password_confirmation,
   });
 };
