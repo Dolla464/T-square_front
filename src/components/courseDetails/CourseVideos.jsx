@@ -61,8 +61,8 @@ const CourseVideos = ({ course }) => {
         {previews.map((preview, index) => {
 
           const videoUrl =
-            // preview.video_url 
-            "https://images.unsplash.com/photo-1498050108023-c5249f4df085";
+            preview.video_url ;
+            // "https://images.unsplash.com/photo-1498050108023-c5249f4df085";
 
           return (
             <div className="col-lg-4 col-md-6" key={preview.id || index}>
@@ -80,7 +80,7 @@ const CourseVideos = ({ course }) => {
                   onClick={() => setActiveVideo(preview)}
                   style={{ cursor: "pointer" }}
                 >
-                  <img
+                  <video
                     src={videoUrl}
                     alt={preview.title || "video preview"}
                     className="w-100 rounded-4"

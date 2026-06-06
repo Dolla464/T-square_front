@@ -93,5 +93,18 @@
     "of": "of",
     "lessons_lowercase": "lessons",
     "about_instructor": "About Your Instructor"
+  },
+  "quiz_results": {
+    "title": "Quiz Results Details",
+    "highest_score": "Highest Score Achieved",
+    "attempt_num": "Attempt {{num}}",
+    "score": "Score",
+    "status": "Status",
+    "passed": "Passed",
+    "failed": "Failed",
+    "no_attempts": "No previous attempts found for this quiz.",
+    "date": "Attempt Date",
+    "loading": "Loading results details...",
+    "error": "An error occurred while loading results. Please try again."
   }
 }

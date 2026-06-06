@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { getCourseSlug } from "../services/dashboardService";
+import { getCourseDetails } from "../services/dashboardService";
 
-export const useCourseSlug = (slug) => {
+export const useCourseDetails = (courseId) => {
   const [courseData, setCourseData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
 
   useEffect(() => {
-    if (!slug) {
+    if (!courseId) {
       setLoading(false);
       return;
     }
@@ -16,9 +16,9 @@ export const useCourseSlug = (slug) => {
       try {
         setLoading(true);
 
-        const res = await getCourseSlug(slug);
-        if (res.data?.data?.course) {
-          setCourseData(res.data.data.course);
+        const res = await getCourseDetails(courseId);
+        if (res.data?.data) {
+          setCourseData(res.data.data);
         } else {
           setError("Invalid course data received.");
         }
@@ -30,7 +30,7 @@ export const useCourseSlug = (slug) => {
     };
 
     fetchCourse();
-  }, [slug]);
+  }, [courseId]);
 
   return { courseData, loading, error };
 };

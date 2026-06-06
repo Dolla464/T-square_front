@@ -200,21 +200,13 @@ http://127.0.0.1:8000
 
 # 9) Clear Laravel Cache (When Errors Appear)
 
-```
 php artisan config:clear
-```
-
-```
 php artisan cache:clear
-```
-
-```
 php artisan route:clear
-```
-
-```
 php artisan view:clear
-```
+
+
+Php artisan queue:work
 
 ---
 

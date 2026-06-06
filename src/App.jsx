@@ -334,7 +334,7 @@ function AppContent() {
                       path="notifications"
                       element={<NotificationsPage />}
                     />
-                    <Route path="course/:slug" element={<CourseDetails />} />
+                    <Route path="course/:courseId" element={<CourseDetails />} />
                   </Route>
                 </Route>
 

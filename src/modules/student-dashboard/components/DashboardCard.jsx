@@ -59,10 +59,10 @@ function DashboardCard({ item, type, t }) {
       buttonClass += " btn-review";
     } else {
       // الكورس قيد التنفيذ — الذهاب لصفحة تفاصيل الكورس
-      linkTo = `/student/course/slug:${item.slug}`;
+      linkTo = `/student/course/${item.id}`;
       buttonText = t("course.continue");
     }
-  } 
+  }
 
   // معالج حدث الضغط — ينتقل للرابط مع تمرير بيانات الكورس
   const handleClick = () => {
@@ -76,7 +76,7 @@ function DashboardCard({ item, type, t }) {
         <div className="course-card-img-wrapper">
           <img
             // item.thumbnail from api
-            src={courseImg || item.thumbnail}
+            src={item.thumbnail}
             alt={item.title}
             className="course-card-img"
           />
