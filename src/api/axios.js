@@ -22,6 +22,25 @@ axiosClient.interceptors.request.use((config) => {
   return config;
 });
 
+// دالة مساعدة لتحديد مسار الصيانة المتوافق مع المسارات الفرعية (مثل GitHub Pages)
+const getMaintenanceRedirectPath = () => {
+  const segments = window.location.pathname.split("/").filter(Boolean);
+  const knownRoutes = [
+    "courses", "solutions", "team", "contact", "login", "signup", 
+    "student", "admin", "maintenance", "verify-email", 
+    "forgot_password", "update_password"
+  ];
+  
+  let basePrefix = "";
+  if (segments.length > 0) {
+    const firstSegment = segments[0].toLowerCase();
+    if (!knownRoutes.includes(firstSegment)) {
+      basePrefix = `/${segments[0]}`;
+    }
+  }
+  return `${basePrefix}/maintenance`;
+};
+
 // 2. مراقب الاستجابات القادمة (Response Interceptor) - التعديل الجديد 💥
 axiosClient.interceptors.response.use(
   (response) => {
@@ -43,8 +62,10 @@ axiosClient.interceptors.response.use(
 
       if (isConnectionError) {
         const cleanPath = window.location.pathname.toLowerCase().replace(/\/$/, "");
-        if (cleanPath !== "/maintenance" && cleanPath !== "/login") {
-          window.location.href = "/maintenance";
+        const targetPath = getMaintenanceRedirectPath().toLowerCase();
+        
+        if (cleanPath !== targetPath && !cleanPath.endsWith("/login")) {
+          window.location.href = getMaintenanceRedirectPath();
         }
       }
     }
