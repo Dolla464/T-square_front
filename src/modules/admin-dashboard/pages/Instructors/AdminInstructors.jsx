@@ -5,7 +5,6 @@ import { useInstructors } from "../../hooks/useInstractor";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 // import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
-import instructorImg from "../../../../assets/student-avatar.jpg";
 
 const defaultFormData = {
   full_name: "",

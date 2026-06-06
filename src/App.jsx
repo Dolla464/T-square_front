@@ -30,8 +30,6 @@ const VerifyEmailPage = lazy(
 const NotFoundPage = lazy(() => import("./pages/NotFound/NotFoundPage"));
 
 // استيراد ملفات البوتستراب
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap/dist/css/bootstrap.rtl.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const Team = lazy(() => import("./pages/Team"));
@@ -63,6 +61,9 @@ const DashboardProfile = lazy(
 );
 const CourseDetails = lazy(
   () => import("./modules/student-dashboard/pages/CourseDetails/CourseDetails"),
+);
+const LeaveReview = lazy(
+  () => import("./modules/student-dashboard/pages/LeaveReview/LeaveReview"),
 );
 const NotificationsPage = lazy(
   () => import("./modules/shared-dashboard/Notifications/NotificationsPage"),
@@ -121,10 +122,16 @@ const EditExam = lazy(
   () => import("./modules/admin-dashboard/pages/Quizzes/components/EditExam"),
 );
 import LoadingSpiner from "./LoadingSpiner";
-import AdminMessages from "./modules/admin-dashboard/pages/Messages/AdminMessages";
-import MaintenancePage from "./pages/Maintenance/MaintenancePage";
-import InstructorOverview from "./modules/instructor-dashboard/pages/Overview/InstructorOverview";
-import InstructorLayout from "./modules/instructor-dashboard/layouts/InstractorLayout";
+const AdminMessages = lazy(
+  () => import("./modules/admin-dashboard/pages/Messages/AdminMessages"),
+);
+const MaintenancePage = lazy(() => import("./pages/Maintenance/MaintenancePage"));
+const InstructorOverview = lazy(
+  () => import("./modules/instructor-dashboard/pages/Overview/InstructorOverview"),
+);
+const InstructorLayout = lazy(
+  () => import("./modules/instructor-dashboard/layouts/InstractorLayout"),
+);
 
 // مكون فرعي للتحكم في عرض الـ Layout والتوجيه
 function AppContent() {
@@ -197,7 +204,7 @@ function AppContent() {
           content="LMS Egypt, LMS Saudi Arabia, منصة تعليمية, كورسات برمجة اونلاين, تعلم البرمجة من الصفر, software solutions Egypt, digital solutions Saudi Arabia, web development courses, frontend courses, backend courses, full stack courses, programming learning platform"
         />
         <meta name="author" content="T-Square" />
-        <link rel="icon" href="/favicon-32x32.png" />
+        <link rel="icon" href="/favicon-32x32.webp" />
         <meta name="theme-color" content="#000000" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
@@ -334,7 +341,8 @@ function AppContent() {
                       path="notifications"
                       element={<NotificationsPage />}
                     />
-                    <Route path="course/:slug" element={<CourseDetails />} />
+                    <Route path="course/:courseId" element={<CourseDetails />} />
+                    <Route path="review/:courseId" element={<LeaveReview />} />
                   </Route>
                 </Route>
 

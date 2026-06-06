@@ -3,7 +3,7 @@ import { Container, Row, Col, Form } from "react-bootstrap";
 import { Link, Navigate, useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
-import courseTempImg from "../../assets/course-temp.png";
+import courseTempImg from "../../assets/course-temp.webp";
 import "./AllPayment.css";
 import { useCourseSlug } from "../../hooks/useCousrsesSlug";
 import { useAuth } from "../../contexts/AuthContext";

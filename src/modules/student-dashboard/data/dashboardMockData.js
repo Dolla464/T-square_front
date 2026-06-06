@@ -1,5 +1,5 @@
 // بيانات وهمية واقعية للداشبورد
-import courseImg from "../../../assets/about1.png";
+import courseImg from "../../../assets/about1.webp";
 import certImg from "../../../assets/certificat.jpeg";
 
 export const DASHBOARD_MOCK = {

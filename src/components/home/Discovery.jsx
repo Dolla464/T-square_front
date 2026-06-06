@@ -6,12 +6,12 @@ import { useDiscoveryMedia } from "../../hooks/useDiscovery";
 import "./Discovery.css";
 
 // الصور الافتراضية (Fallback)
-import img1 from "../../assets/discovery/1.png";
-import img2 from "../../assets/discovery/2.png";
-import img3 from "../../assets/discovery/3.png";
-import img4 from "../../assets/discovery/4.png";
-import img5 from "../../assets/discovery/5.png";
-import wavesBg from "../../assets/discovery/waves.png";
+import img1 from "../../assets/discovery/1.webp";
+import img2 from "../../assets/discovery/2.webp";
+import img3 from "../../assets/discovery/3.webp";
+import img4 from "../../assets/discovery/4.webp";
+import img5 from "../../assets/discovery/5.webp";
+import wavesBg from "../../assets/discovery/waves.webp";
 
 function Discovery() {
   const { t } = useTranslation("discovery");
@@ -68,6 +68,8 @@ function Discovery() {
               src={currentFive[0]}
               className="arc-img img-outer-left"
               alt="learning 1"
+              width="250"
+              height="160"
               loading="lazy"
             />
             {/* اليسار الداخلي */}
@@ -75,6 +77,8 @@ function Discovery() {
               src={currentFive[1]}
               className="arc-img img-inner-left"
               alt="coding 2"
+              width="250"
+              height="160"
               loading="lazy"
             />
             {/* المنتصف - الأعلى */}
@@ -82,6 +86,8 @@ function Discovery() {
               src={currentFive[2]}
               className="arc-img img-centerX"
               alt="classroom 3"
+              width="250"
+              height="160"
               loading="lazy"
             />
             {/* اليمين الداخلي */}
@@ -89,6 +95,8 @@ function Discovery() {
               src={currentFive[3]}
               className="arc-img img-inner-right"
               alt="collaboration 4"
+              width="250"
+              height="160"
               loading="lazy"
             />
             {/* أقصى اليمين */}
@@ -96,6 +104,8 @@ function Discovery() {
               src={currentFive[4]}
               className="arc-img img-outer-right"
               alt="student 5"
+              width="250"
+              height="160"
               loading="lazy"
             />
           </div>

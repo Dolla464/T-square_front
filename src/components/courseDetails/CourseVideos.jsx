@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal, Spinner } from "react-bootstrap";
-import placeholderVideo from "../../assets/video/1625-148614367.mp4";
 import { FaPlay } from "react-icons/fa";
 
 const CourseVideos = ({ course }) => {
@@ -61,8 +60,8 @@ const CourseVideos = ({ course }) => {
         {previews.map((preview, index) => {
 
           const videoUrl =
-            // preview.video_url 
-            "https://images.unsplash.com/photo-1498050108023-c5249f4df085";
+            preview.video_url;
+          // "https://images.unsplash.com/photo-1498050108023-c5249f4df085";
 
           return (
             <div className="col-lg-4 col-md-6" key={preview.id || index}>
@@ -80,7 +79,7 @@ const CourseVideos = ({ course }) => {
                   onClick={() => setActiveVideo(preview)}
                   style={{ cursor: "pointer" }}
                 >
-                  <img
+                  <video
                     src={videoUrl}
                     alt={preview.title || "video preview"}
                     className="w-100 rounded-4"
@@ -136,7 +135,7 @@ const CourseVideos = ({ course }) => {
         <Modal.Body className="p-0">
           {activeVideo && (
             <video
-              src={activeVideo.video_url || placeholderVideo}
+              src={activeVideo.video_url || ""}
               controls
               autoPlay
               className="w-100 rounded-4"

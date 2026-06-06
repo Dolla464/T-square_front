@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Helmet } from "react-helmet-async";
 import { Container, Row, Col, Pagination, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next"; // التعديل هنا
@@ -19,9 +20,32 @@ function AllCourses() {
     loading,
     loadInitialData,
     filterCourses,
-  } = useCourses();
+  } = useCourses("parent");
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const isMounted = useRef(false);
   const coursesPerPage = 6;
+
+  // Debounce logic for searching
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      filterCourses({
+        per_page: coursesPerPage,
+        category_id: selectedCategoryId,
+        search: searchTerm,
+        page: 1,
+      });
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [searchTerm, selectedCategoryId, coursesPerPage]);
 
   useEffect(() => {
     loadInitialData({
@@ -30,26 +54,43 @@ function AllCourses() {
     });
   }, []);
 
-  const handleCategoryChange = (categoryId) => {
+  const handleCategoryChange = useCallback((categoryId) => {
     setSelectedCategoryId(categoryId);
     filterCourses({
       per_page: coursesPerPage,
       category_id: categoryId,
+      search: searchTerm,
       page: 1, // دي تضمن إننا بنرجع لأول صفحة لما نغير القسم
     });
-  };
+  }, [filterCourses, coursesPerPage, searchTerm]);
 
-  const handlePageChange = (pageNumber) => {
+  const handlePageChange = useCallback((pageNumber) => {
     filterCourses({
       per_page: coursesPerPage,
       category_id: selectedCategoryId,
+      search: searchTerm,
       page: pageNumber,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  }, [filterCourses, coursesPerPage, selectedCategoryId, searchTerm]);
 
   return (
     <div className="all-courses-page py-5 mt-5">
+      <Helmet>
+        <title>{isArabic ? "الكورسات والمسارات البرمجية - T-Square" : "Programming Courses & Tracks - T-Square"}</title>
+        <meta name="description" content={isArabic
+          ? "تصفح الكورسات والمخططات التدريبية المتميزة في البرمجة وتطوير الويب والشبكات على منصة T-Square."
+          : "Browse professional programming, web development, and networking courses on the T-Square platform."
+        } />
+        <link rel="canonical" href={`${window.location.origin}/courses`} />
+        <meta property="og:title" content={isArabic ? "كورسات برمجة وتدريب تقني مميز" : "Professional Programming & Tech Courses"} />
+        <meta property="og:description" content={isArabic
+          ? "تطوير مهاراتك مع كورسات T-Square العملية."
+          : "Upgrade your technical skills with practical T-Square courses."
+        } />
+        <meta property="og:url" content={`${window.location.origin}/courses`} />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <Container>
         {/* Breadcrumbs */}
         <nav className="breadcrumb-nav mb-4 flex items-center rtl:flex-row-reverse">
@@ -79,6 +120,18 @@ function AllCourses() {
             {t("title1")} <span className="text-danger">{t("title2")}</span>
           </h2>
           <p className="text-muted fs-5">{t("subtitle")}</p>
+        </div>
+
+        {/* Search Bar */}
+        <div className="courses-search-container">
+          <i className="bi bi-search courses-search-icon"></i>
+          <input
+            type="text"
+            className="form-control courses-search-input w-100"
+            placeholder={isArabic ? "ابحث عن كورس..." : "Search for a course..."}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
 
         {/* Filters */}

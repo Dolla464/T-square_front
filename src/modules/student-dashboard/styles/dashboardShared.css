@@ -999,3 +999,212 @@
     justify-content: center;
   }
 }
+
+/* ── Quiz Results Modal ── */
+.quiz-detail-modal .modal-content {
+  border-radius: 20px;
+  border: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.quiz-detail-modal .modal-header {
+  border-bottom: 1px solid #f3f4f6;
+  padding: 16px 24px;
+}
+
+.quiz-detail-modal .modal-body {
+  padding: 24px;
+}
+
+.quiz-modal-gauge-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-bottom: 20px;
+  border-bottom: 2px dashed #f3f4f6;
+  margin-bottom: 20px;
+}
+
+.quiz-modal-gauge-title {
+  font-size: 0.85rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.quiz-modal-gauge-wrapper {
+  position: relative;
+  width: 180px;
+  height: 100px;
+  margin: 0 auto 12px;
+}
+
+.quiz-modal-gauge-pct {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.quiz-modal-gauge-status {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-top: 4px;
+}
+
+.quiz-modal-attempts-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* \u0631\u0648 \u0627\u0644\u0647\u064a\u062f\u0631: \u0639\u0646\u0648\u0627\u0646 + \u0632\u0631 Best */
+.quiz-attempts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quiz-modal-attempts-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* \u0632\u0631 Best — \u0628\u064a\u0644 \u0623\u0635\u0641\u0631 \u0635\u063a\u064a\u0631 */
+.quiz-best-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fef3c7;
+  color: #92400e;
+  border: none;
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.15s;
+}
+
+.quiz-best-btn:hover {
+  background: #fde68a;
+  transform: scale(1.04);
+}
+
+.quiz-best-btn .bi-trophy-fill {
+  color: #d97706;
+  font-size: 0.8rem;
+}
+
+.quiz-attempts-scrollbar {
+  max-height: 250px;
+  overflow-y: auto;
+  padding-inline-end: 4px;
+}
+
+/* Custom Scrollbar */
+.quiz-attempts-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.quiz-attempts-scrollbar::-webkit-scrollbar-track {
+  background: #f9fafb;
+}
+.quiz-attempts-scrollbar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+.quiz-attempts-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.quiz-attempt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border: 1.5px solid #f3f4f6;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  transition: all 0.18s ease;
+}
+
+.quiz-attempt-row:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+/* \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629 \u0627\u0644\u0645\u062e\u062a\u0627\u0631\u0629 / \u0627\u0644\u0645\u0639\u0631\u0648\u0636\u0629 \u0641\u064a \u0627\u0644\u0640 Gauge */
+.quiz-attempt-row--active {
+  background: #fff7ed;
+  border-color: #f97316;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.18);
+}
+
+.quiz-attempt-row--active .quiz-attempt-num {
+  color: #c2410c;
+}
+
+.quiz-attempt-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quiz-attempt-num {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.quiz-attempt-date {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.quiz-attempt-score-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quiz-attempt-score {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.quiz-attempt-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.badge-passed {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.badge-failed {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* RTL Adjustments */
+[dir="rtl"] .quiz-attempt-row {
+  text-align: right;
+}
+
+[dir="rtl"] .quiz-attempts-header {
+  flex-direction: row-reverse;
+}

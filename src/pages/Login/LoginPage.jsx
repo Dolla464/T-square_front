@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { Helmet } from "react-helmet-async";
 import {
   Container,
   Card,
@@ -47,15 +48,23 @@ function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      if (user.role === "instructor" && !location.state?.from) {
-        navigate("/instructor", { replace: true });
+      if (location.state?.from) {
+        navigate(location.state.from, { replace: true });
       } else {
-        navigate(from, { replace: true });
+        if (user.role === "instructor") {
+          navigate("/instructor", { replace: true });
+        } else if (user.role === "student") {
+          navigate("/student", { replace: true });
+        } else if (user.role === "admin") {
+          navigate("/admin", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
       }
     }
-  }, [user, from, navigate, location.state]);
+  }, [user, navigate, location.state]);
 
-  const handleInstructorBypass = () => {
+  const handleInstructorBypass = useCallback(() => {
     const mockAdminData = {
       token: "mock-token-admin",
       user: {
@@ -69,18 +78,22 @@ function LoginPage() {
       },
     };
     login(mockAdminData, true);
-  };
+  }, [login]);
 
-  const onSubmit = async (data) => {
+  const onSubmit = useCallback(async (data) => {
     try {
       await executeLogin(data, rememberMe);
     } catch (err) {
       console.error("Login component execution error: ", err);
     }
-  };
+  }, [executeLogin, rememberMe]);
 
   return (
     <div className="login-wrapper" dir={isArabic ? "rtl" : "ltr"}>
+      <Helmet>
+        <title>{isArabic ? "تسجيل الدخول - T-Square" : "Login - T-Square"}</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <Container className="d-flex justify-content-center align-items-center h-100">
         <Card className="login-card shadow border-0 p-4">
           <Card.Body className="text-center p-0">

@@ -1,5 +1,6 @@
+import React from "react";
 import "./CourseCard.css";
-// import courseThumb from "../../../assets/course-temp.png";
+// import courseThumb from "../../../assets/course-temp.webp";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -19,6 +20,9 @@ const CourseCard = ({ course }) => {
           src={course.image}
           alt={course.title}
           className="course-img"
+          width="400"
+          height="200"
+          loading="lazy"
         />
         <span
           className={`course-badge badge-${course.attendance_type.toLowerCase()}`}
@@ -77,4 +81,4 @@ const CourseCard = ({ course }) => {
   );
 };
 
-export default CourseCard;
+export default React.memo(CourseCard);

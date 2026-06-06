@@ -1,0 +1,261 @@
+/* ================================================================
+   LeaveReview Page Style System
+   Inherits Dashboard & Course Details Design Tokens
+   ================================================================ */
+
+:root {
+  --cd-red: #c8102e;
+  --cd-red-dark: #96081e;
+  --cd-red-glow: rgba(200, 16, 46, 0.18);
+  --cd-red-light: #fff0f2;
+  --cd-surface: #ffffff;
+  --cd-bg: #f6f7f9;
+  --cd-border: #eaeaea;
+  --cd-text: #1a1a1a;
+  --cd-muted: #6b7280;
+  --cd-radius: 18px;
+  --cd-radius-sm: 10px;
+  --cd-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+}
+
+.lr-page {
+  background: var(--cd-bg);
+  min-height: 100vh;
+  padding: 24px 0 60px;
+}
+
+/* ── Hero Header ── */
+.lr-hero {
+  position: relative;
+  background: linear-gradient(135deg, #c8102e 0%, #8b0000 60%, #5a0010 100%);
+  border-radius: var(--cd-radius);
+  margin-bottom: 28px;
+  overflow: hidden;
+  color: #fff;
+}
+
+.lr-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(140, 0, 20, 0.92) 0%, rgba(80, 0, 12, 0.85) 100%);
+  z-index: 0;
+}
+
+.lr-hero-body {
+  position: relative;
+  z-index: 1;
+  padding: 44px;
+}
+
+.lr-hero-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+.lr-hero-sub {
+  font-size: 0.97rem;
+  opacity: 0.88;
+  line-height: 1.65;
+  max-width: 560px;
+}
+
+.lr-breadcrumb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  transition: all 0.22s ease;
+  cursor: pointer;
+}
+
+.lr-breadcrumb-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: #fff;
+  color: #fff;
+}
+
+/* ── Content Grid ── */
+.lr-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.lr-card {
+  background: var(--cd-surface);
+  border-radius: var(--cd-radius);
+  padding: 32px 36px;
+  border: 1px solid var(--cd-border);
+  box-shadow: var(--cd-shadow);
+}
+
+.lr-section-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--cd-text);
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lr-section-title i {
+  color: var(--cd-red);
+}
+
+/* Star Rating Widget */
+.lr-rating-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.lr-rating-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--cd-text);
+}
+
+.lr-stars {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 6px;
+}
+
+.lr-stars input {
+  display: none;
+}
+
+.lr-stars label {
+  font-size: 1.8rem;
+  color: #e5e7eb;
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.1s ease;
+}
+
+.lr-stars label:hover,
+.lr-stars label:hover ~ label,
+.lr-stars input:checked ~ label {
+  color: #fbbf24;
+}
+
+.lr-stars label:active {
+  transform: scale(0.9);
+}
+
+/* Input Fields */
+.lr-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lr-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--cd-muted);
+}
+
+.lr-textarea {
+  border-radius: var(--cd-radius-sm);
+  border: 1.5px solid var(--cd-border);
+  padding: 16px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  background: var(--cd-bg);
+  resize: vertical;
+}
+
+.lr-textarea:focus {
+  border-color: var(--cd-red);
+  box-shadow: 0 0 0 3px var(--cd-red-glow);
+  outline: none;
+  background: #fff;
+}
+
+/* Actions Section */
+.lr-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.lr-btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--cd-red);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 30px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+
+.lr-btn-submit:hover {
+  background: var(--cd-red-dark);
+  transform: translateY(-1px);
+}
+
+.lr-btn-submit:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.lr-btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--cd-text);
+  border: 1.5px solid var(--cd-border);
+  border-radius: 12px;
+  padding: 12px 26px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.22s ease;
+  cursor: pointer;
+}
+
+.lr-btn-cancel:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+[dir="rtl"] .lr-stars {
+  flex-direction: row;
+}
+
+@media (max-width: 768px) {
+  .lr-hero-body {
+    padding: 28px 24px;
+  }
+  .lr-hero-title {
+    font-size: 1.6rem;
+  }
+  .lr-card {
+    padding: 24px 20px;
+  }
+  .lr-actions {
+    flex-direction: column;
+  }
+  .lr-btn-submit,
+  .lr-btn-cancel {
+    width: 100%;
+  }
+}

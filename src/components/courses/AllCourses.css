@@ -102,3 +102,41 @@
   background-color: #be1522;
   color: white;
 }
+
+/* ستايل مربع البحث */
+.courses-search-container {
+  max-width: 600px;
+  margin: 0 auto 30px auto;
+  position: relative;
+}
+
+.courses-search-input {
+  border-radius: 17px !important;
+  padding: 12px 20px 12px 45px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.courses-search-input:focus {
+  border-color: #be1522;
+  box-shadow: 0 0 0 0.2rem rgba(190, 21, 34, 0.25);
+  outline: none;
+}
+
+html[dir="rtl"] .courses-search-input {
+  padding: 12px 45px 12px 20px;
+}
+
+.courses-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  transform: translateY(-50%);
+  color: #888;
+}
+
+html[dir="rtl"] .courses-search-icon {
+  left: auto;
+  right: 15px;
+}

@@ -31,7 +31,36 @@
 .hero-section.rtl-bg::before {
   transform: scaleX(-1);
 }
-/* العنوان الكبير */
+
+/* التحميل المتدرج المحمر المتحرك لخلفية الهيرو - معزز برتغالي لتسريع كرت الشاشة (GPU) */
+.hero-shimmer-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 200%; /* ضعف العرض لعمل تأثير الحركة المستمرة */
+  z-index: 0;
+  background: linear-gradient(
+    90deg,
+    #140505 0%,
+    #4a070c 25%,
+    #8f0c13 50%,
+    #4a070c 75%,
+    #140505 100%
+  );
+  animation: hero-shimmer-animation 2s infinite linear;
+  pointer-events: none;
+  will-change: transform; /* إعلام المتصفح بنقل المعالجة للـ GPU */
+}
+
+@keyframes hero-shimmer-animation {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%); /* حركة مستمرة ناعمة بدون إعادة رسم (No Repaint) */
+  }
+}
 .hero-title {
   line-height: 1.1;
 }

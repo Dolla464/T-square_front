@@ -8,8 +8,8 @@ import { saveAs } from "file-saver";
  */
 export const getStudentCourses = () =>
   axiosClient.get("/student/dashboard/courses");
-export const getCourseSlug = (slug) =>
-  axiosClient.get(`/student/courses/${slug}`);
+export const getCourseDetails = (courseId) =>
+  axiosClient.get(`/student/dashboard/courses/${courseId}`);
 /**
  * جلب شهادات الطالب
  */
@@ -119,3 +119,10 @@ export const updateStudentPassword = (passwordData) => {
     password_confirmation: passwordData.password_confirmation,
   });
 };
+
+/**
+ * جلب تفاصيل محاولات ونتائج كويز معين
+ */
+export const getExamResults = (examId) =>
+  axiosClient.get("/exams/my-results", { params: { exam_id: examId } });
+

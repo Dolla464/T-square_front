@@ -15,11 +15,11 @@ export const useLogin = () => {
   const executeLogin = async (credentials, rememberMe = false) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await loginService(credentials);
       const actualData = response.data.data;
-      
+
       // حفظ بيانات المستخدم في الـ Context
       login(actualData, rememberMe);
 
@@ -36,11 +36,13 @@ export const useLogin = () => {
         navigate("/admin", { replace: true });
       } else if (actualData.user.role === "student") {
         navigate("/student", { replace: true });
+      } else if (actualData.user.role === "instructor") {
+        navigate("/instructor", { replace: true });
       } else {
         // Fallback for unknown role
         navigate("/", { replace: true });
       }
-      
+
       return actualData;
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
