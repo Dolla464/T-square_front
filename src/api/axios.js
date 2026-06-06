@@ -34,10 +34,17 @@ axiosClient.interceptors.response.use(
       localStorage.getItem("token") || sessionStorage.getItem("token");
 
     // ── التعديل السحري لمنع الـ Loop ──
-    // حوّل لصفحة الصيانة فقط لو السيرفر رجع 503 وبشرط إن المستخدم ملوش توكن (زائر عادي)
-    if (error.response && error.response.status === 503 && !token) {
-      if (window.location.pathname !== "/maintenance" && window.location.pathname !== "/login") {
-        window.location.href = "/maintenance";
+    // حوّل لصفحة الصيانة لو السيرفر رجع 503/502/504 أو مفيش اتصال خالص (Network Error) وبشرط إن المستخدم ملوش توكن (زائر عادي)
+    if (!token) {
+      const isConnectionError = !error.response || 
+                                error.response.status === 503 || 
+                                error.response.status === 502 || 
+                                error.response.status === 504;
+
+      if (isConnectionError) {
+        if (window.location.pathname !== "/maintenance" && window.location.pathname !== "/login") {
+          window.location.href = "/maintenance";
+        }
       }
     }
 

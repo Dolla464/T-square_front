@@ -43,7 +43,6 @@ export const AuthProvider = ({ children }) => {
   // مرجع لتخزين حالة الصيانة ومنع التكرار اللانهائي في الاعتماديات
   const isMaintenanceRef = React.useRef(false);
 
-  // ── جلب حالة الصيانة من السيرفر بشكل ديناميكي ──
   const checkMaintenanceStatus = useCallback(async () => {
     try {
       const response = await axiosClient.get("/settings/maintenance_mode");
@@ -69,7 +68,20 @@ export const AuthProvider = ({ children }) => {
       return false;
     } catch (error) {
       console.error("Failed to fetch maintenance status:", error);
-      // 🚑 العودة لآخر حالة مسجلة بدلاً من القيمة الافتراضية لمنع الدخول في loop
+      
+      // 🚑 فحص لو فيه مشكلة اتصال أو السيرفر واقع (503/502/504/Network Error)
+      // نعتبر الموقع تحت الصيانة/غير متاح ونمنع اللوب
+      const isNetError = !error.response || 
+                         error.response.status === 503 || 
+                         error.response.status === 502 || 
+                         error.response.status === 504;
+
+      if (isNetError) {
+        setIsMaintenance(true);
+        isMaintenanceRef.current = true;
+        return true;
+      }
+
       return isMaintenanceRef.current;
     }
   }, []);
