@@ -35,15 +35,14 @@ axiosClient.interceptors.response.use(
 
     // ── التعديل السحري لمنع الـ Loop ──
     // حوّل لصفحة الصيانة فقط لو السيرفر رجع 503 وبشرط إن المستخدم ملوش توكن (زائر عادي)
-    // if (error.response && error.response.status === 503 && !token) {
-    //   if (window.location.pathname !== "/maintenance" && window.location.pathname !== "/login") {
-    //     window.location.href = "/maintenance";
-    //   }
-    // }
+    if (error.response && error.response.status === 503 && !token) {
+      if (window.location.pathname !== "/maintenance" && window.location.pathname !== "/login") {
+        window.location.href = "/maintenance";
+      }
+    }
 
     // لو معاه توكن ورجع 503، ده معناه إن التوكن لسه مسمعش في السيرفر أو فيه مشكلة في الـ Guard
     // سيبه يكمل ومتعملش Redirect عشان تكسر اللوب اللانهائية
-    console.error(error);
     return Promise.reject(error);
   },
 );
