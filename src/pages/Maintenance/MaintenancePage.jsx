@@ -9,7 +9,7 @@ import "../NotFound/NotFoundPage.css";
 import "./MaintenancePage.css";
 
 const MaintenancePage = () => {
-  const { checkMaintenanceStatus, isMaintenance, loading } = useAuth();
+  const { checkMaintenanceStatus, isMaintenance } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation("common");
   const isArabic = i18n.language === "ar";
@@ -23,10 +23,10 @@ const MaintenancePage = () => {
 
   useEffect(() => {
     // 2. المراقبة الذكية: لو وضع الصيانة أصبح "مغلق" (false)، حوّل فوراً للهوم
-    if (loading === false && isMaintenance === false) {
+    if (isMaintenance === false) {
       navigate("/");
     }
-  }, [isMaintenance, loading, navigate]);
+  }, [isMaintenance, navigate]);
 
   return (
     <div
