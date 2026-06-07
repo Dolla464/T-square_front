@@ -13,7 +13,7 @@ function Hero({ heroImage, heroSettings }) {
   const isArabic = isAr;
 
   const [imageLoaded, setImageLoaded] = useState(() =>
-    heroImage ? loadedImagesCache.has(heroImage) : false
+    heroImage ? loadedImagesCache.has(heroImage) : false,
   );
 
   // دالة مساعدة لتصفية قيم N/A والرجوع للترجمة الافتراضية
@@ -61,24 +61,28 @@ function Hero({ heroImage, heroSettings }) {
       {/* طبقة التدرج — نفس الـ gradient اللي كان في الـ inline style */}
       <div className="hero-gradient-overlay" />
 
-      {/* وسم التحميل المتدرج المحمر المتحرك */}
-      <div
-        className="hero-shimmer-overlay"
-        style={{
-          opacity: imageLoaded && heroImage ? 0 : 1,
-          transition: "opacity 0.8s ease-in-out",
-        }}
-      ></div>
+      {/* وسم التحميل المتدرج المحمر المتحرك — لن يعمل أو يستهلك طاقة إذا حُمّلت الصورة */}
+      {(!imageLoaded || !heroImage) && <div className="hero-shimmer-overlay" />}
 
       <Container>
         <Row>
           {/* ملحوظة وتعديل منطقي: لغوياً وعادةً في الـ RTL بنحتاج النص text-end أو text-start على حسب رغبتك في التصميم */}
           <Col md={7} className={isAr ? "text-start" : "text-end"}>
             <h1 className="display-3 fw-bold mb-3 hero-title">
-              {isArabic ? getHeroText(heroSettings?.hero_title_ar, "hero_title_start") : getHeroText(heroSettings?.hero_title_en, "hero_title_start")}
+              {isArabic
+                ? getHeroText(heroSettings?.hero_title_ar, "hero_title_start")
+                : getHeroText(heroSettings?.hero_title_en, "hero_title_start")}
               <span className="hero-highlight-wrapper">
                 <span className="highlight-text">
-                  {isArabic ? getHeroText(heroSettings?.hero_title_highlight_ar, "hero_title_highlight") : getHeroText(heroSettings?.hero_title_highlight_en, "hero_title_highlight")}
+                  {isArabic
+                    ? getHeroText(
+                        heroSettings?.hero_title_highlight_ar,
+                        "hero_title_highlight",
+                      )
+                    : getHeroText(
+                        heroSettings?.hero_title_highlight_en,
+                        "hero_title_highlight",
+                      )}
                 </span>
                 {/* الـ Vector ده لوحده هيرسم الدايرتين */}
                 <div className="hero-vector"></div>
@@ -86,7 +90,9 @@ function Hero({ heroImage, heroSettings }) {
             </h1>
 
             <p className="lead mb-5 hero-subtitle fw-normal">
-              {isArabic ? getHeroText(heroSettings?.hero_subtitle_ar, "hero_subtitle") : getHeroText(heroSettings?.hero_subtitle_en, "hero_subtitle")}
+              {isArabic
+                ? getHeroText(heroSettings?.hero_subtitle_ar, "hero_subtitle")
+                : getHeroText(heroSettings?.hero_subtitle_en, "hero_subtitle")}
             </p>
 
             <div className="d-flex gap-3 justify-content-start">
