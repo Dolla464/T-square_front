@@ -147,6 +147,7 @@ function AppContent() {
     "/forgot_password",
     "/update_password",
     "/verify-email",
+    "/password-reset",
     "/courses",
     "/solutions",
     "/team",
@@ -170,7 +171,8 @@ function AppContent() {
     location.pathname === "/signup" ||
     location.pathname === "/forgot_password" ||
     location.pathname === "/update_password" ||
-    location.pathname.startsWith("/verify-email") ||
+    location.pathname.includes("/verify-email") ||
+    location.pathname.includes("password-reset") ||
     location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/student");
 
@@ -304,7 +306,7 @@ function AppContent() {
                 <Route path="/" element={<Home />} />
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/forgot_password" element={<ForgotPassword />} />
-                <Route path="/update_password" element={<UpdatePassword />} />
+                <Route path="/password-reset/:token" element={<UpdatePassword />} />
                 <Route path="/verify-email" element={<VerifyEmailPage />} />
                 <Route path="/courses" element={<Courses />} />
                 <Route
