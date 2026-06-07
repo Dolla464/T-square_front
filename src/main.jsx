@@ -7,19 +7,19 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import "./index.css";
 import App from "./App.jsx";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
-import { onCLS, onINP, onLCP } from "web-vitals";
+// import { onCLS, onINP, onLCP } from "web-vitals";
 
-onCLS((metric) => {
-  console.table(metric);
-});
+// onCLS((metric) => {
+//   console.table(metric);
+// });
 
-onLCP((metric) => {
-  console.table(metric);
-});
+// onLCP((metric) => {
+//   console.table(metric);
+// });
 
-onINP((metric) => {
-  console.table(metric);
-});
+// onINP((metric) => {
+//   console.table(metric);
+// });
 // مكتبة تقوم بمراقبة الاداء
 // import { scan } from "react-scan";
 // scan();
