@@ -3,7 +3,7 @@ import { Container, Row, Col } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import ContactForm from "../shared/ContactForm/ContactForm";
 import "./ContactSection.css";
-import classroomImg from "../../assets/contact.png";
+import classroomImg from "../../assets/contact.webp";
 
 function ContactSection() {
   const { t } = useTranslation("contact");
@@ -23,6 +23,9 @@ function ContactSection() {
                   src={classroomImg}
                   alt="Classroom"
                   className="contact-img"
+                  width="600"
+                  height="550"
+                  loading="lazy"
                 />
               </div>
             </div>

@@ -1,276 +1,772 @@
 /* ================================================================
-   صفحة تفاصيل الكورس - تنسيقات خاصة
+   CourseDetails — Premium Design System
+   هوية الموقع: أحمر غامق · أبيض · رمادي محايد
    ================================================================ */
 
-/* ── البطاقة الحمراء العلوية ── */
-.course-details-hero {
-  background: linear-gradient(135deg, #e01527 0%, #b80d1e 60%, #8e0a17 100%);
-  border-radius: 20px;
-  padding: 40px 36px;
-  color: #fff;
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 32px rgba(190, 21, 34, 0.18);
+/* ── متغيرات التصميم ── */
+:root {
+  --cd-red: #c8102e;
+  --cd-red-dark: #96081e;
+  --cd-red-glow: rgba(200, 16, 46, 0.18);
+  --cd-red-light: #fff0f2;
+  --cd-surface: #ffffff;
+  --cd-bg: #f6f7f9;
+  --cd-border: #eaeaea;
+  --cd-text: #1a1a1a;
+  --cd-muted: #6b7280;
+  --cd-radius: 18px;
+  --cd-radius-sm: 10px;
+  --cd-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+  --cd-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12);
 }
 
-.course-details-hero::before {
+/* ── حاوية الصفحة ── */
+.cd-page {
+  background: var(--cd-bg);
+  min-height: 100vh;
+  padding: 24px 0 60px;
+}
+
+/* ═══════════════════════════════════════
+   HERO
+═══════════════════════════════════════ */
+.cd-hero {
+  position: relative;
+  background:
+    var(--cd-cover, none),
+    linear-gradient(135deg, #c8102e 0%, #8b0000 60%, #5a0010 100%);
+  background-size: cover;
+  background-position: center;
+  border-radius: var(--cd-radius);
+  margin: 0 0 28px;
+  overflow: hidden;
+  color: #fff;
+}
+
+.cd-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(140, 0, 20, 0.92) 0%, rgba(80, 0, 12, 0.85) 100%);
+  z-index: 0;
+}
+
+/* دائرة زخرفية */
+.cd-hero::after {
   content: "";
   position: absolute;
-  top: -60px;
-  inset-inline-end: -60px;
-  width: 220px;
-  height: 220px;
+  inset-inline-end: -80px;
+  top: -80px;
+  width: 300px;
+  height: 300px;
   background: rgba(255, 255, 255, 0.04);
   border-radius: 50%;
   pointer-events: none;
+  z-index: 0;
 }
 
-.course-details-hero-row {
+.cd-hero-body {
+  position: relative;
+  z-index: 1;
   display: flex;
-  align-items: center;
-  gap: 32px;
+
+  gap: 40px;
+  align-items: flex-start;
+  padding: 44px 44px 40px;
 }
 
-/* ── القسم الأيسر (المحتوى) ── */
-.course-details-hero-content {
+/* ── جانب المحتوى ── */
+.cd-hero-left {
   flex: 1;
   min-width: 0;
 }
 
-.course-details-hero-content h1 {
-  font-size: 1.75rem;
-  font-weight: 800;
-  margin-bottom: 12px;
-  line-height: 1.3;
-}
-
-.course-details-hero-desc {
-  font-size: 0.98rem;
-  opacity: 0.92;
-  margin-bottom: 24px;
-  line-height: 1.6;
-  max-width: 540px;
-}
-
-/* ── معلومات الميتا (دروس، ساعات، طلاب) ── */
-.course-details-meta {
+/* ── Breadcrumb / Status — solid chips (no border) ── */
+.cd-breadcrumb {
   display: flex;
   flex-wrap: wrap;
-  gap: 28px;
-  margin-bottom: 28px;
-  font-size: 0.92rem;
+  gap: 10px;
+  margin-bottom: 18px;
 }
 
-.course-details-meta-item {
+/* Chip مصمت — نفس حواف التاجز */
+.cd-chip {
+  border: none;
+  border-radius: 8px;
+  padding: 5px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+}
+
+.cd-chip-cat {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.cd-status-progress {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.cd-status-done {
+  background: #22c55e;
+  color: #fff;
+}
+
+.cd-status-idle {
+  background: #9ca3af;
+  color: #fff;
+}
+
+/* ── عنوان Hero ── */
+.cd-hero-title {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+}
+
+.cd-hero-sub {
+  font-size: 0.97rem;
+  opacity: 0.88;
+  line-height: 1.65;
+  max-width: 560px;
+  margin-bottom: 24px;
+}
+
+/* ── Meta row ── */
+.cd-meta-row {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  font-size: 0.88rem;
+  opacity: 0.92;
+}
+
+.cd-meta-row li {
   display: flex;
   align-items: center;
+  gap: 6px;
+}
+
+.cd-star {
+  color: #fbbf24;
+}
+
+.cd-lang-flag {
+  font-size: 1.1em;
+}
+
+/* ── Tags — solid مصمت بدون border ── */
+.cd-tags {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  margin-bottom: 28px;
 }
 
-.course-details-meta-item i {
+.cd-tag {
+  background: rgba(255, 255, 255, 0.22);
+  border: none;
+  border-radius: 8px;
+  padding: 5px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+  transition: background 0.18s;
+}
+
+.cd-tag:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* ── أزرار الهيرو ── */
+.cd-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.cd-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  color: var(--cd-red-dark);
+  border: none;
+  border-radius: 12px;
+  padding: 13px 30px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.22s ease;
+}
+
+.cd-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+  background: #fff5f6;
+}
+
+.cd-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  padding: 12px 26px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.22s ease;
+}
+.cd-btn-certificate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: hsl(113, 70%, 91%);
+  color: #169e04;
+  border: 1.5px solid #169e04;
+  border-radius: 12px;
+  padding: 12px 26px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.22s ease;
+}
+
+.cd-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #fff;
+  color: #fff;
+}
+
+/* ── Thumbnail (الجانب الأيمن) ── */
+.cd-hero-right {
+  flex-shrink: 0;
+  width: 260px;
+}
+
+.cd-thumb-wrap {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--cd-shadow-lg);
+}
+
+.cd-thumb {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+
+
+/* ═══════════════════════════════════════
+   BODY
+═══════════════════════════════════════ */
+.cd-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── بطاقة عامة ── */
+.cd-card {
+  background: var(--cd-surface);
+  border-radius: var(--cd-radius);
+  padding: 32px 36px;
+  border: 1px solid var(--cd-border);
+  box-shadow: var(--cd-shadow);
+}
+
+/* ── عنوان القسم ── */
+.cd-section-title {
   font-size: 1.1rem;
-  opacity: 0.85;
+  font-weight: 800;
+  color: var(--cd-text);
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* ── زر متابعة التعلم ── */
-.course-details-continue-btn {
+.cd-section-title i {
+  color: var(--cd-red);
+  font-size: 1.15rem;
+}
+
+/* ── ما ستتعلمه ── */
+.cd-learnings-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.cd-learning-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.92rem;
+  color: #374151;
+  line-height: 1.55;
+}
+
+.cd-check {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  background: var(--cd-red-light);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-
-  padding: 12px 34px;
-
-  border: none;
-  border-radius: 14px;
-  cursor: pointer;
-
-  color: #8e0a17;
-  font-weight: 700;
-  font-size: 1rem;
-
-  /* 🔥 Google Drive inspired gradient */
-  background-color: white;
-
-  /* 🔥 strong but controlled glow */
-  box-shadow: 0 8px 20px rgba(26, 115, 232, 0.25);
-
-  transition: all 0.25s ease;
-  position: relative;
-  overflow: hidden;
+  color: var(--cd-red);
+  font-size: 0.75rem;
+  margin-top: 1px;
 }
 
-.course-details-continue-btn:hover {
-  transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 12px 28px rgba(232, 184, 26, 0.35);
-
-  filter: saturate(1.2);
-}
-.course-details-continue-btn:active {
-  transform: scale(0.98);
-}.course-details-continue-btn::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -150%;
-  width: 50%;
-  height: 100%;
-
-  background: linear-gradient(
-    120deg,
-    transparent,
-    rgba(255, 255, 255, 0.25),
-    transparent
-  );
-
-  transform: skewX(-20deg);
+/* ── شبكة معلومات الكورس ── */
+.cd-info-cells {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
 }
 
-.course-details-continue-btn:hover::after {
-  animation: shine 0.8s ease;
-}
-
-@keyframes shine {
-  0% { left: -150%; }
-  100% { left: 150%; }
-}
-.course-details-continue-btn i {
-  font-size: 1.25rem;
-}
-
-/* ── صندوق التقدم (الجانب الأيمن) ── */
-.course-details-progress-box {
-  width: 220px;
-  flex-shrink: 0;
-  background: rgba(0, 0, 0, 0.13);
-  border-radius: 16px;
-  padding: 32px 24px;
-  text-align: center;
-}
-
-.course-details-progress-pct {
-  font-size: 3.2rem;
-  font-weight: 800;
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.course-details-progress-label {
-  opacity: 0.9;
-  margin-bottom: 20px;
-  font-size: 0.95rem;
-}
-
-.course-details-progress-bar-wrap {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.28);
-  border-radius: 10px;
-  margin-bottom: 10px;
-  overflow: hidden;
-}
-
-.course-details-progress-bar-fill {
-  height: 100%;
-  background: #fff;
-  border-radius: 10px;
-  transition: width 0.6s ease;
-}
-
-.course-details-progress-info {
-  opacity: 0.8;
-  font-size: 0.82rem;
-}
-
-/* ── بطاقة المدرب ── */
-.course-details-instructor-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 28px 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f0f0f0;
-}
-
-.course-details-instructor-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 24px;
-}
-
-.course-details-instructor-row {
+.cd-info-cell {
+  background: var(--cd-bg);
+  border: 1px solid var(--cd-border);
+  border-radius: var(--cd-radius-sm);
+  padding: 16px 18px;
   display: flex;
-  gap: 20px;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cd-info-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cd-muted);
+}
+
+.cd-info-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--cd-text);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ── وصف الكورس ── */
+.cd-desc-body {
+  font-size: 0.94rem;
+  color: #4b5563;
+  line-height: 1.75;
+  margin: 0;
+  white-space: pre-line;
+}
+
+/* ── معاينات الفيديو ── */
+.cd-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cd-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--cd-bg);
+  border: 1px solid var(--cd-border);
+  border-radius: var(--cd-radius-sm);
+  color: var(--cd-text);
+  cursor: pointer;
+  width: 100%;
+  text-align: start;
+  transition: all 0.18s;
+}
+
+.cd-preview-item:hover {
+  border-color: var(--cd-red);
+  background: var(--cd-red-light);
+  color: var(--cd-red-dark);
+}
+
+.cd-preview-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--cd-red);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.cd-preview-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cd-preview-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  display: block;
+}
+
+.cd-preview-dur {
+  font-size: 0.78rem;
+  color: var(--cd-muted);
+}
+
+.cd-preview-ext {
+  font-size: 0.9rem;
+  color: var(--cd-muted);
+  opacity: 0.6;
+}
+
+/* ── المدرب ── */
+.cd-instructor-row {
+  display: flex;
+  gap: 24px;
   align-items: flex-start;
 }
 
-.course-details-instructor-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: #cba5df;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.6rem;
-  font-weight: 700;
+.cd-avatar-wrap {
   flex-shrink: 0;
 }
 
-.course-details-instructor-info h5 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 2px;
+.cd-avatar-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--cd-border);
 }
 
-.course-details-instructor-role {
+.cd-avatar-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c8102e, #8b0000);
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cd-instructor-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cd-instructor-name {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--cd-text);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* أيقونة الـ key قبل كل حقل */
+.cd-instructor-key-icon {
+  color: var(--cd-red);
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+/* صف معلومات (تخصص / هاتف) */
+.cd-instructor-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.88rem;
-  color: #888;
-  margin-bottom: 12px;
+  color: var(--cd-text);
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
-.course-details-instructor-bio {
-  font-size: 0.92rem;
-  color: #666;
-  line-height: 1.65;
-  margin: 0;
+/* رابط الهاتف */
+.cd-instructor-phone {
+  color: var(--cd-red);
+  text-decoration: none;
+  font-weight: 700;
+  transition: opacity 0.15s;
 }
 
-/* ── ريسبونسيف ── */
-@media (max-width: 991px) {
-  .course-details-hero-row {
-    flex-direction: column;
+.cd-instructor-phone:hover {
+  opacity: 0.75;
+}
+
+/* رابط الواتساب */
+.cd-instructor-whatsapp-icon {
+  color: #25d366;
+}
+
+.cd-instructor-whatsapp {
+  color: #25d366;
+  text-decoration: none;
+  font-weight: 700;
+  transition: opacity 0.15s;
+}
+
+.cd-instructor-whatsapp:hover {
+  opacity: 0.75;
+}
+
+/* Bio block */
+.cd-instructor-bio-wrap {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--cd-border);
+}
+
+.cd-instructor-bio-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cd-muted);
+  margin-bottom: 8px;
+}
+
+.cd-instructor-bio {
+  font-size: 0.9rem;
+  color: #4b5563;
+  line-height: 1.1;
+  margin: 15px 0 0;
+  white-space: pre-line;
+}
+
+/* ── Loading / Error ── */
+.cd-loading,
+.cd-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  gap: 16px;
+  color: var(--cd-muted);
+}
+
+.cd-error i {
+  font-size: 2.5rem;
+  color: var(--cd-red);
+}
+
+.cd-spinner {
+  width: 44px;
+  height: 44px;
+  border: 4px solid var(--cd-border);
+  border-top-color: var(--cd-red);
+  border-radius: 50%;
+  animation: cd-spin 0.8s linear infinite;
+}
+
+@keyframes cd-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ═══════════════════════════════════════
+   VIDEO LIGHTBOX
+═══════════════════════════════════════ */
+.cd-lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(6px);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: cd-lb-in 0.22s ease;
+}
+
+@keyframes cd-lb-in {
+  from {
+    opacity: 0;
   }
 
-  .course-details-progress-box {
+  to {
+    opacity: 1;
+  }
+}
+
+.cd-lightbox-card {
+  background: #111;
+  border-radius: 18px;
+  padding: 20px 20px 16px;
+  width: 100%;
+  max-width: 860px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  animation: cd-lb-slide 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+@keyframes cd-lb-slide {
+  from {
+    transform: scale(0.93) translateY(16px);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.cd-lightbox-close {
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s;
+  z-index: 1;
+}
+
+.cd-lightbox-close:hover {
+  background: var(--cd-red);
+}
+
+.cd-lightbox-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #e5e7eb;
+  margin: 0 44px 14px 0;
+  padding-inline-end: 8px;
+}
+
+.cd-lightbox-video-wrap {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 16 / 9;
+}
+
+.cd-lightbox-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+}
+
+@media (max-width: 480px) {
+  .cd-lightbox-card {
+    border-radius: 12px;
+    padding: 14px 14px 12px;
+  }
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .cd-hero-right {
+    width: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  .cd-hero-body {
+    flex-direction: column-reverse;
+    padding: 28px 24px 32px;
+    gap: 24px;
+  }
+
+  .cd-hero-right {
     width: 100%;
-    max-width: 320px;
   }
 
-  .course-details-hero {
-    padding: 32px 24px;
+  .cd-thumb {
+    height: 200px;
+  }
+
+  .cd-hero-title {
+    font-size: 1.5rem;
+  }
+
+  .cd-card {
+    padding: 24px 20px;
+  }
+
+  .cd-learnings-list {
+    grid-template-columns: 1fr;
+  }
+
+  .cd-info-cells {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
-@media (max-width: 640px) {
-  .course-details-hero-content h1 {
-    font-size: 1.35rem;
+@media (max-width: 480px) {
+  .cd-hero-title {
+    font-size: 1.3rem;
   }
 
-  .course-details-meta {
-    gap: 16px;
-    font-size: 0.85rem;
+  .cd-meta-row {
+    gap: 14px;
+    font-size: 0.82rem;
   }
 
-  .course-details-instructor-card {
-    padding: 20px 18px;
+  .cd-info-cells {
+    grid-template-columns: 1fr;
   }
 
-  .course-details-instructor-row {
+  .cd-instructor-row {
     flex-direction: column;
     align-items: center;
     text-align: center;
+  }
+
+  .cd-hero-actions {
+    flex-direction: column;
+  }
+
+  .cd-btn-primary,
+  .cd-btn-ghost {
+    justify-content: center;
+    width: 100%;
   }
 }

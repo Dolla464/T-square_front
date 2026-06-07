@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { Pagination, Modal, Button } from "react-bootstrap";
@@ -50,24 +50,26 @@ function AdminReviews() {
   }, [currentPage, debouncedSearch, statusFilter, getReviews]);
 
   // 2. الفلترة المتبقية بداخل الـ Frontend (مثل تقييم النجوم لتقليل حمل السيرفر)
-  const filteredReviews = (reviews || []).filter((item) => {
-    const searchLower = searchTerm.toLowerCase();
-    const matchSearch =
-      !searchTerm ||
-      item.student_name?.toLowerCase().includes(searchLower) ||
-      item.course_title?.toLowerCase().includes(searchLower) ||
-      item.overall_comment?.toLowerCase().includes(searchLower);
+  const filteredReviews = useMemo(() => {
+    return (reviews || []).filter((item) => {
+      const searchLower = searchTerm.toLowerCase();
+      const matchSearch =
+        !searchTerm ||
+        item.student_name?.toLowerCase().includes(searchLower) ||
+        item.course_title?.toLowerCase().includes(searchLower) ||
+        item.overall_comment?.toLowerCase().includes(searchLower);
 
-    const matchRating =
-      ratingFilter === "all" ||
-      Math.floor(Number(item.rating)) === Number(ratingFilter);
+      const matchRating =
+        ratingFilter === "all" ||
+        Math.floor(Number(item.rating)) === Number(ratingFilter);
 
-    const matchStatus =
-      statusFilter === "all" ||
-      item.review_status === statusFilter;
+      const matchStatus =
+        statusFilter === "all" ||
+        item.review_status === statusFilter;
 
-    return matchSearch && matchRating && matchStatus;
-  });
+      return matchSearch && matchRating && matchStatus;
+    });
+  }, [reviews, searchTerm, ratingFilter, statusFilter]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);

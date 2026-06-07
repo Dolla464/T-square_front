@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { startExam as startExamApi, saveExamAnswer, submitExam as submitExamApi } from "../services/dashboardService";
 
 export const useExam = (examId) => {
@@ -7,7 +7,7 @@ export const useExam = (examId) => {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const startExam = async () => {
+  const startExam = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -20,9 +20,9 @@ export const useExam = (examId) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [examId]);
 
-  const saveAnswer = async (questionId, choiceId) => {
+  const saveAnswer = useCallback(async (questionId, choiceId) => {
     // Guard: must have a valid attempt_id before saving
     if (!exam?.attempt_id) {
       console.warn("saveAnswer skipped — attempt_id not available yet");
@@ -37,9 +37,9 @@ export const useExam = (examId) => {
     } catch (err) {
       console.error("Failed to save answer", err);
     }
-  };
+  }, [exam?.attempt_id]);
 
-  const submitExam = async (attemptId) => {
+  const submitExam = useCallback(async (attemptId) => {
     if (!attemptId) {
       throw new Error("Cannot submit: attempt_id is missing");
     }
@@ -56,7 +56,7 @@ export const useExam = (examId) => {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, []);
 
   return { exam, loading, error, startExam, saveAnswer, submitExam, submitting };
 };

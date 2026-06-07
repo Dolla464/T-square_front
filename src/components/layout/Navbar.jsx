@@ -11,6 +11,7 @@ import "./Navbar.css";
 import logoWhite from "../../assets/logo-white.webp";
 import logoDark from "../../assets/logo-dark.webp";
 import { isArabic } from "../../i18n";
+import SearchDropdown from "../search/SearchDropdown";
 
 function AppNavbar({ isLoggedIn, userName }) {
   const { t, i18n } = useTranslation(["navbar", "common", "user"]);
@@ -198,6 +199,8 @@ function AppNavbar({ isLoggedIn, userName }) {
           </Nav>
 
           <div className="d-flex align-items-center gap-3">
+            <SearchDropdown isDarkMode={!isDarkMode} Tbtn={Tbtn} />
+
             <div
               className={`d-flex align-items-center cursor-pointer lang-switch ${Tbtn
                 }`}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAdminCourses } from "../../hooks/useAdminCourses";
 import { useInstructors } from "../../hooks/useInstractor";
@@ -58,6 +58,13 @@ function AdminCourses() {
   const [showTrash, setShowTrash] = useState(false);
   const [trashPeriod, setTrashPeriod] = useState("");
 
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   // ─── Video modal state ─────────────────────────────────────────────────────
   const [videoPreviewUrl, setVideoPreviewUrl] = useState(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -70,7 +77,7 @@ function AdminCourses() {
   useEffect(() => {
     const params = {
       page: currentPage,
-      search: searchTerm || undefined,
+      search: debouncedSearch || undefined,
       status: selectedStatus === "all" ? undefined : selectedStatus,
       category_id: selectedCategory === "all" ? undefined : selectedCategory,
     };
@@ -84,7 +91,7 @@ function AdminCourses() {
     currentPage,
     getCourses,
     getTrashedCourses,
-    searchTerm,
+    debouncedSearch,
     selectedStatus,
     selectedCategory,
     showTrash,
@@ -93,7 +100,7 @@ function AdminCourses() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedStatus, selectedCategory, showTrash, trashPeriod]);
+  }, [debouncedSearch, selectedStatus, selectedCategory, showTrash, trashPeriod]);
 
   useEffect(() => {
     getCategoriesTree();
@@ -107,30 +114,32 @@ function AdminCourses() {
   }, [showForm, getTags, getInstructors]);
 
   // ─── Client-side filter (second layer over API results) ───────────────────
-  const filteredCourses = (courses || []).filter((course) => {
-    const searchLower = searchTerm.toLowerCase();
-    const matchesSearch =
-      !searchTerm ||
-      course.title?.toLowerCase().includes(searchLower) ||
-      course.short_description?.toLowerCase().includes(searchLower) ||
-      course.instructor?.full_name?.toLowerCase().includes(searchLower) ||
-      course.instructor?.name?.toLowerCase().includes(searchLower);
+  const filteredCourses = React.useMemo(() => {
+    return (courses || []).filter((course) => {
+      const searchLower = debouncedSearch.toLowerCase();
+      const matchesSearch =
+        !debouncedSearch ||
+        course.title?.toLowerCase().includes(searchLower) ||
+        course.short_description?.toLowerCase().includes(searchLower) ||
+        course.instructor?.full_name?.toLowerCase().includes(searchLower) ||
+        course.instructor?.name?.toLowerCase().includes(searchLower);
 
-    const matchesStatus =
-      selectedStatus === "all" || course.status === selectedStatus;
+      const matchesStatus =
+        selectedStatus === "all" || course.status === selectedStatus;
 
-    const matchesCategory =
-      selectedCategory === "all" ||
-      String(course.category_id) === String(selectedCategory) ||
-      String(course.category?.id) === String(selectedCategory);
+      const matchesCategory =
+        selectedCategory === "all" ||
+        String(course.category_id) === String(selectedCategory) ||
+        String(course.category?.id) === String(selectedCategory);
 
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
+      return matchesSearch && matchesStatus && matchesCategory;
+    });
+  }, [courses, debouncedSearch, selectedStatus, selectedCategory]);
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
   const buildFetchParams = () => ({
     page: currentPage,
-    search: searchTerm || undefined,
+    search: debouncedSearch || undefined,
     status: selectedStatus === "all" ? undefined : selectedStatus,
     category_id: selectedCategory === "all" ? undefined : selectedCategory,
   });

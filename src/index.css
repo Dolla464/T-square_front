@@ -1,3 +1,5 @@
+@import url('./assets/fonts/fonts.css');
+
 /* 1. تعريف ألوان البراند (T-Square) */
 :root {
   --primary-red: #c51c24; /* اللون الأحمر اللي في الصورة */
@@ -9,7 +11,7 @@
 /* 2. تنسيقات عامة لتسهيل الشغل */
 body {
   margin: 0;
-  font-family: "Inter", "Tajawal", sans-serif; /* تأكد من استدعاء الخطوط */
+  font-family: "Cairo", "Inter", "Tajawal", sans-serif; /* تأكد من استدعاء الخطوط */
   background-color: var(--light-gray);
   color: var(--text-main);
 }

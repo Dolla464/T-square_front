@@ -13,7 +13,14 @@ function Footer() {
         <Row className="gy-4">
           {/* عمود اللوجو والوصف */}
           <Col lg={5} md={12}>
-            <img src={logoWhite} alt="T-Square Logo" className="footer-logo" />
+            <img
+              src={logoWhite}
+              alt="T-Square Logo"
+              className="footer-logo"
+              width="220"
+              height="80"
+              loading="lazy"
+            />
             <p className="footer-desc">{t("description")}</p>
           </Col>
 

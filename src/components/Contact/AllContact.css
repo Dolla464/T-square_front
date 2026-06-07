@@ -193,7 +193,7 @@
   width: 100%;
   height: 100%;
   /* Keep default relative to assets folder per rule #7 */
-  background-image: url("../../assets/waves2.png");
+  background-image: url("../../assets/waves2.webp");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

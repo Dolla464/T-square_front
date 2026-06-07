@@ -1,9 +1,74 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import { toastCustom } from "../../../../components/shared/Toaster/toaster";
 import { useExam } from "../../hooks/useExam";
 import "../../styles/dashboardShared.css";
+
+const QuizTimer = React.memo(({ durationMins, attemptId, quizId, isArabic, onTimeout }) => {
+  const [timeLeft, setTimeLeft] = useState(null);
+
+  useEffect(() => {
+    if (!durationMins || durationMins <= 0 || !attemptId) return;
+
+    const storageKey = `quiz_timer_${quizId}_${attemptId}`;
+    const savedEndTime = localStorage.getItem(storageKey);
+    let endTime;
+
+    if (savedEndTime) {
+      endTime = parseInt(savedEndTime, 10);
+    } else {
+      endTime = Date.now() + durationMins * 60 * 1000;
+      localStorage.setItem(storageKey, endTime.toString());
+    }
+
+    const calculateTimeLeft = () => {
+      const difference = endTime - Date.now();
+      if (difference <= 0) {
+        return 0;
+      }
+      return Math.floor(difference / 1000);
+    };
+
+    const initialTime = calculateTimeLeft();
+    setTimeLeft(initialTime);
+
+    if (initialTime <= 0) {
+      onTimeout();
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const remaining = calculateTimeLeft();
+      setTimeLeft(remaining);
+      if (remaining <= 0) {
+        clearInterval(interval);
+        localStorage.removeItem(storageKey);
+        onTimeout();
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [durationMins, attemptId, quizId, onTimeout]);
+
+  if (timeLeft === null) return null;
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  return (
+    <div className={`quiz-timer-badge ${timeLeft < 60 ? "timer-warning" : ""}`}>
+      <i className="bi bi-clock me-1"></i>
+      <span>{formatTime(timeLeft)}</span>
+    </div>
+  );
+});
 
 /**
  * صفحة اختبار الكويز - QuizExamPage
@@ -92,9 +157,6 @@ function QuizExamPage() {
   const totalQuestions = questions.length;
   const isLastQuestion = currentIndex === totalQuestions - 1;
 
-  // Timer & Auto-Submit State and Logic
-  const [timeLeft, setTimeLeft] = useState(null);
-
   // Refs to avoid stale closures in the timer interval
   const currentIndexRef = useRef(currentIndex);
   currentIndexRef.current = currentIndex;
@@ -108,7 +170,7 @@ function QuizExamPage() {
   const submittingRef = useRef(submitting);
   submittingRef.current = submitting;
 
-  const handleAutoSubmit = async () => {
+  const handleAutoSubmit = useCallback(async () => {
     if (submittingRef.current || !exam?.attempt_id) return;
     
     try {
@@ -145,63 +207,7 @@ function QuizExamPage() {
         duration: 5000,
       });
     }
-  };
-
-  const handleAutoSubmitRef = useRef(null);
-  useEffect(() => {
-    handleAutoSubmitRef.current = handleAutoSubmit;
-  }, [exam, answers, currentIndex, selectedAnswer]);
-
-  // Countdown timer effect
-  useEffect(() => {
-    if (!exam || !exam.duration) return;
-
-    const durationMins = parseFloat(exam.duration);
-    if (isNaN(durationMins) || durationMins <= 0) return;
-
-    const storageKey = `quiz_timer_${quizId}_${exam.attempt_id}`;
-    const savedEndTime = localStorage.getItem(storageKey);
-    let endTime;
-
-    if (savedEndTime) {
-      endTime = parseInt(savedEndTime, 10);
-    } else {
-      endTime = Date.now() + durationMins * 60 * 1000;
-      localStorage.setItem(storageKey, endTime.toString());
-    }
-
-    const calculateTimeLeft = () => {
-      const difference = endTime - Date.now();
-      if (difference <= 0) {
-        return 0;
-      }
-      return Math.floor(difference / 1000);
-    };
-
-    const initialTime = calculateTimeLeft();
-    setTimeLeft(initialTime);
-
-    if (initialTime <= 0) {
-      handleAutoSubmitRef.current();
-      return;
-    }
-
-    const interval = setInterval(() => {
-      const remaining = calculateTimeLeft();
-      setTimeLeft(remaining);
-      if (remaining <= 0) {
-        clearInterval(interval);
-        localStorage.removeItem(storageKey);
-        if (handleAutoSubmitRef.current) {
-          handleAutoSubmitRef.current();
-        }
-      }
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [exam, quizId]);
+  }, [exam?.attempt_id, quizId, isArabic, saveAnswer, submitExam]);
 
   // Prevent leaving tab by mistake
   useEffect(() => {
@@ -216,7 +222,7 @@ function QuizExamPage() {
     };
   }, [exam, showResult]);
 
-  const handleExitClick = () => {
+  const handleExitClick = useCallback(() => {
     const confirmExit = window.confirm(
       isArabic
         ? "هل أنت متأكد أنك تريد الخروج؟ قد تفقد إجاباتك الحالية."
@@ -228,15 +234,9 @@ function QuizExamPage() {
       }
       handleExit();
     }
-  };
+  }, [exam?.attempt_id, quizId, isArabic]);
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const handleSelectAnswer = (choiceId) => {
+  const handleSelectAnswer = useCallback((choiceId) => {
     setSelectedAnswer(choiceId); // تخزين الـ id مباشرة
 
     // وتحديث مصفوفة الـ answers لتخزين الـ id
@@ -253,9 +253,9 @@ function QuizExamPage() {
         attemptId: exam?.attempt_id,
       }),
     );
-  };
+  }, [answers, currentIndex, exam?.attempt_id, quizId]);
 
-  const handleNext = async () => {
+  const handleNext = useCallback(async () => {
     // CRITICAL GUARD: must have a valid attempt before any action
     if (!exam?.attempt_id) {
       toastCustom({
@@ -273,7 +273,6 @@ function QuizExamPage() {
     let updatedAnswers = [...answers];
 
     if (currentQuestion && selectedAnswer !== null) {
-      // بما أن selectedAnswer أصبح هو الـ choiceId مباشرة بعد التعديل
       const choiceId = selectedAnswer;
 
       // إرسال الطلب للسيرفر للحفظ المباشر
@@ -301,7 +300,6 @@ function QuizExamPage() {
     // 3. التحقق من حالة إنهاء الامتحان أو الانتقال للسؤال التالي
     if (isLastQuestion) {
       try {
-        // Pass attempt_id to submit — NOT examId
         const result = await submitExam(exam.attempt_id);
 
         // مسح الحالة من الـ localStorage فور النجاح لتنظيف المتصفح
@@ -330,13 +328,24 @@ function QuizExamPage() {
         nextQuestionAnswer !== undefined ? nextQuestionAnswer : null,
       );
     }
-  };
+  }, [
+    answers,
+    currentIndex,
+    currentQuestion,
+    exam?.attempt_id,
+    isArabic,
+    isLastQuestion,
+    quizId,
+    saveAnswer,
+    selectedAnswer,
+    submitExam,
+  ]);
 
-  const handleExit = () => {
+  const handleExit = useCallback(() => {
     navigate("/student/quizzes");
-  };
+  }, [navigate]);
 
-  const handleFinishWithToast = () => {
+  const handleFinishWithToast = useCallback(() => {
     const isFailed = scoreResult?.status === "failed";
     toastCustom({
       message: isFailed
@@ -351,7 +360,7 @@ function QuizExamPage() {
       duration: 4000,
     });
     handleExit();
-  };
+  }, [scoreResult?.status, isArabic, handleExit]);
 
   if (loading) {
     return (
@@ -509,6 +518,9 @@ function QuizExamPage() {
 
   return (
     <div className="quiz-exam-page">
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <div className="quiz-exam-container">
         <div className="quiz-header d-flex justify-content-between align-items-center mb-3">
           <button className="topbar-back-btn mb-0" onClick={handleExitClick}>
@@ -517,11 +529,14 @@ function QuizExamPage() {
             ></i>
             {isArabic ? "خروج" : "Exit"}
           </button>
-          {timeLeft !== null && (
-            <div className={`quiz-timer-badge ${timeLeft < 60 ? "timer-warning" : ""}`}>
-              <i className="bi bi-clock me-1"></i>
-              <span>{formatTime(timeLeft)}</span>
-            </div>
+          {exam && exam.duration && (
+            <QuizTimer
+              durationMins={parseFloat(exam.duration)}
+              attemptId={exam.attempt_id}
+              quizId={quizId}
+              isArabic={isArabic}
+              onTimeout={handleAutoSubmit}
+            />
           )}
         </div>
 

@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useCallback } from "react";
+import { Helmet } from "react-helmet-async";
 import { Container, Row, Col } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -9,15 +10,30 @@ import TestimonialsSection from "../shared/TestimonialsSection/TestimonialsSecti
 
 function AllSolutions() {
   const navigate = useNavigate();
-  const handleContact = () => {
+  const handleContact = useCallback(() => {
     navigate("/contact");
-  };
+  }, [navigate]);
   const { t } = useTranslation(["solutions", "navbar", "testimonials"]);
   const isArabic = i18n.language === "ar";
   const { solutions, loading, error } = useSolutions();
 
   return (
     <div className="solutions-page">
+      <Helmet>
+        <title>{isArabic ? "الحلول والخدمات الرقمية - T-Square" : "Digital Solutions & Services - T-Square"}</title>
+        <meta name="description" content={isArabic 
+          ? "اكتشف الحلول البرمجية وتطوير المواقع والتطبيقات والخدمات الاستشارية الرقمية من T-Square."
+          : "Discover web/app development solutions, technical systems, and digital consulting services from T-Square."
+        } />
+        <link rel="canonical" href={`${window.location.origin}/solutions`} />
+        <meta property="og:title" content={isArabic ? "حلول برمجية وتطوير ويب متكامل" : "Comprehensive Digital & Software Solutions"} />
+        <meta property="og:description" content={isArabic 
+          ? "نساعد الشركات والمشاريع على النمو التقني وبناء منصات قوية."
+          : "We help businesses grow technically by building robust software platforms."
+        } />
+        <meta property="og:url" content={`${window.location.origin}/solutions`} />
+        <meta property="og:type" content="website" />
+      </Helmet>
       {/* Top spacing similar to AllCourses */}
       <div className="py-5 mt-5">
         <Container>
