@@ -1,6 +1,4 @@
 .hero-section {
-  background-size: cover;
-  background-position: center;
   min-height: 100vh;
   width: 100%;
   display: flex;
@@ -9,27 +7,56 @@
   padding-top: 110px;
   position: relative;
   color: white;
-  position: relative;
   overflow: hidden;
   z-index: 1;
-} /* الخلفية الأساسية */
+  /* خلفية سوداء كـ fallback لحد ما الصورة تحمل */
+  background-color: #0a0a0a;
+}
 
-.hero-section::before {
-  content: "";
+/* صورة الخلفية الحقيقية — بدل background-image */
+.hero-bg-image {
   position: absolute;
   inset: 0;
-  background-image: inherit;
-  background-size: cover;
-  background-position: center;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
   z-index: 0;
-  transform-origin: center;
 }
-.hero-section > * {
-  position: relative;
-  z-index: 2;
-}
-.hero-section.rtl-bg::before {
+
+/* قلب الصورة في حالة RTL */
+.hero-section.rtl-bg .hero-bg-image {
   transform: scaleX(-1);
+}
+
+/* طبقة التدرج — نفس الـ gradient اللي كان inline */
+.hero-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.82) 40%,
+    rgba(0, 0, 0, 0.42) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* قلب اتجاه التدرج في RTL */
+.hero-section.rtl-bg .hero-gradient-overlay {
+  background: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.82) 40%,
+    rgba(0, 0, 0, 0.42) 100%
+  );
+}
+
+/* المحتوى فوق كل الطبقات */
+.hero-section > .container {
+  position: relative;
+  z-index: 3;
 }
 
 /* التحميل المتدرج المحمر المتحرك لخلفية الهيرو - معزز برتغالي لتسريع كرت الشاشة (GPU) */
@@ -39,7 +66,7 @@
   bottom: 0;
   left: 0;
   width: 200%; /* ضعف العرض لعمل تأثير الحركة المستمرة */
-  z-index: 0;
+  z-index: 2;
   background: linear-gradient(
     90deg,
     #140505 0%,
@@ -61,6 +88,7 @@
     transform: translateX(-50%); /* حركة مستمرة ناعمة بدون إعادة رسم (No Repaint) */
   }
 }
+
 .hero-title {
   line-height: 1.1;
 }
