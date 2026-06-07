@@ -15,7 +15,7 @@ function FAQ() {
         </div>
 
         <Accordion className="faq-accordion" defaultActiveKey="1">
-          {faqData.map((item) => (
+          {Array.isArray(faqData) && faqData.map((item) => (
             <Accordion.Item eventKey={item.id} key={item.id}>
               <Accordion.Header>{item.question}</Accordion.Header>
               <Accordion.Body>{item.answer}</Accordion.Body>

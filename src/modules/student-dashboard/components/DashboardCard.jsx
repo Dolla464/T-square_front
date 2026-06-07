@@ -76,7 +76,7 @@ function DashboardCard({ item, type, t }) {
         <div className="course-card-img-wrapper">
           <img
             // item.thumbnail from api
-            src={item.thumbnail}
+            src={item.cover_image || "/default-course-cover.jpg"}
             alt={item.title}
             className="course-card-img"
           />

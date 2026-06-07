@@ -142,7 +142,7 @@ function AllCourses() {
           >
             {t("all")}
           </button>
-          {categories.map((cat) => (
+          {categories?.map((cat) => (
             <button
               key={cat.id}
               className={`filter-btn ${selectedCategoryId === cat.id ? "active" : ""}`}

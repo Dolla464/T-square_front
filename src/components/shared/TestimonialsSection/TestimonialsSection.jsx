@@ -44,7 +44,7 @@ function TestimonialsSection({ data, className = "" }) {
         {(!loading || data) && (
           <div className="testimonials-scroll-container">
             <div className="testimonials-scroll-wrapper">
-              {testimonials.map((testimonial) => (
+              {testimonials?.map((testimonial) => (
                 <div
                   className="testimonial-card-horizontal"
                   key={testimonial.id}
