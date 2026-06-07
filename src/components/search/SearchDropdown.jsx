@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { fetchUserCourses } from "../../api/courses";
@@ -6,36 +7,58 @@ import axios from "axios";
 import "./SearchDropdown.css";
 
 const STATIC_PAGES = [
-  { key: "home", path: "/", icon: "bi-house-door" },
-  { key: "courses", path: "/courses", icon: "bi-journal-bookmark" },
-  { key: "solutions", path: "/solutions", icon: "bi-lightbulb" },
-  { key: "team", path: "/team", icon: "bi-people" },
-  { key: "contact", path: "/contact", icon: "bi-envelope" },
-  { key: "login", path: "/login", icon: "bi-box-arrow-in-right" },
+  { key: "home", path: "/", icon: "bi-house-door", labelAr: "الرئيسية", labelEn: "Home" },
+  { key: "courses", path: "/courses", icon: "bi-journal-bookmark", labelAr: "الكورسات", labelEn: "Courses" },
+  { key: "solutions", path: "/solutions", icon: "bi-lightbulb", labelAr: "حلول برمجية", labelEn: "Software Solutions" },
+  { key: "team", path: "/team", icon: "bi-people", labelAr: "الفريق", labelEn: "Team" },
+  { key: "contact", path: "/contact", icon: "bi-envelope", labelAr: "تواصل معنا", labelEn: "Contact us" },
+  { key: "login", path: "/login", icon: "bi-box-arrow-in-right", labelAr: "تسجيل دخول", labelEn: "Login" },
+  { key: "signup", path: "/signup", icon: "bi-person-plus", labelAr: "إنشاء حساب", labelEn: "Sign up" },
+  { key: "dashboard", path: "/dashboard", icon: "bi-person-badge", labelAr: "لوحة التحكم", labelEn: "Dashboard" },
+  { key: "forgot_password", path: "/forgot_password", icon: "bi-lock", labelAr: "نسيت كلمة المرور", labelEn: "Forgot Password" },
+  { key: "update_password", path: "/update_password", icon: "bi-key-fill", labelAr: "تحديث كلمة المرور", labelEn: "Update Password" },
+  { key: "profile", path: "/profile", icon: "bi-person-vcard", labelAr: "الملف الشخصي", labelEn: "Profile" },
 ];
 
-function SearchDropdown({ isDarkMode, tbn }) {
+function SearchDropdown({ isDarkMode, Tbtn }) {
   const { t, i18n } = useTranslation(["navbar", "common"]);
   const navigate = useNavigate();
   const isArabic = i18n.language === "ar";
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOverlayOpen, setIsOverlayOpen] = useState(false);
 
-  const dropdownRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const searchBoxRef = useRef(null);
   const abortControllerRef = useRef(null);
 
-  // Close dropdown when clicking outside
+  // Lock/unlock body scroll when overlay opens/closes
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
+    if (isOverlayOpen) {
+      document.body.style.overflow = "hidden";
+      // Focus input after overlay opens
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOverlayOpen]);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && isOverlayOpen) {
+        closeOverlay();
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOverlayOpen]);
 
   // Perform search with debounce and cancellation
   useEffect(() => {
@@ -61,17 +84,18 @@ function SearchDropdown({ isDarkMode, tbn }) {
 
         const apiCourses = res.data.data || [];
 
-        // Filter static pages locally
+        // Filter static pages locally — match against Arabic, English labels, and key
         const normalizedQuery = query.toLowerCase();
         const matchedStatic = STATIC_PAGES.filter(page =>
-          t(`navbar:${page.key}`, { defaultValue: page.key }).toLowerCase().includes(normalizedQuery) ||
+          page.labelAr.includes(normalizedQuery) ||
+          page.labelEn.toLowerCase().includes(normalizedQuery) ||
           page.key.toLowerCase().includes(normalizedQuery)
         );
 
         setResults([
           ...matchedStatic.map(page => ({
             id: `static-${page.key}`,
-            title: t(`navbar:${page.key}`, { defaultValue: page.key }),
+            title: isArabic ? page.labelAr : page.labelEn,
             description: isArabic ? "صفحة بالموقع" : "Website Page",
             path: page.path,
             icon: page.icon,
@@ -104,69 +128,120 @@ function SearchDropdown({ isDarkMode, tbn }) {
     };
   }, [query, t, isArabic]);
 
-  const handleSelect = useCallback((path) => {
+  const closeOverlay = useCallback(() => {
+    setIsOverlayOpen(false);
     setQuery("");
-    setIsOpen(false);
+    setResults([]);
+  }, []);
+
+  const handleSelect = useCallback((path) => {
+    closeOverlay();
     navigate(path);
-  }, [navigate]);
+  }, [navigate, closeOverlay]);
+
+  const handleOverlayClick = useCallback((e) => {
+    // Close only if clicking the backdrop itself, not the search box
+    if (searchBoxRef.current && !searchBoxRef.current.contains(e.target)) {
+      closeOverlay();
+    }
+  }, [closeOverlay]);
+
+  // The search icon button rendered inside Navbar
+  const searchIcon = (
+    <button
+      className={`search-trigger-btn ${Tbtn}`}
+      onClick={() => setIsOverlayOpen(true)}
+      aria-label={isArabic ? "بحث" : "Search"}
+      title={isArabic ? "بحث" : "Search"}
+    >
+      <i className="bi bi-search"></i>
+    </button>
+  );
+
+  // The overlay rendered via portal (outside Navbar DOM)
+  const overlay = isOverlayOpen
+    ? createPortal(
+        <div
+          className={`search-overlay ${isOverlayOpen ? "search-overlay--visible" : ""}`}
+          onClick={handleOverlayClick}
+        >
+          <div className="search-overlay-box" ref={searchBoxRef}>
+            {/* Close button */}
+            <button className="search-overlay-close" onClick={closeOverlay} aria-label="Close">
+              <i className="bi bi-x-lg"></i>
+            </button>
+
+            {/* Search input */}
+            <div className="search-overlay-input-wrapper">
+              <i className="bi bi-search search-overlay-search-icon"></i>
+              <input
+                ref={searchInputRef}
+                type="text"
+                className="search-overlay-input"
+                placeholder={isArabic ? "ابحث عن كورسات، صفحات..." : "Search courses, pages..."}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                autoComplete="off"
+              />
+              {query && (
+                <button className="search-overlay-clear" onClick={() => setQuery("")}>
+                  <i className="bi bi-x-circle-fill"></i>
+                </button>
+              )}
+            </div>
+
+            {/* Results area */}
+            {(query.trim() || loading) && (
+              <div className="search-overlay-results">
+                {loading ? (
+                  <div className="search-overlay-loading">
+                    <span className="spinner-border spinner-border-sm text-danger" role="status"></span>
+                    <span>{isArabic ? "جاري البحث..." : "Searching..."}</span>
+                  </div>
+                ) : results.length === 0 ? (
+                  <div className="search-overlay-empty">
+                    <i className="bi bi-emoji-frown"></i>
+                    <span>{isArabic ? "لا توجد نتائج مطابقة" : "No matching results"}</span>
+                  </div>
+                ) : (
+                  <div className="search-overlay-results-list">
+                    {results.map((item) => (
+                      <div
+                        key={item.id}
+                        className="search-overlay-result-item"
+                        onClick={() => handleSelect(item.path)}
+                      >
+                        <div className="search-overlay-result-icon">
+                          <i className={`bi ${item.icon}`}></i>
+                        </div>
+                        <div className="search-overlay-result-content">
+                          <div className="search-overlay-result-title">{item.title}</div>
+                          <div className="search-overlay-result-desc">{item.description}</div>
+                        </div>
+                        <i className="bi bi-arrow-return-left search-overlay-result-arrow"></i>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Keyboard hint */}
+            <div className="search-overlay-hint">
+              <kbd>ESC</kbd>
+              <span>{isArabic ? "للإغلاق" : "to close"}</span>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )
+    : null;
 
   return (
-    <div className={`search-dropdown-wrapper ${isDarkMode ? "dark-theme " : "light-theme "} ${tbn}`} ref={dropdownRef}>
-      <div className="search-input-container">
-        <i className="bi bi-search search-icon"></i>
-        <input
-          type="text"
-          className="search-input"
-          placeholder={isArabic ? "ابحث عن كورسات..." : "Search courses..."}
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setIsOpen(true);
-          }}
-          onFocus={() => setIsOpen(true)}
-        />
-        {query && (
-          <button className="search-clear-btn" onClick={() => setQuery("")}>
-            <i className="bi bi-x"></i>
-          </button>
-        )}
-      </div>
-
-      {isOpen && (query.trim() || loading) && (
-        <div className="search-results-dropdown shadow-lg">
-          {loading ? (
-            <div className="search-loading py-3 text-center text-muted">
-              <span className="spinner-border spinner-border-sm me-2 text-danger" role="status"></span>
-              {isArabic ? "جاري البحث..." : "Searching..."}
-            </div>
-          ) : results.length === 0 ? (
-            <div className="search-no-results py-3 text-center text-muted">
-              {isArabic ? "لا توجد نتائج مطابقة" : "No matching results"}
-            </div>
-          ) : (
-            <div className="search-results-list">
-              {results.map((item) => (
-                <div
-                  key={item.id}
-                  className="search-result-item d-flex align-items-center gap-3"
-                  onClick={() => handleSelect(item.path)}
-                >
-                  <div className="search-result-icon-box">
-                    <i className={`bi ${item.icon}`}></i>
-                  </div>
-                  <div className="search-result-content">
-                    <div className="search-result-title fw-bold">{item.title}</div>
-                    <div className="search-result-desc text-muted text-truncate">
-                      {item.description}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+    <>
+      {searchIcon}
+      {overlay}
+    </>
   );
 }
 

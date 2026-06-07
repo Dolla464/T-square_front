@@ -119,7 +119,7 @@ function CourseDetails() {
 
   const {
     title, short_description, description,
-    thumbnail,
+    cover_image,
     level, language,
     duration_hours, duration_weeks,
     avg_rating, total_reviews, total_students,
@@ -229,11 +229,11 @@ function CourseDetails() {
             </div>
           </div>
 
-          {/* الجانب الأيمن — Thumbnail */}
-          {thumbnail && (
+          {/* الجانب الأيمن — cover_image */}
+          {cover_image && (
             <div className="cd-hero-right ">
               <div className="cd-thumb-wrap">
-                <img src={thumbnail} alt={title} className="cd-thumb" loading="lazy" />
+                <img src={cover_image} alt={title} className="cd-thumb" loading="lazy" />
               </div>
             </div>
           )}

@@ -108,6 +108,16 @@ export const useHeroAndAboutData = () => {
         const heroImageVal = heroRes?.data?.data?.hero_image || null;
         const aboutImagesVal = aboutRes?.data?.data?.about_images || [];
 
+        // حقن preload للصورة فوراً بعد ما الـ API يرجع — البراوزر يبدأ التحميل قبل ما React يعمل re-render
+        if (heroImageVal && !document.querySelector('link[data-hero-preload]')) {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = heroImageVal;
+          link.setAttribute('data-hero-preload', 'true');
+          document.head.appendChild(link);
+        }
+
         const extractVal = (res) => {
           if (!res) return "";
           const body = res.data !== undefined ? res.data : res;

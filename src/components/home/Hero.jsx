@@ -12,7 +12,7 @@ function Hero({ heroImage, heroSettings }) {
   const isAr = i18n.language === "ar";
   const isArabic = isAr;
 
-  const [imageLoaded, setImageLoaded] = useState(() => 
+  const [imageLoaded, setImageLoaded] = useState(() =>
     heroImage ? loadedImagesCache.has(heroImage) : false
   );
 
@@ -24,46 +24,43 @@ function Hero({ heroImage, heroSettings }) {
     return value;
   };
 
+  // تحديث حالة الكاش عند تغيير الصورة
   useEffect(() => {
     if (!heroImage) {
       setImageLoaded(false);
       return;
     }
-    
-    // إذا كانت الصورة محملة مسبقاً، لا داعي للتحميل مرة أخرى
     if (loadedImagesCache.has(heroImage)) {
       setImageLoaded(true);
-      return;
     }
-
-    const img = new Image();
-    img.src = heroImage;
-    img.onload = () => {
-      loadedImagesCache.add(heroImage);
-      setImageLoaded(true);
-    };
-    img.onerror = () => {
-      setImageLoaded(false);
-    };
   }, [heroImage]);
 
-  // الـ Style الديناميكي صار يقرأ من المتغير الذكي heroImage عند تحميله بالكامل
-  const dynamicStyle = {
-    backgroundImage: heroImage && imageLoaded
-      ? `linear-gradient(
-          to right,
-          rgba(0, 0, 0, 1) 0%,
-          rgba(0, 0, 0, 0.82) 40%,
-          rgba(0, 0, 0, 0.42) 100%
-        ), url("${heroImage}")`
-      : "none",
+  // عند تحميل الصورة — تحديث الكاش والحالة
+  const handleImageLoad = () => {
+    if (heroImage) {
+      loadedImagesCache.add(heroImage);
+    }
+    setImageLoaded(true);
   };
 
   return (
-    <section
-      className={`hero-section ${isAr ? "rtl-bg" : ""}`}
-      style={dynamicStyle}
-    >
+    <section className={`hero-section ${isAr ? "rtl-bg" : ""}`}>
+      {/* صورة الخلفية الحقيقية — البراوزر يكتشفها فوراً بدون انتظار JS */}
+      {heroImage && (
+        <img
+          src={heroImage}
+          alt=""
+          className="hero-bg-image"
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
+          onLoad={handleImageLoad}
+        />
+      )}
+
+      {/* طبقة التدرج — نفس الـ gradient اللي كان في الـ inline style */}
+      <div className="hero-gradient-overlay" />
+
       {/* وسم التحميل المتدرج المحمر المتحرك */}
       <div
         className="hero-shimmer-overlay"
@@ -72,11 +69,11 @@ function Hero({ heroImage, heroSettings }) {
           transition: "opacity 0.8s ease-in-out",
         }}
       ></div>
-      <Container >
-        <Row >
+
+      <Container>
+        <Row>
           {/* ملحوظة وتعديل منطقي: لغوياً وعادةً في الـ RTL بنحتاج النص text-end أو text-start على حسب رغبتك في التصميم */}
-          <Col md={7} className={isAr ? "text-start" : "text-end"}
-          >
+          <Col md={7} className={isAr ? "text-start" : "text-end"}>
             <h1 className="display-3 fw-bold mb-3 hero-title">
               {isArabic ? getHeroText(heroSettings?.hero_title_ar, "hero_title_start") : getHeroText(heroSettings?.hero_title_en, "hero_title_start")}
               <span className="hero-highlight-wrapper">
@@ -113,7 +110,7 @@ function Hero({ heroImage, heroSettings }) {
           </Col>
         </Row>
       </Container>
-    </section >
+    </section>
   );
 }
 
