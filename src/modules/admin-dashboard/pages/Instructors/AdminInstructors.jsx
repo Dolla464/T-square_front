@@ -273,7 +273,7 @@ function AdminInstructors() {
       `• كلمة المرور: ${"كما تم إدخالها أثناء التسجيل"}\n\n` +
 
       ` يُرجى تغيير كلمة المرور بعد أول تسجيل دخول حفاظاً على أمان الحساب.\n\n` +
-
+      `Platform link : https://tsquarecenter.com/\n\n` +
       `نتمنى لك تجربة موفقة معنا في T-Square `;
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/${phone}?text=${encodedMessage}`, "_blank");
