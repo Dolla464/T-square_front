@@ -578,24 +578,27 @@ function AdminOverview() {
                     <th className="border-bottom-0 pb-3 text-end pe-0">{t("revenue")}</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {topCourses.map((course) => (
-                    <tr key={course.id}>
-                      <td className="fw-bold text-dark ps-0 py-3" style={{ fontSize: "0.92rem" }}>
-                        {course.title}
-                      </td>
-                      <td className="text-muted py-3" style={{ fontSize: "0.88rem" }}>
-                        {course.students}
-                      </td>
-                      <td className="py-3" style={{ fontSize: "0.88rem" }}>
-                        <span style={{ color: "#ffc107" }} className="me-1">★</span>
-                        <span className="fw-semibold">{course.rating}</span>
-                      </td>
-                      <td className="fw-bold text-dark text-end pe-0 py-3" style={{ fontSize: "0.92rem" }}>
-                        {course.revenue}
-                      </td>
-                    </tr>
-                  ))}
+                <tbody >
+                  {topCourses.map((course, index) => {
+                    const isLast = index === topCourses.length - 1;
+                    return (
+                      <tr key={course.id}>
+                        <td className={`fw-bold text-dark ps-0 py-3 ${isLast ? "border-bottom-0" : ""}`} style={{ fontSize: "0.92rem" }}>
+                          {course.title}
+                        </td>
+                        <td className={`text-muted py-3 ${isLast ? "border-bottom-0" : ""}`} style={{ fontSize: "0.88rem" }}>
+                          {course.students}
+                        </td>
+                        <td className={`py-3 ${isLast ? "border-bottom-0" : ""}`} style={{ fontSize: "0.88rem" }}>
+                          <span style={{ color: "#ffc107" }} className="me-1">★</span>
+                          <span className="fw-semibold">{course.rating}</span>
+                        </td>
+                        <td className={`fw-bold text-dark text-end pe-0 py-3 ${isLast ? "border-bottom-0" : ""}`} style={{ fontSize: "0.92rem" }}>
+                          {course.revenue}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

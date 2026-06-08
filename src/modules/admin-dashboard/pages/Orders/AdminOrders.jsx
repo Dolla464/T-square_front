@@ -142,41 +142,109 @@ function AdminOrders() {
       </div>
 
       <div className="row g-3 mb-4">
-        <div className="col-md-3 col-12 mb-3 mb-md-0">
-          <div className="state">
-            <div className="stat-label">{t("totalRevenue")}</div>
-            <div className="stat-value my-2">{stats?.total_revenue} EGP</div>
-            <div style={{ color: "#28a745" }} className="stat-sub">
-              {isArabic ? "هذا الشهر" : "This Month"}
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-3 col-12 mb-3 mb-md-0">
-          <div className="state ">
-            <div className="stat-label">{t("totalOrders")}</div>
-            <div>
-              <div className="stat-value my-2">{stats?.total_orders}</div>
-              <div style={{ color: "#28a745" }} className="stat-sub">
-                {isArabic ? "هذا الشهر" : "This Month"}
+        {/* Card 1: Total Revenue */}
+        <div className="col-lg-3 col-md-6 col-12">
+          <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div
+                className="rounded-3 d-flex align-items-center justify-content-center"
+                style={{ width: "40px", height: "40px", backgroundColor: "#e2f9eb", color: "#22c55e" }}
+              >
+                <i className="bi bi-currency-dollar fs-5"></i>
               </div>
+              {/* <span className="fw-semibold" style={{ color: "#22c55e", fontSize: "0.85rem" }}>
+                <i className="bi bi-arrow-up-right me-1"></i>+12.5%
+              </span> */}
+              <span className="fw-semibold text-muted" style={{ fontSize: "0.85rem" }}>
+                {t("thisMonth")}
+              </span>
+            </div>
+            <div>
+              <h3 className="fw-bold mb-1" style={{ fontSize: "1.75rem", color: "#111827", letterSpacing: "-0.025em" }}>
+                {stats?.total_revenue || 0} EGP
+              </h3>
+              <span className="text-muted" style={{ fontSize: "0.82rem" }}>
+                {t("totalRevenue")}
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="col-md-3 col-12 mb-3 mb-md-0">
-          <div className="state ">
-            <div className="stat-label">{t("pending")}</div>
-            <div className="stat-value my-2 text-warning">{stats?.pending_count}</div>
-            <div className="stat-sub text-muted">{t("awaitingPayment")}</div>
+        {/* Card 2: Total Orders */}
+        <div className="col-lg-3 col-md-6 col-12">
+          <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div
+                className="rounded-3 d-flex align-items-center justify-content-center"
+                style={{ width: "40px", height: "40px", backgroundColor: "#e0f2fe", color: "#0ea5e9" }}
+              >
+                <i className="bi bi-cart-check fs-5"></i>
+              </div>
+              {/* <span className="fw-semibold" style={{ color: "#22c55e", fontSize: "0.85rem" }}>
+                <i className="bi bi-arrow-up-right me-1"></i>+8.2%
+              </span> */}
+              <span className="fw-semibold text-muted" style={{ fontSize: "0.85rem" }}>
+                {t("thisMonth")}
+              </span>
+            </div>
+            <div>
+              <h3 className="fw-bold mb-1" style={{ fontSize: "1.75rem", color: "#111827", letterSpacing: "-0.025em" }}>
+                {stats?.total_orders || 0}
+              </h3>
+              <span className="text-muted" style={{ fontSize: "0.82rem" }}>
+                {t("totalOrders")}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="col-md-3 col-12 mb-3 mb-md-0">
-          <div className="state ">
-            <div className="stat-label">{t("refunded")}</div>
-            <div className="stat-value my-2">{stats?.refunded_count}</div>
-            <div className="stat-sub text-muted">{t("thisMonth")}</div>
+        {/* Card 3: Pending Orders */}
+        <div className="col-lg-3 col-md-6 col-12">
+          <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div
+                className="rounded-3 d-flex align-items-center justify-content-center"
+                style={{ width: "40px", height: "40px", backgroundColor: "#fffbeb", color: "#d97706" }}
+              >
+                <i className="bi bi-clock fs-5"></i>
+              </div>
+              <span className="fw-semibold text-warning" style={{ fontSize: "0.85rem" }}>
+                {t("awaitingPayment")}
+              </span>
+            </div>
+            <div>
+              <h3 className="fw-bold mb-1" style={{ fontSize: "1.75rem", color: "#111827", letterSpacing: "-0.025em" }}>
+                {stats?.pending_count || 0}
+              </h3>
+              <span className="text-muted" style={{ fontSize: "0.82rem" }}>
+                {t("pending")}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Refunded Orders */}
+        <div className="col-lg-3 col-md-6 col-12">
+          <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div
+                className="rounded-3 d-flex align-items-center justify-content-center"
+                style={{ width: "40px", height: "40px", backgroundColor: "#fee2e2", color: "#ef4444" }}
+              >
+                <i className="bi bi-arrow-counterclockwise fs-5"></i>
+              </div>
+              <span className="fw-semibold text-muted" style={{ fontSize: "0.85rem" }}>
+                {t("thisMonth")}
+              </span>
+            </div>
+            <div>
+              <h3 className="fw-bold mb-1" style={{ fontSize: "1.75rem", color: "#111827", letterSpacing: "-0.025em" }}>
+                {stats?.refunded_count || 0}
+              </h3>
+              <span className="text-muted" style={{ fontSize: "0.82rem" }}>
+                {t("refunded")}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -304,7 +372,7 @@ function AdminOrders() {
           </div>
 
           {/* Pagination - Always visible if data exists */}
-          {pagination  && (
+          {pagination && (
             <div className="d-flex justify-content-center mt-5 pb-3" dir="ltr">
               <Pagination className="custom-pagination mb-0">
                 <Pagination.Prev
