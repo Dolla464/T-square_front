@@ -7,11 +7,11 @@ export default defineConfig(({ mode }) => ({
   build: {
     minify: "esbuild",
     sourcemap: false,
-    terserOptions: {
-      compress: {
-        drop_console: mode === "production",
-        drop_debugger: true,
-      },
+    // terserOptions: {
+    //   compress: {
+    //     drop_console: mode === "production",
+    //     drop_debugger: true,
+    //   },
     },
     rollupOptions: {
       output: {
