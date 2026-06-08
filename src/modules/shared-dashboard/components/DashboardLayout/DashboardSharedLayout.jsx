@@ -17,6 +17,7 @@ import { resendVerificationNotification } from '../../../../services/register';
 import toast from "react-hot-toast";
 import { Alert, Button, Spinner } from "react-bootstrap";
 import { useNotifications } from "../../notificationsServices/useNotifications";
+import { includes } from "zod";
 function DashboardSharedLayout({
   navItems,
   translationNs,
@@ -53,7 +54,12 @@ function DashboardSharedLayout({
       .join("")
       .slice(0, 2)
       .toUpperCase()
-    : "US";
+    : user?.student?.full_name ?
+      user?.student?.full_name.split(" ")
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase() : "US";
 
   const handleNotificationsClick = () => {
     isAdmin
@@ -102,7 +108,7 @@ function DashboardSharedLayout({
           onClick={() => setSidebarOpen(false)}
         />
       )}
-      
+
 
       {/* ── Sidebar ── */}
       {!isCourseDetailsPage && !isLeaveReviewPage && (
@@ -224,16 +230,14 @@ function DashboardSharedLayout({
               title={userRoleName === "Student" ? "Profile & Settings" : userRoleName === "Instructor" ? "Profile & Settings" : ""}
             >
               <div className="topbar-avatar">
-                {userProfile?.student?.avatar || userProfile?.instructor?.avatar ? (
+                {userProfile?.student?.avatar.includes('default-student.png') ? initials : userProfile?.student?.avatar || userProfile?.instructor?.avatar ? (
                   <img
                     src={userProfile?.student?.avatar || userProfile?.instructor?.avatar}
                     alt={user?.name}
                     className="w-100 h-100 rounded-circle"
                     style={{ objectFit: 'cover' }}
-                  />
-                ) : (
-                  initials
-                )}
+                  />)
+                  : initials}
               </div>
               <div className="topbar-user-info">
                 <span className="topbar-user-name">{user?.name || "User"}</span>
