@@ -7,18 +7,18 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
+        entryFileNames: "assets/[name]-[hash].js",
+        chunkFileNames: "assets/[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash].[ext]",
+
         manualChunks(id) {
           if (id.includes("node_modules")) {
-            if (id.includes("react-bootstrap") || id.includes("bootstrap")) {
-              return "bootstrap-vendor";
-            }
-            if (id.includes("react-router-dom") || id.includes("react-router") || id.includes("react-helmet")) {
-              return "router-vendor";
-            }
+            if (id.includes("bootstrap")) return "bootstrap-vendor";
+            if (id.includes("react-router")) return "router-vendor";
             return "vendor";
           }
-        }
-      }
-    }
-  }
+        },
+      },
+    },
+  },
 });
