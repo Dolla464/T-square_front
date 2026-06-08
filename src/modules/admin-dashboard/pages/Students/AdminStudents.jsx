@@ -167,7 +167,7 @@ function AdminStudents() {
       ⚠️ Please change your password after your first login.
 
       🌐 Platform:
-      https://t-square.com/
+      https://tsquarecenter.com/
 
       If you need any help, feel free to contact our support team.
 
