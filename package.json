@@ -32,7 +32,6 @@
     "react-photo-album": "^3.6.0",
     "react-router-dom": "^7.14.0",
     "sweetalert2": "^11.26.24",
-    "vite-plugin-prerender": "^1.0.8",
     "yet-another-react-lightbox": "^3.32.0",
     "zod": "^4.4.3"
   },
