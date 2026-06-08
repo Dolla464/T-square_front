@@ -320,7 +320,7 @@ function AdminOverview() {
       {/* Row 1: 4 Stats Cards */}
       <div className="row g-3 mb-4">
         {/* Card 1: Total Revenue */}
-        <div className="col-lg-3 col-md-6 col-12">
+        <div className="col-lg-3 col-6">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div 
@@ -341,7 +341,7 @@ function AdminOverview() {
         </div>
 
         {/* Card 2: Total Students */}
-        <div className="col-lg-3 col-md-6 col-12">
+        <div className="col-lg-3 col-6">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div 
@@ -362,7 +362,7 @@ function AdminOverview() {
         </div>
 
         {/* Card 3: Total Courses */}
-        <div className="col-lg-3 col-md-6 col-12">
+        <div className="col-lg-3 col-6 ">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div 
@@ -383,7 +383,7 @@ function AdminOverview() {
         </div>
 
         {/* Card 4: Active Courses */}
-        <div className="col-lg-3 col-md-6 col-12">
+        <div className="col-lg-3 col-6">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div 
