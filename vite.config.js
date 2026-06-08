@@ -5,8 +5,8 @@ export default defineConfig(({ mode }) => ({
   plugins: [react()],
   base: "/",
   build: {
+    minify: "esbuild",
     sourcemap: false,
-    minify: "terser",
     terserOptions: {
       compress: {
         drop_console: mode === "production",
