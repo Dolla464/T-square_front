@@ -215,6 +215,7 @@
 
 /* Form Styles */
 .ac-back-btn {
+  color: #5f6368 !important;
   background: none;
   border: none;
   display: flex;
