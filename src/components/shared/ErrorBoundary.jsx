@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next";
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -76,7 +76,7 @@ class ErrorBoundary extends Component {
           >
             إعادة المحاولة
           </button>
-          {process.env.NODE_ENV === "development" && this.state.error && (
+          {import.meta.env.DEV && this.state.error && (
             <details
               style={{
                 marginTop: "32px",
