@@ -1,4 +1,4 @@
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import {
   Link,
   NavLink,
@@ -31,6 +31,13 @@ function DashboardSharedLayout({
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isArabic = i18n.language?.startsWith("ar");
+
+  useEffect(() => {
+    document.body.classList.add("dashboard-active");
+    return () => {
+      document.body.classList.remove("dashboard-active");
+    };
+  }, []);
 
   const isCourseDetailsPage = location.pathname.includes("/student/course/");
   const isExmam = location.pathname.includes("/student/quizzes/");
@@ -91,7 +98,7 @@ function DashboardSharedLayout({
       {/* Overlay للموبايل */}
       {sidebarOpen && (
         <div
-          className="shared-dashboard-overlay"
+          className="shared-dashboard-overlay overlay-open"
           onClick={() => setSidebarOpen(false)}
         />
       )}
