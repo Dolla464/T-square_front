@@ -15,8 +15,20 @@ export const useForgotPassword = () => {
       setSuccessMsg(data.status || 'Email sent successfully.');
       return data;
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to send password reset email.';
-      setError(errorMessage);
+      const responseData = err.response?.data;
+      const message = responseData?.message || responseData?.error || '';
+
+      const isThrottle = 
+        message.toLowerCase().includes('wait') ||
+        message.toLowerCase().includes('retry') ||
+        message.toLowerCase().includes('throttle') ||
+        err.response?.status === 429;
+
+      if (isThrottle) {
+        setError({ type: 'throttle', message });
+      } else {
+        setError({ type: 'invalid', message: message || 'Failed to send password reset email.' });
+      }
       throw err;
     } finally {
       setLoading(false);

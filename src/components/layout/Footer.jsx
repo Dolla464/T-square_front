@@ -35,7 +35,7 @@ function Footer() {
                 <Link to="/courses">{t("links.kidsPrograms")}</Link>
               </li>
               <li>
-                <Link to="/courses">{t("links.ourTeam")}</Link>
+                <Link to="/team">{t("links.ourTeam")}</Link>
               </li>
             </ul>
           </Col>
