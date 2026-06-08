@@ -167,17 +167,17 @@ function ViewExam() {
                             borderRadius: "15px",
                         }}
                     >
-                        <div className="d-flex align-items-center pb-3 justify-content-between mb-3 mt-3 px-3" style={{
+                        <div className="d-flex flex-column flex-md-row align-items-start align-items-md-center pb-3 justify-content-between mb-3 mt-3 px-3 gap-3" style={{
                             borderBottom: "1px solid rgba(0,0,0,0.03)",
                         }}>
-                            <div className="d-flex align-items-center">
+                            <div className="d-flex align-items-center gap-3">
                                 <div
-                                    className="bg-danger rounded-3 p-2 me-3 d-flex align-items-center justify-content-center shadow-sm"
-                                    style={{ width: "40px", height: "40px" }}
+                                    className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm"
+                                    style={{ width: "40px", height: "40px", flexShrink: 0 }}
                                 >
                                     <i className="bi bi-ui-checks text-white"></i>
                                 </div>
-                                <div className="ms-2">
+                                <div>
                                     <h5 className="fw-bold mb-0 text-dark">
                                         {quiz?.title}{showTrash ? ` - ${isArabic ? "سلة المحذوفات" : "Trash"}` : ""}
                                     </h5>
@@ -188,10 +188,10 @@ function ViewExam() {
                                     </p>
                                 </div>
                             </div>
-                            <div className="d-flex gap-2">
+                            <div className="d-flex flex-wrap gap-2">
                                 {/* Total Marks */}
                                 <div
-                                    className="bg-danger rounded-3 p-2  d-flex align-items-center justify-content-center shadow-sm gap-2"
+                                    className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm gap-2"
                                     style={{ minWidth: "40px", height: "40px" }}
                                     title={isArabic ? "الدرجة الكلية" : "Total Marks"}
                                 >
@@ -203,7 +203,7 @@ function ViewExam() {
 
                                 {/* Max Attempts */}
                                 <div
-                                    className="bg-danger rounded-3 p-2  d-flex align-items-center justify-content-center shadow-sm gap-2"
+                                    className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm gap-2"
                                     style={{ minWidth: "40px", height: "40px" }}
                                     title={isArabic ? "الحد الأقصى للمحاولات" : "Max Attempts"}
                                 >
