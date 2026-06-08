@@ -9,6 +9,15 @@
   --text-main: #333;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
 /* 2. تنسيقات عامة لتسهيل الشغل */
 body {
   margin: 0;

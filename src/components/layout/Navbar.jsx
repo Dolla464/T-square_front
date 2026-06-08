@@ -250,7 +250,8 @@ function AppNavbar({ isLoggedIn, userName }) {
                       style={{ objectFit: 'cover' }}
                     />
                   ) : (
-                    userName ? userName.charAt(0).toUpperCase() : "U"
+                    userProfile.student.full_name ? userProfile.student.full_name.charAt(0).toUpperCase()
+                      : userName ? userName.charAt(0).toUpperCase() : "U"
                   )}
                 </div>
 
