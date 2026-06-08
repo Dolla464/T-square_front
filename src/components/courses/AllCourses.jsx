@@ -24,17 +24,21 @@ function AllCourses() {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const isMounted = useRef(false);
+  const prevSearchTerm = useRef(searchTerm);
   const coursesPerPage = 6;
 
-  // Debounce logic for searching
+  // Debounce logic for searching & category filtering
   useEffect(() => {
     if (!isMounted.current) {
       isMounted.current = true;
       return;
     }
-  }, []);
 
-  useEffect(() => {
+    const searchChanged = prevSearchTerm.current !== searchTerm;
+    prevSearchTerm.current = searchTerm;
+
+    const delay = searchChanged ? 500 : 0;
+
     const handler = setTimeout(() => {
       filterCourses({
         per_page: coursesPerPage,
@@ -42,10 +46,10 @@ function AllCourses() {
         search: searchTerm,
         page: 1,
       });
-    }, 500);
+    }, delay);
 
     return () => clearTimeout(handler);
-  }, [searchTerm, selectedCategoryId, coursesPerPage]);
+  }, [searchTerm, selectedCategoryId, coursesPerPage, filterCourses]);
 
   useEffect(() => {
     loadInitialData({
@@ -56,13 +60,7 @@ function AllCourses() {
 
   const handleCategoryChange = useCallback((categoryId) => {
     setSelectedCategoryId(categoryId);
-    filterCourses({
-      per_page: coursesPerPage,
-      category_id: categoryId,
-      search: searchTerm,
-      page: 1, // دي تضمن إننا بنرجع لأول صفحة لما نغير القسم
-    });
-  }, [filterCourses, coursesPerPage, searchTerm]);
+  }, []);
 
   const handlePageChange = useCallback((pageNumber) => {
     filterCourses({
