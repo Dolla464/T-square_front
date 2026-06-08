@@ -67,25 +67,18 @@ function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
   }, [data, searchTerm, selectedFilter]);
 
   return (
-    <div className="ac-table-container">
-      {loading ? (
-        <div className="text-center py-5">
-          <Spinner animation="border" variant="danger" />
-        </div>
-      ) : (
+   
         <div className="ac-rounded-table p-3 p-md-0" dir="ltr">
-          <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
-            <div className="ac-search-input-wrapper position-relative ">
+
+          <div className="ac-filters-bar d-flex align-items-center mb-3">
+            <div className="ac-search-input-wrapper position-relative">
               <i
-                className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
-                  }`}
+                className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"}`}
                 style={{ zIndex: 3 }}
               ></i>
               <input
                 type="text"
-                className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
-                  ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
-                  : "border-light bg-light text-muted"}`}
+                className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium" : "border-light bg-light text-muted"}`}
                 placeholder={t("content.search_solutions")}
                 value={searchTerm}
                 onChange={handleSearchChange}
@@ -94,37 +87,45 @@ function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
           </div>
           <div className="table-responsive">
             <table className="table ac-table mb-0 align-middle">
-            <thead>
-              <tr>
-                <th>{t("content.table.solution")}</th>
-                <th>{t("content.table.description")}</th>
-                <th className="text-center">{t("content.table.actions")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData && filteredData.length > 0 ? (
-                filteredData.map((item, index) => (
-                  <AdminContentTableRow 
-                    key={item.id || index} 
-                    item={item} 
-                    onView={onView} 
-                    onEdit={onEdit} 
-                    onDelete={onDelete} 
-                  />
-                ))
-              ) : (
+              <thead>
                 <tr>
-                  <td colSpan={4} className="text-center py-4 text-muted">
-                    No data available.
-                  </td>
+                  <th>{t("content.table.solution")}</th>
+                  <th>{t("content.table.description")}</th>
+                  <th className="text-center">{t("content.table.actions")}</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={11} className="text-center py-5">
+                      <div className="spinner-border text-danger" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredData && filteredData.length > 0 ? (
+                  filteredData.map((item, index) => (
+                    <AdminContentTableRow
+                      key={item.id || index}
+                      item={item}
+                      onView={onView}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                    />
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="text-center py-4 text-muted">
+                      No data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
-      )}
-    </div>
+      
+    
   );
 }
 

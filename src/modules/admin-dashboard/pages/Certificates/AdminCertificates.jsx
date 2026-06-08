@@ -127,31 +127,77 @@ function AdminCertificates() {
 
       {/* Statistics Cards */}
       <div className="row g-3 mb-4">
-        <div className="col-md-4 col-12 mb-3 mb-md-0">
-          <div className="state">
-            <div className="stat-label">
-              {isArabic ? "إجمالي الشهادات" : "Total Issued Certificates"}
+        {/* Card 1: Total Issued Certificates */}
+        <div className="col-lg-4 col-12">
+          <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div 
+                className="rounded-3 d-flex align-items-center justify-content-center" 
+                style={{ width: "40px", height: "40px", backgroundColor: "#e0f2fe", color: "#0ea5e9" }}
+              >
+                <i className="bi bi-mortarboard fs-5"></i>
+              </div>
+              <span className="fw-semibold text-muted" style={{ fontSize: "0.85rem" }}>
+                {isArabic ? "هذا الشهر" : "This month"}
+              </span>
             </div>
-            <div className="stat-value my-2">{stats?.issued ?? "N/A"}</div>
+            <div>
+              <h3 className="fw-bold mb-1" style={{ fontSize: "1.75rem", color: "#111827", letterSpacing: "-0.025em" }}>
+                {stats?.issued ?? 0}
+              </h3>
+              <span className="text-muted" style={{ fontSize: "0.82rem" }}>
+                {isArabic ? "إجمالي الشهادات" : "Total Issued Certificates"}
+              </span>
+            </div>
           </div>
         </div>
-        <div className="col-md-4 col-12 mb-3 mb-md-0">
-          <div className="state">
-            <div className="stat-label">
-              {isArabic ? "الشهادات المعلقة" : "Pending Certificates"}
+
+        {/* Card 2: Pending Certificates */}
+        <div className="col-lg-4 col-6">
+          <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div 
+                className="rounded-3 d-flex align-items-center justify-content-center" 
+                style={{ width: "40px", height: "40px", backgroundColor: "#fffbeb", color: "#d97706" }}
+              >
+                <i className="bi bi-clock-history fs-5"></i>
+              </div>
+              <span className="fw-semibold text-warning" style={{ fontSize: "0.85rem" }}>
+                {isArabic ? "قيد الانتظار" : "Pending"}
+              </span>
             </div>
-            <div className="stat-value my-2 text-warning">
-              {stats?.pending ?? "N/A"}
+            <div>
+              <h3 className="fw-bold mb-1" style={{ fontSize: "1.75rem", color: "#111827", letterSpacing: "-0.025em" }}>
+                {stats?.pending ?? 0}
+              </h3>
+              <span className="text-muted" style={{ fontSize: "0.82rem" }}>
+                {isArabic ? "الشهادات المعلقة" : "Pending Certificates"}
+              </span>
             </div>
           </div>
         </div>
-        <div className="col-md-4 col-12 mb-3 mb-md-0">
-          <div className="state">
-            <div className="stat-label">
-              {isArabic ? "الملغاة" : "Revoked Certificates"}
+
+        {/* Card 3: Revoked Certificates */}
+        <div className="col-lg-4 col-6">
+          <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div 
+                className="rounded-3 d-flex align-items-center justify-content-center" 
+                style={{ width: "40px", height: "40px", backgroundColor: "#fee2e2", color: "#ef4444" }}
+              >
+                <i className="bi bi-shield-x fs-5"></i>
+              </div>
+              <span className="fw-semibold text-danger" style={{ fontSize: "0.85rem" }}>
+                {isArabic ? "الملغاة" : "Revoked"}
+              </span>
             </div>
-            <div className="stat-value my-2 text-danger">
-              {stats?.revoked ?? "N/A"}
+            <div>
+              <h3 className="fw-bold mb-1" style={{ fontSize: "1.75rem", color: "#111827", letterSpacing: "-0.025em" }}>
+                {stats?.revoked ?? 0}
+              </h3>
+              <span className="text-muted" style={{ fontSize: "0.82rem" }}>
+                {isArabic ? "الملغاة" : "Revoked Certificates"}
+              </span>
             </div>
           </div>
         </div>
@@ -161,10 +207,7 @@ function AdminCertificates() {
         <div className="review-table-container">
           <div className="ac-filters-bar d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 gap-3">
             {/* Search Input */}
-            <div
-              className="ac-search-input-wrapper position-relative w-100"
-              style={{ maxWidth: "400px" }}
-            >
+            <div className="ac-search-input-wrapper position-relative" >
               <i
                 className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${
                   searchTerm ? "text-danger fw-bold" : "text-muted"

@@ -443,12 +443,7 @@ function AdminStudents() {
 
   return (
     <div className="admin-content-page">
-      {/* طبقة التحميل */}
-      {loading && (
-        <div className="ac-loading-overlay">
-          <Spinner animation="border" variant="danger" />
-        </div>
-      )}
+
 
       {!showForm ? (
         <>
@@ -471,7 +466,7 @@ function AdminStudents() {
 
           <div className="ac-table-card">
             <div className="ac-table-container">
-              <div className="ac-rounded-table p-3 p-md-0">
+              <div className="ac-rounded-table p-3 p-md-0" dir="ltr">
                 {/* أدوات البحث والفلترة */}
                 <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
                   {/* 1. شريط البحث (Search Input) */}
@@ -608,7 +603,15 @@ function AdminStudents() {
                       </tr>
                     </thead>
                     <tbody>
-                      {students && students.length > 0 ? (
+                      {loading ? (
+                        <tr>
+                          <td colSpan={11} className="text-center py-5">
+                            <div className="spinner-border text-danger" role="status">
+                              <span className="visually-hidden">Loading...</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : students && students.length > 0 ? (
                         students.map((student) => (
                           <tr key={student.id}>
                             <td className="text-center fw-medium text-muted">

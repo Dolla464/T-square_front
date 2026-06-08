@@ -518,7 +518,7 @@
   }
 
   /* Use CSS Grid for the dropdowns container to auto-distribute equally */
-  .ac-filters-bar>div:last-child {
+  .ac-filters-bar>div:last-child:not(.ac-search-input-wrapper) {
     display: grid !important;
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem !important;
@@ -526,7 +526,7 @@
   }
 
   /* If the number of filters is odd (e.g. 3 filters), make the last one span full width */
-  .ac-filters-bar>div:last-child> :last-child:nth-child(odd) {
+  .ac-filters-bar>div:last-child:not(.ac-search-input-wrapper)> :last-child:nth-child(odd) {
     grid-column: span 2;
   }
 

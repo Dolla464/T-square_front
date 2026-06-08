@@ -154,7 +154,7 @@ function AdminReviews() {
 
       <div className="row g-3 mb-4">
         {/* Card 1: Total Reviews */}
-        <div className="col-lg-3 col-md-6 col-12">
+        <div className="col-lg-3 col-6 ">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div
@@ -182,7 +182,7 @@ function AdminReviews() {
         </div>
 
         {/* Card 2: Average Rating */}
-        <div className="col-lg-3 col-md-6 col-12">
+        <div className="col-lg-3 col-6 ">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div
@@ -216,7 +216,7 @@ function AdminReviews() {
         </div>
 
         {/* Card 3: Pending Reviews */}
-        <div className="col-lg-3 col-md-6 col-12">
+        <div className="col-lg-3 col-6 ">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div
@@ -241,7 +241,7 @@ function AdminReviews() {
         </div>
 
         {/* Card 4: Rejected Reviews */}
-        <div className="col-lg-3 col-md-6 col-12">
+        <div className="col-lg-3 col-6 ">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div
@@ -266,10 +266,10 @@ function AdminReviews() {
         </div>
       </div>
 
-      <div className="ac-rounded-table p-3 p-md-0">
-        <div className="review-table-container ">
+      <div className="ac-rounded-table p-3 p-md-0" dir="ltr">
+        <div className="review-table-container">
           <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
-            <div className="ac-search-input-wrapper position-relative ">
+            <div className="ac-search-input-wrapper position-relative">
               <i
                 className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"}`}
                 style={{ zIndex: 3 }}
@@ -541,10 +541,10 @@ function AdminReviews() {
                   </span>
                   <span
                     className={`badge rounded-pill ${selectedReview.review_status === "accepted"
-                        ? "bg-success-subtle text-success"
-                        : selectedReview.review_status === "rejected"
-                          ? "bg-danger-subtle text-danger"
-                          : "bg-warning-subtle text-warning-emphasis"
+                      ? "bg-success-subtle text-success"
+                      : selectedReview.review_status === "rejected"
+                        ? "bg-danger-subtle text-danger"
+                        : "bg-warning-subtle text-warning-emphasis"
                       }`}
                   >
                     {selectedReview.review_status === "pending" &&
