@@ -1,7 +1,10 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL:
+    window.APP_CONFIG && window.APP_CONFIG.API_URL
+      ? window.APP_CONFIG.API_URL
+      : "http://t-square-lms.test/api",
   timeout: 8000,
   // تم حذف withCredentials: true لأننا نستخدم Bearer Token
   headers: {

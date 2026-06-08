@@ -1,5 +1,5 @@
 import { Container, Card, Form, Button, Alert, Spinner } from "react-bootstrap";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Link, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import tsquareLogo from "../../assets/logo-dark.webp"; 
 import "../../pages/Update_Password/UpdatePassword.css"; 
@@ -8,14 +8,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { updatePasswordSchema } from "../../utils/validationSchemas";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useResetPassword } from "../../hooks/useResetPassword";
 
 function UpdatePassword() {
   const { t, i18n } = useTranslation("auth");
   const isArabic = i18n.language === "ar";
   const [searchParams] = useSearchParams();
+  const { token } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
+  const { executeResetPassword, loading } = useResetPassword();
 
   const {
     register,
@@ -31,19 +33,26 @@ function UpdatePassword() {
   });
 
   const onSubmit = async (data) => {
-    // Note: implementation depends on the available service/hook
-    // For now, providing a robust validation UI
-    console.log("Submit update password", data);
-    setLoading(true);
+    setApiError(null);
     try {
-      // Placeholder for actual API call
-      // await updatePasswordService({...data, token: searchParams.get("token")});
+      const email = searchParams.get("email") || "";
+      await executeResetPassword({
+        token,
+        email,
+        password: data.password,
+        password_confirmation: data.password_confirmation,
+      });
       toast.success(isArabic ? "تم تحديث كلمة المرور بنجاح" : "Password updated successfully");
       navigate("/login");
     } catch (err) {
-      setApiError(err.message || "Failed to update password");
-    } finally {
-      setLoading(false);
+      const responseData = err.response?.data;
+      let errorMsg = responseData?.message || responseData?.error || (isArabic ? "فشل تحديث كلمة المرور" : "Failed to update password");
+      if (responseData?.errors) {
+        const firstErrorKey = Object.keys(responseData.errors)[0];
+        const firstError = responseData.errors[firstErrorKey];
+        errorMsg = Array.isArray(firstError) ? firstError[0] : firstError;
+      }
+      setApiError(errorMsg);
     }
   };
 
@@ -84,6 +93,7 @@ function UpdatePassword() {
                   type="email"
                   placeholder={t("update_password.email_placeholder")}
                   className={`update-input ${errors.email ? "is-invalid" : ""}`}
+                  disabled={true}
                   {...register("email")}
                 />
                 {errors.email && (
