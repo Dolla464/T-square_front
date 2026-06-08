@@ -62,7 +62,7 @@ function About({ aboutImages }) {
 
           {/* الجانب الأيسر (النصوص): هيظهر فوق في الموبايل */}
           <Col lg={6}>
-            <div className="about-img-container">
+            <div className="about-img-container" dir="ltr">
               <img
                 src={currentImg1} // ديناميكي
                 alt="class"
