@@ -15,7 +15,7 @@ function Features() {
   }));
 
   return (
-    <section className="features-section py-md-5 my-3 py-2">
+    <section className="features-section py-md-5  py-2">
       {/* دوائر الخلفية */}
 
       <Container>

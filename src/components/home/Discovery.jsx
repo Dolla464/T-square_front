@@ -56,7 +56,7 @@ function Discovery() {
   }, [discoveryMedia]);
 
   return (
-    <section className="discovery-section py-md-5 my-3 py-5">
+    <section className="discovery-section py-md-5 py-5">
       {/* Waves Background */}
       <img src={wavesBg} className="discovery-waves" alt={t("alt.waves")} />
 

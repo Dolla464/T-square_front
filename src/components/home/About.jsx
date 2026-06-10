@@ -19,7 +19,7 @@ function About({ aboutImages }) {
   const currentImg3 = hasUploadedImages ? aboutImages[2] : about3;
 
   return (
-    <section className="about-section py-md-5 my-3 py-2">
+    <section className="about-section py-md-5  py-2">
       <Container>
         {/* التعديل هنا: flex-column-reverse بيخلي النص يسبق الصور في الموبايل */}
         <Row
