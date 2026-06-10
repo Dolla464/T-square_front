@@ -12,12 +12,12 @@
   background: #fff;
   border-radius: 25px;
   padding: 40px 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   border: 1px solid #f0f0f0;
   height: 100%;
   position: relative;
   transition: transform 0.3s ease;
   text-align: start;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 .testimonial-card:hover {
@@ -59,38 +59,51 @@
 /* ── الحاوية الرئيسية للسكرول الأفقي ── */
 .testimonials-scroll-container {
   width: 100%;
-  overflow-x: auto;
+  overflow-x: hidden;
+  /* تغيير لمنع الاكرول اليدوي بالعرض وتفعيل التنقل عبر الأزرار */
   overflow-y: hidden;
   padding: 20px 0;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: #be1522 #f0f0f0;
+  scroll-snap-type: x mandatory;
+  /* تفعيل المحاذاة المغناطيسية لتوسيط الكروت */
 }
 
-.testimonials-scroll-container::-webkit-scrollbar {
-  height: 8px;
+/* ── أزرار التنقل للتوافق مع جميع الشاشات ── */
+.testimonials-navigation {
+  position: relative;
+  z-index: 10;
 }
 
-.testimonials-scroll-container::-webkit-scrollbar-track {
-  background: #f0f0f0;
-  border-radius: 10px;
+.testimonial-nav-btn {
+  background: #fff;
+  border: 2px solid #be1522;
+  color: #be1522;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 10px rgba(190, 21, 34, 0.15);
 }
 
-.testimonials-scroll-container::-webkit-scrollbar-thumb {
+.testimonial-nav-btn:hover {
   background: #be1522;
-  border-radius: 10px;
+  color: #fff;
+  box-shadow: 0 6px 15px rgba(190, 21, 34, 0.3);
+  transform: translateY(-2px);
 }
 
-.testimonials-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #8b0f1a;
+.testimonial-nav-btn:active {
+  transform: translateY(0) scale(0.95);
 }
 
 /* ──-wrapper للبطاقات ── */
 .testimonials-scroll-wrapper {
   display: flex;
   gap: 20px;
-  padding: 10px 5px;
-  min-width: max-content;
+  padding: 10px 0;
+  /* بادينج 0 لضمان دقة توسيط الكروت وحسابات السكرول */
+  min-width: 100%;
 }
 
 /* ── كارت التقييم الأفقي ── */
@@ -98,15 +111,19 @@
   background: #fff;
   border-radius: 25px;
   padding: 35px 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 7px 35px rgba(0, 0, 0, 0.05);
   border: 1px solid #f0f0f0;
-  width: 350px;
+  width: calc(100vw - 10px);
+  /* حجم كارت واحد كامل على الموبايل بدون أي كروت جانبية زائدة */
+  max-width: 100%;
   flex-shrink: 0;
   position: relative;
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
   text-align: start;
+  scroll-snap-align: center;
+  /* توسيط الكارت مغناطيسياً في الشاشة */
 }
 
 .testimonial-card-horizontal:hover {
@@ -148,24 +165,32 @@
 
 /* Tablet+ */
 @media (min-width: 768px) {
+
   .testimonial-text,
   .testimonial-text-horizontal {
     font-size: 0.92rem;
   }
 
   .testimonial-card-horizontal {
-    width: 400px;
+    width: calc((100% - 20px) / 2);
+    /* كارتين كاملين تماماً بدون زيادات مخربة للشكل */
+    max-width: none;
+    scroll-snap-align: start;
   }
 }
 
 /* Desktop+ */
 @media (min-width: 1200px) {
+
   .testimonial-text,
   .testimonial-text-horizontal {
     font-size: 0.95rem;
   }
 
   .testimonial-card-horizontal {
-    width: 450px;
+    width: calc((100% - 9.6px) / 3);
+    /* ثلاثة كروت كاملة تماماً بدون زيادات مخربة للشكل */
+    max-width: none;
+    scroll-snap-align: start;
   }
 }
