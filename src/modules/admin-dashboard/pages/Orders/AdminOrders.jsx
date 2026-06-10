@@ -379,16 +379,45 @@ function AdminOrders() {
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 />
-                {[...Array(pagination.last_page)].map((_, idx) => (
-                  <Pagination.Item
-                    key={idx + 1}
-                    style={{ margin: "0 3px" }}
-                    active={idx + 1 === currentPage}
-                    onClick={() => handlePageChange(idx + 1)}
-                  >
-                    {idx + 1}
-                  </Pagination.Item>
-                ))}
+                {(() => {
+                  const lastPage = pagination.last_page;
+                  const startPage = Math.floor((currentPage - 1) / 3) * 3 + 1;
+                  const endPage = Math.min(startPage + 2, lastPage);
+                  const items = [];
+
+                  if (startPage > 1) {
+                    items.push(
+                      <Pagination.Ellipsis
+                        key="prev-ellipsis"
+                        onClick={() => handlePageChange(startPage - 1)}
+                      />
+                    );
+                  }
+
+                  for (let p = startPage; p <= endPage; p++) {
+                    items.push(
+                      <Pagination.Item
+                        style={{ margin: "0 3px" }}
+                        key={p}
+                        active={p === currentPage}
+                        onClick={() => handlePageChange(p)}
+                      >
+                        {p}
+                      </Pagination.Item>
+                    );
+                  }
+
+                  if (endPage < lastPage) {
+                    items.push(
+                      <Pagination.Ellipsis
+                        key="next-ellipsis"
+                        onClick={() => handlePageChange(endPage + 1)}
+                      />
+                    );
+                  }
+
+                  return items;
+                })()}
                 <Pagination.Next
                   style={{ margin: "0 6px 0" }}
                   onClick={() => handlePageChange(currentPage + 1)}
