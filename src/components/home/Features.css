@@ -4,7 +4,8 @@
   padding: 80px 0;
   background-color: #fff;
   position: relative;
-  overflow: hidden; /* مهم جداً عشان الدوائر متخرجش بره */
+  overflow: hidden;
+  /* مهم جداً عشان الدوائر متخرجش بره */
 }
 
 .features-bg-circles-wrapper {
@@ -27,7 +28,8 @@
   height: 450px;
   top: 60%;
   left: 50%;
-  transform: translate(-50%, -50%); /* للتوسط حول النقطة الجديدة */
+  transform: translate(-50%, -50%);
+  /* للتوسط حول النقطة الجديدة */
   box-shadow: 0 0 40px 10px rgba(190, 21, 34, 0.08);
 }
 
@@ -66,33 +68,38 @@
   z-index: 5;
 
   width: 100%;
-  border: 1px solid rgba(0, 0, 0, 0.02); /* خط خفيف جداً يحدد الأطراف */
+  border: 1px solid rgba(0, 0, 0, 0.02);
+  /* خط خفيف جداً يحدد الأطراف */
 }
 
 .ms-5 {
-  margin-left: 3rem !important; /* بتدخل الكارت لجوه من ناحية الشمال */
-  width: calc(
-    100% - 3rem
-  ) !important; /* بتصغر عرضه عشان ميبقاش لزق في اللوجو */
+  margin-left: 3rem !important;
+  /* بتدخل الكارت لجوه من ناحية الشمال */
+  width: calc(100% - 3rem) !important;
+  /* بتصغر عرضه عشان ميبقاش لزق في اللوجو */
 }
 
 .me-5 {
-  margin-right: 3rem !important; /* بتدخل الكارت لجوه من ناحية اليمين */
+  margin-right: 3rem !important;
+  /* بتدخل الكارت لجوه من ناحية اليمين */
   width: calc(100% - 3rem) !important;
 }
 
 /* في الشاشات الصغيرة بنلغي التشفيت ده عشان الكروت ترجع فوق بعضها صح */
 @media (max-width: 992px) {
+
   .ms-5,
   .me-5 {
     margin: 0 0 20px 0 !important;
     width: 100% !important;
   }
 }
+
 [dir="rtl"] .feature-card {
   flex-direction: row-reverse;
   text-align: right;
 }
+
 .feature-card:hover {
   transform: translateY(-5px);
   /* في الـ Hover ممكن نخليه يشع أحمر خفيف جداً */
@@ -101,45 +108,60 @@
 }
 
 .feature-icon-wrapper {
-  background-color: #fce8e9;
-  width: 40px; /* الحجم الدائري للأيقونة */
-  height: 40px;
-  border-radius: 50%;
-  display: flex !important; /* التأكد من تفعيل الـ Flexbox */
-  align-items: center !important; /* توسيط رأسي */
-  justify-content: center !important; /* توسيط أفقي */
-  flex-shrink: 0; /* منع الدائرة من الانضغاط */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden; /* ضمان عدم خروج أي جزء من الصورة */
-  padding: 0; /* التأكد إن الدائرة نفسها ملهاش حواف داخلية */
+  background-color: transparent;
+  width: 39px !important;
+  /* الحجم الدائري للأيقونة */
+  height: 39px !important;
+  /* border-radius: 50%; */
+  display: flex !important;
+  /* التأكد من تفعيل الـ Flexbox */
+  align-items: center !important;
+  /* توسيط رأسي */
+  justify-content: center !important;
+  /* توسيط أفقي */
+  flex-shrink: 0;
+  /* منع الدائرة من الانضغاط */
+  /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); */
+  overflow: visible;
+  /* ضمان عدم خروج أي جزء من الصورة */
+  padding: 0;
+  /* التأكد إن الدائرة نفسها ملهاش حواف داخلية */
 }
 
 .feature-icon-img {
-  max-width: 100%; /* حجم الصورة جوه الدائرة */
-  max-height: 100%;
-  object-fit: contain; /* الحفاظ على نسبة العرض للارتفاع */
+  max-width: 97%;
+  /* حجم الصورة جوه الدائرة */
+  max-height: 97%;
+  object-fit: contain;
+  /* الحفاظ على نسبة العرض للارتفاع */
 
   /* السطور دي هي اللي هتحل المشكلة: لإلغاء أي تدخل خارجي */
-  margin: 0 !important; /* إلغاء الـ Margins التلقائية */
-  padding: 0 !important; /* إلغاء الـ Paddings التلقائية */
-  display: block !important; /* تحويل الصورة لعنصر Block عشان نشيل الفراغ اللي تحتها */
+  margin: 0 !important;
+  /* إلغاء الـ Margins التلقائية */
+  padding: 0 !important;
+  /* إلغاء الـ Paddings التلقائية */
+  display: block !important;
+  /* تحويل الصورة لعنصر Block عشان نشيل الفراغ اللي تحتها */
+  transition: transform 0.3s ease;
+
 }
 
 /* حركة عند الـ Hover (اختياري) */
 .feature-card:hover .feature-icon-img {
   transform: scale(1.15) rotate(5deg);
-  transition: transform 0.3s ease;
 }
 
 .feature-title {
   font-weight: 700;
-  font-size: 0.95rem; /* Mobile-first */
+  font-size: 0.95rem;
+  /* Mobile-first */
   margin-bottom: 5px;
   color: #1a1a1a;
 }
 
 .feature-desc {
-  font-size: 0.8rem; /* Mobile-first */
+  font-size: 0.8rem;
+  /* Mobile-first */
   color: #666;
   margin: 0;
   line-height: 1.5;
@@ -176,17 +198,22 @@
 
 .center-logo {
   /* الـ max-width القديمة كانت 250px */
-  max-width: 300px; /* جرب تكبرها لـ 380px */
-  width: 100%; /* تأكيد إنه ياخد العرض المتاح له */
-  height: auto; /* الحفاظ على النسبة (AspectRatio) */
+  max-width: 300px;
+  /* جرب تكبرها لـ 380px */
+  width: 100%;
+  /* تأكيد إنه ياخد العرض المتاح له */
+  height: auto;
+  /* الحفاظ على النسبة (AspectRatio) */
 
   z-index: 10;
-  transition: transform 0.3s ease; /* لمسة حركة ناعمة */
+  transition: transform 0.3s ease;
+  /* لمسة حركة ناعمة */
 }
 
 /* لمسة جمالية: تكبير خفيف جداً لما المستخدم يقف بالماوس على السيكشن */
 .features-section:hover .center-logo {
-  transform: scale(1.03); /* تكبير بنسبة 3% */
+  transform: scale(1.03);
+  /* تكبير بنسبة 3% */
 }
 
 /* Mobile responsive adjustments */
