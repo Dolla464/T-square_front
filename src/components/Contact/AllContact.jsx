@@ -15,7 +15,7 @@ function AllContact() {
   const { whatsapp, contact_email, facebook_url, loading } = useContactInfo();
 
   return (
-    <div className="contact-page py-5   mt-5 ">
+    <div className="contact-page pt-5   mt-5 ">
       {/* Main Header & Form Section */}
       <div className="">
         <Container >

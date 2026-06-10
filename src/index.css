@@ -86,7 +86,7 @@ a,
 
 /* 7. تحسين المسافات في الـ Container */
 .container {
-  max-width: 1200px;
+  max-width: 1280px;
 }
 
 /* ===== Global Scrollbar Styling ===== */
@@ -146,6 +146,9 @@ a,
 }
 
 /* --- Breadcrumbs --- */
+.breadcrumb-nav{
+  padding: 20px 0 0 0;
+}
 .breadcrumb-nav .breadcrumb-item .active {
   color: #be1522 !important;
   font-weight: 500;
