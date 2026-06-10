@@ -1,12 +1,10 @@
 .cta-section {
   /* التدرج اللوني الأساسي */
   /* background: radial-gradient(circle at center, #6c0e14 0%, #300609 50%, #1a0304 100%); */
-  background: linear-gradient(
-    93.16deg,
-    #3d0005 12.76%,
-    #99000c 40.79%,
-    #430005 95.14%
-  );
+  background: linear-gradient(93.16deg,
+      #3d0005 12.76%,
+      #99000c 40.79%,
+      #430005 95.14%);
 
   position: relative;
   overflow: hidden;
@@ -30,34 +28,40 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 1; /* شفافية الأمواج */
+  opacity: 1;
+  /* شفافية الأمواج */
   z-index: 1;
 }
 
 .cta-container {
   position: relative;
-  z-index: 2; /* عشان الكلام يظهر فوق الأمواج */
+  z-index: 2;
+  /* عشان الكلام يظهر فوق الأمواج */
 }
 
 .cta-title {
-  font-size: 1.75rem; /* Mobile-first */
+  font-size: 1.75rem;
+  /* Mobile-first */
 }
 
 .cta-description {
   max-width: 750px;
 }
 
-.cta-btn {
-
+.btn-cta {
+  color: white !important;
   background-color: #be1522 !important;
   border-color: #be1522 !important;
-  font-size: 0.95rem; /* Mobile-first */
+  font-size: 0.95rem;
+  /* Mobile-first */
   transition: all 0.3s ease;
 }
 
-.cta-btn:hover {
-  background-color: #a0121b !important; /* تغميق اللون شوية عند الهوفر */
-  transform: translateY(-2px); /* حركة خفيفة للفوق */
+.btn-cta:hover {
+  background-color: #a0121b !important;
+  /* تغميق اللون شوية عند الهوفر */
+  transform: translateY(-2px);
+  /* حركة خفيفة للفوق */
   box-shadow: 0 5px 15px rgba(190, 21, 34, 0.4);
 }
 

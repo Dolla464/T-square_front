@@ -28,7 +28,7 @@ function ContactForm({ title, subtitle, onSubmit, submitText, externalLoading })
         ...prev,
         name: user.name || "",
         email: user.email || "",
-        phone: user.phone || ""
+        phone: user?.student?.phone || user?.instructor?.phone || user.phone || ""
       }));
     }
   }, [user]);

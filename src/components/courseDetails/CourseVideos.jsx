@@ -40,7 +40,7 @@ const CourseVideos = ({ course }) => {
   }
 
   return (
-    <div className="mt-5" dir={isArabic ? "rtl" : "ltr"}>
+    <div className="mt-5 text-center text-lg-start" dir={isArabic ? "rtl" : "ltr"}>
       {/* ستايل مخصص للمودال لضمان التوافق وحفظ التصميم الأصلي عبر الشاشات المختلفة */}
       <style>{`
         .custom-preview-modal {
@@ -67,7 +67,7 @@ const CourseVideos = ({ course }) => {
             <div className="col-lg-4 col-md-6" key={preview.id || index}>
               <div className="card border-0 shadow rounded-4 overflow-hidden h-100">
                 {/* عنوان الفيديو */}
-                <div className="card-body pb-2">
+                <div className="card-body pb-2 text-start">
                   <h5 className="fw-bold mb-0 fs-6 text-truncate">
                     {preview.title || (isArabic ? `فيديو معاينة ${index + 1}` : `Preview Video ${index + 1}`)}
                   </h5>
@@ -110,7 +110,7 @@ const CourseVideos = ({ course }) => {
                 </div>
 
                 {/* وصف الفيديو القصير */}
-                <div className="card-body pt-3" dir={isArabic ? "rtl" : "ltr"}>
+                <div className="card-body pt-3 text-start" dir={isArabic ? "rtl" : "ltr"}>
                   <p className="text-muted small mb-0 text-truncate-2">
                     {preview.description ||
                       (isArabic

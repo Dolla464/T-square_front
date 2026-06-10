@@ -93,9 +93,7 @@ const AdminInstructors = lazy(
 const AdminOrders = lazy(
   () => import("./modules/admin-dashboard/pages/Orders/AdminOrders"),
 );
-const AdminAnalytics = lazy(
-  () => import("./modules/admin-dashboard/pages/Analytics/AdminAnalytics"),
-);
+
 const AdminCertificates = lazy(
   () =>
     import("./modules/admin-dashboard/pages/Certificates/AdminCertificates"),
@@ -220,6 +218,49 @@ function AppContent() {
         />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
+        {/* Open Graph */}
+        <meta property="og:url" content="https://tsquarecenter.com/" />
+        <meta property="og:site_name" content="T-Square" />
+        <meta property="og:locale" content="ar_AR" />
+
+        <meta
+          property="og:image"
+          content="https://tsquarecenter.com/og-image.jpg"
+        />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta
+          property="og:image:alt"
+          content="T-Square LMS & Digital Solutions"
+        />
+
+        {/* Twitter */}
+        <meta
+          name="twitter:title"
+          content="Professional LMS & Digital Solutions Platform"
+        />
+        <meta
+          name="twitter:description"
+          content="Learn modern tech skills and build real-world projects. نقدم كورسات تقنية وحلول رقمية للأفراد والشركات في مصر والسعودية."
+        />
+        <meta
+          name="twitter:image"
+          content="https://tsquarecenter.com/og-image.jpg"
+        />
+        <meta name="twitter:site" content="@tsquare" />
+        {/* iOS / Safari */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="T-Square" />
+
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="mobile-web-app-capable" content="yes" />
+
+        <meta name="theme-color" content="#2e0202ff" />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#1f0101ff" />
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
       </Helmet>
 
       <div className="min-h-screen">
@@ -274,7 +315,6 @@ function AppContent() {
                     <Route path="students" element={<AdminStudents />} />
                     <Route path="instructors" element={<AdminInstructors />} />
                     <Route path="orders" element={<AdminOrders />} />
-                    <Route path="analytics" element={<AdminAnalytics />} />
                     <Route
                       path="certificates"
                       element={<AdminCertificates />}
