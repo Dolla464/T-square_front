@@ -28,7 +28,7 @@ function Courses() {
   };
 
   return (
-    <section className="courses-section py-md-5 my-3 py-5">
+    <section className="courses-section py-md-5 py-5">
       <Container>
         {/* Header */}
         <div className="text-center mb-5">

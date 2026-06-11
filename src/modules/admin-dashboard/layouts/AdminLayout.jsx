@@ -30,11 +30,7 @@ const ADMIN_NAV = [
     icon: "bi-laptop",
   },
 
-  {
-    key: "analytics",
-    path: "/admin/analytics",
-    icon: "bi-bar-chart-line",
-  },
+
   {
     key: "messages",
     path: "/admin/messages",
@@ -105,8 +101,7 @@ function AdminLayout() {
         return isArabic ? "المدربين" : "Instructors";
       case "/admin/orders":
         return isArabic ? "الطلبات / المدفوعات" : "Orders / Payments";
-      case "/admin/analytics":
-        return isArabic ? "الإحصائيات" : "Analytics";
+  
       case "/admin/messages":
         return isArabic ? "الرسائل" : "Messages";
       case "/admin/reviews":

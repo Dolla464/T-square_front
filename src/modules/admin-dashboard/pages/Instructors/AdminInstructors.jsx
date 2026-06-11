@@ -273,7 +273,7 @@ function AdminInstructors() {
       `• كلمة المرور: ${"كما تم إدخالها أثناء التسجيل"}\n\n` +
 
       ` يُرجى تغيير كلمة المرور بعد أول تسجيل دخول حفاظاً على أمان الحساب.\n\n` +
-
+      `Platform link : https://tsquarecenter.com/\n\n` +
       `نتمنى لك تجربة موفقة معنا في T-Square `;
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/${phone}?text=${encodedMessage}`, "_blank");
@@ -441,16 +441,46 @@ function AdminInstructors() {
                   />
 
 
-                  {[...Array(apiPagination.total_pages)].map((_, index) => (
-                    <Pagination.Item
-                      style={{ margin: "0 3px" }}
-                      key={index + 1}
-                      active={apiPagination.current_page === index + 1}
-                      onClick={() => handlePageChange(index + 1)}
-                    >
-                      {index + 1}
-                    </Pagination.Item>
-                  ))}
+                  {(() => {
+                    const currentPage = apiPagination.current_page;
+                    const totalPages = apiPagination.total_pages;
+                    const startPage = Math.floor((currentPage - 1) / 3) * 3 + 1;
+                    const endPage = Math.min(startPage + 2, totalPages);
+                    const items = [];
+
+                    if (startPage > 1) {
+                      items.push(
+                        <Pagination.Ellipsis
+                          key="prev-ellipsis"
+                          onClick={() => handlePageChange(startPage - 1)}
+                        />
+                      );
+                    }
+
+                    for (let p = startPage; p <= endPage; p++) {
+                      items.push(
+                        <Pagination.Item
+                          style={{ margin: "0 3px" }}
+                          key={p}
+                          active={currentPage === p}
+                          onClick={() => handlePageChange(p)}
+                        >
+                          {p}
+                        </Pagination.Item>
+                      );
+                    }
+
+                    if (endPage < totalPages) {
+                      items.push(
+                        <Pagination.Ellipsis
+                          key="next-ellipsis"
+                          onClick={() => handlePageChange(endPage + 1)}
+                        />
+                      );
+                    }
+
+                    return items;
+                  })()}
 
                   <Pagination.Next
                     style={{ margin: "0 6px 0" }}

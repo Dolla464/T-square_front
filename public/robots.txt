@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# منع صفحات حساسة (عدّل حسب مشروعك)
+Disallow: /admin
+Disallow: /student
+Disallow: /instructor
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /api
+
+# Sitemap
+Sitemap: https://tsquarecenter.com/sitemap.xml

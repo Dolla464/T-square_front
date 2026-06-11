@@ -20,7 +20,7 @@ dist-ssr/
 build/
 
 # Environment variables
-
+axios.js
 .env
 .env.*
 !.env.example

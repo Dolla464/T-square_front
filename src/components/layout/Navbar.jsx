@@ -242,16 +242,36 @@ function AppNavbar({ isLoggedIn, userName }) {
                   className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden"
                   style={{ width: "35px", height: "35px" }}
                 >
-                  {userProfile?.student?.avatar || userProfile?.instructor?.avatar ? (
-                    <img
-                      src={userProfile?.student?.avatar || userProfile?.instructor?.avatar}
-                      alt={userName}
-                      className="w-100 h-100"
-                      style={{ objectFit: 'cover' }}
-                    />
-                  ) : (
-                    userName ? userName.charAt(0).toUpperCase() : "U"
-                  )}
+
+                  {/* student */}
+                  {userProfile?.student?.avatar && user.role == 'student' && !userProfile?.student?.avatar?.includes('default-student.png') ?
+                    (
+                      <img
+                        src={userProfile?.student?.avatar}
+                        alt={userName}
+                        className="w-100 h-100"
+                        style={{ objectFit: 'cover' }}
+                      />
+                    ) : (
+                      userProfile.student.full_name ? userProfile.student.full_name.charAt(0).toUpperCase()
+                        : userName ? userName.charAt(0).toUpperCase() : "U"
+                    )
+                  }
+
+                  {/* instractor  */}
+                  {user.role == 'instructor' &&
+                    (userProfile?.instructor?.avatar && user.role == 'instructor' && !userProfile?.instructor?.avatar?.includes('default-instructor.png') ?
+                      (
+                        <img
+                          src={userProfile?.instructor?.avatar}
+                          alt={userName}
+                          className="w-100 h-100"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      ) : (
+                        userProfile.instructor.full_name ? userProfile.instructor.full_name.charAt(0).toUpperCase()
+                          : userName ? userName.charAt(0).toUpperCase() : "U"
+                      ))}
                 </div>
 
                 {/* الإشعار لو الحساب مش متفعل */}

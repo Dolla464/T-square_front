@@ -7,7 +7,7 @@ function MessageCard({ message, onView, onWhatsapp }) {
 
   return (
     <div
-      className="card mb-3 border-0 shadow-sm rounded-4 p-3 transition-all align-middle"
+      className="card mb-3 border-0 shadow-sm rounded-4 p-3 overflow-hidden transition-all align-middle"
       style={{
         backgroundColor: "#ffffff",
         borderLeft: isArabic ? "none" : "4px solid #dc3545",
@@ -44,9 +44,9 @@ function MessageCard({ message, onView, onWhatsapp }) {
             )}
           </div> */}
 
-          <p className="text-secondary small mb-0 mt-3 text-truncate" style={{ maxWidth: "650px" }}>
+          <p className="text-secondary small mb-0 mt-3 text-truncate" style={{ maxWidth: "90ch", overflow: "hidden", textOverflow: "ellipsis" }}>
             <i className="bi bi-envelope mx-1"></i>
-            {message.content || message.message}...
+            {message.content || message.message}{message.content.length > 90 ? "..." : ""}
           </p>
 
           <p className="fw-bold my-1  text-dark">

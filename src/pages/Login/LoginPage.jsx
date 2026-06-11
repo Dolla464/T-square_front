@@ -64,21 +64,21 @@ function LoginPage() {
     }
   }, [user, navigate, location.state]);
 
-  const handleInstructorBypass = useCallback(() => {
-    const mockAdminData = {
-      token: "mock-token-admin",
-      user: {
-        id: 1,
-        name: "Instructor User",
-        email: "instructor@test.com",
-        role: "instructor",
-        phone: "12345678",
-        is_active: true,
-        email_verified_at: "2026-04-22T13:54:21.000000Z",
-      },
-    };
-    login(mockAdminData, true);
-  }, [login]);
+  // const handleInstructorBypass = useCallback(() => {
+  //   const mockAdminData = {
+  //     token: "mock-token-admin",
+  //     user: {
+  //       id: 1,
+  //       name: "Instructor User",
+  //       email: "instructor@test.com",
+  //       role: "instructor",
+  //       phone: "12345678",
+  //       is_active: true,
+  //       email_verified_at: "2026-04-22T13:54:21.000000Z",
+  //     },
+  //   };
+  //   login(mockAdminData, true);
+  // }, [login]);
 
   const onSubmit = useCallback(async (data) => {
     try {
@@ -229,7 +229,7 @@ function LoginPage() {
               </Button>
 
               {/* زر مؤقت للمطور للدخول كمسؤول */}
-              <Button
+              {/* <Button
                 variant="outline-dark"
                 className="w-100 mt-3 border-secondary"
                 onClick={handleInstructorBypass}
@@ -238,7 +238,7 @@ function LoginPage() {
                 {isArabic
                   ? "دخول سريع (Instructor)"
                   : "Quick Login (Instructor)"}
-              </Button>
+              </Button> */}
             </Form>
 
             {/* تسجيل حساب جديد */}

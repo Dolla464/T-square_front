@@ -167,7 +167,7 @@ function AdminStudents() {
       ⚠️ Please change your password after your first login.
 
       🌐 Platform:
-      https://t-square.com/
+      https://tsquarecenter.com/
 
       If you need any help, feel free to contact our support team.
 
@@ -443,12 +443,7 @@ function AdminStudents() {
 
   return (
     <div className="admin-content-page">
-      {/* طبقة التحميل */}
-      {loading && (
-        <div className="ac-loading-overlay">
-          <Spinner animation="border" variant="danger" />
-        </div>
-      )}
+
 
       {!showForm ? (
         <>
@@ -471,7 +466,7 @@ function AdminStudents() {
 
           <div className="ac-table-card">
             <div className="ac-table-container">
-              <div className="ac-rounded-table p-3 p-md-0">
+              <div className="ac-rounded-table p-3 p-md-0" dir="ltr">
                 {/* أدوات البحث والفلترة */}
                 <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
                   {/* 1. شريط البحث (Search Input) */}
@@ -608,7 +603,15 @@ function AdminStudents() {
                       </tr>
                     </thead>
                     <tbody>
-                      {students && students.length > 0 ? (
+                      {loading ? (
+                        <tr>
+                          <td colSpan={11} className="text-center py-5">
+                            <div className="spinner-border text-danger" role="status">
+                              <span className="visually-hidden">Loading...</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : students && students.length > 0 ? (
                         students.map((student) => (
                           <tr key={student.id}>
                             <td className="text-center fw-medium text-muted">
@@ -787,16 +790,46 @@ function AdminStudents() {
                     }
                   />
 
-                  {[...Array(apiPagination.total_pages)].map((_, index) => (
-                    <Pagination.Item
-                      style={{ margin: "0 3px" }}
-                      key={index + 1}
-                      active={apiPagination.current_page === index + 1}
-                      onClick={() => handlePageChange(index + 1)}
-                    >
-                      {index + 1}
-                    </Pagination.Item>
-                  ))}
+                  {(() => {
+                    const currentPage = apiPagination.current_page;
+                    const totalPages = apiPagination.total_pages;
+                    const startPage = Math.floor((currentPage - 1) / 3) * 3 + 1;
+                    const endPage = Math.min(startPage + 2, totalPages);
+                    const items = [];
+
+                    if (startPage > 1) {
+                      items.push(
+                        <Pagination.Ellipsis
+                          key="prev-ellipsis"
+                          onClick={() => handlePageChange(startPage - 1)}
+                        />
+                      );
+                    }
+
+                    for (let p = startPage; p <= endPage; p++) {
+                      items.push(
+                        <Pagination.Item
+                          style={{ margin: "0 3px" }}
+                          key={p}
+                          active={currentPage === p}
+                          onClick={() => handlePageChange(p)}
+                        >
+                          {p}
+                        </Pagination.Item>
+                      );
+                    }
+
+                    if (endPage < totalPages) {
+                      items.push(
+                        <Pagination.Ellipsis
+                          key="next-ellipsis"
+                          onClick={() => handlePageChange(endPage + 1)}
+                        />
+                      );
+                    }
+
+                    return items;
+                  })()}
 
                   <Pagination.Next
                     style={{ margin: "0 6px 0" }}
