@@ -2,18 +2,30 @@
 
 /* 1. تعريف ألوان البراند (T-Square) */
 :root {
-  --primary-red: #c51c24; /* اللون الأحمر اللي في الصورة */
+  --primary-red: #c51c24;
+  /* اللون الأحمر اللي في الصورة */
   --dark-bg: #030303;
   --light-gray: #f8f9fa;
   --text-main: #333;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
 /* 2. تنسيقات عامة لتسهيل الشغل */
 body {
   margin: 0;
-  font-family: "Cairo", "Inter", "Tajawal", sans-serif; /* تأكد من استدعاء الخطوط */
+  font-family: "Cairo", "Inter", "Tajawal", sans-serif;
+  /* تأكد من استدعاء الخطوط */
   background-color: var(--light-gray);
   color: var(--text-main);
+  font-style: normal !important;
 }
 
 /* 2.1 إلغاء الخط تحت اللينكات بشكل عام */
@@ -74,8 +86,10 @@ a,
 
 /* 7. تحسين المسافات في الـ Container */
 .container {
-  max-width: 1200px;
-} /* ===== Global Scrollbar Styling ===== */
+  max-width: 1280px;
+}
+
+/* ===== Global Scrollbar Styling ===== */
 
 /* Firefox */
 * {
@@ -102,11 +116,14 @@ a,
 *::-webkit-scrollbar-thumb:hover {
   background: #8b0f1a;
 }
+
 /* ===== Global Text Selection ===== */
 
 ::selection {
-  background: #be1522; /* الخلفية الحمراء */
-  color: #ffffff; /* النص الأبيض */
+  background: #be1522;
+  /* الخلفية الحمراء */
+  color: #ffffff;
+  /* النص الأبيض */
 }
 
 /* Firefox */
@@ -114,6 +131,7 @@ a,
   background: #be1522;
   color: #ffffff;
 }
+
 .custom-pagination .page-link {
   color: #be1522;
   border: none;
@@ -128,6 +146,9 @@ a,
 }
 
 /* --- Breadcrumbs --- */
+.breadcrumb-nav{
+  padding: 20px 0 0 0;
+}
 .breadcrumb-nav .breadcrumb-item .active {
   color: #be1522 !important;
   font-weight: 500;
@@ -137,11 +158,12 @@ a,
 .breadcrumb-nav .breadcrumb-item {
   color: #666;
   text-decoration: none;
-  font-size: 0.8rem; /* Mobile-first */
+  font-size: 0.8rem;
+  /* Mobile-first */
 }
 
 .breadcrumb-separator {
   color: #666;
-  font-size: 0.7rem; /* Mobile-first */
+  font-size: 0.7rem;
+  /* Mobile-first */
 }
-

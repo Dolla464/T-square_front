@@ -50,7 +50,7 @@ function EditExam() {
         const questionData = await getQuestionById(id);
         setFetchingQuestion(false);
         if (questionData) {
-          setQuestionText(questionData.question_text || "");
+          setQuestionText((questionData.question_text || "").replace(/\?+$/, ""));
           setMarks(questionData.marks || 1.0);
 
           let choicesData = questionData.choices || [];
@@ -147,7 +147,7 @@ function EditExam() {
     let success = false;
     const payload = {
       exam_id: activeExamId,
-      question_text: questionText,
+      question_text: questionText.trim().endsWith("?") ? questionText.trim() : `${questionText.trim()}?`,
       marks: marks,
       choices: choices.map((c) => ({
         choice_text: c.choice_text,
@@ -176,7 +176,7 @@ function EditExam() {
     setSaving(true);
     const payload = {
       exam_id: activeExamId,
-      question_text: questionText,
+      question_text: questionText.trim().endsWith("?") ? questionText.trim() : `${questionText.trim()}?`,
       marks: marks,
       choices: choices.map((c) => ({
         choice_text: c.choice_text,
@@ -312,11 +312,9 @@ function EditExam() {
                   value={questionText}
                   onChange={(e) => {
                     let value = e.target.value;
-
-                    // يمنع تكرار علامة الاستفهام
+                    // يمنع علامة الاستفهام في الحقل
                     value = value.replace(/\?+$/, "");
-
-                    handleQuestionTextChange(`${value}?`);
+                    handleQuestionTextChange(value);
                   }}
                 />
                 <div

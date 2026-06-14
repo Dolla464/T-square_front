@@ -1,5 +1,4 @@
-import React from "react";
-import { Container, Row, Col } from "react-bootstrap";
+import React, { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useTestimonials } from "../../../hooks/useTestimonials";
 import "./TestimonialsSection.css";
@@ -14,13 +13,46 @@ import "./TestimonialsSection.css";
  */
 function TestimonialsSection({ data, className = "" }) {
   const { t } = useTranslation("testimonials");
+  const containerRef = useRef(null);
 
   // لو فيه داتا ممررة من البرا نستخدمها، ولو لأ نجلب من الهوك
   const { testimonials, loading, error } = useTestimonials();
 
+  const handleScroll = (direction) => {
+    if (!containerRef.current) return;
+    const container = containerRef.current;
+    const card = container.querySelector(".testimonial-card-horizontal");
+    if (!card) return;
+
+    const cardWidth = card.offsetWidth;
+    const gap = 20; // الفجوة بين الكروت
+
+    // تحديد عدد الكروت المنقولة حسب حجم الشاشة لضمان التوافقية
+    let step = 3;
+    if (window.innerWidth < 768) {
+      step = 1;
+    } else if (window.innerWidth < 1200) {
+      step = 2;
+    }
+
+    const scrollAmount = (cardWidth + gap) * step;
+    const isRTL = document.documentElement.dir === "rtl" || window.getComputedStyle(container).direction === "rtl";
+
+    // حساب اتجاه السكرول مع مراعاة اللغة العربية والانجليزية
+    let scrollDirection = direction === "next" ? 1 : -1;
+    if (isRTL) {
+      scrollDirection = -scrollDirection;
+    }
+
+    container.scrollBy({
+      left: scrollAmount * scrollDirection,
+      behavior: "smooth",
+    });
+  };
+
   return (
     <div className={`testimonials-section py-5 ${className}`}>
-      <Container className="py-5">
+      <div className="py-5 px-md-5">
         {/* عنوان القسم */}
         <h2 className="text-center fw-bold mb-5">{t("title")}</h2>
 
@@ -42,65 +74,88 @@ function TestimonialsSection({ data, className = "" }) {
 
         {/* عرض الكاردات */}
         {(!loading || data) && (
-          <div className="testimonials-scroll-container">
-            <div className="testimonials-scroll-wrapper">
-              {testimonials?.map((testimonial) => (
-                <div
-                  className="testimonial-card-horizontal"
-                  key={testimonial.id}
-                >
-                  {/* أيقونة الاقتباس */}
-                  <div className="quote-icon-horizontal">
-                    <span className="quote-mark">&ldquo;</span>
-                  </div>
+          <>
+            <div 
+              className="testimonials-scroll-container px-md-3"
+              ref={containerRef}
+            >
+              <div className="testimonials-scroll-wrapper ">
+                {testimonials?.map((testimonial) => (
+                  <div
+                    className="testimonial-card-horizontal"
+                    key={testimonial.id}
+                  >
+                    {/* أيقونة الاقتباس */}
+                    <div className="quote-icon-horizontal">
+                      <span className="quote-mark">&ldquo;</span>
+                    </div>
 
-                  {/* معلومات الشخص */}
-                  <div className="d-flex align-items-center  mb-3 gap-3">
+                    {/* معلومات الشخص */}
+                    <div className="d-flex align-items-center  mb-3 gap-3">
 
-                    {false ? (
-                      <img className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden "
-                        src={testimonial?.student?.avatar}
-                        alt={testimonial?.student?.full_name}
-                        style={{ width: "55px", height: "55px" }}
-                      />
-                    ) : (
-                      <div className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden "
-                        style={{ width: "55px", height: "55px" }}>
-                        {testimonial?.student?.full_name ? testimonial?.student?.full_name.charAt(0).toUpperCase() : "U"}
-                      </div>
-                    )}
+                      {false ? (
+                        <img className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden "
+                          src={testimonial?.student?.avatar}
+                          alt={testimonial?.student?.full_name}
+                          style={{ width: "55px", height: "55px" }}
+                        />
+                      ) : (
+                        <div className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden "
+                          style={{ width: "55px", height: "55px" }}>
+                          {testimonial?.student?.full_name ? testimonial?.student?.full_name.charAt(0).toUpperCase() : "U"}
+                        </div>
+                      )}
 
-                    <div>
-                      <h6 className="mb-0 fw-bold">
-                        {testimonial.student?.full_name}
-                      </h6>
-                      <small className="text-muted">
-                        {testimonial.course?.title ||
-                          testimonial.instructor?.full_name}
-                      </small>
-                      {/* النجوم */}
-                      <div className="mt-1 d-flex gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <i
-                            key={i}
-                            className={`bi bi-star-fill ${i < Math.round(testimonial.rating) ? "text-warning" : "text-light-gray"}`}
-                            style={{ fontSize: "14px" }}
-                          ></i>
-                        ))}
+                      <div>
+                        <h6 className="mb-0 fw-bold">
+                          {testimonial.student?.full_name}
+                        </h6>
+                        <small className="text-muted">
+                          {testimonial.course?.title ||
+                            testimonial.instructor?.full_name}
+                        </small>
+                        {/* النجوم */}
+                        <div className="mt-1 d-flex gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <i
+                              key={i}
+                              className={`bi bi-star-fill ${i < Math.round(testimonial.rating) ? "text-warning" : "text-light-gray"}`}
+                              style={{ fontSize: "14px" }}
+                            ></i>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* نص التقييم */}
-                  <p className="text-muted text-start fw-bolder">
-                    {testimonial.overall_comment}
-                  </p>
-                </div>
-              ))}
+                    {/* نص التقييم */}
+                    <p className="text-muted text-start fw-bolder">
+                      {testimonial.overall_comment}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+
+            {/* أزرار التنقل */}
+            <div className="testimonials-navigation d-flex justify-content-center align-items-center gap-3 mt-4">
+              <button 
+                onClick={() => handleScroll("prev")} 
+                className="testimonial-nav-btn prev-btn d-flex align-items-center justify-content-center"
+                aria-label="Previous testimonials"
+              >
+                <i className="bi bi-chevron-left"></i>
+              </button>
+              <button 
+                onClick={() => handleScroll("next")} 
+                className="testimonial-nav-btn next-btn d-flex align-items-center justify-content-center"
+                aria-label="Next testimonials"
+              >
+                <i className="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </>
         )}
-      </Container>
+      </div>
     </div>
   );
 }

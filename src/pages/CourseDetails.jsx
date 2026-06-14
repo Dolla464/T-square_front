@@ -34,9 +34,7 @@ const CourseDetails = () => {
       </Helmet>
 
       <div className="course-details-page container my-5 pt-5">
-        <div className="row">
-          <CourseLayout data={courseData} />
-        </div>
+        <CourseLayout data={courseData} />
       </div>
 
       <ContactSection />

@@ -353,7 +353,8 @@ function AdminSettings() {
   };
 
   const handleCancelHero = () => {
-    if (hookGeneralSettings) setLocalGeneralSettings({ ...hookGeneralSettings });
+    if (hookGeneralSettings)
+      setLocalGeneralSettings({ ...hookGeneralSettings });
   };
 
   // تهيئة الصور لشبكة ألبوم الصور التفاعلي (Lightbox)

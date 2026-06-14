@@ -71,7 +71,7 @@ function CourseForm({
       <div className="ac-form-header d-flex justify-content-between align-items-center mb-4">
         <button className="ac-back-btn" onClick={handleBack}>
           <i
-            className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
+            className={`bi text-secondary ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
           ></i>
           <span className="ms-2 me-2 fs-5 fw-bold text-dark">
             {isReadOnly

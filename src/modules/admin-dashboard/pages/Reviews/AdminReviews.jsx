@@ -8,7 +8,7 @@ import { showConfirmCustom, showDeleteConfirm, showReviewPendingConfirm } from "
 import "./review.css";
 
 function AdminReviews() {
-  const {  i18n } = useTranslation("adminDashboard");
+  const { i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -153,57 +153,123 @@ function AdminReviews() {
       </div>
 
       <div className="row g-3 mb-4">
-        <div className="col-md-3 col-12 mb-3 mb-md-0">
-          <div className="state">
-            <div className="stat-label">
-              {isArabic ? "إجمالي التقييمات" : "Total Reviews"}
-            </div>
-            <div className="stat-value my-2">{stats?.total_reviews || 0}</div>
-          </div>
-        </div>
-        <div className="col-md-3 col-12 mb-3 mb-md-0">
-          <div className="state ">
-            <div className="stat-label">
-              {isArabic ? "متوسط التقييم" : "Avg Rating"}
-            </div>
-            <div className="d-flex align-items-center">
-              <div className="stat-value my-2">
-                {stats?.average_rating || 0}
+        {/* Card 1: Total Reviews */}
+        <div className="col-lg-3 col-6 ">
+          <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div
+                className="rounded-3 d-flex align-items-center justify-content-center"
+                style={{ width: "40px", height: "40px", backgroundColor: "#f3e8ff", color: "#a855f7" }}
+              >
+                <i className="bi bi-chat-left-text fs-5"></i>
               </div>
-              <span className="text-warning fs-5 ms-2">
-                <i className="bi bi-star-fill"></i>
-                <i className="bi bi-star-fill"></i>
-                <i className="bi bi-star-fill"></i>
-                <i className="bi bi-star-fill"></i>
-                <i className="bi bi-star-half"></i>
+              {/* <span className="fw-semibold" style={{ color: "#22c55e", fontSize: "0.85rem" }}>
+                <i className="bi bi-arrow-up-right me-1"></i>+64
+              </span> */}
+              <span className="fw-semibold text-muted" style={{ fontSize: "0.85rem" }}>
+                {isArabic ? "هذا الشهر" : "This month"}
+              </span>
+            </div>
+            <div>
+              <h3 className="fw-bold mb-1" style={{ fontSize: "1.75rem", color: "#111827", letterSpacing: "-0.025em" }}>
+                {stats?.total_reviews || 0}
+              </h3>
+              <span className="text-muted" style={{ fontSize: "0.82rem" }}>
+                {isArabic ? "إجمالي التقييمات" : "Total Reviews"}
               </span>
             </div>
           </div>
         </div>
-        <div className="col-md-3 col-12 mb-3 mb-md-0">
-          <div className="state ">
-            <div className="stat-label">
-              {isArabic ? "بانتظار المراجعة" : "Pending Review"}
+
+        {/* Card 2: Average Rating */}
+        <div className="col-lg-3 col-6 ">
+          <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div
+                className="rounded-3 d-flex align-items-center justify-content-center"
+                style={{ width: "40px", height: "40px", backgroundColor: "#fef3c7", color: "#f59e0b" }}
+              >
+                <i className="bi bi-star-fill fs-5"></i>
+              </div>
+              <span className="text-warning" style={{ fontSize: "0.85rem" }}>
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const rating = Number(stats?.average_rating || 0);
+                  if (rating >= star) {
+                    return <i key={star} className="bi bi-star-fill me-1"></i>;
+                  }
+                  if (rating >= star - 0.5) {
+                    return <i key={star} className="bi bi-star-half me-1"></i>;
+                  }
+                  return <i key={star} className="bi bi-star me-1"></i>;
+                })}
+              </span>
             </div>
-            <div className="stat-value my-2 text-warning">
-              {stats?.pending_count || 0}
+            <div>
+              <h3 className="fw-bold mb-1" style={{ fontSize: "1.75rem", color: "#111827", letterSpacing: "-0.025em" }}>
+                {stats?.average_rating || 0}
+              </h3>
+              <span className="text-muted" style={{ fontSize: "0.82rem" }}>
+                {isArabic ? "متوسط التقييم" : "Avg Rating"}
+              </span>
             </div>
-            <div className="stat-sub text-muted">Awaiting</div>
           </div>
         </div>
-        <div className="col-md-3 col-12 mb-3 mb-md-0">
-          <div className="state ">
-            <div className="stat-label">{isArabic ? "مرفوضة" : "Rejected"}</div>
-            <div className="stat-value my-2">{stats?.rejected_count || 0}</div>
-            <div className="stat-sub text-muted">All Time</div>
+
+        {/* Card 3: Pending Reviews */}
+        <div className="col-lg-3 col-6 ">
+          <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div
+                className="rounded-3 d-flex align-items-center justify-content-center"
+                style={{ width: "40px", height: "40px", backgroundColor: "#fffbeb", color: "#d97706" }}
+              >
+                <i className="bi bi-clock-history fs-5"></i>
+              </div>
+              <span className="fw-semibold text-warning" style={{ fontSize: "0.85rem" }}>
+                {isArabic ? "قيد الانتظار" : "Awaiting"}
+              </span>
+            </div>
+            <div>
+              <h3 className="fw-bold mb-1" style={{ fontSize: "1.75rem", color: "#111827", letterSpacing: "-0.025em" }}>
+                {stats?.pending_count || 0}
+              </h3>
+              <span className="text-muted" style={{ fontSize: "0.82rem" }}>
+                {isArabic ? "بانتظار المراجعة" : "Pending Review"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Rejected Reviews */}
+        <div className="col-lg-3 col-6 ">
+          <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div
+                className="rounded-3 d-flex align-items-center justify-content-center"
+                style={{ width: "40px", height: "40px", backgroundColor: "#fee2e2", color: "#ef4444" }}
+              >
+                <i className="bi bi-shield-x fs-5"></i>
+              </div>
+              <span className="fw-semibold text-muted" style={{ fontSize: "0.85rem" }}>
+                {isArabic ? "كل الأوقات" : "All Time"}
+              </span>
+            </div>
+            <div>
+              <h3 className="fw-bold mb-1" style={{ fontSize: "1.75rem", color: "#111827", letterSpacing: "-0.025em" }}>
+                {stats?.rejected_count || 0}
+              </h3>
+              <span className="text-muted" style={{ fontSize: "0.82rem" }}>
+                {isArabic ? "مرفوضة" : "Rejected"}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="ac-rounded-table p-3 p-md-0">
-        <div className="review-table-container ">
+      <div className="ac-rounded-table p-3 p-md-0" dir="ltr">
+        <div className="review-table-container">
           <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
-            <div className="ac-search-input-wrapper position-relative ">
+            <div className="ac-search-input-wrapper position-relative">
               <i
                 className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"}`}
                 style={{ zIndex: 3 }}
@@ -375,16 +441,46 @@ function AdminReviews() {
               onClick={() => handlePageChange(apiPagination.current_page - 1)}
             />
 
-            {[...Array(apiPagination.total_pages)].map((_, index) => (
-              <Pagination.Item
-                style={{ margin: "0 3px" }}
-                key={index + 1}
-                active={apiPagination.current_page === index + 1}
-                onClick={() => handlePageChange(index + 1)}
-              >
-                {index + 1}
-              </Pagination.Item>
-            ))}
+            {(() => {
+              const currentPage = apiPagination.current_page;
+              const totalPages = apiPagination.total_pages;
+              const startPage = Math.floor((currentPage - 1) / 3) * 3 + 1;
+              const endPage = Math.min(startPage + 2, totalPages);
+              const items = [];
+
+              if (startPage > 1) {
+                items.push(
+                  <Pagination.Ellipsis
+                    key="prev-ellipsis"
+                    onClick={() => handlePageChange(startPage - 1)}
+                  />
+                );
+              }
+
+              for (let p = startPage; p <= endPage; p++) {
+                items.push(
+                  <Pagination.Item
+                    style={{ margin: "0 3px" }}
+                    key={p}
+                    active={currentPage === p}
+                    onClick={() => handlePageChange(p)}
+                  >
+                    {p}
+                  </Pagination.Item>
+                );
+              }
+
+              if (endPage < totalPages) {
+                items.push(
+                  <Pagination.Ellipsis
+                    key="next-ellipsis"
+                    onClick={() => handlePageChange(endPage + 1)}
+                  />
+                );
+              }
+
+              return items;
+            })()}
 
             <Pagination.Next
               style={{ margin: "0 6px 0" }}
@@ -474,13 +570,12 @@ function AdminReviews() {
                     {isArabic ? "الحالة الحالية:" : "Current Status:"}
                   </span>
                   <span
-                    className={`badge rounded-pill ${
-                      selectedReview.review_status === "accepted"
-                        ? "bg-success-subtle text-success"
-                        : selectedReview.review_status === "rejected"
-                          ? "bg-danger-subtle text-danger"
-                          : "bg-warning-subtle text-warning-emphasis"
-                    }`}
+                    className={`badge rounded-pill ${selectedReview.review_status === "accepted"
+                      ? "bg-success-subtle text-success"
+                      : selectedReview.review_status === "rejected"
+                        ? "bg-danger-subtle text-danger"
+                        : "bg-warning-subtle text-warning-emphasis"
+                      }`}
                   >
                     {selectedReview.review_status === "pending" &&
                       (isArabic ? "قيد الانتظار" : "Pending")}

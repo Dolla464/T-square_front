@@ -11,6 +11,12 @@
   font-family: inherit;
 }
 
+body.dashboard-active {
+  overflow: hidden !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+}
+
 /* ══════════════ Sidebar ══════════════ */
 .shared-dashboard-sidebar {
   width: 230px;
@@ -371,6 +377,7 @@
   overflow-y: auto;
   height: 0;
   box-sizing: border-box;
+  overscroll-behavior: contain; /* لمنع انتقال السكرول للموقع بالكامل في الموبايل */
 }
 
 /* ══════════════ Overlay (Mobile) ══════════════ */

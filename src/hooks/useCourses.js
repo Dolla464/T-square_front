@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import axios from "axios";
 import { fetchUserCourses, fetchUserCategories } from "../api/courses";
 import { cache } from "../utils/cache";
@@ -34,7 +34,7 @@ export const useCourses = (type = "sub") => {
   }, []);
 
   // فانكشن تجيب الداتا لأول مرة (كورسات وأقسام)
-  const loadInitialData = async (
+  const loadInitialData = useCallback(async (
     params = { per_page: 6, type },
   ) => {
     const activeType = params.type || type;
@@ -84,10 +84,10 @@ export const useCourses = (type = "sub") => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [type]);
 
   // فانكشن للفلترة فقط
-  const filterCourses = async (params) => {
+  const filterCourses = useCallback(async (params) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -112,7 +112,7 @@ export const useCourses = (type = "sub") => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   return { courses, categories, loading, pagination, loadInitialData, filterCourses };
 };

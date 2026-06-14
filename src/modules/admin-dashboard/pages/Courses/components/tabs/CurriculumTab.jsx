@@ -72,7 +72,7 @@ function CurriculumTab({
                               style={{ minHeight: "48px" }}
                             >
                               {lesson.title || (
-                                <span className="text-muted fst-italic">
+                                <span className="text-muted ">
                                   {isArabic ? "بدون عنوان" : "No title"}
                                 </span>
                               )}
