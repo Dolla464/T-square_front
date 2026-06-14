@@ -14,7 +14,8 @@ export const getCertificates = async (params = {}) => {
 // ----------------------------------------------------------------------------
 export const getCertificatePreview = async (id) => {
   const response = await axiosClient.get(`/admin/certificates/${id}/view`, {
-    responseType: "blob", // Fetch as blob for secure iframe visualization
+    responseType: "blob",
+    timeout: 60000,
   });
 
   // تأكيد أن الـ blob ليس عبارة عن إيرور سري (JSON)
@@ -37,6 +38,7 @@ export const getCertificatePreview = async (id) => {
 export const downloadCertificate = async (id, certificateNum) => {
   const response = await axiosClient.get(`/admin/certificates/${id}/download`, {
     responseType: "blob",
+    timeout: 60000,
   });
 
   // تأكيد أن الـ blob واصل سليم ومش عبارة عن ايرور سري

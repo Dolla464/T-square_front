@@ -29,7 +29,7 @@ export const showStudentCertificate = (certificate_id) =>
 export const previewStudentCertificate = async (certificate_id) => {
   const response = await axiosClient.get(
     `/student/certificates/${certificate_id}/view`,
-    { responseType: "blob" },
+    { responseType: "blob", timeout: 60000 },
   );
 
   // تأكيد أن الـ blob ليس عبارة عن إيرور سري (JSON)
@@ -54,7 +54,7 @@ export const downloadStudentCertificate = async (
 ) => {
   const response = await axiosClient.get(
     `/student/certificates/${certificate_id}/download`,
-    { responseType: "blob" },
+    { responseType: "blob", timeout: 60000 },
   );
 
   // تأكيد أن الـ blob واصل سليم ومش عبارة عن ايرور سري

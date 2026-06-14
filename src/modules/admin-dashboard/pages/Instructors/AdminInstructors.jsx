@@ -23,6 +23,8 @@ const defaultFormData = {
   avatar: null,
 };
 
+const defaultAvatar = "/images/default-avatar.png";
+
 function AdminInstructors() {
   const {
     instructors,
@@ -82,6 +84,17 @@ function AdminInstructors() {
     setEditingItem(instructor);
     // نستخدم بيانات المحاضر من الكائن المتداخل إذا وجد، وإلا نستخدم الكائن الأساسي
     const insData = instructor.instructor || instructor;
+
+    let avatarValue = insData.avatar || null;
+    // إذا كان avatar كائن فاضي أو مش File و مش string، حوله لـ null
+    if (
+      avatarValue &&
+      typeof avatarValue === "object" &&
+      !(avatarValue instanceof File)
+    ) {
+      avatarValue = null;
+    } 
+
     setFormData({
       full_name: insData.full_name || instructor.name || "",
       field: insData.field || "",
@@ -91,7 +104,7 @@ function AdminInstructors() {
       linkedin_url: insData.linkedin_url || "",
       facebook_url: insData.facebook_url || "",
       status: insData.status || "active",
-      avatar: insData.avatar || null,
+      avatar: avatarValue,
     });
     setShowForm(true);
   };
@@ -100,6 +113,17 @@ function AdminInstructors() {
     setEditingItem(null);
     setViewingItem(instructor);
     const insData = instructor.instructor || instructor;
+
+    // ✅ معالجة avatar بشكل صحيح
+    let avatarValue = insData.avatar || null;
+    if (
+      avatarValue &&
+      typeof avatarValue === "object" &&
+      !(avatarValue instanceof File)
+    ) {
+      avatarValue = null;
+    } 
+
     setFormData({
       full_name: insData.full_name || instructor.name || "",
       email: instructor.email || "",
@@ -115,10 +139,10 @@ function AdminInstructors() {
       reviews_count: insData.reviews_count || 0,
       status: insData.status || "active",
       joinDate: instructor.created_at || insData.created_at || "",
-      avatar: insData.avatar || null,
+      avatar: avatarValue,
     });
     setShowForm(true);
-  };
+  };;
 
   const handleBack = () => {
     setShowForm(false);
@@ -129,8 +153,12 @@ function AdminInstructors() {
 
   const handleDelete = async (insId) => {
     // نبحث عن العنصر للتأكيد باستخدام أي من المعرفين (ID المستخدم أو ID المحاضر)
-    const instructor = instructors.find((item) => (item.instructor?.id === insId || item.id === insId));
-    const ok = await showDeleteConfirm(instructor?.instructor?.full_name || instructor?.name || "");
+    const instructor = instructors.find(
+      (item) => item.instructor?.id === insId || item.id === insId,
+    );
+    const ok = await showDeleteConfirm(
+      instructor?.instructor?.full_name || instructor?.name || "",
+    );
     if (ok) {
       const success = await deleteInstructor(insId);
       if (success) {
@@ -176,7 +204,11 @@ function AdminInstructors() {
         status: data.status,
       };
       Object.keys(fields).forEach((key) => {
-        if (fields[key] !== undefined && fields[key] !== null && fields[key] !== "") {
+        if (
+          fields[key] !== undefined &&
+          fields[key] !== null &&
+          fields[key] !== ""
+        ) {
           formDataObj.append(key, fields[key]);
         }
       });
@@ -198,7 +230,11 @@ function AdminInstructors() {
         facebook_url: data.facebook_url,
       };
       Object.keys(fields).forEach((key) => {
-        if (fields[key] !== undefined && fields[key] !== null && fields[key] !== "") {
+        if (
+          fields[key] !== undefined &&
+          fields[key] !== null &&
+          fields[key] !== ""
+        ) {
           formDataObj.append(key, fields[key]);
         }
       });
@@ -216,17 +252,29 @@ function AdminInstructors() {
 
     // التحقق الأساسي من صحة البيانات قبل الإرسال (Frontend Validation)
     if (formData.full_name.length < 10) {
-      alert(isArabic ? "يجب أن يكون الاسم الكامل 10 أحرف على الأقل" : "Full name must be at least 10 characters");
+      alert(
+        isArabic
+          ? "يجب أن يكون الاسم الكامل 10 أحرف على الأقل"
+          : "Full name must be at least 10 characters",
+      );
       return;
     }
 
     if (!editingItem && formData.password.length < 8) {
-      alert(isArabic ? "يجب أن تكون كلمة المرور 8 أحرف على الأقل" : "Password must be at least 8 characters");
+      alert(
+        isArabic
+          ? "يجب أن تكون كلمة المرور 8 أحرف على الأقل"
+          : "Password must be at least 8 characters",
+      );
       return;
     }
 
     if (formData.bio.length < 20) {
-      alert(isArabic ? "يجب أن تكون النبذة التعريفية 20 حرفاً على الأقل" : "Biography must be at least 20 characters");
+      alert(
+        isArabic
+          ? "يجب أن تكون النبذة التعريفية 20 حرفاً على الأقل"
+          : "Biography must be at least 20 characters",
+      );
       return;
     }
 
@@ -250,8 +298,8 @@ function AdminInstructors() {
     }
   };
   /**
-    * التعامل مع زر الواتساب - تنسيق الرقم وإرسال بيانات الحساب للمحاضر
-    */
+   * التعامل مع زر الواتساب - تنسيق الرقم وإرسال بيانات الحساب للمحاضر
+   */
   const handleWhatsapp = (instructor) => {
     if (!instructor) return;
 
@@ -260,18 +308,18 @@ function AdminInstructors() {
     phone = phone.replace(/\D/g, "");
     if (phone.startsWith("0")) {
       phone = "20" + phone.slice(1);
+    } else if (!phone.startsWith("20")) {
+      phone = "20" + phone;
     }
     const message =
       `مرحباً ${instructor.full_name || "Instructor"} \n\n` +
       `تم إنشاء حسابك كمحاضر على منصة T-Square بنجاح.\n\n` +
-
       ` بيانات الحساب:\n` +
       `• الاسم: ${instructor.full_name || "-"}\n` +
       `• المجال: ${instructor.field || "-"}\n` +
       `• البريد الإلكتروني: ${instructor.email || "-"}\n` +
       `• رقم الهاتف: ${instructor.phone || "-"}\n` +
       `• كلمة المرور: ${"كما تم إدخالها أثناء التسجيل"}\n\n` +
-
       ` يُرجى تغيير كلمة المرور بعد أول تسجيل دخول حفاظاً على أمان الحساب.\n\n` +
       `Platform link : https://tsquarecenter.com/\n\n` +
       `نتمنى لك تجربة موفقة معنا في T-Square `;
@@ -294,7 +342,9 @@ function AdminInstructors() {
               onClick={handleAddNew}
             >
               <i className="bi bi-plus-lg me-0 me-md-1"></i>
-              <span className="d-none d-md-inline">{t("instructors_page.add_instructor")}</span>
+              <span className="d-none d-md-inline">
+                {t("instructors_page.add_instructor")}
+              </span>
             </button>
           </div>
 
@@ -304,15 +354,18 @@ function AdminInstructors() {
                 <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
                   <div className="ac-search-input-wrapper position-relative ">
                     <i
-                      className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
-                        }`}
+                      className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${
+                        searchTerm ? "text-danger fw-bold" : "text-muted"
+                      }`}
                       style={{ zIndex: 3 }}
                     ></i>
                     <input
                       type="text"
-                      className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
-                        ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
-                        : "border-light bg-light text-muted"}`}
+                      className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${
+                        searchTerm
+                          ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
+                          : "border-light bg-light text-muted"
+                      }`}
                       placeholder={t("instructors_page.search_placeholder")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -320,10 +373,11 @@ function AdminInstructors() {
                   </div>
                   <div className="d-flex gap-md-3">
                     <select
-                      className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedStatus !== "all"
-                        ? "border-danger bg-danger-subtle text-danger-emphasis"
-                        : "border-light bg-light text-muted"
-                        }`}
+                      className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                        selectedStatus !== "all"
+                          ? "border-danger bg-danger-subtle text-danger-emphasis"
+                          : "border-light bg-light text-muted"
+                      }`}
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                     >
@@ -337,8 +391,6 @@ function AdminInstructors() {
                         {t("instructors_page.inactive_status")}
                       </option>
                     </select>
-
-
                   </div>
                 </div>
                 <div className="table-responsive">
@@ -346,11 +398,12 @@ function AdminInstructors() {
                     <thead>
                       <tr>
                         <th>{t("instructors_page.table_name")}</th>
-                        <th className="text-center">{isArabic ? "التخصص" : "Field"}</th>
+                        <th className="text-center">
+                          {isArabic ? "التخصص" : "Field"}
+                        </th>
                         <th className="text-center">
                           {t("instructors_page.table_email")}
                         </th>
-
 
                         <th className="text-center">
                           {t("instructors_page.table_actions")}
@@ -361,8 +414,13 @@ function AdminInstructors() {
                       {loading ? (
                         <tr>
                           <td colSpan={11} className="text-center py-5">
-                            <div className="spinner-border text-danger" role="status">
-                              <span className="visually-hidden">Loading...</span>
+                            <div
+                              className="spinner-border text-danger"
+                              role="status"
+                            >
+                              <span className="visually-hidden">
+                                Loading...
+                              </span>
                             </div>
                           </td>
                         </tr>
@@ -371,17 +429,16 @@ function AdminInstructors() {
                           const insData = instructor.instructor || instructor;
                           return (
                             <tr key={instructor.id}>
-
                               <td className="fw-medium text-dark">
                                 {insData.full_name || instructor.name}
                               </td>
-                              <td className="text-center text-secondary">{insData.field || "-"}</td>
+                              <td className="text-center text-secondary">
+                                {insData.field || "-"}
+                              </td>
 
                               <td className="text-center text-secondary">
                                 {instructor.email}
                               </td>
-
-
 
                               <td className="text-center">
                                 <div className="d-flex justify-content-center gap-2">
@@ -402,11 +459,20 @@ function AdminInstructors() {
                                   <button
                                     className="btn btn-sm ac-btn-deleteTable border-0"
                                     title="Delete"
-                                    onClick={() => handleDelete(instructor.instructor?.id || instructor.id)}
+                                    onClick={() =>
+                                      handleDelete(
+                                        instructor.instructor?.id ||
+                                          instructor.id,
+                                      )
+                                    }
                                   >
                                     <i className="bi bi-trash fs-6"></i>
                                   </button>
-                                  <button className="btn btn-sm ac-btn-whatsapp border-0" title="WhatsApp" onClick={() => handleWhatsapp(instructor)}>
+                                  <button
+                                    className="btn btn-sm ac-btn-whatsapp border-0"
+                                    title="WhatsApp"
+                                    onClick={() => handleWhatsapp(instructor)}
+                                  >
                                     <i className="bi bi-whatsapp fs-6"></i>
                                   </button>
                                 </div>
@@ -416,7 +482,10 @@ function AdminInstructors() {
                         })
                       ) : (
                         <tr>
-                          <td colSpan={11} className="text-center py-4 text-muted">
+                          <td
+                            colSpan={11}
+                            className="text-center py-4 text-muted"
+                          >
                             {t("instructors_page.no_instructors")}
                           </td>
                         </tr>
@@ -431,15 +500,12 @@ function AdminInstructors() {
             {apiPagination && (
               <div className="d-flex justify-content-center mt-5">
                 <Pagination className="custom-pagination">
-
                   <Pagination.Prev
-
                     disabled={apiPagination.current_page === 1}
                     onClick={() =>
                       handlePageChange(apiPagination.current_page - 1)
                     }
                   />
-
 
                   {(() => {
                     const currentPage = apiPagination.current_page;
@@ -453,7 +519,7 @@ function AdminInstructors() {
                         <Pagination.Ellipsis
                           key="prev-ellipsis"
                           onClick={() => handlePageChange(startPage - 1)}
-                        />
+                        />,
                       );
                     }
 
@@ -466,7 +532,7 @@ function AdminInstructors() {
                           onClick={() => handlePageChange(p)}
                         >
                           {p}
-                        </Pagination.Item>
+                        </Pagination.Item>,
                       );
                     }
 
@@ -475,7 +541,7 @@ function AdminInstructors() {
                         <Pagination.Ellipsis
                           key="next-ellipsis"
                           onClick={() => handlePageChange(endPage + 1)}
-                        />
+                        />,
                       );
                     }
 
@@ -484,7 +550,6 @@ function AdminInstructors() {
 
                   <Pagination.Next
                     style={{ margin: "0 6px 0" }}
-
                     disabled={
                       apiPagination.current_page === apiPagination.total_pages
                     }
@@ -492,7 +557,6 @@ function AdminInstructors() {
                       handlePageChange(apiPagination.current_page + 1)
                     }
                   />
-
                 </Pagination>
               </div>
             )}
@@ -513,39 +577,53 @@ function AdminInstructors() {
                     : t("instructors_page.add_instructor_title")}
               </span>
             </button>
-
           </div>
 
           <div className="ac-form-body p-4 bg-white border rounded-4 shadow-sm">
             <div className="ac-tab-content basic-info">
               {/* صورة المحاضر */}
               <div className="mb-4 text-center">
-                <div className="ac-thumbnail-view border rounded-4 overflow-hidden shadow-sm d-inline-block" style={{ maxWidth: "100%", width: "600px" }}>
+                <div
+                  className="ac-thumbnail-view border rounded-4 overflow-hidden shadow-sm d-inline-block"
+                  style={{ maxWidth: "100%", width: "600px" }}
+                >
                   {formData.avatar ? (
                     <img
-                      src={formData.avatar instanceof File ? URL.createObjectURL(formData.avatar) : formData.avatar}
+                      src={
+                        formData.avatar instanceof File
+                          ? URL.createObjectURL(formData.avatar)
+                          : formData.avatar
+                      }
                       alt={formData.full_name}
                       className="img-fluid w-100"
                       style={{ height: "300px", objectFit: "cover" }}
                     />
                   ) : (
-                    <div
-                      className="d-flex align-items-center justify-content-center bg-light"
-                      style={{ height: "300px" }}
-                    >
-                      <i className="bi bi-person-circle fs-1 text-secondary"></i>
-                    </div>
+                    <img
+                      src={defaultAvatar}
+                      alt="Default Avatar"
+                      className="img-fluid w-100"
+                      style={{ height: "300px", objectFit: "cover" }}
+                    />
                   )}
                 </div>
                 {!viewingItem && (
                   <div className="mt-2">
                     <label className="btn btn-outline-danger btn-sm">
-                      {
-                        isArabic
-                          ? (formData.avatar ? "تغيير صورة" : "إضافة صورة")
-                          : (formData.avatar ? "Change Photo" : "Add Photo")
-                      }
-                      <input type="file" name="avatar" className="d-none" onChange={handleChange} accept="image/*" />
+                      {isArabic
+                        ? formData.avatar
+                          ? "تغيير صورة"
+                          : "إضافة صورة"
+                        : formData.avatar
+                          ? "Change Photo"
+                          : "Add Photo"}
+                      <input
+                        type="file"
+                        name="avatar"
+                        className="d-none"
+                        onChange={handleChange}
+                        accept="image/*"
+                      />
                     </label>
                   </div>
                 )}
@@ -553,7 +631,9 @@ function AdminInstructors() {
 
               {/* الاسم الكامل */}
               <div className="mb-4">
-                <label className="form-label fw-bold text-dark">{t("instructors_page.name")}</label>
+                <label className="form-label fw-bold text-dark">
+                  {t("instructors_page.name")}
+                </label>
                 <input
                   type="text"
                   name="full_name"
@@ -563,13 +643,19 @@ function AdminInstructors() {
                   onChange={handleChange}
                   disabled={!!viewingItem}
                 />
-                {!viewingItem && <small className="text-muted">{isArabic ? "الأدنى 10 أحرف" : "Min 10 characters"}</small>}
+                {!viewingItem && (
+                  <small className="text-muted">
+                    {isArabic ? "الأدنى 10 أحرف" : "Min 10 characters"}
+                  </small>
+                )}
               </div>
 
               {/* الإيميل (فقط عند الإضافة) */}
               {!editingItem && !viewingItem && (
                 <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">{t("instructors_page.email")}</label>
+                  <label className="form-label fw-bold text-dark">
+                    {t("instructors_page.email")}
+                  </label>
                   <input
                     type="email"
                     name="email"
@@ -583,20 +669,28 @@ function AdminInstructors() {
 
               {/* التخصص والجنس */}
               <div className="row mb-4 ">
-                <div className={`mb-3 mb-md-0 ${editingItem ? 'col-12' : 'col-md-6'}`}>
-                  <label className="form-label fw-bold text-dark">{isArabic ? "التخصص" : "Field/Specialty"}</label>
+                <div
+                  className={`mb-3 mb-md-0 ${editingItem ? "col-12" : "col-md-6"}`}
+                >
+                  <label className="form-label fw-bold text-dark">
+                    {isArabic ? "التخصص" : "Field/Specialty"}
+                  </label>
                   <input
                     type="text"
                     name="field"
                     className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    placeholder={isArabic ? "مثال: هندسة معمارية" : "e.g. Architecture"}
+                    placeholder={
+                      isArabic ? "مثال: هندسة معمارية" : "e.g. Architecture"
+                    }
                     value={formData.field}
                     onChange={handleChange}
                     disabled={!!viewingItem}
                   />
                 </div>
-                <div className={`col-md-6 ${editingItem && 'd-none'}`}>
-                  <label className="form-label fw-bold text-dark">{isArabic ? "الجنس" : "Gender"}</label>
+                <div className={`col-md-6 ${editingItem && "d-none"}`}>
+                  <label className="form-label fw-bold text-dark">
+                    {isArabic ? "الجنس" : "Gender"}
+                  </label>
                   <select
                     name="gender"
                     className={`form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted `}
@@ -605,7 +699,9 @@ function AdminInstructors() {
                     disabled={!!viewingItem}
                   >
                     <option value="male">{isArabic ? "ذكر" : "Male"}</option>
-                    <option value="female">{isArabic ? "أنثى" : "Female"}</option>
+                    <option value="female">
+                      {isArabic ? "أنثى" : "Female"}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -614,7 +710,9 @@ function AdminInstructors() {
               {!editingItem && !viewingItem && (
                 <div className="row mb-4">
                   <div className="col-md-6 mb-3 mb-md-0">
-                    <label className="form-label fw-bold text-dark">{t("instructors_page.phone")}</label>
+                    <label className="form-label fw-bold text-dark">
+                      {t("instructors_page.phone")}
+                    </label>
                     <input
                       type="tel"
                       name="phone"
@@ -625,7 +723,9 @@ function AdminInstructors() {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label className="form-label fw-bold text-dark">{t("instructors_page.password")}</label>
+                    <label className="form-label fw-bold text-dark">
+                      {t("instructors_page.password")}
+                    </label>
                     <input
                       type="password"
                       name="password"
@@ -634,30 +734,44 @@ function AdminInstructors() {
                       value={formData.password}
                       onChange={handleChange}
                     />
-                    <small className="text-muted">{isArabic ? "الأدنى 8 أحرف" : "Min 8 characters"}</small>
+                    <small className="text-muted">
+                      {isArabic ? "الأدنى 8 أحرف" : "Min 8 characters"}
+                    </small>
                   </div>
                 </div>
               )}
 
               {/* النبذة التعريفية */}
               <div className="mb-4">
-                <label className="form-label fw-bold text-dark">{isArabic ? "النبذة التعريفية" : "Biography"}</label>
+                <label className="form-label fw-bold text-dark">
+                  {isArabic ? "النبذة التعريفية" : "Biography"}
+                </label>
                 <textarea
                   name="bio"
                   rows="4"
                   className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                  placeholder={isArabic ? "اكتب نبذة عن المحاضر..." : "Tell us about the instructor..."}
+                  placeholder={
+                    isArabic
+                      ? "اكتب نبذة عن المحاضر..."
+                      : "Tell us about the instructor..."
+                  }
                   value={formData.bio}
                   onChange={handleChange}
                   disabled={!!viewingItem}
                 ></textarea>
-                {!viewingItem && <small className="text-muted">{isArabic ? "الأدنى 20 حرفاً" : "Min 20 characters"}</small>}
+                {!viewingItem && (
+                  <small className="text-muted">
+                    {isArabic ? "الأدنى 20 حرفاً" : "Min 20 characters"}
+                  </small>
+                )}
               </div>
 
               {/* روابط التواصل الاجتماعي */}
               <div className="row mb-4">
                 <div className="col-md-4 mb-3 mb-md-0">
-                  <label className="form-label fw-bold text-dark">Instagram</label>
+                  <label className="form-label fw-bold text-dark">
+                    Instagram
+                  </label>
                   <input
                     type="url"
                     name="insta_url"
@@ -669,7 +783,9 @@ function AdminInstructors() {
                   />
                 </div>
                 <div className="col-md-4 mb-3 mb-md-0">
-                  <label className="form-label fw-bold text-dark">LinkedIn</label>
+                  <label className="form-label fw-bold text-dark">
+                    LinkedIn
+                  </label>
                   <input
                     type="url"
                     name="linkedin_url"
@@ -681,7 +797,9 @@ function AdminInstructors() {
                   />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label fw-bold text-dark">Facebook</label>
+                  <label className="form-label fw-bold text-dark">
+                    Facebook
+                  </label>
                   <input
                     type="url"
                     name="facebook_url"
@@ -696,7 +814,9 @@ function AdminInstructors() {
 
               {/* الحالة */}
               <div className="mb-4">
-                <label className="form-label fw-bold text-dark">{isArabic ? "الحالة" : "Status"}</label>
+                <label className="form-label fw-bold text-dark">
+                  {isArabic ? "الحالة" : "Status"}
+                </label>
                 <select
                   name="status"
                   className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
@@ -704,16 +824,26 @@ function AdminInstructors() {
                   onChange={handleChange}
                   disabled={!!viewingItem}
                 >
-                  <option value="active">{t("instructors_page.active_status")}</option>
-                  <option value="inactive">{t("instructors_page.inactive_status")}</option>
+                  <option value="active">
+                    {t("instructors_page.active_status")}
+                  </option>
+                  <option value="inactive">
+                    {t("instructors_page.inactive_status")}
+                  </option>
                 </select>
               </div>
 
               {/* أزرار التحكم */}
               {!viewingItem && (
                 <div className="d-flex justify-content-end mt-4 pt-4 border-top">
-                  <button className="btn btn-danger px-5 py-2 fw-medium rounded-3" onClick={handleSubmitWrapper}>
-                    {editingItem ? t("instructors_page.update_instructor") : t("instructors_page.create_instructor")}
+                  <button
+                    className="btn btn-danger px-5 py-2 fw-medium rounded-3"
+                    onClick={handleSubmitWrapper}
+                    disabled={loading}
+                  >
+                    {editingItem
+                      ? t("instructors_page.update_instructor")
+                      : t("instructors_page.create_instructor")}
                   </button>
                 </div>
               )}

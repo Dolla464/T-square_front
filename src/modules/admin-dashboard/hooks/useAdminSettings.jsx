@@ -28,25 +28,36 @@ let settingsCache = null;
 export const useAdminSettingsState = () => {
   const { t, i18n } = useTranslation(["adminDashboard"]);
   const isArabic = i18n.language === "ar";
-  const [siteLogo, setSiteLogo] = useState(() => settingsCache?.siteLogo || null);
-  const [heroImage, setHeroImage] = useState(() => settingsCache?.heroImage || null);
-  const [aboutImages, setAboutImages] = useState(() => settingsCache?.aboutImages || []);
-  const [discoveryMedia, setDiscoveryMedia] = useState(() => settingsCache?.discoveryMedia || []);
+  const [siteLogo, setSiteLogo] = useState(
+    () => settingsCache?.siteLogo || null,
+  );
+  const [heroImage, setHeroImage] = useState(
+    () => settingsCache?.heroImage || null,
+  );
+  const [aboutImages, setAboutImages] = useState(
+    () => settingsCache?.aboutImages || [],
+  );
+  const [discoveryMedia, setDiscoveryMedia] = useState(
+    () => settingsCache?.discoveryMedia || [],
+  );
 
   // الحالة المحلية للتحكم في الإعدادات العامة (General Settings) للمنصة
-  const [generalSettings, setGeneralSettings] = useState(() => settingsCache?.generalSettings || {
-    site_name: "T-Square LMS",
-    contact_email: "N/A",
-    whatsapp: "N/A",
-    facebook_url: "N/A",
-    maintenance_mode: "false",
-    hero_title_en: "N/A",
-    hero_title_ar: "N/A",
-    hero_title_highlight_en: "N/A",
-    hero_title_highlight_ar: "N/A",
-    hero_subtitle_en: "N/A",
-    hero_subtitle_ar: "N/A",
-  });
+  const [generalSettings, setGeneralSettings] = useState(
+    () =>
+      settingsCache?.generalSettings || {
+        site_name: "T-Square LMS",
+        contact_email: "N/A",
+        whatsapp: "N/A",
+        facebook_url: "N/A",
+        maintenance_mode: "false",
+        hero_title_en: "N/A",
+        hero_title_ar: "N/A",
+        hero_title_highlight_en: "N/A",
+        hero_title_highlight_ar: "N/A",
+        hero_subtitle_en: "N/A",
+        hero_subtitle_ar: "N/A",
+      },
+  );
 
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -113,134 +124,143 @@ export const useAdminSettingsState = () => {
   }, []);
 
   // ================= جلب جميع الإعدادات والميديا بالتوازي وديناميكياً =================
-  const fetchMediaSettings = useCallback(async (force = false) => {
-    if (settingsCache && !force) {
-      // تم تحميل الإعدادات مسبقاً، لا داعي لتكرار الـ API
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const [
-        heroRes,
-        aboutRes,
-        discoveryRes,
-        siteNameRes,
-        emailRes,
-        whatsappRes,
-        facebookRes,
-        maintenanceRes,
-        heroTitleEnRes,
-        heroTitleArRes,
-        heroTitleHighlightEnRes,
-        heroTitleHighlightArRes,
-        heroSubtitleEnRes,
-        heroSubtitleArRes,
-      ] = await Promise.all([
-        apiGetWebsiteMedia("hero_image")
-          .catch(() => apiGetWebsiteMedia("hero"))
-          .catch(() => null),
-        apiGetWebsiteMedia("about_media")
-          .catch(() => apiGetWebsiteMedia("about_section"))
-          .catch(() => null),
-        apiGetDiscoveryMedia()
-          .catch(() => apiGetWebsiteMedia("discovery_media"))
-          .catch(() => null),
-        apiGetSetting("site_name").catch(() => null),
-        apiGetSetting("contact_email").catch(() => null),
-        apiGetSetting("whatsapp").catch(() => null),
-        apiGetSetting("facebook_url").catch(() => null),
-        apiGetMaintenanceStatus().catch(() => false),
-        apiGetSetting("hero_title_en").catch(() => null),
-        apiGetSetting("hero_title_ar").catch(() => null),
-        apiGetSetting("hero_title_highlight_en").catch(() => null),
-        apiGetSetting("hero_title_highlight_ar").catch(() => null),
-        apiGetSetting("hero_subtitle_en").catch(() => null),
-        apiGetSetting("hero_subtitle_ar").catch(() => null),
-      ]);
+  const fetchMediaSettings = useCallback(
+    async (force = false) => {
+      if (settingsCache && !force) {
+        // تم تحميل الإعدادات مسبقاً، لا داعي لتكرار الـ API
+        return;
+      }
+      setLoading(true);
+      setError(null);
+      try {
+        const [
+          heroRes,
+          aboutRes,
+          discoveryRes,
+          siteNameRes,
+          emailRes,
+          whatsappRes,
+          facebookRes,
+          maintenanceRes,
+          heroTitleEnRes,
+          heroTitleArRes,
+          heroTitleHighlightEnRes,
+          heroTitleHighlightArRes,
+          heroSubtitleEnRes,
+          heroSubtitleArRes,
+        ] = await Promise.all([
+          apiGetWebsiteMedia("hero_image")
+            .catch(() => apiGetWebsiteMedia("hero"))
+            .catch(() => null),
+          apiGetWebsiteMedia("about_media")
+            .catch(() => apiGetWebsiteMedia("about_section"))
+            .catch(() => null),
+          apiGetDiscoveryMedia()
+            .catch(() => apiGetWebsiteMedia("discovery_media"))
+            .catch(() => null),
+          apiGetSetting("site_name").catch(() => null),
+          apiGetSetting("contact_email").catch(() => null),
+          apiGetSetting("whatsapp").catch(() => null),
+          apiGetSetting("facebook_url").catch(() => null),
+          apiGetMaintenanceStatus().catch(() => false),
+          apiGetSetting("hero_title_en").catch(() => null),
+          apiGetSetting("hero_title_ar").catch(() => null),
+          apiGetSetting("hero_title_highlight_en").catch(() => null),
+          apiGetSetting("hero_title_highlight_ar").catch(() => null),
+          apiGetSetting("hero_subtitle_en").catch(() => null),
+          apiGetSetting("hero_subtitle_ar").catch(() => null),
+        ]);
 
-      const hero = extractValue(heroRes);
-      setHeroImage(hero);
+        const hero = extractValue(heroRes);
+        setHeroImage(hero);
 
-      const about = extractValue(aboutRes);
-      let parsedAbout = [];
-      if (about) {
-        if (Array.isArray(about)) {
-          parsedAbout = about;
-        } else if (typeof about === "string") {
+        const about = extractValue(aboutRes);
+        let parsedAbout = [];
+        if (about) {
+          if (Array.isArray(about)) {
+            parsedAbout = about;
+          } else if (typeof about === "string") {
+            try {
+              parsedAbout = JSON.parse(about);
+            } catch {
+              parsedAbout = about
+                .split(",")
+                .map((s) => s.trim().replace(/^["']|["']$/g, ""));
+            }
+          }
+        }
+        setAboutImages(Array.isArray(parsedAbout) ? parsedAbout : []);
+
+        const discovery =
+          discoveryRes?.data?.images ||
+          discoveryRes?.images ||
+          discoveryRes?.data ||
+          discoveryRes ||
+          [];
+        let parsedDiscovery = discovery;
+        if (typeof discovery === "string") {
           try {
-            parsedAbout = JSON.parse(about);
+            parsedDiscovery = JSON.parse(discovery);
           } catch {
-            parsedAbout = about
+            parsedDiscovery = discovery
               .split(",")
               .map((s) => s.trim().replace(/^["']|["']$/g, ""));
           }
         }
+        setDiscoveryMedia(
+          Array.isArray(parsedDiscovery) ? parsedDiscovery : [],
+        );
+
+        const site_name = extractValue(siteNameRes, "T-Square LMS");
+        const contact_email = extractValue(emailRes, "N/A") || "N/A";
+        const whatsapp = extractValue(whatsappRes, "N/A") || "N/A";
+        const facebook_url = extractValue(facebookRes, "N/A") || "N/A";
+
+        const maintenance_mode = maintenanceRes === true ? "true" : "false";
+
+        const hero_title_en = extractValue(heroTitleEnRes, "N/A") || "N/A";
+        const hero_title_ar = extractValue(heroTitleArRes, "N/A") || "N/A";
+        const hero_title_highlight_en =
+          extractValue(heroTitleHighlightEnRes, "N/A") || "N/A";
+        const hero_title_highlight_ar =
+          extractValue(heroTitleHighlightArRes, "N/A") || "N/A";
+        const hero_subtitle_en =
+          extractValue(heroSubtitleEnRes, "N/A") || "N/A";
+        const hero_subtitle_ar =
+          extractValue(heroSubtitleArRes, "N/A") || "N/A";
+
+        const newGeneralSettings = {
+          site_name,
+          contact_email,
+          whatsapp,
+          facebook_url,
+          maintenance_mode,
+          hero_title_en,
+          hero_title_ar,
+          hero_title_highlight_en,
+          hero_title_highlight_ar,
+          hero_subtitle_en,
+          hero_subtitle_ar,
+        };
+
+        setGeneralSettings(newGeneralSettings);
+
+        // تحديث ذاكرة التخزين المؤقت
+        settingsCache = {
+          siteLogo: null,
+          heroImage: hero,
+          aboutImages: Array.isArray(parsedAbout) ? parsedAbout : [],
+          discoveryMedia: Array.isArray(parsedDiscovery) ? parsedDiscovery : [],
+          generalSettings: newGeneralSettings,
+        };
+      } catch (err) {
+        handleError(err, "errors.fetch_failed");
+      } finally {
+        setLoading(false);
       }
-      setAboutImages(Array.isArray(parsedAbout) ? parsedAbout : []);
-
-      const discovery =
-        discoveryRes?.data?.images ||
-        discoveryRes?.images ||
-        discoveryRes?.data ||
-        discoveryRes ||
-        [];
-      let parsedDiscovery = discovery;
-      if (typeof discovery === "string") {
-        try {
-          parsedDiscovery = JSON.parse(discovery);
-        } catch {
-          parsedDiscovery = discovery
-            .split(",")
-            .map((s) => s.trim().replace(/^["']|["']$/g, ""));
-        }
-      }
-      setDiscoveryMedia(Array.isArray(parsedDiscovery) ? parsedDiscovery : []);
-
-      const site_name = extractValue(siteNameRes, "T-Square LMS");
-      const contact_email = extractValue(emailRes, "N/A") || "N/A";
-      const whatsapp = extractValue(whatsappRes, "N/A") || "N/A";
-      const facebook_url = extractValue(facebookRes, "N/A") || "N/A";
-
-      const maintenance_mode = maintenanceRes === true ? "true" : "false";
-
-      const hero_title_en = extractValue(heroTitleEnRes, "N/A") || "N/A";
-      const hero_title_ar = extractValue(heroTitleArRes, "N/A") || "N/A";
-      const hero_title_highlight_en = extractValue(heroTitleHighlightEnRes, "N/A") || "N/A";
-      const hero_title_highlight_ar = extractValue(heroTitleHighlightArRes, "N/A") || "N/A";
-      const hero_subtitle_en = extractValue(heroSubtitleEnRes, "N/A") || "N/A";
-      const hero_subtitle_ar = extractValue(heroSubtitleArRes, "N/A") || "N/A";
-
-      const newGeneralSettings = {
-        site_name,
-        contact_email,
-        whatsapp,
-        facebook_url,
-        maintenance_mode,
-        hero_title_en,
-        hero_title_ar,
-        hero_title_highlight_en,
-        hero_title_highlight_ar,
-        hero_subtitle_en,
-        hero_subtitle_ar,
-      };
-
-      setGeneralSettings(newGeneralSettings);
-
-      // تحديث ذاكرة التخزين المؤقت
-      settingsCache = {
-        siteLogo: null,
-        heroImage: hero,
-        aboutImages: Array.isArray(parsedAbout) ? parsedAbout : [],
-        discoveryMedia: Array.isArray(parsedDiscovery) ? parsedDiscovery : [],
-        generalSettings: newGeneralSettings,
-      };
-    } catch (err) {
-      handleError(err, "errors.fetch_failed");
-    } finally {
-      setLoading(false);
-    }
-  }, [handleError, extractValue]);
+    },
+    [handleError, extractValue],
+  );
 
   // ================= حفظ وتحديث إعداد فردي =================
   const saveSetting = async (key, value) => {
@@ -290,9 +310,11 @@ export const useAdminSettingsState = () => {
 
     try {
       // Find only the keys that have actually changed compared to the current generalSettings state
-      const changedSettings = Object.entries(settingsObj).filter(([key, value]) => {
-        return generalSettings[key] !== value;
-      });
+      const changedSettings = Object.entries(settingsObj).filter(
+        ([key, value]) => {
+          return generalSettings[key] !== value;
+        },
+      );
 
       if (changedSettings.length > 0) {
         await Promise.all(
@@ -330,7 +352,6 @@ export const useAdminSettingsState = () => {
       setUploading(false);
     }
   };
-
 
   // ================= رفع الميديا =================
   const uploadMedia = async (files, key, action = "append") => {
