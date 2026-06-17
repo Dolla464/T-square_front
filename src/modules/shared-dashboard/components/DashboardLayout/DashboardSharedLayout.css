@@ -41,6 +41,7 @@ body.dashboard-active {
   display: block;
   text-decoration: none;
   padding: 24px 24px 20px;
+  padding-top: calc(24px + env(safe-area-inset-top, 0px));
   border-bottom: 1px solid rgba(255,255,255,0.06);
   margin-bottom: 8px;
   flex-shrink: 0; /* منع اللوجو من الانضغاط */
@@ -174,15 +175,15 @@ body.dashboard-active {
 }
 
 .shared-dashboard-topbar {
-  height: 64px;
+  height: calc(64px + env(safe-area-inset-top, 0px));
   background: #fff;
   border-bottom: 1px solid #eee;
   display: flex;
   align-items: center;
   padding: 0 24px;
+  padding-top: env(safe-area-inset-top, 0px);
   gap: 16px;
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 10;
   box-sizing: border-box;
 }

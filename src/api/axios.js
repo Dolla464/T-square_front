@@ -4,7 +4,7 @@ const axiosClient = axios.create({
   baseURL:
     window.APP_CONFIG && window.APP_CONFIG.API_URL
       ? window.APP_CONFIG.API_URL
-      : "http://t-square-lms.test/api",
+      : "http://127.0.0.1:8000/api",
   timeout: 10000,
   // تم حذف withCredentials: true لأننا نستخدم Bearer Token
   headers: {

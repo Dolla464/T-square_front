@@ -275,10 +275,25 @@ function AppNavbar({ isLoggedIn, userName }) {
                         style={{ objectFit: "cover" }}
                       />
                     ) : (
-                      (userProfile?.instructor?.full_name || userName || "U")
-                        .charAt(0)
-                        .toUpperCase()
-                    ))}
+                      userProfile?.student?.full_name ? userProfile?.student?.full_name?.charAt(0)?.toUpperCase()
+                        : userName ? userName?.charAt(0)?.toUpperCase() : "U"
+                    )
+                  )}
+
+                  {/* instractor  */}
+                  {user.role == 'instructor' &&
+                    (userProfile?.instructor?.avatar && user.role == 'instructor' && !userProfile?.instructor?.avatar?.includes('default-instructor.png') ?
+                      (
+                        <img
+                          src={userProfile?.instructor?.avatar}
+                          alt={userName}
+                          className="w-100 h-100"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      ) : (
+                        userProfile?.instructor?.full_name ? userProfile?.instructor?.full_name?.charAt(0)?.toUpperCase()
+                          : userName ? userName?.charAt(0)?.toUpperCase() : "U"
+                      ))}
                 </div>
 
                 {/* الإشعار لو الحساب مش متفعل */}
