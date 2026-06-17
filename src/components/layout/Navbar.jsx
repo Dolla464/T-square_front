@@ -253,8 +253,8 @@ function AppNavbar({ isLoggedIn, userName }) {
                         style={{ objectFit: 'cover' }}
                       />
                     ) : (
-                      userProfile.student.full_name ? userProfile.student.full_name.charAt(0).toUpperCase()
-                        : userName ? userName.charAt(0).toUpperCase() : "U"
+                      userProfile?.student?.full_name ? userProfile?.student?.full_name?.charAt(0)?.toUpperCase()
+                        : userName ? userName?.charAt(0)?.toUpperCase() : "U"
                     )
                   }
 
@@ -269,8 +269,8 @@ function AppNavbar({ isLoggedIn, userName }) {
                           style={{ objectFit: 'cover' }}
                         />
                       ) : (
-                        userProfile.instructor.full_name ? userProfile.instructor.full_name.charAt(0).toUpperCase()
-                          : userName ? userName.charAt(0).toUpperCase() : "U"
+                        userProfile?.instructor?.full_name ? userProfile?.instructor?.full_name?.charAt(0)?.toUpperCase()
+                          : userName ? userName?.charAt(0)?.toUpperCase() : "U"
                       ))}
                 </div>
 

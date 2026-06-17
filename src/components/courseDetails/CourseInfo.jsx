@@ -7,7 +7,7 @@ const CourseInfo = ({ course }) => {
   const isArabic = i18n?.language === "ar";
 
   return (
-    <div dir={isArabic ? "rtl" : "ltr"} className="text-center text-lg-start">
+    <div  className="text-center text-lg-end" >
       {/* Breadcrumbs */}
       <nav className="breadcrumb-nav mb-4 d-flex align-items-center  justify-content-lg-start">
         <Link to="/" className="breadcrumb-item">
