@@ -15,6 +15,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /www/wwwroot/tsquarecenter.com
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
             npm install
             npm run build
