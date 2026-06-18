@@ -6,7 +6,7 @@ import "./AllTeam.css";
 // import studentImg from "../../assets/student-avatar.jpg";
 import i18n from "../../i18n";
 import { useInstructors } from "../../hooks/useInstructors";
-import CtaEnroll from "../shared/ctaEntroll/CtaEnroll";
+import CtaEnroll from "../shared/ctaEnroll/CtaEnroll";
 import TestimonialsSection from "../shared/TestimonialsSection/TestimonialsSection";
 
 // مكون فرعي عشان نعرض الكارت بتاع كل عضو بشكل نضيف بدون ما نزحم الكود الرئيسي
