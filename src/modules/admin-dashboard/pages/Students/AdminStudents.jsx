@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { Pagination, Spinner } from "react-bootstrap";
+import { Pagination } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 import {
   showConfirmCustom,
   showDeleteConfirm,
@@ -9,8 +11,6 @@ import { toastError } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { useGroups } from "../../hooks/useGroups";
 import { useStudents } from "../../hooks/useStudents";
-import Lightbox from "yet-another-react-lightbox";
-import "yet-another-react-lightbox/styles.css";
 
 /**
  * Default form data structure for creating or editing a student, ensuring all necessary fields are initialized to empty or default values to prevent uncontrolled input issues in the form components
@@ -47,10 +47,7 @@ const getAvatarSrc = (path) => {
   const cleanBase = apiURL.endsWith("/") ? apiURL.slice(0, -1) : apiURL;
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
 
-  if (
-    !cleanPath.startsWith("/storage") &&
-    !cleanPath.startsWith("/public")
-  ) {
+  if (!cleanPath.startsWith("/storage") && !cleanPath.startsWith("/public")) {
     return `${cleanBase}/storage${cleanPath}`;
   }
 
@@ -85,6 +82,8 @@ function AdminStudents() {
   const [formData, setFormData] = useState(defaultFormData);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Toggle for showing/hiding password in the add-student form
+  const [showPassword, setShowPassword] = useState(false);
   // States for Lightbox functionality
   const [lightboxSlides, setLightboxSlides] = useState([]);
   const [lightboxIndex, setLightboxIndex] = useState(-1);
@@ -427,11 +426,11 @@ function AdminStudents() {
           enrolled_courses: (prev.enrolled_courses || []).map((course) =>
             course.id === courseId
               ? {
-                ...course,
-                is_completed: nextStatus,
-                // حركة ذكية: لو الكورس تقلب "مكتمل"، بنلغي الجروب الحالي جوه الفورم عشان يتماشى مع لوجيك الباك إند
-                ...(nextStatus ? { group_id: null } : {}),
-              }
+                  ...course,
+                  is_completed: nextStatus,
+                  // حركة ذكية: لو الكورس تقلب "مكتمل"، بنلغي الجروب الحالي جوه الفورم عشان يتماشى مع لوجيك الباك إند
+                  ...(nextStatus ? { group_id: null } : {}),
+                }
               : course,
           ),
         }));
@@ -443,8 +442,6 @@ function AdminStudents() {
 
   return (
     <div className="admin-content-page">
-
-
       {!showForm ? (
         <>
           {/* رأس الصفحة: العنوان وزر الإضافة */}
@@ -460,7 +457,9 @@ function AdminStudents() {
               onClick={handleAddNew}
             >
               <i className="bi bi-plus-lg me-0 me-md-1"></i>
-              <span className="d-none d-md-inline">{isArabic ? "إضافة طالب" : "Add Student"}</span>
+              <span className="d-none d-md-inline">
+                {isArabic ? "إضافة طالب" : "Add Student"}
+              </span>
             </button>
           </div>
 
@@ -472,18 +471,20 @@ function AdminStudents() {
                   {/* 1. شريط البحث (Search Input) */}
                   <div className="ac-search-input-wrapper position-relative">
                     <i
-                      className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
-                        }`}
+                      className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${
+                        searchTerm ? "text-danger fw-bold" : "text-muted"
+                      }`}
                       style={{ zIndex: 3 }}
                     ></i>
 
                     <input
                       type="text"
                       // ضبطنا الـ padding من الشمال (ps-5) عشان الكلام ميبدأش من فوق الأيقونة
-                      className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
-                        ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
-                        : "border-light bg-light text-muted"
-                        }`}
+                      className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${
+                        searchTerm
+                          ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
+                          : "border-light bg-light text-muted"
+                      }`}
                       placeholder={t("students_page.search_placeholder")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -496,8 +497,7 @@ function AdminStudents() {
                         className="btn btn-link position-absolute end-0 top-50 translate-middle-y text-danger p-0 me-3 border-0 bg-transparent"
                         onClick={() => setSearchTerm("")}
                         style={{ zIndex: 3, textDecoration: "none" }}
-                      >
-                      </button>
+                      ></button>
                     )}
                   </div>
 
@@ -505,10 +505,11 @@ function AdminStudents() {
                     {/* 2. فلتر الحالات (Statuses) */}
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedStatus !== "all"
-                        ? "border-danger bg-danger-subtle text-danger-emphasis"
-                        : "border-light bg-light text-muted"
-                        }`}
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                        selectedStatus !== "all"
+                          ? "border-danger bg-danger-subtle text-danger-emphasis"
+                          : "border-light bg-light text-muted"
+                      }`}
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                     >
@@ -526,10 +527,11 @@ function AdminStudents() {
                     {/* 3. فلتر المجموعات (Groups) */}
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedGroup !== "all"
-                        ? "border-danger bg-danger-subtle text-danger-emphasis"
-                        : "border-light bg-light text-muted"
-                        }`}
+                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                        selectedGroup !== "all"
+                          ? "border-danger bg-danger-subtle text-danger-emphasis"
+                          : "border-light bg-light text-muted"
+                      }`}
                       value={selectedGroup}
                       onChange={(e) => setSelectedGroup(e.target.value)}
                     >
@@ -547,10 +549,11 @@ function AdminStudents() {
                     {/* 4. فلتر النوع (Genders) */}
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
-                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedGender !== "all"
-                        ? "border-danger bg-danger-subtle text-danger-emphasis"
-                        : "border-light bg-light text-muted"
-                        }`}
+                      className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                        selectedGender !== "all"
+                          ? "border-danger bg-danger-subtle text-danger-emphasis"
+                          : "border-light bg-light text-muted"
+                      }`}
                       value={selectedGender}
                       onChange={(e) => setSelectedGender(e.target.value)}
                     >
@@ -565,7 +568,6 @@ function AdminStudents() {
                       </option>
                     </select>
                   </div>
-
                 </div>
 
                 {/* جدول عرض الطلاب */}
@@ -606,8 +608,13 @@ function AdminStudents() {
                       {loading ? (
                         <tr>
                           <td colSpan={11} className="text-center py-5">
-                            <div className="spinner-border text-danger" role="status">
-                              <span className="visually-hidden">Loading...</span>
+                            <div
+                              className="spinner-border text-danger"
+                              role="status"
+                            >
+                              <span className="visually-hidden">
+                                Loading...
+                              </span>
                             </div>
                           </td>
                         </tr>
@@ -622,7 +629,8 @@ function AdminStudents() {
                               <div
                                 className="position-relative d-inline-block rounded-circle  shadow-sm mb-2"
                                 style={{
-                                  background: "linear-gradient(135deg, #dc3545 0%, #f1a80a 100%)",
+                                  background:
+                                    "linear-gradient(135deg, #dc3545 0%, #f1a80a 100%)",
                                   padding: "2px",
                                 }}
                               >
@@ -642,16 +650,23 @@ function AdminStudents() {
                                   <div
                                     className="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
                                     style={{
-                                      backgroundColor: "rgba(190, 21, 34, 0.85)",
+                                      backgroundColor:
+                                        "rgba(190, 21, 34, 0.85)",
                                       opacity: 0,
                                       transition: "opacity 0.3s ease",
                                       cursor: "pointer",
                                       zIndex: 3,
                                     }}
-                                    onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
-                                    onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
+                                    onMouseEnter={(e) =>
+                                      (e.currentTarget.style.opacity = 1)
+                                    }
+                                    onMouseLeave={(e) =>
+                                      (e.currentTarget.style.opacity = 0)
+                                    }
                                     onClick={() => {
-                                      setLightboxSlides([{ src: getAvatarSrc(student.avatar) }]);
+                                      setLightboxSlides([
+                                        { src: getAvatarSrc(student.avatar) },
+                                      ]);
                                       setLightboxIndex(0);
                                     }}
                                   >
@@ -665,8 +680,14 @@ function AdminStudents() {
                                         border: "none",
                                         backgroundColor: "#ffffff",
                                       }}
-                                      onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(0.9)")}
-                                      onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(0.8)")}
+                                      onMouseEnter={(e) =>
+                                        (e.currentTarget.style.transform =
+                                          "scale(0.9)")
+                                      }
+                                      onMouseLeave={(e) =>
+                                        (e.currentTarget.style.transform =
+                                          "scale(0.8)")
+                                      }
                                     >
                                       <i className="bi bi-eye-fill text-danger fs-4"></i>
                                     </button>
@@ -676,7 +697,6 @@ function AdminStudents() {
                             </td>
                             <td className="text-center fw-medium text-dark">
                               <div className="d-flex align-items-center justify-content-center gap-2">
-
                                 <span>{student.full_name}</span>
                               </div>
                             </td>
@@ -802,7 +822,7 @@ function AdminStudents() {
                         <Pagination.Ellipsis
                           key="prev-ellipsis"
                           onClick={() => handlePageChange(startPage - 1)}
-                        />
+                        />,
                       );
                     }
 
@@ -815,7 +835,7 @@ function AdminStudents() {
                           onClick={() => handlePageChange(p)}
                         >
                           {p}
-                        </Pagination.Item>
+                        </Pagination.Item>,
                       );
                     }
 
@@ -824,7 +844,7 @@ function AdminStudents() {
                         <Pagination.Ellipsis
                           key="next-ellipsis"
                           onClick={() => handlePageChange(endPage + 1)}
-                        />
+                        />,
                       );
                     }
 
@@ -879,7 +899,8 @@ function AdminStudents() {
                   <div
                     className="position-relative d-inline-block rounded-circle p-1 shadow-sm mb-2"
                     style={{
-                      background: "linear-gradient(135deg, #dc3545 0%, #f1a80a 100%)",
+                      background:
+                        "linear-gradient(135deg, #dc3545 0%, #f1a80a 100%)",
                     }}
                   >
                     <div
@@ -905,10 +926,16 @@ function AdminStudents() {
                           cursor: "pointer",
                           zIndex: 3,
                         }}
-                        onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
-                        onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.opacity = 1)
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.opacity = 0)
+                        }
                         onClick={() => {
-                          setLightboxSlides([{ src: getAvatarSrc(formData.avatar) }]);
+                          setLightboxSlides([
+                            { src: getAvatarSrc(formData.avatar) },
+                          ]);
                           setLightboxIndex(0);
                         }}
                       >
@@ -922,16 +949,26 @@ function AdminStudents() {
                             border: "none",
                             backgroundColor: "#ffffff",
                           }}
-                          onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.15)")}
-                          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.transform = "scale(1.15)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.transform = "scale(1)")
+                          }
                         >
                           <i className="bi bi-eye-fill text-danger fs-4"></i>
                         </button>
                       </div>
                     </div>
                   </div>
-                  <h4 className="fw-bold mt-2 text-dark mb-1">{formData.full_name}</h4>
-                  <p className="text-muted small mb-0">{isArabic ? `رقم القيد: ${formData.enrollment_number}` : `Enrollment ID: ${formData.enrollment_number}`}</p>
+                  <h4 className="fw-bold mt-2 text-dark mb-1">
+                    {formData.full_name}
+                  </h4>
+                  <p className="text-muted small mb-0">
+                    {isArabic
+                      ? `رقم القيد: ${formData.enrollment_number}`
+                      : `Enrollment ID: ${formData.enrollment_number}`}
+                  </p>
                 </div>
               )}
               {/* رقم القيد (يظهر فقط في العرض العام) */}
@@ -1062,18 +1099,50 @@ function AdminStudents() {
 
               {/* كلمة المرور (تظهر في الإضافة فقط) */}
               {!viewingItem && (
-                <div className="mb-4">
+                <div className="position-relative">
                   <label className="form-label fw-bold text-dark">
                     {t("students_page.password")}
                   </label>
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
                     placeholder={t("students_page.password_placeholder")}
                     value={formData.password}
                     onChange={handleChange}
+                    style={{ paddingRight: "48px" }}
                   />
+
+                  <button
+                    type="button"
+                    aria-pressed={showPassword}
+                    title={
+                      showPassword
+                        ? isArabic
+                          ? "إخفاء كلمة المرور"
+                          : "Hide password"
+                        : isArabic
+                          ? "إظهار كلمة المرور"
+                          : "Show password"
+                    }
+                    onClick={() => setShowPassword((s) => !s)}
+                    className="btn p-0"
+                    style={{
+                      position: "absolute",
+                      right: "15px",
+                      top: "65%",
+                      transform: "translateY(-50%)",
+                      color: "#dc3545",
+                      textDecoration: "none",
+                      border: "none",
+                      background: "transparent",
+                      zIndex: 4,
+                    }}
+                  >
+                    <i
+                      className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"} fs-5`}
+                    ></i>
+                  </button>
                 </div>
               )}
 
@@ -1188,12 +1257,13 @@ function AdminStudents() {
                                       // 1. تعطيل الـ select تماماً إذا كان الكورس مكتملاً
                                       disabled={course.is_completed}
                                       // 2. تلوين ديناميكي باستخدام كلاسات بوتستراب بناءً على حالة الكورس والجروب
-                                      className={`form-control form-select-sm border-2 shadow-sm text-center rounded-3 py-2 px-3 ${course.is_completed
-                                        ? "border-light-subtle bg-body-secondary text-muted opacity-75" // شكل مطفي للكورس المكتمل
-                                        : !course.group_id
-                                          ? "border-warning bg-warning-subtle text-dark"
-                                          : "border-light-subtle bg-light text-secondary"
-                                        }`}
+                                      className={`form-control form-select-sm border-2 shadow-sm text-center rounded-3 py-2 px-3 ${
+                                        course.is_completed
+                                          ? "border-light-subtle bg-body-secondary text-muted opacity-75" // شكل مطفي للكورس المكتمل
+                                          : !course.group_id
+                                            ? "border-warning bg-warning-subtle text-dark"
+                                            : "border-light-subtle bg-light text-secondary"
+                                      }`}
                                       value={course.group_id || ""}
                                       // 3. تأكد من تمرير الدالة الصحيحة المتواجدة بالهوك لديك (يمكنك إضافة student.id إذا دعت الحاجة)
                                       onChange={(e) =>
@@ -1239,10 +1309,11 @@ function AdminStudents() {
                                   <button
                                     type="button"
                                     // تحويل الـ Badge لـ Button باستخدام كلاسات بوتستراب لتغيير الخلفية والألوان بدون inline style
-                                    className={`btn btn-sm rounded-pill fw-bold border-0 py-2 px-3 shadow-sm ${course.is_completed
-                                      ? "bg-success-subtle text-success-emphasis"
-                                      : "bg-primary-subtle text-primary-emphasis"
-                                      }`}
+                                    className={`btn btn-sm rounded-pill fw-bold border-0 py-2 px-3 shadow-sm ${
+                                      course.is_completed
+                                        ? "bg-success-subtle text-success-emphasis"
+                                        : "bg-primary-subtle text-primary-emphasis"
+                                    }`}
                                     style={{
                                       fontSize: "0.75rem",
                                       transition: "all 0.2s",

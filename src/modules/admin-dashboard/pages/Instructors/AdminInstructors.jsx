@@ -148,7 +148,7 @@ function AdminInstructors() {
     setShowForm(false);
     setEditingItem(null);
     setViewingItem(null);
-    setActiveTab("view");
+    // setActiveTab("view");
   };
 
   const handleDelete = async (insId) => {

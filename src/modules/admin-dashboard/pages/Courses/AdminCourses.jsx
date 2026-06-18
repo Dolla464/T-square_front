@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAdminCourses } from "../../hooks/useAdminCourses";
 import { useInstructors } from "../../hooks/useInstractor";
@@ -38,7 +38,7 @@ function AdminCourses() {
 
   const { tags: availableTags, getTags } = useTags();
   const { instructors, getInstructors } = useInstructors();
-  const { categories, treeCategories, getCategories, getCategoriesTree } =
+  const { categories, treeCategories, getCategoriesTree } =
     useCategories();
 
   // ─── i18n ──────────────────────────────────────────────────────────────────

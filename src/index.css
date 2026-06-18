@@ -11,11 +11,18 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  font-style: normal !important;
+
 }
 
 body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+* {
+  font-style: normal !important;
+
 }
 
 /* 2. تنسيقات عامة لتسهيل الشغل */
@@ -26,6 +33,18 @@ body {
   background-color: var(--light-gray);
   color: var(--text-main);
   font-style: normal !important;
+  font-synthesis: none !important;
+  font-variation-settings: 'slnt' 0 !important;
+}
+
+/* إلغاء الخطوط المائلة تماماً في المتصفحات */
+i,
+em,
+address,
+cite,
+dfn {
+  font-style: normal !important;
+  font-variation-settings: 'slnt' 0 !important;
 }
 
 /* 2.1 إلغاء الخط تحت اللينكات بشكل عام */
@@ -146,9 +165,10 @@ a,
 }
 
 /* --- Breadcrumbs --- */
-.breadcrumb-nav{
+.breadcrumb-nav {
   padding: 20px 0 0 0;
 }
+
 .breadcrumb-nav .breadcrumb-item .active {
   color: #be1522 !important;
   font-weight: 500;

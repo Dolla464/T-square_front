@@ -10,6 +10,10 @@ const ProtectedRoute = ({ allowedRoles }) => {
     return <Navigate to="/login" replace />;
   }
 
+  if (window.location.pathname === "/") {
+    return <Outlet />;
+  }
+
   // Logged in but not the right role
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // Redirect based on role if they try to access wrong route

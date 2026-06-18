@@ -81,14 +81,14 @@ function AppNavbar({ isLoggedIn, userName }) {
     ? scrolled
     : isLoggedIn || (!isHome && !isLoggedIn);
 
-  const textColorClass =
-    isHomeLoggedIn && !scrolled
-      ? "light"
-      : mobileMenuOpen && !scrolled && isHomeLoggedIn
-        ? "text-dark"
-        : isDarkMode
-          ? "text-dark"
-          : "text-light"; // 1. تحديد لون الخلفية
+  // const textColorClass =
+  //   isHomeLoggedIn && !scrolled
+  //     ? "light"
+  //     : mobileMenuOpen && !scrolled && isHomeLoggedIn
+  //       ? "text-dark"
+  //       : isDarkMode
+  //         ? "text-dark"
+  //         : "text-light"; // 1. تحديد لون الخلفية
   const getBgColor = () => {
     // Home + Logged in
     if (isHomeLoggedIn) {
@@ -202,8 +202,9 @@ function AppNavbar({ isLoggedIn, userName }) {
             <SearchDropdown isDarkMode={!isDarkMode} Tbtn={Tbtn} />
 
             <div
-              className={`d-flex align-items-center cursor-pointer lang-switch ${Tbtn
-                }`}
+              className={`d-flex align-items-center cursor-pointer lang-switch ${
+                Tbtn
+              }`}
               onClick={toggleLanguage}
             >
               <HiOutlineGlobeAlt size={20} className="me-1" />
@@ -235,28 +236,49 @@ function AppNavbar({ isLoggedIn, userName }) {
               </div>
             ) : (
               <div
-                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${isDarkMode ? "border-dark" : "border-light"
-                  }`}
+                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${
+                  isDarkMode ? "border-dark" : "border-light"
+                }`}
               >
                 <div
                   className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden"
                   style={{ width: "35px", height: "35px" }}
                 >
-
                   {/* student */}
-                  {userProfile?.student?.avatar && user.role == 'student' && !userProfile?.student?.avatar?.includes('default-student.png') ?
-                    (
+                  {userProfile?.student?.avatar &&
+                  user.role === "student" &&
+                  !userProfile.student.avatar.includes(
+                    "default-student.png",
+                  ) ? (
+                    <img
+                      src={userProfile.student.avatar}
+                      alt={userName}
+                      className="w-100 h-100"
+                      style={{ objectFit: "cover" }}
+                    />
+                  ) : (
+                    (userProfile?.student?.full_name || userName || "U")
+                      .charAt(0)
+                      .toUpperCase()
+                  )}
+
+                  {/* instructor */}
+                  {user.role === "instructor" &&
+                    (userProfile?.instructor?.avatar &&
+                    !userProfile.instructor.avatar.includes(
+                      "default-instructor.png",
+                    ) ? (
                       <img
-                        src={userProfile?.student?.avatar}
+                        src={userProfile.instructor.avatar}
                         alt={userName}
                         className="w-100 h-100"
-                        style={{ objectFit: 'cover' }}
+                        style={{ objectFit: "cover" }}
                       />
                     ) : (
-                      userProfile.student.full_name ? userProfile.student.full_name.charAt(0).toUpperCase()
-                        : userName ? userName.charAt(0).toUpperCase() : "U"
+                      userProfile?.student?.full_name ? userProfile?.student?.full_name?.charAt(0)?.toUpperCase()
+                        : userName ? userName?.charAt(0)?.toUpperCase() : "U"
                     )
-                  }
+                  )}
 
                   {/* instractor  */}
                   {user.role == 'instructor' &&
@@ -269,8 +291,8 @@ function AppNavbar({ isLoggedIn, userName }) {
                           style={{ objectFit: 'cover' }}
                         />
                       ) : (
-                        userProfile.instructor.full_name ? userProfile.instructor.full_name.charAt(0).toUpperCase()
-                          : userName ? userName.charAt(0).toUpperCase() : "U"
+                        userProfile?.instructor?.full_name ? userProfile?.instructor?.full_name?.charAt(0)?.toUpperCase()
+                          : userName ? userName?.charAt(0)?.toUpperCase() : "U"
                       ))}
                 </div>
 
@@ -296,23 +318,23 @@ function AppNavbar({ isLoggedIn, userName }) {
                   align="end"
                   className={`fw-bold ${Tbtn}`}
                 >
-
-                  {user.role == "student" ?
-                    (<>
+                  {user.role == "student" ? (
+                    <>
                       <NavDropdown.Item as={Link} to="/student">
                         {t("user:my_courses")}
                       </NavDropdown.Item>
                     </>
-                    ) : user.role == "instructor" ? (<>
+                  ) : user.role == "instructor" ? (
+                    <>
                       <NavDropdown.Item as={Link} to="/instructor">
                         {isArabic() ? "لوحة التحكم" : "Instructor Dashboard"}
                       </NavDropdown.Item>
-
-                    </>) :
-                      <NavDropdown.Item as={Link} to="/admin">
-                        {isArabic() ? "لوحة التحكم" : "Admin Dashboard"}
-                      </NavDropdown.Item>
-                  }
+                    </>
+                  ) : (
+                    <NavDropdown.Item as={Link} to="/admin">
+                      {isArabic() ? "لوحة التحكم" : "Admin Dashboard"}
+                    </NavDropdown.Item>
+                  )}
                   <NavDropdown.Divider />
                   <NavDropdown.Item
                     className="text-danger"

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import i18next from "i18next";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import "./CourseDetails.css";
 import { useCourseDetails } from "../../hooks/useCousrsesDetails";
 import { Spinner } from "react-bootstrap";
@@ -27,7 +27,7 @@ const getLevelLabel = (level, isArabic) => {
   return map[level]?.[isArabic ? "ar" : "en"] ?? level;
 };
 
-const getStatusLabel = (status, isArabic) => {
+const getStatusLabel = (status) => {
   const map = {
     in_progress: { ar: "جاري التعلم", en: "In Progress", cls: "cd-status-progress" },
     completed: { ar: "مكتمل", en: "Completed", cls: "cd-status-done" },
@@ -61,6 +61,7 @@ function VideoLightbox({ video, onClose }) {
     return () => { document.body.style.overflow = ""; };
   }, []);
 
+
   return (
     <div className="cd-lightbox-backdrop" onClick={handleBackdrop}>
       <div className="cd-lightbox-card">
@@ -91,8 +92,14 @@ function CourseDetails() {
   const { t } = useTranslation("studentDashboard");
   const isArabic = i18next.language === "ar";
 
+  const previewsSectionRef = useRef(null);
+
   const { courseData, loading, error } = useCourseDetails(courseId);
   const [activeVideo, setActiveVideo] = useState(null); // الفيديو المفتوح في lightbox
+
+  const scrollToPreviews = () => {
+    previewsSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const handleDrive = () => {
     if (courseData?.google_drive_link) window.open(courseData.google_drive_link);
@@ -139,23 +146,29 @@ function CourseDetails() {
   return (
     <div className="cd-page" dir={isArabic ? "rtl" : "ltr"}>
       <Helmet>
-        <title>{title ? `${title} | T-Square` : `${t("course.details_title")} | T-Square`}</title>
+        <title>
+          {title
+            ? `${title} | T-Square`
+            : `${t("course.details_title")} | T-Square`}
+        </title>
       </Helmet>
 
       {/* ══ Video Lightbox ══ */}
       {activeVideo && (
-        <VideoLightbox video={activeVideo} onClose={() => setActiveVideo(null)} />
+        <VideoLightbox
+          video={activeVideo}
+          onClose={() => setActiveVideo(null)}
+        />
       )}
 
       {/* ══════════════════ HERO ══════════════════ */}
-      <section
-        className="cd-hero"
-      >
+      <section className="cd-hero">
         <div className="cd-hero-overlay" />
 
         <div className="cd-hero-body d-flex align-items-center">
           {/* الجانب الأيسر — المحتوى */}
           <div className="cd-hero-left">
+            <h1 className="cd-hero-title">{title}</h1>
 
             {/* Category + Status — solid badges */}
             <div className="cd-breadcrumb">
@@ -167,16 +180,30 @@ function CourseDetails() {
               </span>
             </div>
 
-            <h1 className="cd-hero-title">{title}</h1>
             <p className="cd-hero-sub">{short_description || description}</p>
 
             {/* Meta strip */}
             <ul className="cd-meta-row">
-              <li><i className="bi bi-clock-fill"></i> {duration_hours} {isArabic ? "ساعة" : "hrs"}</li>
-              <li><i className="bi bi-calendar3"></i> {duration_weeks} {isArabic ? "أسبوع" : "wks"}</li>
-              <li><i className={`bi ${getLevelIcon(level)}`}></i> {getLevelLabel(level, isArabic)}</li>
-              <li><span className="cd-lang-flag">{langFlag}</span> {language?.toUpperCase()}</li>
-              <li><i className="bi bi-people-fill"></i> {total_students?.toLocaleString()}</li>
+              <li>
+                <i className="bi bi-clock-fill"></i> {duration_hours}{" "}
+                {isArabic ? "ساعة" : "hrs"}
+              </li>
+              <li>
+                <i className="bi bi-calendar3"></i> {duration_weeks}{" "}
+                {isArabic ? "أسبوع" : "wks"}
+              </li>
+              <li>
+                <i className={`bi ${getLevelIcon(level)}`}></i>{" "}
+                {getLevelLabel(level, isArabic)}
+              </li>
+              <li>
+                <span className="cd-lang-flag">{langFlag}</span>{" "}
+                {language?.toUpperCase()}
+              </li>
+              <li>
+                <i className="bi bi-people-fill"></i>{" "}
+                {total_students?.toLocaleString()}
+              </li>
               <li>
                 <i className="bi bi-star-fill cd-star"></i>
                 {Number(avg_rating).toFixed(1)} ({total_reviews})
@@ -187,7 +214,9 @@ function CourseDetails() {
             {tags?.length > 0 && (
               <div className="cd-tags">
                 {tags.map((tag) => (
-                  <span key={tag.id} className="cd-tag">{tag.name}</span>
+                  <span key={tag.id} className="cd-tag">
+                    {tag.name}
+                  </span>
                 ))}
               </div>
             )}
@@ -202,26 +231,25 @@ function CourseDetails() {
               )}
               {enrollment.status === "completed" && (
                 <>
-                  <button onClick={handleCertificateClick} className="cd-btn-certificate">
-                    <i
-                      className="bi bi-file-earmark-pdf me-1"
-                    ></i>
+                  <button
+                    onClick={handleCertificateClick}
+                    className="cd-btn-certificate"
+                  >
+                    <i className="bi bi-file-earmark-pdf me-1"></i>
                     {isArabic ? "عرض الشهادة" : "View Certificate"}
                   </button>
-                  <button onClick={handleReviewClick} className="cd-btn-certificate">
-                    <i
-                      className="bi bi-file-earmark-text me-1"
-                    ></i>
+                  <button
+                    onClick={handleReviewClick}
+                    className="cd-btn-certificate"
+                  >
+                    <i className="bi bi-file-earmark-text me-1"></i>
                     {isArabic ? "اترك تقييم" : "Leave Review"}
                   </button>
-
                 </>
               )}
+              {/* 1. الزر الذي سيقوم بالانتقال */}
               {previews?.length > 0 && (
-                <button
-                  onClick={() => setActiveVideo(previews[0])}
-                  className="cd-btn-ghost"
-                >
+                <button onClick={scrollToPreviews} className="cd-btn-ghost">
                   <i className="bi bi-collection-play"></i>
                   {isArabic ? "معاينة الكورس" : "Preview"}
                 </button>
@@ -233,7 +261,12 @@ function CourseDetails() {
           {cover_image && (
             <div className="cd-hero-right ">
               <div className="cd-thumb-wrap">
-                <img src={cover_image} alt={title} className="cd-thumb" loading="lazy" />
+                <img
+                  src={cover_image}
+                  alt={title}
+                  className="cd-thumb"
+                  loading="lazy"
+                />
               </div>
             </div>
           )}
@@ -242,7 +275,6 @@ function CourseDetails() {
 
       {/* ══════════════════ BODY ══════════════════ */}
       <div className="cd-body">
-
         {/* ── ما ستتعلمه ── */}
         {learnings?.length > 0 && (
           <section className="cd-card cd-learnings">
@@ -253,7 +285,9 @@ function CourseDetails() {
             <ul className="cd-learnings-list">
               {learnings.map((item, i) => (
                 <li key={i} className="cd-learning-item">
-                  <span className="cd-check"><i className="bi bi-check-lg"></i></span>
+                  <span className="cd-check">
+                    <i className="bi bi-check-lg"></i>
+                  </span>
                   {item}
                 </li>
               ))}
@@ -269,23 +303,33 @@ function CourseDetails() {
           </h2>
           <div className="cd-info-cells">
             <div className="cd-info-cell">
-              <span className="cd-info-label">{isArabic ? "المستوى" : "Level"}</span>
-              <span className="cd-info-val">{getLevelLabel(level, isArabic)}</span>
+              <span className="cd-info-label">
+                {isArabic ? "المستوى" : "Level"}
+              </span>
+              <span className="cd-info-val">
+                {getLevelLabel(level, isArabic)}
+              </span>
             </div>
             <div className="cd-info-cell">
-              <span className="cd-info-label">{isArabic ? "اللغة" : "Language"}</span>
+              <span className="cd-info-label">
+                {isArabic ? "اللغة" : "Language"}
+              </span>
               <span className="cd-info-val"> {language?.toUpperCase()}</span>
             </div>
             <div className="cd-info-cell">
-              <span className="cd-info-label">{isArabic ? "المدة" : "Duration"}</span>
+              <span className="cd-info-label">
+                {isArabic ? "المدة" : "Duration"}
+              </span>
               <span className="cd-info-val">
-                {duration_hours} {isArabic ? "ساعة" : "hrs"} / {duration_weeks} {isArabic ? "أسبوع" : "wks"}
+                {duration_hours} {isArabic ? "ساعة" : "hrs"} / {duration_weeks}{" "}
+                {isArabic ? "أسبوع" : "wks"}
               </span>
             </div>
 
-
             <div className="cd-info-cell">
-              <span className="cd-info-label">{isArabic ? "التصنيف" : "Category"}</span>
+              <span className="cd-info-label">
+                {isArabic ? "التصنيف" : "Category"}
+              </span>
               <span className="cd-info-val">{category?.name ?? "—"}</span>
             </div>
           </div>
@@ -304,7 +348,7 @@ function CourseDetails() {
 
         {/* ── معاينة الفيديو — lightbox ── */}
         {previews?.length > 0 && (
-          <section className="cd-card cd-previews">
+          <section ref={previewsSectionRef} className="cd-card cd-previews">
             <h2 className="cd-section-title">
               <i className="bi bi-collection-play-fill"></i>
               {isArabic ? "معاينة الكورس" : "Course Preview"}
@@ -347,7 +391,8 @@ function CourseDetails() {
             <div className="cd-instructor-row">
               {/* Avatar */}
               <div className="cd-avatar-wrap">
-                {instructor.avatar && !instructor.avatar.includes("default_avatar") ? (
+                {instructor.avatar &&
+                !instructor.avatar.includes("default_avatar") ? (
                   <img
                     src={instructor.avatar}
                     alt={instructor.full_name}
@@ -381,7 +426,10 @@ function CourseDetails() {
                   <>
                     <p className="cd-instructor-meta-item">
                       <i className="bi bi-telephone-fill cd-instructor-key-icon"></i>
-                      <a href={`tel:${instructor.phone}`} className="cd-instructor-phone">
+                      <a
+                        href={`tel:${instructor.phone}`}
+                        className="cd-instructor-phone"
+                      >
                         {instructor.phone}
                       </a>
                     </p>
@@ -413,7 +461,6 @@ function CourseDetails() {
             </div>
           </section>
         )}
-
       </div>
     </div>
   );
