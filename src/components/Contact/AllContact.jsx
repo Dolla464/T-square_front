@@ -86,6 +86,7 @@ function AllContact() {
                       </div>
                     </div>
                   </Col>
+                  
                   <Col sm={6} xs={12}>
                     <div className="info-card h-100">
                       <div className="info-icon">
