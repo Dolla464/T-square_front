@@ -39,7 +39,12 @@ const VideoPreviewModal = ({
       <Modal.Body className="p-0 bg-black rounded-bottom overflow-hidden">
         <div className="ratio ratio-16x9">
           {videoUrl && (
-            <video src={videoUrl} controls autoPlay className="w-100">
+            <video
+              src={videoUrl}
+              controls
+              autoPlay
+              className="w-100"
+            >
               {isArabic
                 ? "متصفحك لا يدعم تشغيل الفيديو."
                 : "Your browser does not support the video tag."}
