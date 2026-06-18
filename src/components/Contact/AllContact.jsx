@@ -1,24 +1,31 @@
 //import React, { useState } from "react";
-import { Container, Row, Col, Form, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Col, Container, Row } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import { useContactInfo } from "../../hooks/useDiscovery";
+import i18n from "../../i18n";
 import ContactForm from "../shared/ContactForm/ContactForm";
+import CtaEnroll from "../shared/ctaEnroll/CtaEnroll";
 import TestimonialsSection from "../shared/TestimonialsSection/TestimonialsSection";
 import "./AllContact.css";
-import i18n from "../../i18n";
-import CtaEnroll from "../shared/ctaEntroll/CtaEnroll";
-import { useContactInfo } from "../../hooks/useDiscovery";
 
 function AllContact() {
   const { t } = useTranslation(["contact", "cta", "testimonials", "navbar"]);
   const isArabic = i18n.language === "ar";
-  const { whatsapp, contact_email, facebook_url, loading } = useContactInfo();
+  const {
+    whatsapp,
+    contact_email,
+    facebook_url,
+    instagram_url,
+    linkedin_url,
+    loading,
+  } = useContactInfo();
 
   return (
     <div className="contact-page pt-5   mt-5 ">
       {/* Main Header & Form Section */}
       <div className="">
-        <Container >
+        <Container>
           {/* Breadcrumbs */}
           <nav className="breadcrumb-nav mb-4 flex items-center rtl:flex-row-reverse">
             <Link to="/" className="breadcrumb-item">
@@ -87,7 +94,9 @@ function AllContact() {
                       <div>
                         <h6 className="mb-0 fw-bold">{t("contact:email")}</h6>
                         <small className="text-muted">
-                          {loading ? "..." : contact_email || "TSquare@gmail.com"}
+                          {loading
+                            ? "..."
+                            : contact_email || "TSquare@gmail.com"}
                         </small>
                       </div>
                     </div>
@@ -98,24 +107,57 @@ function AllContact() {
                   <span className="text-muted">{t("contact:social")}</span>
                   <div className="social-links d-flex gap-2">
                     {facebook_url && (
-                      <a href={facebook_url} target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="Facebook">
+                      <a
+                        href={facebook_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="social-icon"
+                        aria-label="Facebook"
+                      >
                         <i className="bi bi-facebook"></i>
                       </a>
                     )}
+                    {instagram_url && (
+                      <a
+                        href={instagram_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="social-icon"
+                        aria-label="Instagram"
+                      >
+                        <i className="bi bi-instagram"></i>
+                      </a>
+                    )}
+                    {linkedin_url && (
+                      <a
+                        href={linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="social-icon"
+                        aria-label="LinkedIn"
+                      >
+                        <i className="bi bi-linkedin"></i>
+                      </a>
+                    )}
                     {contact_email && (
-                      <a href={`mailto:${contact_email}`} className="social-icon" aria-label="Email">
+                      <a
+                        href={`mailto:${contact_email}`}
+                        className="social-icon"
+                        aria-label="Email"
+                      >
                         <i className="bi bi-envelope-fill"></i>
                       </a>
                     )}
                     {whatsapp && (
-                      <>
-                        <a href={`tel:${whatsapp}`} className="social-icon" aria-label="Phone">
-                          <i className="bi bi-telephone-fill"></i>
-                        </a>
-                        <a href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="WhatsApp">
-                          <i className="bi bi-whatsapp"></i>
-                        </a>
-                      </>
+                      <a
+                        href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="social-icon"
+                        aria-label="WhatsApp"
+                      >
+                        <i className="bi bi-whatsapp"></i>
+                      </a>
                     )}
                   </div>
                 </div>

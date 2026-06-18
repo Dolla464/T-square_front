@@ -164,7 +164,7 @@ export const useHeroAndAboutData = () => {
 
 export const useContactInfo = () => {
   const [contactInfo, setContactInfo] = useState(() => {
-    return cache.get("contact_info_settings") || { whatsapp: "", contact_email: "", facebook_url: "" };
+    return cache.get("contact_info_settings") || { whatsapp: "", contact_email: "", facebook_url: "", instagram_url: "", linkedin_url: "" };
   });
   const [loading, setLoading] = useState(() => {
     return !cache.get("contact_info_settings");
@@ -182,10 +182,12 @@ export const useContactInfo = () => {
     const fetchContactInfo = async () => {
       try {
         if (!cached) setLoading(true);
-        const [whatsappRes, emailRes, facebookRes] = await Promise.all([
+        const [whatsappRes, emailRes, facebookRes, instagramRes, linkedinRes] = await Promise.all([
           getSetting("whatsapp").catch(() => null),
           getSetting("contact_email").catch(() => null),
           getSetting("facebook_url").catch(() => null),
+          getSetting("instagram_url").catch(() => null),
+          getSetting("linkedin_url").catch(() => null),
         ]);
 
         const extractVal = (res) => {
@@ -206,6 +208,8 @@ export const useContactInfo = () => {
           whatsapp: extractVal(whatsappRes),
           contact_email: extractVal(emailRes),
           facebook_url: extractVal(facebookRes),
+          instagram_url: extractVal(instagramRes),
+          linkedin_url: extractVal(linkedinRes),
         };
 
         cache.set("contact_info_settings", info);
