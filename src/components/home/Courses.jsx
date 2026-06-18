@@ -51,7 +51,7 @@ function Courses() {
             {t("all")}
           </button>
 
-          {categories?.slice(0, 7).map((cat) => (
+          {categories?.slice(0, 8).map((cat) => (
             <button
               key={cat.id}
               className={`filter-btn ${activeCategory === cat.id ? "active" : ""}`}
