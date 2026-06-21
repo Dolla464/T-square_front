@@ -261,6 +261,37 @@ function AdminCourses() {
 
     const { formData, thumbnailFile, coverFile } = formLogic;
 
+    // Build the previews array from the curriculum, then filter out incomplete entries
+    const previews = formData.curriculum
+      .flatMap((section) =>
+        section.lessons.map((lesson) => {
+          // Prefer an explicit File object; fall back to the stored URL string
+          const videoValue =
+            lesson.videoFile instanceof File
+              ? lesson.videoFile
+              : lesson.video && typeof lesson.video === "string" && lesson.video.trim()
+                ? lesson.video.trim()
+                : null;
+
+          return {
+            id: String(lesson.id).includes("lesson-") ? null : lesson.id,
+            title: lesson.title?.trim() ?? "",
+            description: lesson.description?.trim() ?? "",
+            video_url: videoValue,
+            video_provider: lesson.provider || "upload",
+            sort_order: lesson.sort_order ?? 0,
+            duration_seconds: lesson.duration ?? "",
+          };
+        }),
+      )
+      // Drop rows that have neither a title nor any video data
+      .filter(
+        (preview) =>
+          preview.title !== "" ||
+          preview.video_url instanceof File ||
+          (typeof preview.video_url === "string" && preview.video_url !== ""),
+      );
+
     const payload = {
       title: formData.title,
       slug: formData.slug,
@@ -287,33 +318,25 @@ function AdminCourses() {
             ? formatDateForMySQL(formData.published_at)
             : formatDateForMySQL(new Date())
           : formatDateForMySQL(formData.published_at),
-      tags:
-        formData.tags && formData.tags.length > 0 ? formData.tags : undefined,
+      tags: formData.tags?.length > 0 ? formData.tags : undefined,
       learnings: formData.learnings
         ? formData.learnings.filter((l) => l && l.trim() !== "")
         : [],
-      previews: formData.curriculum.flatMap((section) =>
-        section.lessons.map((lesson) => ({
-          id: String(lesson.id).includes("lesson-") ? null : lesson.id,
-          title: lesson.title,
-          description: lesson.description || "",
-          video_url: lesson.videoFile || lesson.video,
-          video_provider: lesson.provider || "upload",
-          sort_order: lesson.sort_order,
-          duration_seconds: lesson.duration,
-        })),
-      ),
+      previews,
     };
 
     if (thumbnailFile) payload.thumbnail = thumbnailFile;
     if (coverFile) payload.cover_image = coverFile;
 
     const fd = buildFormData(payload);
-    console.log("Course Payload:", payload);
+
+    // Append _method only once to avoid conflicts with method-spoofing middleware
+    if (editingItem && !fd.has("_method")) {
+      fd.append("_method", "PUT");
+    }
 
     try {
       if (editingItem) {
-        fd.append("_method", "PUT");
         await updateCourse(editingItem.id, fd);
       } else {
         await createCourse(fd);

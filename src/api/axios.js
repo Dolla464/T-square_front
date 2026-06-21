@@ -5,7 +5,7 @@ const axiosClient = axios.create({
     window.APP_CONFIG && window.APP_CONFIG.API_URL
       ? window.APP_CONFIG.API_URL
       : "http://t-square-lms.test/api",
-  timeout: 10000,
+  timeout: 150000,
   // تم حذف withCredentials: true لأننا نستخدم Bearer Token
   headers: {
     "Content-Type": "application/json",

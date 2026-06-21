@@ -25,14 +25,14 @@ function LoginPage() {
   const isArabic = i18n.language === "ar";
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, user } = useAuth();
+  const { user } = useAuth();
   const { executeLogin, loading, error: apiError } = useLogin();
   const [rememberMe, setRememberMe] = useState(true);
 
   // 💥 الـ State السحرية للتحكم في ظهور كلمة المرور
   const [showPassword, setShowPassword] = useState(false);
 
-  const from = location.state?.from || "/";
+  // const from = location.state?.from || "/";
 
   const {
     register,
