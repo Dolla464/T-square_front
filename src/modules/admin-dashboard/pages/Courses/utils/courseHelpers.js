@@ -55,12 +55,21 @@ export const buildFormData = (payload) => {
         fd.append(`previews[${index}][sort_order]`, preview.sort_order ?? 0);
 
         // Only append duration when it has an actual value
-        if (preview.duration_seconds !== "" && preview.duration_seconds != null) {
-          fd.append(`previews[${index}][duration_seconds]`, preview.duration_seconds);
+        if (
+          preview.duration_seconds !== "" &&
+          preview.duration_seconds != null
+        ) {
+          fd.append(
+            `previews[${index}][duration_seconds]`,
+            preview.duration_seconds,
+          );
         }
 
         // Binary file → send as multipart file field
-        if (preview.video_url instanceof File || preview.video_url instanceof Blob) {
+        if (
+          preview.video_url instanceof File ||
+          preview.video_url instanceof Blob
+        ) {
           fd.append(`previews[${index}][video]`, preview.video_url);
         } else if (
           typeof preview.video_url === "string" &&

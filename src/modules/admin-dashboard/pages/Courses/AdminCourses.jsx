@@ -38,8 +38,7 @@ function AdminCourses() {
 
   const { tags: availableTags, getTags } = useTags();
   const { instructors, getInstructors } = useInstructors();
-  const { categories, treeCategories, getCategoriesTree } =
-    useCategories();
+  const { categories, treeCategories, getCategoriesTree } = useCategories();
 
   // ─── i18n ──────────────────────────────────────────────────────────────────
   const { t, i18n } = useTranslation("adminDashboard");
@@ -100,7 +99,13 @@ function AdminCourses() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, selectedStatus, selectedCategory, showTrash, trashPeriod]);
+  }, [
+    debouncedSearch,
+    selectedStatus,
+    selectedCategory,
+    showTrash,
+    trashPeriod,
+  ]);
 
   useEffect(() => {
     getCategoriesTree();
@@ -269,7 +274,9 @@ function AdminCourses() {
           const videoValue =
             lesson.videoFile instanceof File
               ? lesson.videoFile
-              : lesson.video && typeof lesson.video === "string" && lesson.video.trim()
+              : lesson.video &&
+                  typeof lesson.video === "string" &&
+                  lesson.video.trim()
                 ? lesson.video.trim()
                 : null;
 
