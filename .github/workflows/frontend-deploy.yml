@@ -34,7 +34,7 @@ jobs:
             git reset --hard origin/main
             
             # تثبيت الاعتماديات (production فقط)
-            npm ci --production
+            npm install --production
             
             # بناء المشروع
             npm run build
