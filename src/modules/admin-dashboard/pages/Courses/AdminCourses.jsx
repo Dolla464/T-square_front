@@ -38,8 +38,7 @@ function AdminCourses() {
 
   const { tags: availableTags, getTags } = useTags();
   const { instructors, getInstructors } = useInstructors();
-  const { categories, treeCategories, getCategoriesTree } =
-    useCategories();
+  const { categories, treeCategories, getCategoriesTree } = useCategories();
 
   // ─── i18n ──────────────────────────────────────────────────────────────────
   const { t, i18n } = useTranslation("adminDashboard");
@@ -49,6 +48,7 @@ function AdminCourses() {
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   // ─── List / filter state ───────────────────────────────────────────────────
   const [searchTerm, setSearchTerm] = useState("");
@@ -100,7 +100,13 @@ function AdminCourses() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, selectedStatus, selectedCategory, showTrash, trashPeriod]);
+  }, [
+    debouncedSearch,
+    selectedStatus,
+    selectedCategory,
+    showTrash,
+    trashPeriod,
+  ]);
 
   useEffect(() => {
     getCategoriesTree();
@@ -261,6 +267,42 @@ function AdminCourses() {
 
     const { formData, thumbnailFile, coverFile } = formLogic;
 
+    // Build the previews array from the curriculum, then filter out incomplete entries
+    const previews = formData.curriculum
+      .flatMap((section) =>
+        section.lessons.map((lesson) => {
+          // Prefer an explicit File object; fall back to the stored URL string
+          const videoValue =
+            lesson.videoFile instanceof File
+              ? lesson.videoFile
+              : lesson.video &&
+                  typeof lesson.video === "string" &&
+                  lesson.video.trim()
+                ? lesson.video.trim()
+                : null;
+
+          return {
+            id: String(lesson.id).includes("lesson-") ? null : lesson.id,
+            title: lesson.title?.trim() ?? "",
+            description: lesson.description?.trim() ?? "",
+            video_url: videoValue,
+            video_provider: lesson.provider || "upload",
+            sort_order: lesson.sort_order ?? 0,
+            duration_seconds: lesson.duration ?? "",
+          };
+        }),
+      )
+      // Drop rows that have neither a title nor any video data
+      .filter(
+        (preview) =>
+          preview.title !== "" ||
+          preview.video_url instanceof File ||
+          (typeof preview.video_url === "string" && preview.video_url !== ""),
+      );
+
+    console.log("PREVIEWS SENT:", JSON.stringify(previews, null, 2));
+    console.log("PREVIEWS COUNT:", previews.length);
+
     const payload = {
       title: formData.title,
       slug: formData.slug,
@@ -287,33 +329,26 @@ function AdminCourses() {
             ? formatDateForMySQL(formData.published_at)
             : formatDateForMySQL(new Date())
           : formatDateForMySQL(formData.published_at),
-      tags:
-        formData.tags && formData.tags.length > 0 ? formData.tags : undefined,
+      tags: formData.tags?.length > 0 ? formData.tags : undefined,
       learnings: formData.learnings
         ? formData.learnings.filter((l) => l && l.trim() !== "")
         : [],
-      previews: formData.curriculum.flatMap((section) =>
-        section.lessons.map((lesson) => ({
-          id: String(lesson.id).includes("lesson-") ? null : lesson.id,
-          title: lesson.title,
-          description: lesson.description || "",
-          video_url: lesson.videoFile || lesson.video,
-          video_provider: lesson.provider || "upload",
-          sort_order: lesson.sort_order,
-          duration_seconds: lesson.duration,
-        })),
-      ),
+      previews,
     };
 
     if (thumbnailFile) payload.thumbnail = thumbnailFile;
     if (coverFile) payload.cover_image = coverFile;
 
     const fd = buildFormData(payload);
-    console.log("Course Payload:", payload);
 
+    // Append _method only once to avoid conflicts with method-spoofing middleware
+    if (editingItem && !fd.has("_method")) {
+      fd.append("_method", "PUT");
+    }
+
+    setSubmitting(true);
     try {
       if (editingItem) {
-        fd.append("_method", "PUT");
         await updateCourse(editingItem.id, fd);
       } else {
         await createCourse(fd);
@@ -322,6 +357,9 @@ function AdminCourses() {
       refreshList();
     } catch (err) {
       console.error("Submission failed:", err);
+      console.log("ERROR DETAILS:", err.response?.data);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -452,6 +490,46 @@ function AdminCourses() {
           isArabic={isArabic}
           t={t}
         />
+      )}
+
+      {/* Submitting overlay */}
+      {submitting && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            zIndex: 9999,
+            backdropFilter: "blur(4px)",
+            transition: "all 0.3s ease",
+          }}
+        >
+          <div
+            className="bg-white p-4 rounded-4 shadow-lg text-center d-flex flex-column align-items-center"
+            style={{ minWidth: "280px" }}
+          >
+            <div
+              className="spinner-border text-danger mb-3"
+              role="status"
+              style={{ width: "3rem", height: "3rem" }}
+            >
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <h5 className="fw-bold text-dark mb-1">
+              {editingItem
+                ? isArabic
+                  ? "جاري تحديث الكورس..."
+                  : "Updating course..."
+                : isArabic
+                  ? "جاري إنشاء الكورس..."
+                  : "Creating course..."}
+            </h5>
+            <p className="text-muted small mb-0">
+              {isArabic
+                ? "يرجى عدم إغلاق أو تحديث الصفحة"
+                : "Please do not close or refresh the page"}
+            </p>
+          </div>
+        </div>
       )}
 
       {/* Video preview modal */}

@@ -98,6 +98,8 @@ export const useCourseFormLogic = () => {
     video.onloadedmetadata = () => {
       URL.revokeObjectURL(video.src);
       const totalSeconds = Math.floor(video.duration);
+
+      // تنسيق للعرض فقط
       const hours = Math.floor(totalSeconds / 3600);
       const minutes = Math.floor((totalSeconds % 3600) / 60);
       const seconds = totalSeconds % 60;
@@ -105,7 +107,9 @@ export const useCourseFormLogic = () => {
         hours > 0
           ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
           : `${minutes}:${String(seconds).padStart(2, "0")}`;
-      handleLessonChange(sectionId, lessonId, "duration", formatted);
+
+      handleLessonChange(sectionId, lessonId, "duration", totalSeconds);
+      handleLessonChange(sectionId, lessonId, "durationFormatted", formatted);
     };
     video.onerror = () => console.error("Failed to load video metadata");
     video.src = URL.createObjectURL(uploadedFile);

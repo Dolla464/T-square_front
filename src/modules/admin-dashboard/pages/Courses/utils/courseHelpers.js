@@ -40,28 +40,47 @@ export const buildFormData = (payload) => {
 
     // 1. Previews – nested objects array
     if (key === "previews" && Array.isArray(value)) {
+      //  إذا كانت فارغة، أرسل إشارة بأنها فارغة
+      if (value.length === 0) {
+        return;
+      }
       value.forEach((preview, index) => {
+        // Only append a real numeric id (skip temp ids that contain "lesson-")
         if (preview.id && !String(preview.id).includes("lesson-")) {
           fd.append(`previews[${index}][id]`, preview.id);
         }
-        fd.append(`previews[${index}][title]`, preview.title || "");
-        fd.append(`previews[${index}][description]`, preview.description || "");
+
+        fd.append(`previews[${index}][title]`, preview.title ?? "");
+        fd.append(`previews[${index}][description]`, preview.description ?? "");
         fd.append(
           `previews[${index}][video_provider]`,
           (preview.video_provider || "upload").trim().toLowerCase(),
         );
-        fd.append(`previews[${index}][sort_order]`, preview.sort_order || 0);
-        fd.append(
-          `previews[${index}][duration_seconds]`,
-          preview.duration_seconds || "",
-        );
+        fd.append(`previews[${index}][sort_order]`, preview.sort_order ?? 0);
+
+        // Only append duration when it has an actual value
+        if (
+          preview.duration_seconds !== "" &&
+          preview.duration_seconds != null
+        ) {
+          fd.append(
+            `previews[${index}][duration_seconds]`,
+            preview.duration_seconds,
+          );
+        }
+
+        // Binary file → send as multipart file field
         if (
           preview.video_url instanceof File ||
           preview.video_url instanceof Blob
         ) {
           fd.append(`previews[${index}][video]`, preview.video_url);
-        } else if (typeof preview.video_url === "string") {
-          fd.append(`previews[${index}][video_url]`, preview.video_url || "");
+        } else if (
+          typeof preview.video_url === "string" &&
+          preview.video_url.trim() !== ""
+        ) {
+          // Non-empty URL string only – never send an empty string to avoid the NOT NULL error
+          fd.append(`previews[${index}][video_url]`, preview.video_url.trim());
         }
       });
       return;
