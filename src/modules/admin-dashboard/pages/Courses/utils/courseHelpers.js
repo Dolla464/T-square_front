@@ -40,6 +40,10 @@ export const buildFormData = (payload) => {
 
     // 1. Previews – nested objects array
     if (key === "previews" && Array.isArray(value)) {
+      //  إذا كانت فارغة، أرسل إشارة بأنها فارغة
+      if (value.length === 0) {
+        return;
+      }
       value.forEach((preview, index) => {
         // Only append a real numeric id (skip temp ids that contain "lesson-")
         if (preview.id && !String(preview.id).includes("lesson-")) {

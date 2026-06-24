@@ -300,6 +300,9 @@ function AdminCourses() {
           (typeof preview.video_url === "string" && preview.video_url !== ""),
       );
 
+    console.log("PREVIEWS SENT:", JSON.stringify(previews, null, 2));
+    console.log("PREVIEWS COUNT:", previews.length);
+
     const payload = {
       title: formData.title,
       slug: formData.slug,
@@ -354,6 +357,7 @@ function AdminCourses() {
       refreshList();
     } catch (err) {
       console.error("Submission failed:", err);
+      console.log("ERROR DETAILS:", err.response?.data);
     } finally {
       setSubmitting(false);
     }
