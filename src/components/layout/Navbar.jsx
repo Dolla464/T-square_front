@@ -12,6 +12,54 @@ import logoWhite from "../../assets/logo-white.webp";
 import logoDark from "../../assets/logo-dark.webp";
 import { isArabic } from "../../i18n";
 import SearchDropdown from "../search/SearchDropdown";
+import NotificationsDropdown from "../shared/NotificationsDropdown";
+
+function UserAvatar({ user, userProfile, size = 35 }) {
+  const getAvatarData = () => {
+    switch (user?.role) {
+      case "student":
+        return {
+          avatar: userProfile?.student?.avatar,
+          name: userProfile?.student?.full_name || user?.name,
+          defaultImage: "default-student.png",
+        };
+      case "instructor":
+        return {
+          avatar: userProfile?.instructor?.avatar,
+          name: userProfile?.instructor?.full_name || user?.name,
+          defaultImage: "default-instructor.png",
+        };
+      default:
+        return {
+          avatar: null,
+          name: user?.name,
+          defaultImage: null,
+        };
+    }
+  };
+
+  const { avatar, name, defaultImage } = getAvatarData();
+  const isDefault = !avatar || (defaultImage && avatar.includes(defaultImage));
+  const initial = (name || "U").charAt(0).toUpperCase();
+
+  return (
+    <div
+      className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden"
+      style={{ width: size, height: size }}
+    >
+      {!isDefault ? (
+        <img
+          src={avatar}
+          alt={name}
+          className="w-100 h-100"
+          style={{ objectFit: "cover" }}
+        />
+      ) : (
+        initial
+      )}
+    </div>
+  );
+}
 
 function AppNavbar({ isLoggedIn, userName }) {
   const { t, i18n } = useTranslation(["navbar", "common", "user"]);
@@ -22,11 +70,9 @@ function AppNavbar({ isLoggedIn, userName }) {
   const { user, logout, userProfile } = useAuth();
 
   const handleLogout = async () => {
-    // عرض نافذة التأكيد قبل تسجيل الخروج
     const confirmed = await showLogoutConfirm();
     if (!confirmed) return;
 
-    // تسجيل الخروج وعرض إشعار الوداع
     logout();
     toastCustom({
       message:
@@ -40,31 +86,22 @@ function AppNavbar({ isLoggedIn, userName }) {
     navigate("/");
   };
 
-  // Reset mobile menu when route changes
   useEffect(() => {
     setMobileMenuOpen(false);
     setScrolled(false);
   }, [location.pathname]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const toggleLanguage = () => {
-    if (mobileMenuOpen) {
-      setMobileMenuOpen(false);
-    }
+    if (mobileMenuOpen) setMobileMenuOpen(false);
     const newLang = i18n.language === "ar" ? "en" : "ar";
     i18n.changeLanguage(newLang);
-
-    // Persist language selection to localStorage
     localStorage.setItem("i18nextLng", newLang);
-
-    // Update DOM immediately
 
     const newDir = newLang === "ar" ? "rtl" : "ltr";
     document.documentElement.dir = newDir;
@@ -76,38 +113,18 @@ function AppNavbar({ isLoggedIn, userName }) {
   const isHome = location.pathname === "/";
   const isHomeLoggedIn = isLoggedIn && isHome;
   const isGuest = !isLoggedIn;
-  const isGuestHome = isGuest && isHome;
   const isDarkMode = isHomeLoggedIn
     ? scrolled
     : isLoggedIn || (!isHome && !isLoggedIn);
 
-  // const textColorClass =
-  //   isHomeLoggedIn && !scrolled
-  //     ? "light"
-  //     : mobileMenuOpen && !scrolled && isHomeLoggedIn
-  //       ? "text-dark"
-  //       : isDarkMode
-  //         ? "text-dark"
-  //         : "text-light"; // 1. تحديد لون الخلفية
   const getBgColor = () => {
-    // Home + Logged in
-    if (isHomeLoggedIn) {
+    if (isHomeLoggedIn)
       return mobileMenuOpen || scrolled ? "white" : "transparent";
-    }
-
-    // Logged in + any page else
-    if (isLoggedIn) {
-      return "white";
-    }
-
-    if (!isHome) {
-      return "black";
-    }
-
-    if (!isHomeLoggedIn) {
-      return mobileMenuOpen || scrolled ? "black" : "transparent";
-    }
+    if (isLoggedIn) return "white";
+    if (!isHome) return "black";
+    return mobileMenuOpen || scrolled ? "black" : "transparent";
   };
+
   const navTextColor = isHomeLoggedIn
     ? mobileMenuOpen || scrolled
       ? "text-dark"
@@ -115,16 +132,14 @@ function AppNavbar({ isLoggedIn, userName }) {
     : isLoggedIn
       ? "text-dark"
       : "text-light";
-  // 2. تحديد اللوجو والـ Variant
+
   const logo = isGuest
     ? logoWhite
     : isHomeLoggedIn
       ? mobileMenuOpen || scrolled
         ? logoDark
         : logoWhite
-      : isLoggedIn
-        ? logoDark
-        : logoDark;
+      : logoDark;
 
   const Tbtn =
     isLoggedIn && !scrolled && mobileMenuOpen
@@ -138,19 +153,12 @@ function AppNavbar({ isLoggedIn, userName }) {
             : "";
 
   const navVariant = getBgColor() === "transparent" ? "dark" : "light";
-  const handleToggle = (expanded) => {
-    setMobileMenuOpen(expanded);
-  };
-
-  const handleNavLinkClick = () => {
-    setMobileMenuOpen(false);
-  };
 
   return (
     <Navbar
       expand="lg"
       expanded={mobileMenuOpen}
-      onToggle={handleToggle}
+      onToggle={setMobileMenuOpen}
       fixed="top"
       variant={navVariant}
       className={`py-1 transition-all ${scrolled || isLoggedIn ? "shadow-sm" : ""}`}
@@ -158,7 +166,6 @@ function AppNavbar({ isLoggedIn, userName }) {
         backgroundColor: getBgColor(),
         transition: "background-color 0.4s ease-in-out, padding 0.4s ease",
         borderBottom: isLoggedIn ? "1px solid #eee" : "none",
-        // خط خفيف في حالة الأبيض عشان يفصل عن الصفحة
       }}
     >
       <Container>
@@ -170,22 +177,22 @@ function AppNavbar({ isLoggedIn, userName }) {
           aria-controls="basic-navbar-nav"
           className="custom-toggler"
         >
-          <span className={`hamburger ${Tbtn} `}>☰</span>
+          <span className={`hamburger ${Tbtn}`}>☰</span>
         </Navbar.Toggle>
+
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mx-lg-auto fw-medium text-center">
-            {" "}
             {["home", "courses", "solutions", "team", "contact"].map((item) => (
               <Nav.Link
                 key={item}
                 as={NavLink}
                 to={item === "home" ? "/" : `/${item}`}
                 className="nav-link"
-                onClick={handleNavLinkClick}
+                onClick={() => setMobileMenuOpen(false)}
                 style={({ isActive }) => ({
                   color: isActive
                     ? "red"
-                    : isGuestHome
+                    : isGuest
                       ? "white"
                       : navTextColor === "text-dark"
                         ? "black"
@@ -201,14 +208,17 @@ function AppNavbar({ isLoggedIn, userName }) {
           <div className="d-flex align-items-center gap-3">
             <SearchDropdown isDarkMode={!isDarkMode} Tbtn={Tbtn} />
 
+            {isLoggedIn && (
+              <div className="d-flex align-items-center">
+                <NotificationsDropdown />
+              </div>
+            )}
+
             <div
-              className={`d-flex align-items-center cursor-pointer lang-switch ${
-                Tbtn
-              }`}
+              className={`d-flex align-items-center cursor-pointer lang-switch ${Tbtn}`}
               onClick={toggleLanguage}
             >
               <HiOutlineGlobeAlt size={20} className="me-1" />
-
               <span className="fw-semibold fs-6">
                 {i18n.language === "ar" ? "EN" : "AR"}
               </span>
@@ -236,100 +246,32 @@ function AppNavbar({ isLoggedIn, userName }) {
               </div>
             ) : (
               <div
-                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${
-                  isDarkMode ? "border-dark" : "border-light"
-                }`}
+                className={`d-flex align-items-center gap-2 border-start ps-md-3 ${isDarkMode ? "border-dark" : "border-light"}`}
               >
-                <div
-                  className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden"
-                  style={{ width: "35px", height: "35px" }}
-                >
-                  {/* student */}
-                  {userProfile?.student?.avatar &&
-                  user.role === "student" &&
-                  !userProfile.student.avatar.includes(
-                    "default-student.png",
-                  ) ? (
-                    <img
-                      src={userProfile.student.avatar}
-                      alt={userName}
-                      className="w-100 h-100"
-                      style={{ objectFit: "cover" }}
-                    />
-                  ) : (
-                    (userProfile?.student?.full_name || userName || "U")
-                      .charAt(0)
-                      .toUpperCase()
-                  )}
+                <UserAvatar user={user} userProfile={userProfile} />
 
-                  {/* instructor */}
-                  {user.role === "instructor" &&
-                    (userProfile?.instructor?.avatar &&
-                    !userProfile.instructor.avatar.includes(
-                      "default-instructor.png",
-                    ) ? (
-                      <img
-                        src={userProfile.instructor.avatar}
-                        alt={userName}
-                        className="w-100 h-100"
-                        style={{ objectFit: "cover" }}
-                      />
-                    ) : (
-                      userProfile?.student?.full_name ? userProfile?.student?.full_name?.charAt(0)?.toUpperCase()
-                        : userName ? userName?.charAt(0)?.toUpperCase() : "U"
-                    )
-                  )}
+                {user?.is_verified === false && (
+                  <i
+                    className="bi bi-exclamation-circle-fill text-warning fs-5"
+                    title={t("user:not_activated")}
+                    style={{ cursor: "help", margin: "0 5px" }}
+                  />
+                )}
 
-                  {/* instractor  */}
-                  {user.role == 'instructor' &&
-                    (userProfile?.instructor?.avatar && user.role == 'instructor' && !userProfile?.instructor?.avatar?.includes('default-instructor.png') ?
-                      (
-                        <img
-                          src={userProfile?.instructor?.avatar}
-                          alt={userName}
-                          className="w-100 h-100"
-                          style={{ objectFit: 'cover' }}
-                        />
-                      ) : (
-                        userProfile?.instructor?.full_name ? userProfile?.instructor?.full_name?.charAt(0)?.toUpperCase()
-                          : userName ? userName?.charAt(0)?.toUpperCase() : "U"
-                      ))}
-                </div>
-
-                {/* الإشعار لو الحساب مش متفعل */}
-                {user &&
-                  user.hasOwnProperty("is_verified") &&
-                  (user.is_verified === false ||
-                    user.is_verified === 0 ||
-                    user.is_verified === "0") && (
-                    <i
-                      className="bi bi-exclamation-circle-fill text-warning fs-5"
-                      title={t("user:not_activated")}
-                      style={{
-                        cursor: "help",
-                        marginLeft: "5px",
-                        marginRight: "5px",
-                      }}
-                    ></i>
-                  )}
                 <NavDropdown
                   title={<span className={Tbtn}>{userName}</span>}
                   id="user-dropdown"
                   align="end"
                   className={`fw-bold ${Tbtn}`}
                 >
-                  {user.role == "student" ? (
-                    <>
-                      <NavDropdown.Item as={Link} to="/student">
-                        {t("user:my_courses")}
-                      </NavDropdown.Item>
-                    </>
-                  ) : user.role == "instructor" ? (
-                    <>
-                      <NavDropdown.Item as={Link} to="/instructor">
-                        {isArabic() ? "لوحة التحكم" : "Instructor Dashboard"}
-                      </NavDropdown.Item>
-                    </>
+                  {user.role === "student" ? (
+                    <NavDropdown.Item as={Link} to="/student">
+                      {t("user:my_courses")}
+                    </NavDropdown.Item>
+                  ) : user.role === "instructor" ? (
+                    <NavDropdown.Item as={Link} to="/instructor">
+                      {isArabic() ? "لوحة التحكم" : "Instructor Dashboard"}
+                    </NavDropdown.Item>
                   ) : (
                     <NavDropdown.Item as={Link} to="/admin">
                       {isArabic() ? "لوحة التحكم" : "Admin Dashboard"}

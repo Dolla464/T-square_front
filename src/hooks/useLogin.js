@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { loginService } from '../services/login';
 import { useAuth } from '../contexts/AuthContext';
 import { toastWelcome } from '../components/shared/Toaster/toaster';
+import { getRouteByRole } from '../config/routes';
 
 export const useLogin = () => {
   const [loading, setLoading] = useState(false);
@@ -10,7 +11,9 @@ export const useLogin = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const returnUrl = location.state?.returnUrl;
+
+  // ✅ وحد الاسم مع اللي بيجي من ProtectedRoute
+  const returnUrl = location.state?.from || location.state?.returnUrl;
 
   const executeLogin = async (credentials, rememberMe = false) => {
     setLoading(true);
@@ -20,28 +23,19 @@ export const useLogin = () => {
       const response = await loginService(credentials);
       const actualData = response.data.data;
 
-      // حفظ بيانات المستخدم في الـ Context
-      login(actualData, rememberMe);
+      // ✅ استنى لما login يخلص (يخزن ويعمل fetch profile)
+      await login(actualData, rememberMe);
 
-      // عرض رسالة ترحيب بعد تسجيل الدخول بنجاح
+      // ✅ الرسالة بعد ما كل حاجة تخلص
       toastWelcome(actualData.user?.name || actualData.user?.email);
 
+      // ✅ Redirect
       if (returnUrl) {
         navigate(returnUrl, { replace: true });
         return actualData;
       }
 
-      // Role-based routing
-      if (actualData.user.role === "admin") {
-        navigate("/admin", { replace: true });
-      } else if (actualData.user.role === "student") {
-        navigate("/student", { replace: true });
-      } else if (actualData.user.role === "instructor") {
-        navigate("/instructor", { replace: true });
-      } else {
-        // Fallback for unknown role
-        navigate("/", { replace: true });
-      }
+      navigate(getRouteByRole(actualData.user.role), { replace: true });
 
       return actualData;
     } catch (err) {

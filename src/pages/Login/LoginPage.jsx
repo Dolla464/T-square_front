@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Helmet } from "react-helmet-async";
 import {
   Container,
@@ -8,10 +8,9 @@ import {
   Nav,
   Alert,
   Spinner,
-  InputGroup, // 💥 تم إضافة InputGroup هنا لتنسيق زر العين
+  InputGroup,
 } from "react-bootstrap";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { Link, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import tsquareLogo from "../../assets/logo-dark.webp";
 import "./Login.css";
@@ -19,18 +18,20 @@ import { useLogin } from "../../hooks/useLogin";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "../../utils/validationSchemas";
+import { useAuth } from "../../contexts/AuthContext";
+import { getRouteByRole } from "../../config/routes";
 
 function LoginPage() {
   const { t, i18n } = useTranslation("auth");
   const isArabic = i18n.language === "ar";
-  const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useAuth();
   const { executeLogin, loading, error: apiError } = useLogin();
   const [rememberMe, setRememberMe] = useState(true);
-
-  // 💥 الـ State السحرية للتحكم في ظهور كلمة المرور
   const [showPassword, setShowPassword] = useState(false);
+
+  if (user) {
+    return <Navigate to={getRouteByRole(user.role)} replace />;
+  }
 
   // const from = location.state?.from || "/";
 
@@ -46,52 +47,23 @@ function LoginPage() {
     },
   });
 
-  useEffect(() => {
-    if (user) {
-      if (location.state?.from) {
-        navigate(location.state.from, { replace: true });
-      } else {
-        if (user.role === "instructor") {
-          navigate("/instructor", { replace: true });
-        } else if (user.role === "student") {
-          navigate("/student", { replace: true });
-        } else if (user.role === "admin") {
-          navigate("/admin", { replace: true });
-        } else {
-          navigate("/", { replace: true });
-        }
+  const onSubmit = useCallback(
+    async (data) => {
+      try {
+        await executeLogin(data, rememberMe);
+      } catch (err) {
+        console.error("Login component execution error: ", err);
       }
-    }
-  }, [user, navigate, location.state]);
-
-  // const handleInstructorBypass = useCallback(() => {
-  //   const mockAdminData = {
-  //     token: "mock-token-admin",
-  //     user: {
-  //       id: 1,
-  //       name: "Instructor User",
-  //       email: "instructor@test.com",
-  //       role: "instructor",
-  //       phone: "12345678",
-  //       is_active: true,
-  //       email_verified_at: "2026-04-22T13:54:21.000000Z",
-  //     },
-  //   };
-  //   login(mockAdminData, true);
-  // }, [login]);
-
-  const onSubmit = useCallback(async (data) => {
-    try {
-      await executeLogin(data, rememberMe);
-    } catch (err) {
-      console.error("Login component execution error: ", err);
-    }
-  }, [executeLogin, rememberMe]);
+    },
+    [executeLogin, rememberMe],
+  );
 
   return (
     <div className="login-wrapper" dir={isArabic ? "rtl" : "ltr"}>
       <Helmet>
-        <title>{isArabic ? "تسجيل الدخول - T-Square" : "Login - T-Square"}</title>
+        <title>
+          {isArabic ? "تسجيل الدخول - T-Square" : "Login - T-Square"}
+        </title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <Container className="d-flex justify-content-center align-items-center h-100">
@@ -227,18 +199,6 @@ function LoginPage() {
                   t("login_form.sign_in_btn")
                 )}
               </Button>
-
-              {/* زر مؤقت للمطور للدخول كمسؤول */}
-              {/* <Button
-                variant="outline-dark"
-                className="w-100 mt-3 border-secondary"
-                onClick={handleInstructorBypass}
-                style={{ borderStyle: "dashed" }}
-              >
-                {isArabic
-                  ? "دخول سريع (Instructor)"
-                  : "Quick Login (Instructor)"}
-              </Button> */}
             </Form>
 
             {/* تسجيل حساب جديد */}

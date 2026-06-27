@@ -30,9 +30,11 @@ function CourseForm({
   handleSectionTitleChange,
   handleLessonChange,
   handleVideoUpload,
+  handleCancelUpload,
   removeLesson,
   addSection,
   removeSection,
+  chunkUploads,
   // Tab navigation
   activeTab,
   setActiveTab,
@@ -177,10 +179,13 @@ function CourseForm({
             handleSectionTitleChange={handleSectionTitleChange}
             handleLessonChange={handleLessonChange}
             handleVideoUpload={handleVideoUpload}
+            handleCancelUpload={handleCancelUpload}
             removeLesson={removeLesson}
             addSection={addSection}
             removeSection={removeSection}
             handlePlayVideo={handlePlayVideo}
+            chunkUploads={chunkUploads}
+            courseId={editingItem?.id ?? null}
             isReadOnly={isReadOnly}
             isArabic={isArabic}
             t={t}

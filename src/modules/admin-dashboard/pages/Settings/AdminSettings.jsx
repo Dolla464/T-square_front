@@ -46,6 +46,8 @@ function AdminSettings() {
     contact_email: "",
     whatsapp: "",
     facebook_url: "",
+    instagram_url: "",
+    linkedin_url: "",
     maintenance_mode: "false",
     hero_title_en: "",
     hero_title_ar: "",
@@ -461,7 +463,7 @@ function AdminSettings() {
                     }
                   />
                 ) : (
-                  <span className="general-settings-value text-secondary">
+                  <span className="general-settings-value">
                     {localGeneralSettings.site_name}
                   </span>
                 )}
@@ -485,7 +487,7 @@ function AdminSettings() {
                     }
                   />
                 ) : (
-                  <span className="general-settings-value text-secondary">
+                  <span className="general-settings-value">
                     {localGeneralSettings.contact_email}
                   </span>
                 )}
@@ -509,7 +511,7 @@ function AdminSettings() {
                     }
                   />
                 ) : (
-                  <span className="general-settings-value text-secondary">
+                  <span className="general-settings-value">
                     {localGeneralSettings.whatsapp}
                   </span>
                 )}
@@ -533,8 +535,56 @@ function AdminSettings() {
                     }
                   />
                 ) : (
-                  <span className="general-settings-value text-secondary">
+                  <span className="general-settings-value">
                     {localGeneralSettings.facebook_url}
+                  </span>
+                )}
+              </div>
+
+              {/* Instagram URL */}
+              <div className="general-settings-row">
+                <span className="general-settings-label">
+                  {isArabic ? "Instagram URL" : "Instagram URL"}
+                </span>
+                {isEditingGeneral ? (
+                  <input
+                    type="text"
+                    className="form-control form-control-sm w-50"
+                    value={localGeneralSettings.instagram_url}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        instagram_url: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  <span className="general-settings-value">
+                    {localGeneralSettings.instagram_url}
+                  </span>
+                )}
+              </div>
+
+              {/* LinkedIn URL */}
+              <div className="general-settings-row">
+                <span className="general-settings-label">
+                  {isArabic ? "LinkedIn URL" : "LinkedIn URL"}
+                </span>
+                {isEditingGeneral ? (
+                  <input
+                    type="text"
+                    className="form-control form-control-sm w-50"
+                    value={localGeneralSettings.linkedin_url}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        linkedin_url: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  <span className="general-settings-value">
+                    {localGeneralSettings.linkedin_url}
                   </span>
                 )}
               </div>

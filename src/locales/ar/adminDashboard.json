@@ -15,7 +15,8 @@
     "reviews": "التقييمات",
     "messages": "الرسائل",
     "Notification": "الاشعارات",
-    "settings": "الإعدادات"
+    "settings": "الإعدادات",
+    "attendance": "الحضور"
   },
   "topbar": {
     "search_placeholder": "ابحث عن كورسات، طلاب، طلبات...",

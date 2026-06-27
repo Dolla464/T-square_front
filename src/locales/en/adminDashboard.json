@@ -3,7 +3,7 @@
     "dashboard": "Dashboard",
     "groups": "Groups",
     "categories": "Categories",
-    "Quzies": "Quzies",
+    "Quzzies": "Quzzies",
     "courses": "Courses",
     "solutions": "Solutions",
     "students": "Students",
@@ -15,7 +15,8 @@
     "reviews": "Reviews",
     "messages": "Messages",
     "Notification": "Notification",
-    "settings": "Settings"
+    "settings": "Settings",
+    "attendance": "Attendance"
   },
   "topbar": {
     "search_placeholder": "Search courses, students, orders...",

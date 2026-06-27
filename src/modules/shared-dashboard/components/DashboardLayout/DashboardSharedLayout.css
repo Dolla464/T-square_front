@@ -124,10 +124,11 @@ body.dashboard-active {
 .sidebar-link-active {
   background-color: #be1522 !important;
   color: #fff !important;
+  font-size: 1.5rem !important;
 }
 
 .sidebar-link-icon {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   width: 20px;
   flex-shrink: 0;
   text-align: center;

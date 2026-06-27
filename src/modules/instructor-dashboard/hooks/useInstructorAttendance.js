@@ -1,0 +1,185 @@
+import { useState, useCallback, useEffect, useRef } from "react";
+import { toastError, toastSuccess } from "../../../components/shared/Toaster/toaster";
+import {
+  getTodaySchedule,
+  getSessionDetails,
+  markAttendance as apiMarkAttendance,
+  getSessionQr,
+} from "../services/instructorAttendanceServices";
+
+const AUTO_REFRESH_INTERVAL_MS = 30_000;
+
+export const useInstructorAttendance = () => {
+  const [todaySessions, setTodaySessions]   = useState([]);
+  const [activeSession, setActiveSession]   = useState(null);
+  const [students, setStudents]             = useState([]);
+  const [loading, setLoading]               = useState(false);
+  const [detailLoading, setDetailLoading]   = useState(false);
+  const [qrCode, setQrCode]                 = useState(null);
+  const [qrLoading, setQrLoading]           = useState(false);
+
+  const intervalRef = useRef(null);
+
+  // ── Load today's schedule ─────────────────────────────────────────────────
+
+  const loadTodaySchedule = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
+    try {
+      const res = await getTodaySchedule();
+      const sessions = Array.isArray(res?.data) ? res.data : [];
+      setTodaySessions(sessions);
+
+      // Auto-select the first active session (or first session if none active)
+      const active = sessions.find((s) => s.status === "active") || sessions[0] || null;
+      if (active) {
+        setActiveSession((prev) => {
+          // Don't reset if already on same session
+          if (prev?.session_id === active.session_id) return prev;
+          return active;
+        });
+        // Load students for the auto-selected session only on first load
+        if (!silent) {
+          await loadSessionDetails(active.session_id);
+        }
+      } else {
+        if (!silent) {
+          setActiveSession(null);
+          setStudents([]);
+        }
+      }
+    } catch (err) {
+      if (!silent) {
+        const msg = err?.response?.data?.message || "Failed to load today's schedule.";
+        toastError(msg);
+      }
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Load session details + students ──────────────────────────────────────
+
+  const loadSessionDetails = useCallback(async (sessionId) => {
+    if (!sessionId) return;
+    setDetailLoading(true);
+    try {
+      const res = await getSessionDetails(sessionId);
+      const data = res?.data;
+      if (data) {
+        setActiveSession(data);
+        setStudents(Array.isArray(data.students) ? data.students : []);
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to load session details.";
+      toastError(msg);
+    } finally {
+      setDetailLoading(false);
+    }
+  }, []);
+
+  // ── Mark attendance (with optimistic update) ──────────────────────────────
+
+  const markAttendance = useCallback(async (studentId, status) => {
+    // Optimistic update
+    setStudents((prev) =>
+      prev.map((s) =>
+        s.student_id === studentId
+          ? { ...s, status, marked_at: new Date().toISOString(), marked_by: "instructor_manual" }
+          : s
+      )
+    );
+
+    try {
+      await apiMarkAttendance(activeSession?.session_id, studentId, status);
+      toastSuccess("Attendance updated.");
+      // Refresh the count on the active session card
+      setTodaySessions((prev) =>
+        prev.map((sess) => {
+          if (sess.session_id !== activeSession?.session_id) return sess;
+          const presentDelta = ["present", "late"].includes(status) ? 1 : -1;
+          return {
+            ...sess,
+            attendance: {
+              ...sess.attendance,
+              present: Math.max(0, (sess.attendance?.present ?? 0) + presentDelta),
+            },
+          };
+        })
+      );
+    } catch (err) {
+      // Rollback optimistic update
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.student_id === studentId ? { ...s, status: s._prevStatus ?? "not_marked" } : s
+        )
+      );
+      const msg = err?.response?.data?.message || "Failed to mark attendance.";
+      toastError(msg);
+    }
+  }, [activeSession]);
+
+  // ── Mark all students present ─────────────────────────────────────────────
+
+  const markAllPresent = useCallback(async () => {
+    if (!activeSession?.session_id) return;
+    const unmarked = students.filter((s) => s.status === "not_marked" || s.status === "absent");
+    for (const student of unmarked) {
+      await markAttendance(student.student_id, "present");
+    }
+  }, [students, activeSession, markAttendance]);
+
+  // ── Load QR code ──────────────────────────────────────────────────────────
+
+  const loadQrCode = useCallback(async (sessionId) => {
+    setQrLoading(true);
+    setQrCode(null);
+    try {
+      const res = await getSessionQr(sessionId);
+      setQrCode(res?.data?.qr_code ?? null);
+    } catch (err) {
+      const msg = err?.response?.data?.message || "QR code not available for this session.";
+      toastError(msg);
+    } finally {
+      setQrLoading(false);
+    }
+  }, []);
+
+  // ── Select session ────────────────────────────────────────────────────────
+
+  const selectSession = useCallback(async (session) => {
+    setActiveSession(session);
+    setStudents([]);
+    setQrCode(null);
+    await loadSessionDetails(session.session_id);
+  }, [loadSessionDetails]);
+
+  // ── Auto-refresh every 30 seconds ─────────────────────────────────────────
+
+  useEffect(() => {
+    loadTodaySchedule();
+
+    intervalRef.current = setInterval(() => {
+      loadTodaySchedule({ silent: true });
+    }, AUTO_REFRESH_INTERVAL_MS);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [loadTodaySchedule]);
+
+  return {
+    todaySessions,
+    activeSession,
+    students,
+    loading,
+    detailLoading,
+    qrCode,
+    qrLoading,
+    loadTodaySchedule,
+    loadSessionDetails,
+    markAttendance,
+    markAllPresent,
+    loadQrCode,
+    selectSession,
+  };
+};

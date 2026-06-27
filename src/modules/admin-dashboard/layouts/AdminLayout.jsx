@@ -3,15 +3,15 @@ import DashboardSharedLayout from "../../shared-dashboard/components/DashboardLa
 import { useLocation } from "react-router-dom";
 import i18next from "i18next";
 import { useAuth } from "../../../contexts/AuthContext";
-import { useAdminSettings } from "../hooks/useAdminSettings"; // تأكدنا من صحة المسار هنا بعد حل مشكلة الفايل
+import { useAdminSettings } from "../hooks/useAdminSettings";
 import { useEffect } from "react";
+import { useUnreadCount } from "../../../hooks/useNotifications";
 
-// ── قائمة صفحات الأدمن ──
 const ADMIN_NAV = [
   { key: "dashboard", path: "/admin", icon: "bi-grid-1x2", end: true },
   { key: "categories", path: "/admin/categories", icon: "bi-list" },
   { key: "courses", path: "/admin/courses", icon: "bi-mortarboard" },
-  { key: "Quzies", path: "/admin/quizzes", icon: "bi-chat-right-quote" },
+  { key: "Quzzies", path: "/admin/quizzes", icon: "bi-chat-right-quote" },
   { key: "groups", path: "/admin/groups", icon: "bi-people" },
   { key: "students", path: "/admin/students", icon: "bi-people" },
   {
@@ -29,8 +29,6 @@ const ADMIN_NAV = [
     path: "/admin/solutions",
     icon: "bi-laptop",
   },
-
-
   {
     key: "messages",
     path: "/admin/messages",
@@ -63,19 +61,24 @@ function AdminLayout() {
   const location = useLocation();
   const { user } = useAuth();
   const isArabic = i18next.language === "ar";
+  const { unreadCount } = useUnreadCount();
 
-  // 1. جلب السيتينج ودالة الفيتش من الهوك
   const { generalSettings, fetchMediaSettings } = useAdminSettings();
 
-  // 2. تشغيل الفيتش فور دخول الأدمن للوحة التحكم عشان نقرأ الحالة الحقيقية من الباك إند
   useEffect(() => {
     fetchMediaSettings();
   }, [fetchMediaSettings]);
 
-  // 3. فحص دقيق للحالة (سواء رجعت كـ String "true" أو Boolean true)
   const isMaintenanceOn =
     generalSettings?.maintenance_mode === "true" ||
     generalSettings?.maintenance_mode === true;
+
+  const navItems = ADMIN_NAV.map((item) => {
+    if (item.key === "Notification" && unreadCount > 0) {
+      return { ...item, badge: unreadCount > 9 ? "9+" : unreadCount };
+    }
+    return item;
+  });
 
   const HomePageTitle = isArabic
     ? `مرحبا ${user.name}`
@@ -101,7 +104,6 @@ function AdminLayout() {
         return isArabic ? "المدربين" : "Instructors";
       case "/admin/orders":
         return isArabic ? "الطلبات / المدفوعات" : "Orders / Payments";
-  
       case "/admin/messages":
         return isArabic ? "الرسائل" : "Messages";
       case "/admin/reviews":
@@ -121,16 +123,15 @@ function AdminLayout() {
 
   return (
     <>
-      {/* 🚨 4. شريط التنبيه العلوي اللاصق يظهر هنا فوق الـ Layout بالكامل */}
       {isMaintenanceOn && (
         <div
           className="alert alert-danger text-center border-0 rounded-0 m-0 py-3 shadow-sm"
           style={{
-            position: "fixed", // خليناها fixed عشان تضمن تظهر فوق أي مكون مشترك
+            position: "fixed",
             top: 0,
             left: 0,
             right: 0,
-            zIndex: 99999, // أعلى z-index ممكن عشان يعلى فوق الـ Navbar والـ Sidebar بتاعة الـ Layout
+            zIndex: 99999,
             fontSize: "1rem",
             backgroundColor: "#dc3545",
             color: "#fff",
@@ -148,10 +149,9 @@ function AdminLayout() {
         </div>
       )}
 
-      {/* إضافة padding علوي خفيف للـ Layout بأكمله فقط في حالة ظهور الشريط لكي لا يغطي على الهيدر */}
       <div style={{ paddingTop: isMaintenanceOn ? "55px" : "0px" }}>
         <DashboardSharedLayout
-          navItems={ADMIN_NAV}
+          navItems={navItems}
           translationNs="adminDashboard"
           topbarCenter={null}
           pageTitle={pageTitle}

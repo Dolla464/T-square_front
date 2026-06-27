@@ -271,15 +271,22 @@ function AdminCourses() {
     const previews = formData.curriculum
       .flatMap((section) =>
         section.lessons.map((lesson) => {
-          // Prefer an explicit File object; fall back to the stored URL string
-          const videoValue =
-            lesson.videoFile instanceof File
-              ? lesson.videoFile
-              : lesson.video &&
-                  typeof lesson.video === "string" &&
-                  lesson.video.trim()
-                ? lesson.video.trim()
-                : null;
+          // Priority:
+          //   1. uploadedVideoUrl – path returned by the chunked-upload endpoint
+          //   2. videoFile        – raw File object (create mode / legacy behaviour)
+          //   3. lesson.video     – existing URL string from a previously saved course
+          let videoValue = null;
+          if (lesson.uploadedVideoUrl) {
+            videoValue = lesson.uploadedVideoUrl;
+          } else if (lesson.videoFile instanceof File) {
+            videoValue = lesson.videoFile;
+          } else if (
+            lesson.video &&
+            typeof lesson.video === "string" &&
+            lesson.video.trim()
+          ) {
+            videoValue = lesson.video.trim();
+          }
 
           return {
             id: String(lesson.id).includes("lesson-") ? null : lesson.id,
@@ -365,7 +372,21 @@ function AdminCourses() {
 
   // ─── Video modal handlers ──────────────────────────────────────────────────
   const handlePlayVideo = (url, title) => {
-    setVideoPreviewUrl(url);
+    if (!url) return;
+
+    // Blob URLs and full http(s) URLs are used as-is.
+    // Relative server paths (e.g. "courses/previews/abc.mp4") are prefixed
+    // with the storage base URL so the <video> element can load them.
+    let playUrl = url;
+    if (!url.startsWith("blob:") && !url.startsWith("http")) {
+      const base = (import.meta.env.VITE_API_URL || "")
+        .replace(/\/api\/?$/, "")
+        .replace(/\/$/, "");
+      const path = url.startsWith("/") ? url.slice(1) : url;
+      playUrl = `${base}/storage/${path}`;
+    }
+
+    setVideoPreviewUrl(playUrl);
     setVideoTitle(title);
     setShowVideoModal(true);
   };

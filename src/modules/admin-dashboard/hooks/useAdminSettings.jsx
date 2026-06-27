@@ -49,6 +49,8 @@ export const useAdminSettingsState = () => {
         contact_email: "N/A",
         whatsapp: "N/A",
         facebook_url: "N/A",
+        instagram_url: "N/A",
+        linkedin_url: "N/A",
         maintenance_mode: "false",
         hero_title_en: "N/A",
         hero_title_ar: "N/A",
@@ -109,6 +111,8 @@ export const useAdminSettingsState = () => {
         "contact_email",
         "whatsapp",
         "facebook_url",
+        "instagram_url",
+        "linkedin_url",
         "maintenance_mode",
         "hero_title_en",
         "hero_title_ar",
@@ -141,6 +145,8 @@ export const useAdminSettingsState = () => {
           emailRes,
           whatsappRes,
           facebookRes,
+          instagramRes,
+          linkedinRes,
           maintenanceRes,
           heroTitleEnRes,
           heroTitleArRes,
@@ -162,6 +168,8 @@ export const useAdminSettingsState = () => {
           apiGetSetting("contact_email").catch(() => null),
           apiGetSetting("whatsapp").catch(() => null),
           apiGetSetting("facebook_url").catch(() => null),
+          apiGetSetting("instagram_url").catch(() => null),
+          apiGetSetting("linkedin_url").catch(() => null),
           apiGetMaintenanceStatus().catch(() => false),
           apiGetSetting("hero_title_en").catch(() => null),
           apiGetSetting("hero_title_ar").catch(() => null),
@@ -215,6 +223,8 @@ export const useAdminSettingsState = () => {
         const contact_email = extractValue(emailRes, "N/A") || "N/A";
         const whatsapp = extractValue(whatsappRes, "N/A") || "N/A";
         const facebook_url = extractValue(facebookRes, "N/A") || "N/A";
+        const instagram_url = extractValue(instagramRes, "N/A") || "N/A";
+        const linkedin_url = extractValue(linkedinRes, "N/A") || "N/A";
 
         const maintenance_mode = maintenanceRes === true ? "true" : "false";
 
@@ -234,6 +244,8 @@ export const useAdminSettingsState = () => {
           contact_email,
           whatsapp,
           facebook_url,
+          instagram_url,
+          linkedin_url,
           maintenance_mode,
           hero_title_en,
           hero_title_ar,

@@ -88,6 +88,20 @@ export const forceDeleteCourse = async (id) => {
 };
 
 // ----------------------------------------------------------------------------
+// رفع chunk واحد من فيديو معاينة الكورس (Chunked Upload)
+// Content-Type must NOT be set manually – let the browser inject the multipart boundary.
+// ----------------------------------------------------------------------------
+export const uploadChunk = async (courseId, formData, signal = null) => {
+    const config = signal ? { signal } : {};
+    const response = await axiosClient.post(
+        `/admin/courses/${courseId}/previews/chunked-upload`,
+        formData,
+        config,
+    );
+    return response.data;
+};
+
+// ----------------------------------------------------------------------------
 // جلب الكاتيجوريز للـ dropdown
 // ----------------------------------------------------------------------------
 // export const getCategories = async () => {
