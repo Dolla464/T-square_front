@@ -16,7 +16,8 @@
     "messages": "الرسائل",
     "Notification": "الاشعارات",
     "settings": "الإعدادات",
-    "attendance": "الحضور"
+    "attendance": "الحضور",
+    "schedule": "جدول المواعيد"
   },
   "topbar": {
     "search_placeholder": "ابحث عن كورسات، طلاب، طلبات...",

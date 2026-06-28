@@ -48,3 +48,16 @@ export const getSessionQr = (sessionId) =>
   axiosClient
     .get(`/instructor/attendance/sessions/${sessionId}/qr`)
     .then((res) => res.data);
+
+// ----------------------------------------------------------------------------
+// GET /api/instructor/attendance/sessions/{sessionId}/records?since={ms}
+// Returns attendance records created after the `since` timestamp (milliseconds).
+// Used for polling-based real-time updates. limit: 20, ordered desc by marked_at.
+// Response: { record_id, student_id, student_name, session_id, status, marked_at, marked_by }[]
+// ----------------------------------------------------------------------------
+export const getSessionRecords = (sessionId, since = null) =>
+  axiosClient
+    .get(`/instructor/attendance/sessions/${sessionId}/records`, {
+      params: since !== null ? { since } : {},
+    })
+    .then((res) => res.data);

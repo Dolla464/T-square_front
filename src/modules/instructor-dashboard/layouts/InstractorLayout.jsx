@@ -14,6 +14,11 @@ const INSTRUCTOR_NAV = [
     icon: "bi-person-check-fill",
   },
   {
+    key: "schedule",
+    path: "/instructor/schedule",
+    icon: "bi-calendar-week",
+  },
+  {
     key: "Notification",
     path: "/instructor/notifications",
     icon: "bi-bell-fill",
@@ -21,7 +26,7 @@ const INSTRUCTOR_NAV = [
 ];
 
 function InstructorLayout() {
-  const { t } = useTranslation("adminDashboard");
+  useTranslation("adminDashboard");
   const location = useLocation();
   const { user } = useAuth();
   const { unreadCount } = useUnreadCount();
@@ -38,6 +43,8 @@ function InstructorLayout() {
         return HomePageTitle;
       case "/instructor/attendance":
         return isArabic ? "الحضور والغياب" : "Attendance";
+      case "/instructor/schedule":
+        return isArabic ? "الجدول الزمني" : "My Schedule";
       case "/instructor/notifications":
         return isArabic ? "الإشعارات" : "Notifications";
       default:
@@ -45,7 +52,10 @@ function InstructorLayout() {
     }
   };
 
-  const pageTitle = getPageTitle(location.pathname);
+  const pageTitle = useMemo(
+    () => getPageTitle(location.pathname),
+    [location.pathname, HomePageTitle], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   const navItems = useMemo(
     () =>

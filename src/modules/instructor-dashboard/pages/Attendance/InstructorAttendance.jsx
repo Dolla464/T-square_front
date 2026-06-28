@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Spinner,
@@ -6,10 +6,15 @@ import {
   ProgressBar,
   Modal,
   Button,
+  Toast,
+  ToastContainer,
 } from "react-bootstrap";
 import { QRCodeSVG } from "qrcode.react";
 import { useInstructorAttendance } from "../../hooks/useInstructorAttendance";
+import { useAttendanceRealtime } from "../../hooks/useAttendanceRealtime";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
+
+const RECENT_SCANS_LIMIT = 10;
 
 // ── Status config ─────────────────────────────────────────────────────────────
 
@@ -93,7 +98,27 @@ function InstructorAttendance() {
     selectSession,
   } = useInstructorAttendance();
 
-  const [showQrModal, setShowQrModal] = useState(false);
+  const [showQrModal, setShowQrModal]   = useState(false);
+  const [recentScans, setRecentScans]   = useState([]);
+  const [toastMessage, setToastMessage] = useState(null); // { name, status }
+
+  // ── Real-time polling ──────────────────────────────────────────────────────
+
+  const handleStudentScanned = useCallback((record) => {
+    // Update the recent scans list (newest first, capped at limit)
+    setRecentScans((prev) => [record, ...prev].slice(0, RECENT_SCANS_LIMIT));
+
+    // Show toast notification for 3 seconds
+    setToastMessage({ name: record.student_name, status: record.status });
+    setTimeout(() => setToastMessage(null), 3000);
+  }, []);
+
+  const { isPolling } = useAttendanceRealtime(
+    activeSession?.session_id ?? null,
+    handleStudentScanned
+  );
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
 
   const todayLabel = new Date().toLocaleDateString(isArabic ? "ar-EG" : "en-US", {
     weekday: "long",
@@ -119,11 +144,48 @@ function InstructorAttendance() {
   return (
     <div className="admin-content-page" dir={isArabic ? "rtl" : "ltr"}>
 
+      {/* ── TOAST NOTIFICATIONS ── */}
+      <ToastContainer position="top-end" className="p-3" style={{ zIndex: 1100 }}>
+        <Toast
+          show={!!toastMessage}
+          onClose={() => setToastMessage(null)}
+          bg={toastMessage?.status === "present" ? "success" : toastMessage?.status === "late" ? "warning" : "secondary"}
+          delay={3000}
+          autohide
+        >
+          <Toast.Header>
+            <i className="bi bi-qr-code-scan me-2"></i>
+            <strong className="me-auto">
+              {isArabic ? "مسح جديد" : "New Scan"}
+            </strong>
+          </Toast.Header>
+          <Toast.Body className="text-white">
+            <strong>{toastMessage?.name}</strong>
+            {" — "}
+            {toastMessage?.status === "present"
+              ? (isArabic ? "حاضر" : "Present")
+              : toastMessage?.status === "late"
+              ? (isArabic ? "متأخر" : "Late")
+              : (isArabic ? "غائب" : "Absent")}
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
+
       {/* ── PAGE HEADER ── */}
       <div className="ac-header d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
         <div>
-          <h2 className="ac-title">
+          <h2 className="ac-title d-flex align-items-center gap-2">
             {isArabic ? "الحضور والغياب" : "Attendance"}
+            {isPolling && (
+              <span title={isArabic ? "تحديث تلقائي كل 5 ثواني" : "Auto-updating every 5s"}>
+                <Spinner
+                  animation="border"
+                  variant="danger"
+                  size="sm"
+                  style={{ width: "0.75rem", height: "0.75rem", borderWidth: "2px" }}
+                />
+              </span>
+            )}
           </h2>
           <p className="ac-subtitle text-muted mb-0">
             <i className="bi bi-calendar3 me-2"></i>
@@ -287,6 +349,86 @@ function InstructorAttendance() {
                     {isArabic ? "رمز QR" : "QR Code"}
                   </Button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── RECENT SCANS ── */}
+          {activeSession && (
+            <div className="ac-table-card mb-4">
+              <div className="d-flex justify-content-between align-items-center mb-3 px-1">
+                <h5 className="fw-bold mb-0 text-dark">
+                  <i className="bi bi-activity me-2 text-danger"></i>
+                  {isArabic ? "آخر عمليات المسح" : "Recent Scans"}
+                  <Badge bg="danger" className="ms-2 rounded-pill" style={{ fontSize: "0.75rem" }}>
+                    {recentScans.length}
+                  </Badge>
+                </h5>
+                {isPolling && (
+                  <span className="text-muted small d-flex align-items-center gap-1">
+                    <Spinner animation="border" size="sm" variant="secondary"
+                      style={{ width: "0.65rem", height: "0.65rem", borderWidth: "2px" }} />
+                    {isArabic ? "يتحدث كل 5 ثواني" : "Updating every 5s"}
+                  </span>
+                )}
+              </div>
+
+              <div
+                className="card border-0 shadow-sm overflow-hidden"
+                style={{ borderRadius: "14px", background: "#f8f9fc" }}
+              >
+                {recentScans.length === 0 ? (
+                  <div className="text-center py-4 text-muted">
+                    <i className="bi bi-hourglass-split fs-3 d-block mb-2 opacity-50"></i>
+                    <small>
+                      {isArabic
+                        ? "لا توجد عمليات مسح بعد. ستظهر هنا فور وصولها."
+                        : "No scans yet. New scans will appear here in real time."}
+                    </small>
+                  </div>
+                ) : (
+                  <div className="table-responsive">
+                    <table className="table mb-0 align-middle" dir="ltr">
+                      <thead>
+                        <tr style={{ background: "#f0f0f0" }}>
+                          <th className="ps-4 py-3 border-0 text-secondary small fw-bold">
+                            {isArabic ? "الطالب" : "Student"}
+                          </th>
+                          <th className="py-3 border-0 text-secondary small fw-bold text-center">
+                            {isArabic ? "الحالة" : "Status"}
+                          </th>
+                          <th className="py-3 pe-4 border-0 text-secondary small fw-bold text-center">
+                            {isArabic ? "وقت المسح" : "Scanned At"}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recentScans.map((scan, idx) => (
+                          <tr
+                            key={`${scan.record_id ?? scan.student_id}-${idx}`}
+                            style={{ borderBottom: "1px solid rgba(0,0,0,0.04)" }}
+                          >
+                            <td className="ps-4 py-3 fw-bold text-dark" style={{ fontSize: "0.9rem" }}>
+                              <i className="bi bi-person me-2 text-muted"></i>
+                              {scan.student_name}
+                            </td>
+                            <td className="py-3 text-center">
+                              <StatusBadge status={scan.status} isArabic={isArabic} />
+                            </td>
+                            <td className="py-3 pe-4 text-center text-muted small">
+                              {scan.marked_at
+                                ? new Date(scan.marked_at).toLocaleTimeString(
+                                    isArabic ? "ar-EG" : "en-US",
+                                    { hour: "2-digit", minute: "2-digit", second: "2-digit" }
+                                  )
+                                : "—"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           )}

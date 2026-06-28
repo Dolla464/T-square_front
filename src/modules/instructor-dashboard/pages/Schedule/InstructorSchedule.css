@@ -1,0 +1,33 @@
+.instructor-schedule {
+  min-height: 100%;
+}
+
+/* Session cards */
+.session-card {
+  border-left: 4px solid #0d6efd !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .session-card:hover {
+    transform: translateX(2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+.session-meta {
+  font-size: 0.875rem;
+  color: #495057;
+}
+
+/* Day group label */
+.day-label {
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 8px;
+}
+
+/* Empty state */
+.empty-state {
+  background: #f8f9fa;
+  border-radius: 12px;
+}

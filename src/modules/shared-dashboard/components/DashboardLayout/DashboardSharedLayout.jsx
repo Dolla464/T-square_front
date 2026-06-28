@@ -27,7 +27,7 @@ function DashboardSharedLayout({
 }) {
   const { t, i18n } = useTranslation([translationNs, "studentDashboard"]);
   const { user, logout, userProfile } = useAuth();
-  const isAdmin = user.role == "admin";
+  const isAdmin = user?.role === "admin" || userRoleName === "Admin";
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -63,9 +63,13 @@ function DashboardSharedLayout({
       : "US";
 
   const handleNotificationsClick = () => {
-    isAdmin
-      ? navigate("/admin/notifications")
-      : navigate("/student/notifications");
+    if (isAdmin) {
+      navigate("/admin/notifications");
+    } else if (userRoleName === "Instructor" || user?.role === "instructor") {
+      navigate("/instructor/notifications");
+    } else {
+      navigate("/student/notifications");
+    }
   };
 
   const handleLogout = async () => {
@@ -140,7 +144,9 @@ function DashboardSharedLayout({
               >
                 <div className="d-flex align-items-center">
                   <i className={`bi ${item.icon} sidebar-link-icon`}></i>
-                  <span className="px-3 fs-6">{t(`${translationNs}:sidebar.${item.key}`)}</span>
+                  <span className="px-3 fs-6">
+                    {t(`${translationNs}:sidebar.${item.key}`)}
+                  </span>
                 </div>
                 {item.badge && (
                   <span className="badge bg-danger rounded-pill ms-2">
@@ -233,13 +239,18 @@ function DashboardSharedLayout({
               className={`topbar-user-btn ${
                 userRoleName === "Student" ? "clickable" : ""
               }`}
-              onClick={() =>
-                userRoleName === "Student"
-                  ? navigate("/student/profile")
-                  : userRoleName === "Instructor"
-                    ? navigate("/instructor/settings")
-                    : navigate("/admin/settings")
-              }
+              onClick={() => {
+                if (userRoleName === "Student" || user?.role === "student") {
+                  navigate("/student/profile");
+                } else if (
+                  userRoleName === "Instructor" ||
+                  user?.role === "instructor"
+                ) {
+                  navigate("/instructor/profile"); // أو /instructor/settings حسب اللي موجود
+                } else {
+                  navigate("/admin/settings");
+                }
+              }}
               title={
                 userRoleName === "Student"
                   ? "Profile & Settings"

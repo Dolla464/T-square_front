@@ -138,6 +138,10 @@ const InstructorAttendance = lazy(
   () =>
     import("./modules/instructor-dashboard/pages/Attendance/InstructorAttendance"),
 );
+const InstructorSchedule = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/Schedule/InstructorSchedule"),
+);
 
 // مكون فرعي للتحكم في عرض الـ Layout والتوجيه
 function AppContent() {
@@ -372,6 +376,10 @@ function AppContent() {
                     <Route
                       path="attendance"
                       element={<InstructorAttendance />}
+                    />
+                    <Route
+                      path="schedule"
+                      element={<InstructorSchedule />}
                     />
                     <Route
                       path="notifications"

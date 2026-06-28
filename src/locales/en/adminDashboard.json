@@ -16,7 +16,8 @@
     "messages": "Messages",
     "Notification": "Notification",
     "settings": "Settings",
-    "attendance": "Attendance"
+    "attendance": "Attendance",
+    "schedule": "Schedule"
   },
   "topbar": {
     "search_placeholder": "Search courses, students, orders...",
