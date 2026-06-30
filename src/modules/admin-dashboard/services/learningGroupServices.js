@@ -98,3 +98,114 @@ export const getAttendanceReport = (id, sessionId = null) => {
     .get(`/admin/learning-groups/${id}/attendance`, { params })
     .then((res) => res.data);
 };
+
+// ----------------------------------------------------------------------------
+// Session attendance with all enrolled students
+// ----------------------------------------------------------------------------
+export const getSessionAttendance = (groupId, sessionId) =>
+  axiosClient
+    .get(`/admin/learning-groups/${groupId}/sessions/${sessionId}/attendance`)
+    .then((res) => res.data);
+
+// ----------------------------------------------------------------------------
+// Group attendance summary (course-level per student)
+// ----------------------------------------------------------------------------
+export const getGroupAttendanceSummary = (groupId) =>
+  axiosClient
+    .get(`/admin/learning-groups/${groupId}/attendance-summary`)
+    .then((res) => res.data);
+
+export const getStudentCourseAttendance = (groupId, studentId) =>
+  axiosClient
+    .get(`/admin/learning-groups/${groupId}/students/${studentId}/attendance`)
+    .then((res) => res.data);
+
+const downloadExportBlob = (response) => {
+  const { content, filename, mime } = response.data?.data ?? {};
+
+  if (!content) throw new Error("Export response missing content.");
+
+  const byteChars = atob(content);
+  const byteNumbers = new Uint8Array(byteChars.length);
+  for (let i = 0; i < byteChars.length; i++) {
+    byteNumbers[i] = byteChars.charCodeAt(i);
+  }
+  const blob = new Blob([byteNumbers], { type: mime });
+
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+// ----------------------------------------------------------------------------
+// Export session attendance table
+// ----------------------------------------------------------------------------
+export const exportSessionAttendance = async (groupId, sessionId, format = "pdf") => {
+  const response = await axiosClient.get(
+    `/admin/learning-groups/${groupId}/sessions/${sessionId}/attendance/export`,
+    { params: { format } }
+  );
+  downloadExportBlob(response);
+};
+
+// ----------------------------------------------------------------------------
+// Export student course attendance
+// ----------------------------------------------------------------------------
+export const exportStudentCourseAttendance = async (
+  groupId,
+  studentId,
+  format = "pdf"
+) => {
+  const response = await axiosClient.get(
+    `/admin/learning-groups/${groupId}/students/${studentId}/attendance/export`,
+    { params: { format } }
+  );
+  downloadExportBlob(response);
+};
+
+// ----------------------------------------------------------------------------
+// Export group students as PDF or CSV/Excel
+// ----------------------------------------------------------------------------
+export const exportGroupStudents = async (id, format = "pdf") => {
+  const params = { format };
+
+  const response = await axiosClient.get(
+    `/admin/learning-groups/${id}/students/export`,
+    { params }
+  );
+
+  downloadExportBlob(response);
+};
+
+// ----------------------------------------------------------------------------
+// Group exams for results page
+// ----------------------------------------------------------------------------
+export const getLearningGroupExams = (groupId) =>
+  axiosClient
+    .get(`/admin/learning-groups/${groupId}/exams`)
+    .then((res) => res.data);
+
+export const getExamResults = (groupId, examId) =>
+  axiosClient
+    .get(`/admin/learning-groups/${groupId}/exams/${examId}/results`)
+    .then((res) => res.data);
+
+export const getStudentExamResults = (groupId, studentId, examId) =>
+  axiosClient
+    .get(`/admin/learning-groups/${groupId}/students/${studentId}/exam-results`, {
+      params: { exam_id: examId },
+    })
+    .then((res) => res.data);
+
+export const exportExamResults = async (groupId, examId, format = "pdf") => {
+  const response = await axiosClient.get(
+    `/admin/learning-groups/${groupId}/exams/${examId}/results/export`,
+    { params: { format } }
+  );
+  downloadExportBlob(response);
+};

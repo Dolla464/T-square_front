@@ -9,14 +9,15 @@ import {
 
 const AUTO_REFRESH_INTERVAL_MS = 30_000;
 
-export const useInstructorAttendance = () => {
-  const [todaySessions, setTodaySessions]   = useState([]);
-  const [activeSession, setActiveSession]   = useState(null);
-  const [students, setStudents]             = useState([]);
-  const [loading, setLoading]               = useState(false);
-  const [detailLoading, setDetailLoading]   = useState(false);
-  const [qrCode, setQrCode]                 = useState(null);
-  const [qrLoading, setQrLoading]           = useState(false);
+export const useInstructorAttendance = (recentScansLimit = 10) => {
+  const [todaySessions, setTodaySessions] = useState([]);
+  const [activeSession, setActiveSession] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [qrCode, setQrCode] = useState(null);
+  const [qrLoading, setQrLoading] = useState(false);
+  const [recentScans, setRecentScans] = useState([]);
 
   const intervalRef = useRef(null);
 
@@ -30,7 +31,8 @@ export const useInstructorAttendance = () => {
       setTodaySessions(sessions);
 
       // Auto-select the first active session (or first session if none active)
-      const active = sessions.find((s) => s.status === "active") || sessions[0] || null;
+      const active =
+        sessions.find((s) => s.status === "active") || sessions[0] || null;
       if (active) {
         setActiveSession((prev) => {
           // Don't reset if already on same session
@@ -49,7 +51,8 @@ export const useInstructorAttendance = () => {
       }
     } catch (err) {
       if (!silent) {
-        const msg = err?.response?.data?.message || "Failed to load today's schedule.";
+        const msg =
+          err?.response?.data?.message || "Failed to load today's schedule.";
         toastError(msg);
       }
     } finally {
@@ -70,7 +73,8 @@ export const useInstructorAttendance = () => {
         setStudents(Array.isArray(data.students) ? data.students : []);
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to load session details.";
+      const msg =
+        err?.response?.data?.message || "Failed to load session details.";
       toastError(msg);
     } finally {
       setDetailLoading(false);
@@ -79,50 +83,83 @@ export const useInstructorAttendance = () => {
 
   // ── Mark attendance (with optimistic update) ──────────────────────────────
 
-  const markAttendance = useCallback(async (studentId, status) => {
-    // Optimistic update
-    setStudents((prev) =>
-      prev.map((s) =>
-        s.student_id === studentId
-          ? { ...s, status, marked_at: new Date().toISOString(), marked_by: "instructor_manual" }
-          : s
-      )
-    );
-
-    try {
-      await apiMarkAttendance(activeSession?.session_id, studentId, status);
-      toastSuccess("Attendance updated.");
-      // Refresh the count on the active session card
-      setTodaySessions((prev) =>
-        prev.map((sess) => {
-          if (sess.session_id !== activeSession?.session_id) return sess;
-          const presentDelta = ["present", "late"].includes(status) ? 1 : -1;
-          return {
-            ...sess,
-            attendance: {
-              ...sess.attendance,
-              present: Math.max(0, (sess.attendance?.present ?? 0) + presentDelta),
-            },
-          };
-        })
-      );
-    } catch (err) {
-      // Rollback optimistic update
+  const markAttendance = useCallback(
+    async (studentId, status) => {
+      // Optimistic update for students table
       setStudents((prev) =>
         prev.map((s) =>
-          s.student_id === studentId ? { ...s, status: s._prevStatus ?? "not_marked" } : s
-        )
+          s.student_id === studentId
+            ? {
+                ...s,
+                status,
+                marked_at: new Date().toISOString(),
+                marked_by: "instructor_manual",
+              }
+            : s,
+        ),
       );
-      const msg = err?.response?.data?.message || "Failed to mark attendance.";
-      toastError(msg);
-    }
-  }, [activeSession]);
+
+      try {
+        await apiMarkAttendance(activeSession?.session_id, studentId, status);
+        toastSuccess("Attendance updated.");
+
+        // ✅ UPDATE recentScans for manual changes
+        setRecentScans((prev) => {
+           const student = students.find((s) => s.student_id === studentId);
+           const newRecord = {
+             record_id: `manual-${Date.now()}`,
+             student_id: studentId,
+             student_name: student?.full_name || "Unknown",
+             session_id: activeSession?.session_id,
+             status: status,
+             marked_at: new Date().toISOString(),
+             marked_by: "instructor_manual",
+           };
+
+          // Remove old entry for this student, add new at top
+          const filtered = prev.filter((s) => s.student_id !== studentId);
+          return [newRecord, ...filtered].slice(0, recentScansLimit);
+        });
+
+        // Refresh session counts
+        setTodaySessions((prev) =>
+          prev.map((sess) => {
+            if (sess.session_id !== activeSession?.session_id) return sess;
+            const presentDelta = ["present", "late"].includes(status) ? 1 : -1;
+            return {
+              ...sess,
+              attendance: {
+                ...sess.attendance,
+                present: Math.max(
+                  0,
+                  (sess.attendance?.present ?? 0) + presentDelta,
+                ),
+              },
+            };
+          }),
+        );
+      } catch (err) {
+        // Rollback
+        setStudents((prev) =>
+          prev.map((s) =>
+            s.student_id === studentId
+              ? { ...s, status: s._prevStatus ?? "not_marked" }
+              : s,
+          ),
+        );
+        toastError("Failed to mark attendance.");
+      }
+    },
+    [activeSession, students],
+  );
 
   // ── Mark all students present ─────────────────────────────────────────────
 
   const markAllPresent = useCallback(async () => {
     if (!activeSession?.session_id) return;
-    const unmarked = students.filter((s) => s.status === "not_marked" || s.status === "absent");
+    const unmarked = students.filter(
+      (s) => s.status === "not_marked" || s.status === "absent",
+    );
     for (const student of unmarked) {
       await markAttendance(student.student_id, "present");
     }
@@ -137,7 +174,9 @@ export const useInstructorAttendance = () => {
       const res = await getSessionQr(sessionId);
       setQrCode(res?.data?.qr_code ?? null);
     } catch (err) {
-      const msg = err?.response?.data?.message || "QR code not available for this session.";
+      const msg =
+        err?.response?.data?.message ||
+        "QR code not available for this session.";
       toastError(msg);
     } finally {
       setQrLoading(false);
@@ -146,12 +185,15 @@ export const useInstructorAttendance = () => {
 
   // ── Select session ────────────────────────────────────────────────────────
 
-  const selectSession = useCallback(async (session) => {
-    setActiveSession(session);
-    setStudents([]);
-    setQrCode(null);
-    await loadSessionDetails(session.session_id);
-  }, [loadSessionDetails]);
+  const selectSession = useCallback(
+    async (session) => {
+      setActiveSession(session);
+      setStudents([]);
+      setQrCode(null);
+      await loadSessionDetails(session.session_id);
+    },
+    [loadSessionDetails],
+  );
 
   // ── Auto-refresh every 30 seconds ─────────────────────────────────────────
 
@@ -175,6 +217,8 @@ export const useInstructorAttendance = () => {
     detailLoading,
     qrCode,
     qrLoading,
+    recentScans,
+    setRecentScans,
     loadTodaySchedule,
     loadSessionDetails,
     markAttendance,

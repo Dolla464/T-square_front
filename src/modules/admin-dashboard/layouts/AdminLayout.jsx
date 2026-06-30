@@ -9,6 +9,9 @@ import { useUnreadCount } from "../../../hooks/useNotifications";
 
 const ADMIN_NAV = [
   { key: "dashboard", path: "/admin", icon: "bi-grid-1x2", end: true },
+  { key: "schedule", path: "/admin/schedule", icon: "bi-calendar-week" },
+  { key: "studentAttendance", path: "/admin/student-attendance", icon: "bi-clipboard-check" },
+  { key: "studentResults", path: "/admin/student-results", icon: "bi-bar-chart-line" },
   { key: "categories", path: "/admin/categories", icon: "bi-list" },
   { key: "courses", path: "/admin/courses", icon: "bi-mortarboard" },
   { key: "Quzzies", path: "/admin/quizzes", icon: "bi-chat-right-quote" },
@@ -92,6 +95,12 @@ function AdminLayout() {
         return isArabic ? "التصنيفات" : "Categories";
       case "/admin/quizzes":
         return isArabic ? "الاختبارات" : "Quzzies";
+      case "/admin/schedule":
+        return isArabic ? "الجدول الزمني" : "Schedule";
+      case "/admin/student-attendance":
+        return isArabic ? "حضور الطلاب" : "Students Attendance";
+      case "/admin/student-results":
+        return isArabic ? "نتائج الطلاب" : "Students Results";
       case "/admin/groups":
         return isArabic ? "المجموعات" : "Groups";
       case "/admin/courses":

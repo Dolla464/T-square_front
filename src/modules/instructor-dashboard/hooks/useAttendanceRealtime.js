@@ -1,24 +1,24 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { getSessionRecords } from "../services/instructorAttendanceServices";
 
-const POLLING_INTERVAL_MS = 5_000;
+const BASE_INTERVAL_MS = 10_000; // 5 ثواني (الأساس)
+const MAX_INTERVAL_MS = 30_000; // 30 ثانية (الحد الأقصى)
+const BACKOFF_MULTIPLIER = 2; // نضاعف المدة ×2
+const CONSECUTIVE_EMPTY_BEFORE_BACKOFF = 2; // نبدأ backoff بعد كام poll فاضي
 
-/**
- * Polls the server every 5 seconds for new attendance records in a session.
- *
- * @param {number|null} sessionId      - The session to poll. Polling stops when null.
- * @param {Function}    onStudentScanned - Called for each new record: (record) => void
- * @returns {{ isPolling: boolean }}
- */
 export const useAttendanceRealtime = (sessionId, onStudentScanned) => {
-  const [isPolling, setIsPolling]   = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
 
-  const intervalRef    = useRef(null);
-  const isFetchingRef  = useRef(false);
-  const lastCheckRef   = useRef(Date.now());
-  const callbackRef    = useRef(onStudentScanned);
+  const intervalRef = useRef(null);
+  const isFetchingRef = useRef(false);
+  const lastCheckRef = useRef(null);
+  const seenIdsRef = useRef(new Set());
+  const callbackRef = useRef(onStudentScanned);
 
-  // Keep callback ref fresh without restarting the interval
+  // ✅ Exponential backoff state
+  const currentIntervalRef = useRef(BASE_INTERVAL_MS);
+  const emptyPollsRef = useRef(0);
+
   useEffect(() => {
     callbackRef.current = onStudentScanned;
   }, [onStudentScanned]);
@@ -30,21 +30,52 @@ export const useAttendanceRealtime = (sessionId, onStudentScanned) => {
     const since = lastCheckRef.current;
 
     try {
-      const res     = await getSessionRecords(sessionId, since);
+      const res = await getSessionRecords(sessionId, since);
       const records = Array.isArray(res?.data) ? res.data : [];
 
-      // Update timestamp before invoking callbacks so a slow callback
-      // doesn't cause the same record to be reported twice
-      lastCheckRef.current = Date.now();
-
-      records.forEach((record) => {
-        if (typeof callbackRef.current === "function") {
-          callbackRef.current(record);
-        }
+      // ✅ Deduplicate by student_id (not record_id)
+      // Keep track of which students we've already emitted
+      const newRecords = records.filter((record) => {
+        const studentKey = `${record.student_id}-${record.status}`;
+        if (seenIdsRef.current.has(studentKey)) return false;
+        seenIdsRef.current.add(studentKey);
+        return true;
       });
+
+      lastCheckRef.current = new Date().toISOString();
+
+      // ✅ Exponential backoff logic
+      if (newRecords.length === 0) {
+        emptyPollsRef.current += 1;
+        if (emptyPollsRef.current >= CONSECUTIVE_EMPTY_BEFORE_BACKOFF) {
+          currentIntervalRef.current = Math.min(
+            currentIntervalRef.current * BACKOFF_MULTIPLIER,
+            MAX_INTERVAL_MS,
+          );
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = setInterval(poll, currentIntervalRef.current);
+          }
+        }
+      } else {
+        emptyPollsRef.current = 0;
+        if (currentIntervalRef.current !== BASE_INTERVAL_MS) {
+          currentIntervalRef.current = BASE_INTERVAL_MS;
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = setInterval(poll, BASE_INTERVAL_MS);
+          }
+        }
+
+        newRecords.forEach((record) => {
+          if (typeof callbackRef.current === "function") {
+            callbackRef.current(record);
+          }
+        });
+      }
     } catch (err) {
       console.error("[useAttendanceRealtime] polling error:", err);
-      // Do NOT stop polling on error — keep retrying
+      emptyPollsRef.current += 1;
     } finally {
       isFetchingRef.current = false;
     }
@@ -56,12 +87,18 @@ export const useAttendanceRealtime = (sessionId, onStudentScanned) => {
       return;
     }
 
-    // Reset timestamp when we start polling a (possibly new) session
-    lastCheckRef.current = Date.now();
+    // Reset everything
+    lastCheckRef.current = null;
+    seenIdsRef.current.clear();
     isFetchingRef.current = false;
+    emptyPollsRef.current = 0;
+    currentIntervalRef.current = BASE_INTERVAL_MS;
     setIsPolling(true);
 
-    intervalRef.current = setInterval(poll, POLLING_INTERVAL_MS);
+    poll();
+
+    // ✅ نستخدم setInterval بالـ dynamic interval
+    intervalRef.current = setInterval(poll, BASE_INTERVAL_MS);
 
     return () => {
       setIsPolling(false);

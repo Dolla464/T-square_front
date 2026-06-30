@@ -9,6 +9,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { showConfirmCustom } from "../shared/ConfirmDialog/confirmDialog";
 import { toastSuccess, toastError } from "../shared/Toaster/toaster";
 import usePayment from "../../hooks/usePayment";
+import { formatCoursePrice } from "../../utils/coursePrice";
 
 function AllPayment() {
   const { slug } = useParams();
@@ -122,7 +123,7 @@ function AllPayment() {
         : null,
       `━━━━━━━━━━━━━━━━━━`,
       ` ${t("payment:submitSection.courseLabel")}: ${course.title}`,
-      ` ${t("payment:orderSummary.total")}: ${course.price.final} ${t("courses:card.priceUnit")}`,
+      ` ${t("payment:orderSummary.total")}: ${formatCoursePrice(course, t)}`,
       `━━━━━━━━━━━━━━━━━━`,
     ].filter(Boolean);
     return lines.join("\n");
@@ -430,7 +431,7 @@ function AllPayment() {
                       {t("payment:orderSummary.total")}
                     </span>
                     <span className="total-price fw-bold text-danger fs-4">
-                      {course?.price?.final} {t("courses:card.priceUnit")}
+                      {formatCoursePrice(course, t)}
                     </span>
                   </div>
 

@@ -81,7 +81,7 @@ function StatusBadge({ status, isArabic }) {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 function InstructorAttendance() {
-  const { t, i18n } = useTranslation("adminDashboard");
+  const { i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
 
   const {
@@ -96,17 +96,21 @@ function InstructorAttendance() {
     markAllPresent,
     loadQrCode,
     selectSession,
+    recentScans,
+    setRecentScans,
   } = useInstructorAttendance();
 
   const [showQrModal, setShowQrModal]   = useState(false);
-  const [recentScans, setRecentScans]   = useState([]);
   const [toastMessage, setToastMessage] = useState(null); // { name, status }
 
   // ── Real-time polling ──────────────────────────────────────────────────────
 
   const handleStudentScanned = useCallback((record) => {
     // Update the recent scans list (newest first, capped at limit)
-    setRecentScans((prev) => [record, ...prev].slice(0, RECENT_SCANS_LIMIT));
+    setRecentScans((prev) => {
+      const filtered = prev.filter((s) => s.student_id !== record.student_id);
+      return [record, ...filtered].slice(0, RECENT_SCANS_LIMIT);
+    });
 
     // Show toast notification for 3 seconds
     setToastMessage({ name: record.student_name, status: record.status });

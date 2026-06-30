@@ -1,16 +1,18 @@
 import { useState, useCallback } from "react";
 import { toastSuccess, toastError } from "../../../components/shared/Toaster/toaster";
 import {
-  getReviews, // Actually it fetches from /admin/payments as modified by the user
+  getReviews,
   getReviewById,
   updatePaymentOrdersById,
-  deleteReview
+  deleteReview,
+  exportPayments,
 } from "../services/ordersServices";
 
 export const useOrders = () => {
   const [orders, setOrders] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState(null);
 
@@ -66,9 +68,21 @@ export const useOrders = () => {
     }
   };
 
+  const handleExport = useCallback(async (filters, format) => {
+    setExportLoading(true);
+    try {
+      await exportPayments(filters, format);
+    } catch (err) {
+      toastError(err?.response?.data?.message || "Export failed. Please try again.");
+    } finally {
+      setExportLoading(false);
+    }
+  }, []);
+
   return {
     orders,
     loading,
+    exportLoading,
     error,
     stats,
     pagination,
@@ -76,5 +90,6 @@ export const useOrders = () => {
     getOrderById,
     updateOrderStatus,
     deleteOrder,
+    handleExport,
   };
 };

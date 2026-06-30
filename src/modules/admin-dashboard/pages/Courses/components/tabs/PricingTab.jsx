@@ -1,6 +1,16 @@
 function PricingTab({ formData, handleChange, isReadOnly, isArabic, t }) {
+  const isFree = formData.is_free;
+
   return (
     <>
+      {isFree && (
+        <p className="text-muted small mb-3">
+          {isArabic
+            ? "الكورس مجاني — حقول السعر غير مطلوبة."
+            : "This course is free — pricing fields are not required."}
+        </p>
+      )}
+
       {/* Original price */}
       <div className="mb-4">
         <label className="form-label fw-bold text-dark">
@@ -15,7 +25,7 @@ function PricingTab({ formData, handleChange, isReadOnly, isArabic, t }) {
             value={formData.price_before}
             onChange={handleChange}
             name="price_before"
-            disabled={isReadOnly}
+            disabled={isReadOnly || isFree}
           />
         </div>
       </div>
@@ -34,7 +44,7 @@ function PricingTab({ formData, handleChange, isReadOnly, isArabic, t }) {
             value={formData.discount_price}
             onChange={handleChange}
             name="discount_price"
-            disabled={isReadOnly}
+            disabled={isReadOnly || isFree}
           />
         </div>
       </div>

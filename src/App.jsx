@@ -124,6 +124,17 @@ import LoadingSpiner from "./LoadingSpiner";
 const AdminMessages = lazy(
   () => import("./modules/admin-dashboard/pages/Messages/AdminMessages"),
 );
+const AdminSchedule = lazy(
+  () => import("./modules/admin-dashboard/pages/Schedule/AdminSchedule"),
+);
+const AdminStudentAttendance = lazy(
+  () =>
+    import("./modules/admin-dashboard/pages/StudentAttendance/AdminStudentAttendance"),
+);
+const AdminStudentResults = lazy(
+  () =>
+    import("./modules/admin-dashboard/pages/StudentResults/AdminStudentResults"),
+);
 const MaintenancePage = lazy(
   () => import("./pages/Maintenance/MaintenancePage"),
 );
@@ -347,6 +358,15 @@ function AppContent() {
                     <Route
                       path="quizzes/edit-exam/:id"
                       element={<EditExam />}
+                    />
+                    <Route path="schedule" element={<AdminSchedule />} />
+                    <Route
+                      path="student-attendance"
+                      element={<AdminStudentAttendance />}
+                    />
+                    <Route
+                      path="student-results"
+                      element={<AdminStudentResults />}
                     />
                     <Route path="groups" element={<AdminGroups />} />
                     <Route path="solutions" element={<AdminSolutions />} />

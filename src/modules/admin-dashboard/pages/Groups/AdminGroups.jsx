@@ -1,11 +1,13 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Pagination } from "react-bootstrap";
+import { Pagination, Modal, Button, Spinner } from "react-bootstrap";
 import { useInstructors } from "../../hooks/useInstractor";
 import { useGroups } from "../../hooks/useGroups";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { useAdminCourses } from "../../hooks/useAdminCourses";
 import { toastError } from "../../../../components/shared/Toaster/toaster";
+import { getLearningGroupSessions, exportGroupStudents } from "../../services/learningGroupServices";
+import { exportSchedule } from "../../services/adminScheduleService";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
 const DAY_NAMES_EN = [
@@ -33,6 +35,22 @@ const EMPTY_SCHEDULE = {
   end_time: "",
   room: "",
 };
+
+const normalizeScheduleEntry = (s) => ({
+  day_of_week: Number(s.day_of_week),
+  start_time: (s.start_time || "").slice(0, 5),
+  end_time: (s.end_time || "").slice(0, 5),
+  room: s.room || "",
+});
+
+const normalizeSchedules = (schedules) =>
+  [...(schedules || [])]
+    .map(normalizeScheduleEntry)
+    .sort((a, b) => a.day_of_week - b.day_of_week);
+
+const schedulesAreEqual = (current, original) =>
+  JSON.stringify(normalizeSchedules(current)) ===
+  JSON.stringify(normalizeSchedules(original));
 
 const defaultFormData = {
   group_name: "",
@@ -90,6 +108,75 @@ function getNextSessionDate(schedules) {
   };
 }
 
+const fmt = (t) => (t ? String(t).slice(0, 5) : "—");
+
+const SESSION_STATUS_CONFIG = {
+  upcoming: {
+    bg: "bg-primary-subtle text-primary",
+    icon: "bi-clock",
+    labelEn: "Upcoming",
+    labelAr: "قادمة",
+  },
+  active: {
+    bg: "bg-success-subtle text-success",
+    icon: "bi-play-circle-fill",
+    labelEn: "Active",
+    labelAr: "نشطة",
+  },
+  completed: {
+    bg: "bg-secondary-subtle text-secondary",
+    icon: "bi-check-circle-fill",
+    labelEn: "Completed",
+    labelAr: "مكتملة",
+  },
+  cancelled: {
+    bg: "bg-danger-subtle text-danger",
+    icon: "bi-x-circle-fill",
+    labelEn: "Cancelled",
+    labelAr: "ملغاة",
+  },
+};
+
+const getEffectiveSession = (sess) => {
+  const dateRaw = sess.override_date || sess.session_date || "";
+  const effectiveDate = String(dateRaw).slice(0, 10);
+  return {
+    effectiveDate,
+    effectiveStart: fmt(
+      sess.override_start_time || sess.schedule?.start_time
+    ),
+    effectiveEnd: fmt(sess.override_end_time || sess.schedule?.end_time),
+    room: sess.schedule?.room || "—",
+  };
+};
+
+const getDayNameFromDate = (dateStr, isArabic) => {
+  if (!dateStr) return "—";
+  const d = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return "—";
+  const jsToProjectDay = [1, 2, 3, 4, 5, 6, 0];
+  const idx = jsToProjectDay[d.getDay()];
+  return isArabic ? DAY_NAMES_AR[idx] : DAY_NAMES_EN[idx];
+};
+
+function SessionStatusBadge({ status, isArabic }) {
+  const cfg = SESSION_STATUS_CONFIG[status] ?? {
+    bg: "bg-light text-dark",
+    icon: "bi-circle",
+    labelEn: status,
+    labelAr: status,
+  };
+  return (
+    <span
+      className={`badge rounded-pill px-2 py-1 ${cfg.bg}`}
+      style={{ fontSize: "0.75rem" }}
+    >
+      <i className={`bi ${cfg.icon} me-1`}></i>
+      {isArabic ? cfg.labelAr : cfg.labelEn}
+    </span>
+  );
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 function AdminGroups() {
@@ -123,6 +210,12 @@ function AdminGroups() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [scheduleErrors, setScheduleErrors] = useState([]);
+  const originalSchedulesRef = useRef(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [groupSessions, setGroupSessions] = useState([]);
+  const [scheduleModalLoading, setScheduleModalLoading] = useState(false);
+  const [scheduleExportLoading, setScheduleExportLoading] = useState(false);
+  const [studentsExportLoading, setStudentsExportLoading] = useState(false);
 
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
 
@@ -230,6 +323,15 @@ function AdminGroups() {
       students: normalizedStudents,
     });
 
+    originalSchedulesRef.current = groupData.schedules
+      ? groupData.schedules.map((s) => ({
+          day_of_week: Number(s.day_of_week),
+          start_time: s.start_time || "",
+          end_time: s.end_time || "",
+          room: s.room || "",
+        }))
+      : [];
+
     await getAvailableStudents(group_id);
     setShowForm(true);
   };
@@ -274,6 +376,63 @@ function AdminGroups() {
     setViewingItem(null);
     setSelectedStudents([]);
     setScheduleErrors([]);
+    originalSchedulesRef.current = null;
+    setShowScheduleModal(false);
+    setGroupSessions([]);
+  };
+
+  const handleCloseScheduleModal = () => {
+    setShowScheduleModal(false);
+    setGroupSessions([]);
+  };
+
+  const handleOpenScheduleModal = async () => {
+    if (!viewingItem) return;
+    setShowScheduleModal(true);
+    setScheduleModalLoading(true);
+    try {
+      const res = await getLearningGroupSessions(viewingItem);
+      setGroupSessions(Array.isArray(res?.data) ? res.data : []);
+    } catch (err) {
+      toastError(
+        err?.response?.data?.message ||
+          (isArabic ? "فشل تحميل جدول المواعيد" : "Failed to load group schedule")
+      );
+      setGroupSessions([]);
+    } finally {
+      setScheduleModalLoading(false);
+    }
+  };
+
+  const handleExportGroupSchedulePdf = async () => {
+    if (!viewingItem) return;
+    setScheduleExportLoading(true);
+    try {
+      await exportSchedule({ group_id: viewingItem }, "pdf");
+    } catch (err) {
+      toastError(
+        err?.response?.data?.message ||
+          (isArabic ? "فشل التصدير" : "Export failed. Please try again.")
+      );
+    } finally {
+      setScheduleExportLoading(false);
+    }
+  };
+
+  const handleExportGroupStudents = async (format) => {
+    const groupId = viewingItem || editingItem;
+    if (!groupId) return;
+    setStudentsExportLoading(true);
+    try {
+      await exportGroupStudents(groupId, format);
+    } catch (err) {
+      toastError(
+        err?.response?.data?.message ||
+          (isArabic ? "فشل التصدير" : "Export failed. Please try again.")
+      );
+    } finally {
+      setStudentsExportLoading(false);
+    }
   };
 
   const handleDelete = async (groupId) => {
@@ -471,10 +630,13 @@ function AdminGroups() {
           course_id: Number(formData.course_id),
           instructor_id: Number(formData.instructor_id),
           start_date: formData.start_date,
-          schedules: formData.schedules,
           student_ids,
           student_statuses,
         };
+
+        if (!schedulesAreEqual(formData.schedules, originalSchedulesRef.current)) {
+          payload.schedules = formData.schedules;
+        }
 
         await updateGroup(editingItem, payload);
       } else {
@@ -787,6 +949,16 @@ function AdminGroups() {
                       : "Add New Group"}
               </span>
             </button>
+            {viewingItem && (
+              <button
+                type="button"
+                className="btn btn-outline-danger btn-sm rounded-3"
+                onClick={handleOpenScheduleModal}
+              >
+                <i className="bi bi-calendar-week me-1"></i>
+                {isArabic ? "عرض جدول المواعيد" : "Show Group Schedule"}
+              </button>
+            )}
           </div>
 
           <div className="ac-form-body p-4 bg-white border rounded-4 shadow-sm">
@@ -1164,6 +1336,34 @@ function AdminGroups() {
                           </p>
                         </div>
                       </div>
+                      <div className="d-flex gap-2 flex-wrap">
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => handleExportGroupStudents("pdf")}
+                          disabled={studentsExportLoading}
+                        >
+                          {studentsExportLoading ? (
+                            <Spinner animation="border" size="sm" className="me-1" />
+                          ) : (
+                            <i className="bi bi-file-earmark-pdf me-1"></i>
+                          )}
+                          PDF
+                        </Button>
+                        <Button
+                          variant="outline-success"
+                          size="sm"
+                          onClick={() => handleExportGroupStudents("excel")}
+                          disabled={studentsExportLoading}
+                        >
+                          {studentsExportLoading ? (
+                            <Spinner animation="border" size="sm" className="me-1" />
+                          ) : (
+                            <i className="bi bi-file-earmark-spreadsheet me-1"></i>
+                          )}
+                          Excel
+                        </Button>
+                      </div>
                     </div>
 
                     <div
@@ -1465,6 +1665,117 @@ function AdminGroups() {
           </div>
         </div>
       )}
+
+      <Modal
+        show={showScheduleModal}
+        onHide={handleCloseScheduleModal}
+        centered
+        size="lg"
+        scrollable
+      >
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fs-5 fw-bold">
+            <i className="bi bi-calendar-week me-2 text-danger"></i>
+            {formData.group_name || (isArabic ? "المجموعة" : "Group")} —{" "}
+            {isArabic ? "جدول مواعيد المجموعة" : "Group Schedule"}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="pt-2">
+          {scheduleModalLoading ? (
+            <div className="text-center py-5">
+              <Spinner animation="border" variant="danger" />
+              <div className="text-muted mt-3 small">
+                {isArabic ? "جاري تحميل الجدول…" : "Loading schedule…"}
+              </div>
+            </div>
+          ) : groupSessions.length === 0 ? (
+            <div className="text-center py-5 text-muted">
+              <i className="bi bi-calendar-x" style={{ fontSize: "3rem" }}></i>
+              <p className="mt-3 fw-semibold mb-0">
+                {isArabic
+                  ? "لا توجد جلسات مجدولة"
+                  : "No scheduled sessions"}
+              </p>
+            </div>
+          ) : (
+            <div className="table-responsive ac-table-wrapper">
+              <table className="table ac-table align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>{isArabic ? "اليوم" : "Day"}</th>
+                    <th>{isArabic ? "التاريخ" : "Date"}</th>
+                    <th>{isArabic ? "الوقت" : "Time"}</th>
+                    <th>{isArabic ? "القاعة" : "Room"}</th>
+                    <th>{isArabic ? "الحالة" : "Status"}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groupSessions.map((sess, idx) => {
+                    const {
+                      effectiveDate,
+                      effectiveStart,
+                      effectiveEnd,
+                      room,
+                    } = getEffectiveSession(sess);
+                    return (
+                      <tr
+                        key={sess.id}
+                        className={
+                          sess.status === "cancelled" ? "opacity-60" : ""
+                        }
+                      >
+                        <td className="text-muted small">{idx + 1}</td>
+                        <td style={{ fontSize: "0.85rem" }}>
+                          {getDayNameFromDate(effectiveDate, isArabic)}
+                        </td>
+                        <td style={{ fontSize: "0.85rem" }}>{effectiveDate}</td>
+                        <td>
+                          <span
+                            className="fw-semibold"
+                            style={{ fontSize: "0.85rem", color: "#374151" }}
+                          >
+                            {effectiveStart} – {effectiveEnd}
+                          </span>
+                        </td>
+                        <td style={{ fontSize: "0.85rem" }}>{room}</td>
+                        <td>
+                          <SessionStatusBadge
+                            status={sess.status}
+                            isArabic={isArabic}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer className="border-0 pt-0">
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            onClick={handleCloseScheduleModal}
+          >
+            {isArabic ? "إغلاق" : "Close"}
+          </Button>
+          <Button
+            variant="outline-danger"
+            size="sm"
+            onClick={handleExportGroupSchedulePdf}
+            disabled={scheduleExportLoading || scheduleModalLoading}
+          >
+            {scheduleExportLoading ? (
+              <Spinner animation="border" size="sm" className="me-1" />
+            ) : (
+              <i className="bi bi-file-earmark-pdf me-1"></i>
+            )}
+            {isArabic ? "تصدير PDF" : "Export PDF"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
