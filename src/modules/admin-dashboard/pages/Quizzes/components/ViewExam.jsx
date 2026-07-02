@@ -286,7 +286,7 @@ function ViewExam() {
                                                         {showTrash ? (
                                                             <>
                                                                 <button
-                                                                    className="btn btn-sm btn-outline-success border-0"
+                                                                    className="btn btn-sm ac-btn-view border-0"
                                                                     title={isArabic ? "استعادة" : "Restore question"}
                                                                     onClick={() => handleRestore(question.id, question.question_text)}
                                                                 >
@@ -294,8 +294,7 @@ function ViewExam() {
                                                                 </button>
 
                                                                 <button
-                                                                    className="btn btn-sm border-0"
-                                                                    style={{ color: "#7f1d1d", backgroundColor: "transparent" }}
+                                                                    className="btn btn-sm ac-btn-deleteTable border-0"
                                                                     title={isArabic ? "حذف نهائي" : "Permanent Delete"}
                                                                     onClick={() => handleForceDelete(question.id, question.question_text)}
                                                                 >
@@ -305,7 +304,7 @@ function ViewExam() {
                                                         ) : (
                                                             <>
                                                                 <button
-                                                                    className="btn btn-sm ac-btn-view border-0 text-primary"
+                                                                    className="btn btn-sm ac-btn-edit border-0"
                                                                     title={isArabic ? "تعديل" : "Edit question"}
                                                                     onClick={() => handleEdit(question.id)}
                                                                 >

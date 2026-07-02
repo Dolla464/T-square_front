@@ -12,8 +12,11 @@ export const getLearningGroups = (params) =>
 // ----------------------------------------------------------------------------
 // جلب المجموعات الدراسية للقوائم المنسدلة (بدون pagination)
 // ----------------------------------------------------------------------------
-export const getLearningGroupsSelection = () =>
-  axiosClient.get("/admin/learning-groups/selection").then((res) => res.data);
+export const getLearningGroupsSelection = (params = {}) =>
+  axiosClient.get("/admin/learning-groups/selection", { params }).then((res) => res.data);
+
+export const getCompletedLearningGroupsSelection = () =>
+  getLearningGroupsSelection({ status: "completed" });
 
 // ----------------------------------------------------------------------------
 // جلب مجموعة دراسية معينة بالـ ID

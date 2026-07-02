@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Pagination } from "react-bootstrap";
+import AdminPagination from "../../components/shared/AdminPagination";
 import { useInstructors } from "../../hooks/useInstractor";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 // import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
@@ -498,67 +498,7 @@ function AdminInstructors() {
 
             {/* Pagination - Always visible if data exists */}
             {apiPagination && (
-              <div className="d-flex justify-content-center mt-5">
-                <Pagination className="custom-pagination">
-                  <Pagination.Prev
-                    disabled={apiPagination.current_page === 1}
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page - 1)
-                    }
-                  />
-
-                  {(() => {
-                    const currentPage = apiPagination.current_page;
-                    const totalPages = apiPagination.total_pages;
-                    const startPage = Math.floor((currentPage - 1) / 3) * 3 + 1;
-                    const endPage = Math.min(startPage + 2, totalPages);
-                    const items = [];
-
-                    if (startPage > 1) {
-                      items.push(
-                        <Pagination.Ellipsis
-                          key="prev-ellipsis"
-                          onClick={() => handlePageChange(startPage - 1)}
-                        />,
-                      );
-                    }
-
-                    for (let p = startPage; p <= endPage; p++) {
-                      items.push(
-                        <Pagination.Item
-                          style={{ margin: "0 3px" }}
-                          key={p}
-                          active={currentPage === p}
-                          onClick={() => handlePageChange(p)}
-                        >
-                          {p}
-                        </Pagination.Item>,
-                      );
-                    }
-
-                    if (endPage < totalPages) {
-                      items.push(
-                        <Pagination.Ellipsis
-                          key="next-ellipsis"
-                          onClick={() => handlePageChange(endPage + 1)}
-                        />,
-                      );
-                    }
-
-                    return items;
-                  })()}
-
-                  <Pagination.Next
-                    style={{ margin: "0 6px 0" }}
-                    disabled={
-                      apiPagination.current_page === apiPagination.total_pages
-                    }
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page + 1)
-                    }
-                  />
-                </Pagination>
-              </div>
+              <AdminPagination pagination={apiPagination} onPageChange={handlePageChange} />
             )}
           </div>
         </>
@@ -609,7 +549,7 @@ function AdminInstructors() {
                 </div>
                 {!viewingItem && (
                   <div className="mt-2">
-                    <label className="btn btn-outline-danger btn-sm">
+                    <label className="btn btn-sm ac-btn-edit border-0">
                       {isArabic
                         ? formData.avatar
                           ? "تغيير صورة"

@@ -37,6 +37,7 @@ const Contact = lazy(() => import("./pages/Contact"));
 const Payment = lazy(() => import("./pages/Payment"));
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import NotificationsProvider from "./contexts/NotificationsContext";
 import { getRouteByRole } from "./config/routes";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
@@ -152,6 +153,22 @@ const InstructorAttendance = lazy(
 const InstructorSchedule = lazy(
   () =>
     import("./modules/instructor-dashboard/pages/Schedule/InstructorSchedule"),
+);
+const InstructorQuizzes = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/Quizzes/InstructorQuizzes"),
+);
+const InstructorViewExam = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/Quizzes/components/ViewExam"),
+);
+const InstructorEditExam = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/Quizzes/components/EditExam"),
+);
+const InstructorStudentResults = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/StudentResults/InstructorStudentResults"),
 );
 
 // مكون فرعي للتحكم في عرض الـ Layout والتوجيه
@@ -401,6 +418,19 @@ function AppContent() {
                       path="schedule"
                       element={<InstructorSchedule />}
                     />
+                    <Route path="quizzes" element={<InstructorQuizzes />} />
+                    <Route
+                      path="quizzes/view-exam/:id"
+                      element={<InstructorViewExam />}
+                    />
+                    <Route
+                      path="quizzes/edit-exam/:id"
+                      element={<InstructorEditExam />}
+                    />
+                    <Route
+                      path="student-results"
+                      element={<InstructorStudentResults />}
+                    />
                     <Route
                       path="notifications"
                       element={<NotificationsPage />}
@@ -477,14 +507,16 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <ErrorBoundary>
-          {/* مكون الإشعارات العالمي */}
-          <Toaster position="top-center" reverseOrder={false} />
-          <AppContent />
-          <ScrollToTop />
-        </ErrorBoundary>
-      </Router>
+      <NotificationsProvider>
+        <Router>
+          <ErrorBoundary>
+            {/* مكون الإشعارات العالمي */}
+            <Toaster position="top-center" reverseOrder={false} />
+            <AppContent />
+            <ScrollToTop />
+          </ErrorBoundary>
+        </Router>
+      </NotificationsProvider>
     </AuthProvider>
   );
 }

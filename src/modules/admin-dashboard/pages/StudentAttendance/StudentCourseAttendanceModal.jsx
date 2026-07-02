@@ -6,15 +6,16 @@ import {
   Button,
   Card,
   Col,
-  Modal,
   ProgressBar,
   Row,
   Spinner,
   Table,
 } from "react-bootstrap";
+import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useAdminAttendance } from "../../hooks/useAdminAttendance";
+import ExportBar from "../../components/shared/ExportBar";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -44,29 +45,6 @@ const STATUS_CONFIG = {
     labelAr: "لم يسجَّل",
   },
 };
-
-function ExportBar({ onExport, loading, disabled }) {
-  return (
-    <div className="d-flex gap-2 flex-wrap">
-      <Button
-        variant="outline-danger"
-        size="sm"
-        onClick={() => onExport("pdf")}
-        disabled={loading || disabled}
-      >
-        <i className="bi bi-file-earmark-pdf me-1"></i>PDF
-      </Button>
-      <Button
-        variant="outline-success"
-        size="sm"
-        onClick={() => onExport("excel")}
-        disabled={loading || disabled}
-      >
-        <i className="bi bi-file-earmark-spreadsheet me-1"></i>Excel
-      </Button>
-    </div>
-  );
-}
 
 function AttendanceStatusBadge({ status, isArabic }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.not_marked;
@@ -147,16 +125,30 @@ function StudentCourseAttendanceModal({
         : "danger";
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered scrollable>
-      <Modal.Header closeButton className="border-0 pb-0">
-        <Modal.Title className="fw-bold">
-          {loadingSummary
-            ? t("studentAttendance.loading", "Loading…")
-            : studentName || t("studentAttendance.studentDetails", "Student Details")}
-        </Modal.Title>
-      </Modal.Header>
-
-      <Modal.Body>
+    <DetailModal
+      show={show}
+      onHide={onHide}
+      size="lg"
+      scrollable
+      title={
+        loadingSummary
+          ? t("studentAttendance.loading", "Loading…")
+          : studentName || t("studentAttendance.studentDetails", "Student Details")
+      }
+      footer={
+        <>
+          <ExportBar
+            onExport={(format) => handleExportStudent(groupId, studentId, format)}
+            loading={exportLoading}
+            disabled={!student || loadingSummary}
+          />
+          <Button variant="secondary" onClick={onHide}>
+            {t("studentAttendance.close", "Close")}
+          </Button>
+        </>
+      }
+      footerClassName="border-0 d-flex flex-wrap justify-content-between gap-2"
+    >
         {loadingSummary && (
           <div className="text-center py-5">
             <Spinner animation="border" variant="primary" />
@@ -287,19 +279,7 @@ function StudentCourseAttendanceModal({
             {t("studentAttendance.studentNotFound", "Student data not found.")}
           </Alert>
         )}
-      </Modal.Body>
-
-      <Modal.Footer className="border-0 d-flex flex-wrap justify-content-between gap-2">
-        <ExportBar
-          onExport={(format) => handleExportStudent(groupId, studentId, format)}
-          loading={exportLoading}
-          disabled={!student || loadingSummary}
-        />
-        <Button variant="secondary" onClick={onHide}>
-          {t("studentAttendance.close", "Close")}
-        </Button>
-      </Modal.Footer>
-    </Modal>
+    </DetailModal>
   );
 }
 

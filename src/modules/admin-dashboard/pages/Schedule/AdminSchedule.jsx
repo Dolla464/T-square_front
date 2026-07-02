@@ -1,16 +1,21 @@
 import { useState } from "react";
 import {
   Badge,
-  Button,
   Col,
   Form,
-  Modal,
-  Pagination,
   Row,
   Spinner,
   Alert,
 } from "react-bootstrap";
+import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
 import { useAdminSchedule } from "../../hooks/useAdminSchedule";
+import ExportBar from "../../components/shared/ExportBar";
+import AdminPagination from "../../components/shared/AdminPagination";
+import {
+  selectClass,
+  dateInputClass,
+  viewModeBtnClass,
+} from "../../components/shared/adminUiStyles";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import "./AdminSchedule.css";
 
@@ -41,6 +46,7 @@ function ScheduleFilters({
   filters,
   viewMode,
   weekBounds,
+  monthBounds,
   updateFilter,
   handleDateChange,
   setViewMode,
@@ -48,135 +54,134 @@ function ScheduleFilters({
   instructors,
   instructorsLoading,
 }) {
-  return (
-    <div className="ac-filters-bar mb-4">
-      <Row className="align-items-end g-3">
-        {/* Day / Week toggle */}
-        <Col xs={12}>
-          <div className="btn-group btn-group-sm" role="group" aria-label="View mode">
-            <Button
-              variant={viewMode === "day" ? "danger" : "outline-danger"}
-              onClick={() => setViewMode("day")}
-            >
-              <i className="bi bi-calendar-day me-1"></i>Day
-            </Button>
-            <Button
-              variant={viewMode === "week" ? "danger" : "outline-danger"}
-              onClick={() => setViewMode("week")}
-            >
-              <i className="bi bi-calendar-week me-1"></i>Week
-            </Button>
-          </div>
-        </Col>
+  const dateLabel =
+    viewMode === "week"
+      ? "Pick a day in the week"
+      : viewMode === "month"
+        ? "Pick a day in the month"
+        : "Date";
 
+  const rangeBounds = viewMode === "month" ? monthBounds : weekBounds;
+
+  return (
+    <div className="ac-filters-bar d-flex flex-column gap-3 mb-3">
+      {/* Day / Week / Month toggle */}
+      <div className="d-flex gap-2 flex-wrap">
+        <button
+          type="button"
+          className={viewModeBtnClass(viewMode === "day")}
+          onClick={() => setViewMode("day")}
+        >
+          <i className="bi bi-calendar-day me-1"></i>Day
+        </button>
+        <button
+          type="button"
+          className={viewModeBtnClass(viewMode === "week")}
+          onClick={() => setViewMode("week")}
+        >
+          <i className="bi bi-calendar-week me-1"></i>Week
+        </button>
+        <button
+          type="button"
+          className={viewModeBtnClass(viewMode === "month")}
+          onClick={() => setViewMode("month")}
+        >
+          <i className="bi bi-calendar-month me-1"></i>Month
+        </button>
+      </div>
+
+      <div className="d-flex flex-column flex-lg-row justify-content-between align-items-end gap-3 flex-wrap">
         {/* Date */}
-        <Col xs={12} sm={6} md={3}>
-          <Form.Label className="fw-semibold small text-muted mb-1">
+        <div style={{ minWidth: "11rem" }}>
+          <label className="fw-semibold small text-muted mb-1 d-block">
             <i className="bi bi-calendar-date me-1"></i>
-            {viewMode === "week" ? "Pick a day in the week" : "Date"}
-          </Form.Label>
-          <Form.Control
+            {dateLabel}
+          </label>
+          <input
             type="date"
+            className={dateInputClass(filters.date)}
             value={filters.date}
             onChange={(e) => handleDateChange(e.target.value)}
           />
-          {viewMode === "week" && weekBounds && (
+          {(viewMode === "week" || viewMode === "month") && rangeBounds && (
             <div className="mt-1">
               <span
-                className="badge rounded-pill px-2 py-1"
-                style={{ background: "#e0f2fe", color: "#0369a1", fontSize: "0.75rem" }}
+                className="badge rounded-pill px-2 py-1 border-danger bg-danger-subtle text-danger-emphasis"
+                style={{ fontSize: "0.75rem" }}
               >
                 <i className="bi bi-calendar-range me-1"></i>
-                {weekBounds.from} → {weekBounds.to}
+                {rangeBounds.from} → {rangeBounds.to}
               </span>
             </div>
           )}
-        </Col>
+        </div>
 
-        {/* Instructor */}
-        <Col xs={12} sm={6} md={3}>
-          <Form.Label className="fw-semibold small text-muted mb-1">
-            <i className="bi bi-person-badge me-1"></i>Instructor
-          </Form.Label>
-          <Form.Select
-            value={filters.instructor_id}
-            onChange={(e) => updateFilter("instructor_id", e.target.value)}
-            disabled={instructorsLoading}
+        <div className="d-flex gap-2 gap-md-3 flex-wrap align-items-end">
+          {/* Instructor */}
+          <div>
+            <label className="fw-semibold small text-muted mb-1 d-block">
+              <i className="bi bi-person-badge me-1"></i>Instructor
+            </label>
+            <select
+              className={selectClass(!!filters.instructor_id)}
+              value={filters.instructor_id}
+              onChange={(e) => updateFilter("instructor_id", e.target.value)}
+              disabled={instructorsLoading}
+            >
+              <option value="">All Instructors</option>
+              {instructors.map((inst) => (
+                <option key={inst.id} value={inst.id}>
+                  {inst.full_name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className="fw-semibold small text-muted mb-1 d-block">
+              <i className="bi bi-funnel me-1"></i>Status
+            </label>
+            <select
+              className={selectClass(!!filters.status)}
+              value={filters.status}
+              onChange={(e) => updateFilter("status", e.target.value)}
+            >
+              <option value="">All Statuses</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+
+          {/* Per page */}
+          <div>
+            <label className="fw-semibold small text-muted mb-1 d-block">
+              <i className="bi bi-list-ol me-1"></i>Per Page
+            </label>
+            <select
+              className={selectClass(filters.per_page !== 15)}
+              value={filters.per_page}
+              onChange={(e) => updateFilter("per_page", Number(e.target.value))}
+            >
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          {/* Reset */}
+          <button
+            type="button"
+            className="btn ac-btn-view border-0 rounded-3 px-3 py-2 fw-medium"
+            onClick={resetFilters}
           >
-            <option value="">All Instructors</option>
-            {instructors.map((inst) => (
-              <option key={inst.id} value={inst.id}>
-                {inst.full_name}
-              </option>
-            ))}
-          </Form.Select>
-        </Col>
-
-        {/* Status */}
-        <Col xs={12} sm={6} md={2}>
-          <Form.Label className="fw-semibold small text-muted mb-1">
-            <i className="bi bi-funnel me-1"></i>Status
-          </Form.Label>
-          <Form.Select
-            value={filters.status}
-            onChange={(e) => updateFilter("status", e.target.value)}
-          >
-            <option value="">All Statuses</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </Form.Select>
-        </Col>
-
-        {/* Per page */}
-        <Col xs={6} sm={4} md={2}>
-          <Form.Label className="fw-semibold small text-muted mb-1">
-            <i className="bi bi-list-ol me-1"></i>Per Page
-          </Form.Label>
-          <Form.Select
-            value={filters.per_page}
-            onChange={(e) => updateFilter("per_page", Number(e.target.value))}
-          >
-            <option value={10}>10</option>
-            <option value={15}>15</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-          </Form.Select>
-        </Col>
-
-        {/* Reset */}
-        <Col xs={6} sm={4} md={2} className="d-flex align-items-end">
-          <Button variant="outline-secondary" size="sm" className="w-100" onClick={resetFilters}>
             <i className="bi bi-arrow-counterclockwise me-1"></i>Reset
-          </Button>
-        </Col>
-      </Row>
-    </div>
-  );
-}
-
-// ── Export & Print Bar ────────────────────────────────────────────────────────
-
-function ExportBar({ onExport, loading }) {
-  return (
-    <div className="d-flex gap-2 flex-wrap">
-      <Button
-        variant="outline-danger"
-        size="sm"
-        onClick={() => onExport("pdf")}
-        disabled={loading}
-      >
-        <i className="bi bi-file-earmark-pdf me-1"></i>PDF
-      </Button>
-      <Button
-        variant="outline-success"
-        size="sm"
-        onClick={() => onExport("excel")}
-        disabled={loading}
-      >
-        <i className="bi bi-file-earmark-spreadsheet me-1"></i>Excel
-      </Button>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -212,8 +217,8 @@ function ScheduleTable({ sessions, loading, error, onReschedule, onCancel }) {
   }
 
   return (
-    <div className="table-responsive ac-table-wrapper">
-      <table className="table ac-table align-middle mb-0">
+    <div className="table-responsive">
+      <table className="table ac-table mb-0 align-middle">
         <thead>
           <tr>
             <th>#</th>
@@ -322,20 +327,18 @@ function ScheduleTable({ sessions, loading, error, onReschedule, onCancel }) {
                     {isEditable ? (
                       <>
                         <button
-                          className="btn btn-sm btn-outline-primary p-1"
-                          style={{ width: 30, height: 30 }}
+                          className="btn btn-sm ac-btn-edit border-0"
                           title="Reschedule session"
                           onClick={() => onReschedule(sess)}
                         >
-                          <i className="bi bi-pencil-fill" style={{ fontSize: "0.7rem" }}></i>
+                          <i className="bi bi-pencil-square fs-6"></i>
                         </button>
                         <button
-                          className="btn btn-sm btn-outline-danger p-1"
-                          style={{ width: 30, height: 30 }}
+                          className="btn btn-sm ac-btn-deleteTable border-0"
                           title="Cancel session"
                           onClick={() => onCancel(sess)}
                         >
-                          <i className="bi bi-x-lg" style={{ fontSize: "0.7rem" }}></i>
+                          <i className="bi bi-trash fs-6"></i>
                         </button>
                       </>
                     ) : (
@@ -397,6 +400,7 @@ function RescheduleForm({ session, onClose, onSubmit, loading }) {
           <Form.Label className="fw-semibold small">New Date</Form.Label>
           <Form.Control
             type="date"
+            className={dateInputClass(form.date)}
             value={form.date}
             onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
             isInvalid={!!errors.date}
@@ -410,6 +414,7 @@ function RescheduleForm({ session, onClose, onSubmit, loading }) {
               <Form.Label className="fw-semibold small">Start Time</Form.Label>
               <Form.Control
                 type="time"
+                className={dateInputClass(form.start_time)}
                 value={form.start_time}
                 onChange={(e) => setForm((p) => ({ ...p, start_time: e.target.value }))}
                 isInvalid={!!errors.start_time}
@@ -422,6 +427,7 @@ function RescheduleForm({ session, onClose, onSubmit, loading }) {
               <Form.Label className="fw-semibold small">End Time</Form.Label>
               <Form.Control
                 type="time"
+                className={dateInputClass(form.end_time)}
                 value={form.end_time}
                 onChange={(e) => setForm((p) => ({ ...p, end_time: e.target.value }))}
                 isInvalid={!!errors.end_time}
@@ -432,13 +438,13 @@ function RescheduleForm({ session, onClose, onSubmit, loading }) {
         </Row>
 
         <div className="d-flex justify-content-end gap-2 mt-4">
-          <Button variant="outline-secondary" onClick={onClose} disabled={loading}>
+          <button type="button" className="btn ac-draft-btn border px-3" onClick={onClose} disabled={loading}>
             Cancel
-          </Button>
-          <Button type="submit" variant="primary" disabled={loading}>
+          </button>
+          <button type="submit" className="btn ac-publish-btn text-white px-3" disabled={loading}>
             {loading ? <Spinner animation="border" size="sm" className="me-1" /> : null}
             Reschedule & Notify
-          </Button>
+          </button>
         </div>
       </Form>
     </>
@@ -447,14 +453,16 @@ function RescheduleForm({ session, onClose, onSubmit, loading }) {
 
 function RescheduleModal({ show, session, onClose, onSubmit, loading }) {
   return (
-    <Modal show={show} onHide={onClose} centered>
-      <Modal.Header closeButton className="border-bottom-0 pb-0">
-        <Modal.Title>
+    <DetailModal
+      show={show}
+      onHide={onClose}
+      title={
+        <>
           <i className="bi bi-pencil-fill text-primary me-2"></i>
           Reschedule Session
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
+        </>
+      }
+    >
         {show && session && (
           // key forces a fresh mount (and fresh useState) whenever the session changes
           <RescheduleForm
@@ -465,8 +473,7 @@ function RescheduleModal({ show, session, onClose, onSubmit, loading }) {
             loading={loading}
           />
         )}
-      </Modal.Body>
-    </Modal>
+    </DetailModal>
   );
 }
 
@@ -483,14 +490,16 @@ function CancelModal({ show, session, onClose, onSubmit, loading }) {
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
-      <Modal.Header closeButton className="border-bottom-0 pb-0">
-        <Modal.Title>
+    <DetailModal
+      show={show}
+      onHide={handleClose}
+      title={
+        <>
           <i className="bi bi-x-circle-fill text-danger me-2"></i>
           Cancel Session
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
+        </>
+      }
+    >
         {session && (
           <div className="mb-3 p-3 rounded-3" style={{ background: "#fff5f5", border: "1px solid #fecaca" }}>
             <div className="fw-bold">{session.group_name}</div>
@@ -511,6 +520,7 @@ function CancelModal({ show, session, onClose, onSubmit, loading }) {
             <Form.Control
               as="textarea"
               rows={3}
+              className={`${dateInputClass(reason)} py-2`}
               placeholder="e.g. Instructor unavailable, public holiday…"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
@@ -520,54 +530,16 @@ function CancelModal({ show, session, onClose, onSubmit, loading }) {
           </Form.Group>
 
           <div className="d-flex justify-content-end gap-2">
-            <Button variant="outline-secondary" onClick={handleClose} disabled={loading}>
+            <button type="button" className="btn ac-draft-btn border px-3" onClick={handleClose} disabled={loading}>
               Keep Session
-            </Button>
-            <Button type="submit" variant="danger" disabled={loading}>
+            </button>
+            <button type="submit" className="btn ac-publish-btn text-white px-3" disabled={loading}>
               {loading ? <Spinner animation="border" size="sm" className="me-1" /> : null}
               Cancel & Notify
-            </Button>
+            </button>
           </div>
         </Form>
-      </Modal.Body>
-    </Modal>
-  );
-}
-
-// ── Pagination Controls ───────────────────────────────────────────────────────
-
-function PaginationControls({ pagination, onPageChange }) {
-  if (!pagination || pagination.total_pages <= 1) return null;
-
-  const { current_page, total_pages, total, per_page } = pagination;
-  const from = (current_page - 1) * per_page + 1;
-  const to   = Math.min(current_page * per_page, total);
-
-  const pages = [];
-  const delta = 2;
-  for (let i = Math.max(1, current_page - delta); i <= Math.min(total_pages, current_page + delta); i++) {
-    pages.push(i);
-  }
-
-  return (
-    <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-      <span className="text-muted small">
-        Showing {from}–{to} of {total} sessions
-      </span>
-      <Pagination size="sm" className="mb-0">
-        <Pagination.First onClick={() => onPageChange(1)} disabled={current_page === 1} />
-        <Pagination.Prev onClick={() => onPageChange(current_page - 1)} disabled={current_page === 1} />
-        {pages[0] > 1 && <Pagination.Ellipsis disabled />}
-        {pages.map((p) => (
-          <Pagination.Item key={p} active={p === current_page} onClick={() => onPageChange(p)}>
-            {p}
-          </Pagination.Item>
-        ))}
-        {pages[pages.length - 1] < total_pages && <Pagination.Ellipsis disabled />}
-        <Pagination.Next onClick={() => onPageChange(current_page + 1)} disabled={current_page === total_pages} />
-        <Pagination.Last onClick={() => onPageChange(total_pages)} disabled={current_page === total_pages} />
-      </Pagination>
-    </div>
+    </DetailModal>
   );
 }
 
@@ -584,6 +556,7 @@ function AdminSchedule() {
     filters,
     viewMode,
     weekBounds,
+    monthBounds,
     updateFilter,
     handleDateChange,
     setViewMode,
@@ -599,78 +572,67 @@ function AdminSchedule() {
     handleCancel,
     handleExport,
     actionLoading,
-    refetch,
   } = useAdminSchedule();
 
   return (
     <div className="admin-content-page" id="admin-schedule-page">
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="ac-header d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+      <div className="ac-header d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="ac-title">
-            <i className="bi bi-calendar-week me-2 text-danger"></i>Center Daily Schedule
-          </h2>
+          <h2 className="ac-title">Center Daily Schedule</h2>
           <p className="ac-subtitle text-muted mb-0">
             View, filter, edit and cancel sessions across all groups.
           </p>
         </div>
         <div className="d-flex gap-2 align-items-center flex-wrap">
           <ExportBar onExport={handleExport} loading={actionLoading} />
-          <Button
-            variant="outline-secondary"
-            size="sm"
-            onClick={() => refetch()}
-            disabled={loading}
-          >
-            <i className="bi bi-arrow-clockwise me-1"></i>Refresh
-          </Button>
         </div>
       </div>
 
-      {/* ── Filters ─────────────────────────────────────────────────────────── */}
-      <ScheduleFilters
-        filters={filters}
-        viewMode={viewMode}
-        weekBounds={weekBounds}
-        updateFilter={updateFilter}
-        handleDateChange={handleDateChange}
-        setViewMode={setViewMode}
-        resetFilters={resetFilters}
-        instructors={instructors}
-        instructorsLoading={instructorsLoading}
-      />
-
-      {/* ── Stats strip ─────────────────────────────────────────────────────── */}
-      {pagination && !loading && (
-        <div className="d-flex gap-3 flex-wrap mb-3">
-          {[
-            { label: "Total",     value: pagination.total,   color: "#374151" },
-            { label: "Shown",     value: pagination.count,   color: "#374151" },
-          ].map(({ label, value, color }) => (
-            <div
-              key={label}
-              className="px-3 py-2 rounded-3 small"
-              style={{ background: "#f9f9fb", border: "1px solid #eaeaea" }}
-            >
-              <span className="text-muted me-1">{label}:</span>
-              <span className="fw-bold" style={{ color }}>{value}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── Table card ──────────────────────────────────────────────────────── */}
       <div className="ac-table-card">
-        <div className="ac-filters-bar p-0 overflow-hidden">
-          <ScheduleTable
-            sessions={sessions}
-            loading={loading}
-            error={error}
-            onReschedule={openRescheduleModal}
-            onCancel={openCancelModal}
-          />
+        <div className="ac-table-container">
+          <div className="ac-rounded-table p-3 p-md-0">
+            <ScheduleFilters
+              filters={filters}
+              viewMode={viewMode}
+              weekBounds={weekBounds}
+              monthBounds={monthBounds}
+              updateFilter={updateFilter}
+              handleDateChange={handleDateChange}
+              setViewMode={setViewMode}
+              resetFilters={resetFilters}
+              instructors={instructors}
+              instructorsLoading={instructorsLoading}
+            />
+
+            {pagination && !loading && (
+              <div className="d-flex gap-3 flex-wrap mb-3 px-3 px-md-4">
+                {[
+                  { label: "Total", value: pagination.total, color: "#374151" },
+                  { label: "Shown", value: pagination.count, color: "#374151" },
+                ].map(({ label, value, color }) => (
+                  <div
+                    key={label}
+                    className="px-3 py-2 rounded-3 small"
+                    style={{ background: "#f9f9fb", border: "1px solid #eaeaea" }}
+                  >
+                    <span className="text-muted me-1">{label}:</span>
+                    <span className="fw-bold" style={{ color }}>{value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <ScheduleTable
+              sessions={sessions}
+              loading={loading}
+              error={error}
+              onReschedule={openRescheduleModal}
+              onCancel={openCancelModal}
+            />
+            <AdminPagination pagination={pagination} onPageChange={handlePageChange} />
+          </div>
         </div>
-        <PaginationControls pagination={pagination} onPageChange={handlePageChange} />
       </div>
 
       {/* ── Reschedule Modal ─────────────────────────────────────────────────── */}

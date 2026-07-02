@@ -19,6 +19,12 @@ const INSTRUCTOR_NAV = [
     icon: "bi-calendar-week",
   },
   {
+    key: "studentResults",
+    path: "/instructor/student-results",
+    icon: "bi-bar-chart-line",
+  },
+  { key: "quizzes", path: "/instructor/quizzes", icon: "bi-chat-right-quote" },
+  {
     key: "Notification",
     path: "/instructor/notifications",
     icon: "bi-bell-fill",
@@ -45,6 +51,10 @@ function InstructorLayout() {
         return isArabic ? "الحضور والغياب" : "Attendance";
       case "/instructor/schedule":
         return isArabic ? "الجدول الزمني" : "My Schedule";
+      case "/instructor/student-results":
+        return isArabic ? "نتائج الطلاب" : "Students Results";
+      case "/instructor/quizzes":
+        return isArabic ? "الاختبارات" : "Quizzes";
       case "/instructor/notifications":
         return isArabic ? "الإشعارات" : "Notifications";
       default:

@@ -1,19 +1,18 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Card,
   Table,
   ProgressBar,
   Badge,
-  Button,
-  Modal,
   Spinner,
   Alert,
   Row,
   Col,
-  Pagination,
   Form,
 } from "react-bootstrap";
+import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
+import AdminPagination from "../../../admin-dashboard/components/shared/AdminPagination";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import {
@@ -22,23 +21,41 @@ import {
   useCompletedGroups,
   useGroupDetails,
 } from "../../hooks/useInstructorDashboard";
+import "../../../admin-dashboard/components/shared/AdminContentPage/AdminContentPage.css";
 import "./InstructorOverview.css";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+function SectionTitle({ icon, title, badge }) {
+  return (
+    <div className="d-flex align-items-center gap-3">
+      <div
+        className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm"
+        style={{ width: 40, height: 40, flexShrink: 0 }}
+      >
+        <i className={`bi ${icon} text-white`}></i>
+      </div>
+      <h2 className="ac-title mb-0 d-flex align-items-center gap-2 flex-wrap">
+        {title}
+        {badge}
+      </h2>
+    </div>
+  );
+}
+
 // ── Stat Card ─────────────────────────────────────────────────────────────────
 
-function StatCard({ icon, label, value, color, loading }) {
+function StatCard({ icon, label, value, loading }) {
   return (
-    <Card className={`stat-card border-0 shadow-sm h-100`}>
+    <Card className="stat-card border-0 shadow-sm h-100">
       <Card.Body className="d-flex align-items-center gap-3 p-4">
-        <div className={`stat-icon-wrapper bg-${color} bg-opacity-10 rounded-3 p-3`}>
-          <i className={`bi ${icon} fs-3 text-${color}`}></i>
+        <div className="stat-icon-wrapper bg-danger bg-opacity-10 rounded-3 p-3">
+          <i className={`bi ${icon} fs-4 text-danger`}></i>
         </div>
         <div>
           <div className="text-muted small fw-semibold text-uppercase">{label}</div>
           {loading ? (
-            <Spinner animation="border" size="sm" className="mt-1" />
+            <Spinner animation="border" size="sm" variant="danger" className="mt-1" />
           ) : (
             <div className="fw-bold fs-4">{value ?? 0}</div>
           )}
@@ -62,7 +79,7 @@ function GroupDetailsModal({ show, groupId, onHide }) {
           details?.completion?.percentage ?? 0,
           100 - (details?.completion?.percentage ?? 0),
         ],
-        backgroundColor: ["#0d6efd", "#e9ecef"],
+        backgroundColor: ["#d32f2f", "#e9ecef"],
         borderWidth: 0,
         hoverOffset: 4,
       },
@@ -83,17 +100,26 @@ function GroupDetailsModal({ show, groupId, onHide }) {
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered scrollable>
-      <Modal.Header closeButton className="border-0 pb-0">
-        <Modal.Title className="fw-bold">
-          {loading ? t("modal.loading", "Loading…") : (details?.group_name ?? t("modal.title", "Group Details"))}
-        </Modal.Title>
-      </Modal.Header>
-
-      <Modal.Body>
+    <DetailModal
+      show={show}
+      onHide={onHide}
+      size="lg"
+      scrollable
+      title={
+        loading
+          ? t("modal.loading", "Loading…")
+          : (details?.group_name ?? t("modal.title", "Group Details"))
+      }
+      footer={
+        <button type="button" className="btn btn-outline-dark ac-add-btn" onClick={onHide}>
+          {t("modal.close", "Close")}
+        </button>
+      }
+      footerClassName="border-0"
+    >
         {loading && (
           <div className="text-center py-5">
-            <Spinner animation="border" variant="primary" />
+            <Spinner animation="border" variant="danger" />
           </div>
         )}
 
@@ -109,7 +135,7 @@ function GroupDetailsModal({ show, groupId, onHide }) {
                 <div style={{ position: "relative", height: 180 }}>
                   <Doughnut data={chartData} options={chartOptions} />
                   <div className="doughnut-center-label">
-                    <span className="fw-bold fs-4 text-primary">
+                    <span className="fw-bold fs-4 text-danger">
                       {details.completion.percentage}%
                     </span>
                     <div className="text-muted small">{t("modal.completion", "Completion")}</div>
@@ -121,7 +147,7 @@ function GroupDetailsModal({ show, groupId, onHide }) {
                 <Row className="g-3">
                   <Col xs={6}>
                     <Card className="border-0 bg-light text-center p-3">
-                      <div className="fw-bold fs-5 text-primary">
+                      <div className="fw-bold fs-5 text-danger">
                         {details.completion.completed_sessions}
                       </div>
                       <div className="text-muted small">
@@ -227,14 +253,7 @@ function GroupDetailsModal({ show, groupId, onHide }) {
             )}
           </>
         )}
-      </Modal.Body>
-
-      <Modal.Footer className="border-0">
-        <Button variant="secondary" onClick={onHide}>
-          {t("modal.close", "Close")}
-        </Button>
-      </Modal.Footer>
-    </Modal>
+    </DetailModal>
   );
 }
 
@@ -277,48 +296,35 @@ function InstructorOverview() {
   const completedTotal = completedMeta?.total ?? 0;
   const lastPage       = completedMeta?.last_page ?? 1;
 
-  const completedPageNumbers = useMemo(() => {
-    if (lastPage <= 7) return Array.from({ length: lastPage }, (_, i) => i + 1);
-    const pages = new Set([1, lastPage]);
-    for (let p = Math.max(1, completedPage - 1); p <= Math.min(lastPage, completedPage + 1); p++) {
-      pages.add(p);
-    }
-    return [...pages].sort((a, b) => a - b);
-  }, [lastPage, completedPage]);
-
   const statCards = [
     {
       key:   "total",
       icon:  "bi-collection-fill",
       label: t("stats.totalGroups", "Total Groups"),
       value: stats?.total_groups,
-      color: "primary",
     },
     {
       key:   "active",
       icon:  "bi-play-circle-fill",
       label: t("stats.activeGroups", "Active Groups"),
       value: stats?.active_groups,
-      color: "success",
     },
     {
       key:   "completed",
       icon:  "bi-check-circle-fill",
       label: t("stats.completedGroups", "Completed Groups"),
       value: stats?.completed_groups,
-      color: "info",
     },
     {
       key:   "students",
       icon:  "bi-people-fill",
       label: t("stats.totalStudents", "Total Students"),
       value: stats?.total_students,
-      color: "warning",
     },
   ];
 
   return (
-    <div className="instructor-overview p-3 p-md-4">
+    <div className="admin-content-page instructor-overview">
       {/* ── Stat Cards ──────────────────────────────────────────── */}
       <Row className="g-3 mb-4">
         {statCards.map((card) => (
@@ -327,7 +333,6 @@ function InstructorOverview() {
               icon={card.icon}
               label={card.label}
               value={card.value}
-              color={card.color}
               loading={statsLoading}
             />
           </Col>
@@ -337,16 +342,16 @@ function InstructorOverview() {
       {/* ── Active Groups Table ──────────────────────────────────── */}
       <Card className="border-0 shadow-sm">
         <Card.Header className="bg-white border-0 pt-4 pb-0 px-4">
-          <h5 className="fw-bold mb-0">
-            <i className="bi bi-table me-2 text-primary"></i>
-            {t("groups.title", "Active Groups")}
-          </h5>
+          <SectionTitle
+            icon="bi-table"
+            title={t("groups.title", "Active Groups")}
+          />
         </Card.Header>
 
         <Card.Body className="px-4 pb-4 pt-3">
           {groupsLoading && (
             <div className="text-center py-4">
-              <Spinner animation="border" variant="primary" />
+              <Spinner animation="border" variant="danger" />
             </div>
           )}
 
@@ -414,14 +419,14 @@ function InstructorOverview() {
                         {group.completed_sessions} / {group.total_sessions}
                       </td>
                       <td>
-                        <Button
-                          variant="outline-primary"
-                          size="sm"
+                        <button
+                          type="button"
+                          className="btn btn-sm ac-btn-view border-0"
                           onClick={() => setSelectedGroupId(group.id)}
                         >
                           <i className="bi bi-eye me-1"></i>
                           {t("groups.viewDetails", "Details")}
-                        </Button>
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -434,19 +439,22 @@ function InstructorOverview() {
 
       {/* ── Completed Groups Table ───────────────────────────────── */}
       <Card className="border-0 shadow-sm mt-4">
-        <Card.Header className="bg-white border-0 pt-4 pb-0 px-4 d-flex align-items-center justify-content-between">
-          <h5 className="fw-bold mb-0">
-            <i className="bi bi-check2-circle me-2 text-success"></i>
-            {t("completedGroups.title", "Completed Groups")}
-            {!completedLoading && (
-              <Badge bg="success" className="ms-2 fw-normal fs-6">
-                {completedMeta?.total ?? completedGroups.length}
-              </Badge>
-            )}
-          </h5>
-          <Button
-            variant="outline-success"
-            size="sm"
+        <Card.Header className="bg-white border-0 pt-4 pb-0 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <SectionTitle
+            icon="bi-check2-circle"
+            title={t("completedGroups.title", "Completed Groups")}
+            badge={
+              !completedLoading && (
+                <Badge bg="danger" className="fw-normal fs-6">
+                  {completedMeta?.total ?? completedGroups.length}
+                </Badge>
+              )
+            }
+          />
+          <button
+            type="button"
+            className="btn btn-outline-dark ac-add-btn"
+            style={{ color: "#ffffff" }}
             onClick={() => setShowCompleted((v) => !v)}
             aria-expanded={showCompleted}
           >
@@ -454,7 +462,7 @@ function InstructorOverview() {
             {showCompleted
               ? t("completedGroups.hide", "Hide")
               : t("completedGroups.show", "Show")}
-          </Button>
+          </button>
         </Card.Header>
 
         {showCompleted && (
@@ -462,7 +470,7 @@ function InstructorOverview() {
             <Card.Body className="px-4 pb-2 pt-3">
               {completedLoading && (
                 <div className="text-center py-4">
-                  <Spinner animation="border" variant="success" />
+                  <Spinner animation="border" variant="danger" />
                 </div>
               )}
 
@@ -472,7 +480,7 @@ function InstructorOverview() {
 
               {!completedLoading && !completedError && completedGroups.length === 0 && (
                 <Alert variant="light" className="mb-0 border text-muted">
-                  <i className="bi bi-info-circle me-2 text-success"></i>
+                  <i className="bi bi-info-circle me-2 text-danger"></i>
                   {t("completedGroups.noGroups", "No completed groups yet.")}
                 </Alert>
               )}
@@ -506,7 +514,7 @@ function InstructorOverview() {
 
                   <div className="table-responsive">
                     <Table hover className="align-middle mb-0">
-                      <thead style={{ backgroundColor: "#d1e7dd" }}>
+                      <thead style={{ backgroundColor: "#fff1f2" }}>
                         <tr>
                           <th>{t("completedGroups.groupName", "Group")}</th>
                           <th>{t("completedGroups.course", "Course")}</th>
@@ -556,14 +564,14 @@ function InstructorOverview() {
                               </Badge>
                             </td>
                             <td>
-                              <Button
-                                variant="outline-success"
-                                size="sm"
+                              <button
+                                type="button"
+                                className="btn btn-sm ac-btn-view border-0"
                                 onClick={() => setSelectedGroupId(group.id)}
                               >
                                 <i className="bi bi-eye me-1"></i>
                                 {t("groups.viewDetails", "Details")}
-                              </Button>
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -576,41 +584,16 @@ function InstructorOverview() {
 
             {/* Pagination footer — only when more than one page */}
             {!completedLoading && lastPage > 1 && (
-              <Card.Footer className="bg-white border-0 px-4 pb-4 pt-2 d-flex justify-content-center">
-                <Pagination className="mb-0 flex-wrap">
-                  <Pagination.First
-                    disabled={completedPage === 1}
-                    onClick={() => setCompletedPage(1)}
-                  />
-                  <Pagination.Prev
-                    disabled={completedPage === 1}
-                    onClick={() => setCompletedPage((p) => p - 1)}
-                  />
-
-                  {completedPageNumbers.map((p, idx) => {
-                    const prev = completedPageNumbers[idx - 1];
-                    return (
-                      <span key={p} className="d-contents">
-                        {prev && p - prev > 1 && <Pagination.Ellipsis disabled />}
-                        <Pagination.Item
-                          active={p === completedPage}
-                          onClick={() => setCompletedPage(p)}
-                        >
-                          {p}
-                        </Pagination.Item>
-                      </span>
-                    );
-                  })}
-
-                  <Pagination.Next
-                    disabled={completedPage === lastPage}
-                    onClick={() => setCompletedPage((p) => p + 1)}
-                  />
-                  <Pagination.Last
-                    disabled={completedPage === lastPage}
-                    onClick={() => setCompletedPage(lastPage)}
-                  />
-                </Pagination>
+              <Card.Footer className="bg-white border-0 px-4 pb-4 pt-2">
+                <AdminPagination
+                  pagination={{
+                    current_page: completedPage,
+                    last_page: lastPage,
+                  }}
+                  onPageChange={setCompletedPage}
+                  wrapperClassName="d-flex justify-content-center"
+                  className="mb-0"
+                />
               </Card.Footer>
             )}
           </>

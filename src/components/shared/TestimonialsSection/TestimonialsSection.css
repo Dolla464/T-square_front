@@ -60,12 +60,23 @@
 .testimonials-scroll-container {
   width: 100%;
   overflow-x: hidden;
-  /* تغيير لمنع الاكرول اليدوي بالعرض وتفعيل التنقل عبر الأزرار */
   overflow-y: hidden;
   padding: 20px 0;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x mandatory;
-  /* تفعيل المحاذاة المغناطيسية لتوسيط الكروت */
+}
+
+/* Mobile: swipe scroll with hidden scrollbar */
+@media (max-width: 767px) {
+  .testimonials-scroll-container {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .testimonials-scroll-container::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* ── أزرار التنقل للتوافق مع جميع الشاشات ── */

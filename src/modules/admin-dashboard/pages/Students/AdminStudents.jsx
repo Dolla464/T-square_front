@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pagination } from "react-bootstrap";
+import AdminPagination from "../../components/shared/AdminPagination";
 import { useTranslation } from "react-i18next";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
@@ -64,6 +64,7 @@ function AdminStudents() {
     getStudents,
     getStudentById,
     createStudent,
+    updateStudent,
     deleteStudent,
     updateStudentStatus,
     toggleStudentVerify,
@@ -74,6 +75,7 @@ function AdminStudents() {
   // State variables for managing form visibility, current editing/viewing item, search and filter criteria, form data, and pagination
   const [showForm, setShowForm] = useState(false);
   const [viewingItem, setViewingItem] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -212,9 +214,25 @@ function AdminStudents() {
    */
   const handleAddNew = () => {
     setViewingItem(null);
+    setEditingItem(null);
     setFormData(defaultFormData);
     setShowForm(true);
   };
+
+  const populateFormFromStudent = (fullStudentData) => ({
+    full_name: fullStudentData.full_name || "",
+    email: fullStudentData.email || "",
+    role: "student",
+    phone: fullStudentData.phone || "",
+    enrollment_number: fullStudentData.enrollment_number || "",
+    group_id: fullStudentData.group_id || "",
+    group_name: fullStudentData.learning_group?.group_name || "",
+    gender: fullStudentData.full_gender || fullStudentData.gender || "male",
+    status: fullStudentData.status || "active",
+    avatar: fullStudentData.avatar,
+    created_at: fullStudentData.created_at || "",
+    enrolled_courses: fullStudentData.enrolled_courses || [],
+  });
 
   /**
    * View student data in a read-only form, fetching full details from the API to ensure we have all necessary information for display
@@ -224,22 +242,19 @@ function AdminStudents() {
 
     if (fullStudentData) {
       setViewingItem(fullStudentData);
+      setEditingItem(null);
+      setFormData(populateFormFromStudent(fullStudentData));
+      setShowForm(true);
+    }
+  };
 
-      setFormData({
-        full_name: fullStudentData.full_name || "",
-        email: fullStudentData.email || "",
-        role: "student",
-        phone: fullStudentData.phone || "",
-        enrollment_number: fullStudentData.enrollment_number || "",
-        group_id: fullStudentData.group_id || "",
-        group_name: fullStudentData.learning_group?.group_name || "",
-        gender: fullStudentData.full_gender || "male",
-        status: fullStudentData.status || "active",
-        avatar: fullStudentData.avatar,
-        created_at: fullStudentData.created_at || "",
-        enrolled_courses: fullStudentData.enrolled_courses || [],
-      });
+  const handleEdit = async (studentFromTable) => {
+    const fullStudentData = await getStudentById(studentFromTable.id);
 
+    if (fullStudentData) {
+      setEditingItem(fullStudentData);
+      setViewingItem(null);
+      setFormData(populateFormFromStudent(fullStudentData));
       setShowForm(true);
     }
   };
@@ -250,6 +265,7 @@ function AdminStudents() {
   const handleBack = () => {
     setShowForm(false);
     setViewingItem(null);
+    setEditingItem(null);
   };
 
   /**
@@ -281,7 +297,7 @@ function AdminStudents() {
   };
 
   /**
-   * Handle form submission for create operation only, with validation and error handling
+   * Handle form submission for create or update
    */
   const handleSubmitWrapper = async (e) => {
     e.preventDefault();
@@ -289,6 +305,32 @@ function AdminStudents() {
       toastError(
         isArabic ? "الاسم الكامل قصير جداً" : "Full name is too short",
       );
+      return;
+    }
+
+    if (editingItem) {
+      const formDataObj = new FormData();
+      formDataObj.append("full_name", formData.full_name);
+      formDataObj.append("enrollment_number", formData.enrollment_number);
+      formDataObj.append("gender", formData.gender);
+      formDataObj.append("status", formData.status);
+      if (formData.avatar instanceof File) {
+        formDataObj.append("avatar", formData.avatar);
+      }
+
+      try {
+        await updateStudent(editingItem.id, formDataObj);
+        await getStudents({
+          page: currentPage,
+          search: debouncedSearchTerm,
+          status: selectedStatus === "all" ? "" : selectedStatus,
+          gender: selectedGender === "all" ? "" : selectedGender,
+          group_id: selectedGroup === "all" ? "" : selectedGroup,
+        });
+        handleBack();
+      } catch {
+        // handled in hook
+      }
       return;
     }
 
@@ -766,6 +808,13 @@ function AdminStudents() {
                                   <i className="bi bi-eye fs-6"></i>
                                 </button>
                                 <button
+                                  className="btn btn-sm ac-btn-edit border-0"
+                                  title="Edit"
+                                  onClick={() => handleEdit(student)}
+                                >
+                                  <i className="bi bi-pencil fs-6"></i>
+                                </button>
+                                <button
                                   className="btn btn-sm ac-btn-deleteTable border-0"
                                   title="Delete"
                                   onClick={() => handleDelete(student.id)}
@@ -801,67 +850,7 @@ function AdminStudents() {
 
             {/* الترقيم السفلي */}
             {apiPagination && (
-              <div className="d-flex justify-content-center mt-5">
-                <Pagination className="custom-pagination">
-                  <Pagination.Prev
-                    disabled={apiPagination.current_page === 1}
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page - 1)
-                    }
-                  />
-
-                  {(() => {
-                    const currentPage = apiPagination.current_page;
-                    const totalPages = apiPagination.total_pages;
-                    const startPage = Math.floor((currentPage - 1) / 3) * 3 + 1;
-                    const endPage = Math.min(startPage + 2, totalPages);
-                    const items = [];
-
-                    if (startPage > 1) {
-                      items.push(
-                        <Pagination.Ellipsis
-                          key="prev-ellipsis"
-                          onClick={() => handlePageChange(startPage - 1)}
-                        />,
-                      );
-                    }
-
-                    for (let p = startPage; p <= endPage; p++) {
-                      items.push(
-                        <Pagination.Item
-                          style={{ margin: "0 3px" }}
-                          key={p}
-                          active={currentPage === p}
-                          onClick={() => handlePageChange(p)}
-                        >
-                          {p}
-                        </Pagination.Item>,
-                      );
-                    }
-
-                    if (endPage < totalPages) {
-                      items.push(
-                        <Pagination.Ellipsis
-                          key="next-ellipsis"
-                          onClick={() => handlePageChange(endPage + 1)}
-                        />,
-                      );
-                    }
-
-                    return items;
-                  })()}
-
-                  <Pagination.Next
-                    style={{ margin: "0 6px 0" }}
-                    disabled={
-                      apiPagination.current_page === apiPagination.total_pages
-                    }
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page + 1)
-                    }
-                  />
-                </Pagination>
-              </div>
+              <AdminPagination pagination={apiPagination} onPageChange={handlePageChange} />
             )}
           </div>
         </>
@@ -876,7 +865,9 @@ function AdminStudents() {
               <span className="ms-2 me-2 fs-5 fw-bold text-dark">
                 {viewingItem
                   ? t("students_page.view_student")
-                  : t("students_page.add_student_title")}
+                  : editingItem
+                    ? t("students_page.edit_student")
+                    : t("students_page.add_student_title")}
               </span>
             </button>
             {!viewingItem && (
@@ -885,7 +876,9 @@ function AdminStudents() {
                   className="btn btn-danger px-4 ac-publish-btn"
                   onClick={handleSubmitWrapper}
                 >
-                  {t("students_page.create_student")}
+                  {editingItem
+                    ? t("students_page.update_student")
+                    : t("students_page.create_student")}
                 </button>
               </div>
             )}
@@ -971,8 +964,8 @@ function AdminStudents() {
                   </p>
                 </div>
               )}
-              {/* رقم القيد (يظهر فقط في العرض العام) */}
-              {viewingItem && (
+              {/* رقم القيد */}
+              {(viewingItem || editingItem) && (
                 <div className="row mb-4">
                   <div className="col-md-12 mb-3 mb-md-0">
                     <label className="form-label fw-bold text-dark">
@@ -980,9 +973,11 @@ function AdminStudents() {
                     </label>
                     <input
                       type="text"
+                      name="enrollment_number"
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
                       value={formData.enrollment_number}
-                      disabled
+                      onChange={handleChange}
+                      disabled={!!viewingItem}
                     />
                   </div>
                 </div>
@@ -1004,7 +999,7 @@ function AdminStudents() {
                 />
               </div>
 
-              {/* حقل الإيميل (مخفي في التعديل) */}
+              {/* حقل الإيميل */}
               <div className="mb-4">
                 <label className="form-label fw-bold text-dark">
                   {t("students_page.email")}
@@ -1016,11 +1011,11 @@ function AdminStudents() {
                   placeholder={t("students_page.email_placeholder")}
                   value={formData.email}
                   onChange={handleChange}
-                  disabled={!!viewingItem}
+                  disabled={!!viewingItem || !!editingItem}
                 />
               </div>
 
-              {/* حقل النوع (مخفي في التعديل) */}
+              {/* حقل النوع */}
               <div className="mb-4">
                 <label className="form-label fw-bold text-dark">
                   {isArabic ? "نوع الطالب" : "Gender"}
@@ -1040,7 +1035,7 @@ function AdminStudents() {
                 </select>
               </div>
 
-              {/* حقل الهاتف (مخفي في التعديل) */}
+              {/* حقل الهاتف */}
               <div className="row mb-4">
                 <div className="col-12">
                   <label className="form-label fw-bold text-dark">
@@ -1053,23 +1048,22 @@ function AdminStudents() {
                     placeholder={t("students_page.phone_placeholder")}
                     value={formData.phone}
                     onChange={handleChange}
-                    disabled={!!viewingItem}
+                    disabled={!!viewingItem || !!editingItem}
                   />
                 </div>
               </div>
 
-              {/* اختيار المجموعة */}
-              {/* داخل فورم إضافة/تعديل طالب */}
+              {/* اختيار المجموعة - إنشاء فقط */}
+              {!viewingItem && !editingItem && (
               <div className="mb-4">
                 <label className="form-label fw-bold text-dark">
                   {isArabic ? "اسم المجموعه" : "Group Name"}
                 </label>
                 <select
-                  name="group_id" // تأكد إن الاسم group_id عشان يتبعت للباك صح
+                  name="group_id"
                   className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
                   value={formData.group_id}
                   onChange={handleChange}
-                  disabled={!!viewingItem}
                 >
                   <option value="">{t("students_page.select_group")}</option>
                   {selectionGroups.map((group) => (
@@ -1079,6 +1073,7 @@ function AdminStudents() {
                   ))}
                 </select>
               </div>
+              )}
 
               {/* تفاصيل إضافية للعرض فقط */}
               {viewingItem && (
@@ -1097,8 +1092,8 @@ function AdminStudents() {
                 </div>
               )}
 
-              {/* كلمة المرور (تظهر في الإضافة فقط) */}
-              {!viewingItem && (
+              {/* كلمة المرور (إنشاء فقط) */}
+              {!viewingItem && !editingItem && (
                 <div className="position-relative">
                   <label className="form-label fw-bold text-dark">
                     {t("students_page.password")}
@@ -1143,6 +1138,26 @@ function AdminStudents() {
                       className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"} fs-5`}
                     ></i>
                   </button>
+                </div>
+              )}
+
+              {editingItem && (
+                <div className="mb-4">
+                  <label className="form-label fw-bold text-dark">
+                    {isArabic ? "صورة الطالب" : "Student Avatar"}
+                  </label>
+                  <input
+                    type="file"
+                    name="avatar"
+                    accept="image/jpeg,image/png,image/jpg"
+                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setFormData((prev) => ({ ...prev, avatar: file }));
+                      }
+                    }}
+                  />
                 </div>
               )}
 
@@ -1359,7 +1374,9 @@ function AdminStudents() {
                     className="btn btn-danger px-5 py-2 fw-medium rounded-3"
                     onClick={handleSubmitWrapper}
                   >
-                    {t("students_page.create_student")}
+                    {editingItem
+                      ? t("students_page.update_student")
+                      : t("students_page.create_student")}
                   </button>
                 </div>
               )}

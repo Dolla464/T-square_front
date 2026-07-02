@@ -34,6 +34,14 @@ export const deleteStudent = async (id) => {
 };
 
 /**
+ * Update an existing student
+ */
+export const updateStudent = async (id, data) => {
+  const response = await axiosClient.post(`/admin/students/${id}`, data);
+  return response.data;
+};
+
+/**
  * Update a student's active/inactive status
  */
 export const updateStudentStatus = (id, status) => {

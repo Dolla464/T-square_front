@@ -15,8 +15,8 @@ import logoDark from "../../../../assets/logo-dark.webp";
 import "./DashboardSharedLayout.css";
 import { resendVerificationNotification } from "../../../../services/register";
 import toast from "react-hot-toast";
-import { Alert, Button, Spinner } from "react-bootstrap";
-import { useNotifications } from "../../notificationsServices/useNotifications";
+import { Alert, Spinner } from "react-bootstrap";
+import { useUnreadCount } from "../../../../hooks/useNotifications";
 
 function DashboardSharedLayout({
   navItems,
@@ -43,8 +43,7 @@ function DashboardSharedLayout({
   const isCourseDetailsPage = location.pathname.includes("/student/course/");
   const isExmam = location.pathname.includes("/student/quizzes/");
   const isLeaveReviewPage = location.pathname.includes("/student/review/");
-  const { notificationsData } = useNotifications();
-  const unreadCount = notificationsData.unread_count;
+  const { unreadCount } = useUnreadCount();
 
   const initials = user?.name
     ? user.name
@@ -304,9 +303,9 @@ function DashboardSharedLayout({
                       : `Account not activated - please check your email: ${user?.email}`}
                   </span>
                 </div>
-                <Button
-                  variant="outline-danger"
-                  className="mt-2 fw-bold mb-1 btn btn-outline-danger"
+                <button
+                  type="button"
+                  className="mt-2 fw-bold mb-1 btn ac-publish-btn text-white px-3 py-2"
                   onClick={handleResend}
                   disabled={isResending}
                 >
@@ -325,7 +324,7 @@ function DashboardSharedLayout({
                   ) : (
                     "Send verification link again" || "إعادة إرسال رابط التفعيل"
                   )}
-                </Button>
+                </button>
               </Alert>
             )}
           <Suspense

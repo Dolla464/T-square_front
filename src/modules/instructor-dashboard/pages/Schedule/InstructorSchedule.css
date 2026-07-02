@@ -4,7 +4,7 @@
 
 /* Session cards */
 .session-card {
-  border-left: 4px solid #0d6efd !important;
+  border-left: 4px solid #d32f2f !important;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 

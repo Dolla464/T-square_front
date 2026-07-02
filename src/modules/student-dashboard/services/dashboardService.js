@@ -126,3 +126,15 @@ export const updateStudentPassword = (passwordData) => {
 export const getExamResults = (examId) =>
   axiosClient.get("/exams/my-results", { params: { exam_id: examId } });
 
+/**
+ * Check review eligibility for a course
+ */
+export const getReviewEligibility = (courseId) =>
+  axiosClient.get(`/student/reviews/eligibility/${courseId}`);
+
+/**
+ * Submit a course review
+ */
+export const submitCourseReview = (payload) =>
+  axiosClient.post("/student/reviews", payload);
+

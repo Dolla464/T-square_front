@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Pagination, Spinner } from "react-bootstrap";
+import { Spinner } from "react-bootstrap";
+import AdminPagination from "../../components/shared/AdminPagination";
 import { useTranslation } from "react-i18next";
 import {
   showConfirmCustom,
@@ -556,7 +557,7 @@ function AdminQuizzes() {
                                 {showTrash ? (
                                   <>
                                     <button
-                                      className="btn btn-sm btn-outline-success border-0"
+                                      className="btn btn-sm ac-btn-view border-0"
                                       title={t("quizzes_page.restore")}
                                       onClick={() =>
                                         handleRestore(
@@ -568,11 +569,7 @@ function AdminQuizzes() {
                                       <i className="bi bi-arrow-counterclockwise fs-6"></i>
                                     </button>
                                     <button
-                                      className="btn btn-sm border-0"
-                                      style={{
-                                        color: "#7f1d1d",
-                                        backgroundColor: "transparent",
-                                      }}
+                                      className="btn btn-sm ac-btn-deleteTable border-0"
                                       title={t("quizzes_page.force_delete")}
                                       onClick={() =>
                                         handleForceDelete(
@@ -596,7 +593,7 @@ function AdminQuizzes() {
                                       <i className="bi bi-eye fs-6"></i>
                                     </button>
                                     <button
-                                      className="btn btn-sm ac-btn-view border-0 text-primary"
+                                      className="btn btn-sm ac-btn-edit border-0"
                                       title={t("quizzes_page.edit_quiz")}
                                       onClick={() => handleEdit(quizItem)}
                                     >
@@ -638,65 +635,7 @@ function AdminQuizzes() {
 
             {/* Pagination controls */}
             {apiPagination && (
-              <div className="d-flex justify-content-center mt-5">
-                <Pagination className="custom-pagination">
-                  <Pagination.Prev
-                    disabled={apiPagination.current_page === 1}
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page - 1)
-                    }
-                  />
-                  {(() => {
-                    const currentPage = apiPagination.current_page;
-                    const totalPages = apiPagination.total_pages;
-                    const startPage = Math.floor((currentPage - 1) / 3) * 3 + 1;
-                    const endPage = Math.min(startPage + 2, totalPages);
-                    const items = [];
-
-                    if (startPage > 1) {
-                      items.push(
-                        <Pagination.Ellipsis
-                          key="prev-ellipsis"
-                          onClick={() => handlePageChange(startPage - 1)}
-                        />
-                      );
-                    }
-
-                    for (let p = startPage; p <= endPage; p++) {
-                      items.push(
-                        <Pagination.Item
-                          style={{ margin: "0 3px" }}
-                          key={p}
-                          active={currentPage === p}
-                          onClick={() => handlePageChange(p)}
-                        >
-                          {p}
-                        </Pagination.Item>
-                      );
-                    }
-
-                    if (endPage < totalPages) {
-                      items.push(
-                        <Pagination.Ellipsis
-                          key="next-ellipsis"
-                          onClick={() => handlePageChange(endPage + 1)}
-                        />
-                      );
-                    }
-
-                    return items;
-                  })()}
-                  <Pagination.Next
-                    style={{ margin: "0 6px 0" }}
-                    disabled={
-                      apiPagination.current_page === apiPagination.total_pages
-                    }
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page + 1)
-                    }
-                  />
-                </Pagination>
-              </div>
+              <AdminPagination pagination={apiPagination} onPageChange={handlePageChange} />
             )}
           </div>
         </>

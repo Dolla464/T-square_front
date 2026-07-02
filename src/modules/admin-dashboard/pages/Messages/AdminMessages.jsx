@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal, Button, Pagination, Spinner } from "react-bootstrap";
+import { Button, Spinner } from "react-bootstrap";
+import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
+import AdminPagination from "../../components/shared/AdminPagination";
 import { useMessages } from "../../hooks/useMessages";
 import MessageCard from "./MessageCard";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
@@ -238,76 +240,16 @@ T-Square Team.
 
       {/* ── الترقيم الصفحي (Pagination) ── */}
       {apiPagination &&  (
-        <div className="d-flex justify-content-center mt-5">
-          <Pagination className="custom-pagination">
-            <Pagination.Prev
-              disabled={apiPagination.current_page === 1}
-              onClick={() => handlePageChange(apiPagination.current_page - 1)}
-            />
-
-            {(() => {
-              const currentPage = apiPagination.current_page;
-              const totalPages = apiPagination.total_pages;
-              const startPage = Math.floor((currentPage - 1) / 3) * 3 + 1;
-              const endPage = Math.min(startPage + 2, totalPages);
-              const items = [];
-
-              if (startPage > 1) {
-                items.push(
-                  <Pagination.Ellipsis
-                    key="prev-ellipsis"
-                    onClick={() => handlePageChange(startPage - 1)}
-                  />
-                );
-              }
-
-              for (let p = startPage; p <= endPage; p++) {
-                items.push(
-                  <Pagination.Item
-                    style={{ margin: "0 3px" }}
-                    key={p}
-                    active={currentPage === p}
-                    onClick={() => handlePageChange(p)}
-                  >
-                    {p}
-                  </Pagination.Item>
-                );
-              }
-
-              if (endPage < totalPages) {
-                items.push(
-                  <Pagination.Ellipsis
-                    key="next-ellipsis"
-                    onClick={() => handlePageChange(endPage + 1)}
-                  />
-                );
-              }
-
-              return items;
-            })()}
-
-            <Pagination.Next
-              style={{ margin: "0 6px 0" }}
-              disabled={apiPagination.current_page === apiPagination.total_pages}
-              onClick={() => handlePageChange(apiPagination.current_page + 1)}
-            />
-          </Pagination>
-        </div>
+        <AdminPagination pagination={apiPagination} onPageChange={handlePageChange} />
       )}
 
       {/* ── مودال تفاصيل الرسالة ── */}
-      <Modal
+      <DetailModal
         show={showViewModal}
         onHide={() => setShowViewModal(false)}
-        centered
-        size="md"
-        className="cert-detail-modal"
+        title={isArabic ? "تفاصيل الرسالة" : "Message Details"}
+        dir={isArabic ? "rtl" : "ltr"}
       >
-        <div className="d-flex align-items-center justify-content-between pt-3 px-3" dir={isArabic ? "rtl" : "ltr"}>
-          <Modal.Title className="fs-5 fw-bold">{isArabic ? "تفاصيل الرسالة" : "Message Details"}</Modal.Title>
-          <Modal.Header closeButton className="border-0"></Modal.Header>
-        </div>
-        <Modal.Body className="pt-0">
           {selectedMessage && (
             <div className="cert-modal-content" dir={isArabic ? "rtl" : "ltr"}>
               <div className="cert-info-list p-3 bg-light rounded-3 mt-3">
@@ -360,8 +302,7 @@ T-Square Team.
               </div>
             </div>
           )}
-        </Modal.Body>
-      </Modal>
+      </DetailModal>
     </div>
   );
 }

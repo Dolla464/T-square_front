@@ -230,7 +230,7 @@ function CurriculumTab({
                                 </span>
                                 <button
                                   type="button"
-                                  className="btn btn-sm btn-outline-danger border-0 p-1"
+                                  className="btn btn-sm ac-btn-deleteTable border-0 p-1"
                                   title={isArabic ? "إلغاء الرفع" : "Cancel upload"}
                                   onClick={() =>
                                     handleCancelUpload(section.id, lesson.id)

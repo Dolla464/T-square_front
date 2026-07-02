@@ -933,6 +933,19 @@
   border: 1px solid rgba(34, 197, 94, 0.25);
 }
 
+.notification-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(220, 53, 69, 0.08);
+  color: #dc3545;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
 .notification-content {
   flex: 1;
 }
@@ -1000,23 +1013,7 @@
   }
 }
 
-/* ── Quiz Results Modal ── */
-.quiz-detail-modal .modal-content {
-  border-radius: 20px;
-  border: none;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-}
-
-.quiz-detail-modal .modal-header {
-  border-bottom: 1px solid #f3f4f6;
-  padding: 16px 24px;
-}
-
-.quiz-detail-modal .modal-body {
-  padding: 24px;
-}
-
+/* ── Quiz Results Modal (content) ── */
 .quiz-modal-gauge-section {
   display: flex;
   flex-direction: column;

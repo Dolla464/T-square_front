@@ -1,3 +1,5 @@
+import { selectClass } from "../../../components/shared/adminUiStyles";
+
 function CourseFilters({
   searchTerm,
   setSearchTerm,
@@ -40,7 +42,7 @@ function CourseFilters({
         {showTrash ? (
           /* Trash mode – period filter only */
           <select
-            className="form-select ac-form-select  bg-light border-0 rounded-3 text-muted"
+            className={`form-select ac-form-select  bg-light border-0 rounded-3 text-muted`}
             value={trashPeriod}
             onChange={(e) => setTrashPeriod(e.target.value)}
           >
@@ -57,11 +59,7 @@ function CourseFilters({
           /* Active mode – status + category */
           <>
             <select
-              className={`form-select ac-form-select  border-2 rounded-3 shadow-sm fw-medium transition-all ${
-                selectedStatus !== "all"
-                  ? "border-danger bg-danger-subtle text-danger-emphasis"
-                  : "border-light bg-light text-muted"
-              }`}
+              className={selectClass(selectedStatus !== "all")}
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
             >
@@ -70,11 +68,7 @@ function CourseFilters({
               <option value="draft">Draft</option>
             </select>
             <select
-              className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
-                selectedCategory !== "all"
-                  ? "border-danger bg-danger-subtle text-danger-emphasis"
-                  : "border-light bg-light text-muted"
-              }`}
+              className={selectClass(selectedCategory !== "all")}
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >

@@ -1,20 +1,37 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import {
   Spinner,
   Badge,
   ProgressBar,
-  Modal,
-  Button,
   Toast,
   ToastContainer,
 } from "react-bootstrap";
+import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
 import { QRCodeSVG } from "qrcode.react";
 import { useInstructorAttendance } from "../../hooks/useInstructorAttendance";
 import { useAttendanceRealtime } from "../../hooks/useAttendanceRealtime";
-import "../../components/shared/AdminContentPage/AdminContentPage.css";
+import "../../../admin-dashboard/components/shared/AdminContentPage/AdminContentPage.css";
 
 const RECENT_SCANS_LIMIT = 10;
+
+function SectionTitle({ icon, title, badge }) {
+  return (
+    <div className="d-flex align-items-center gap-3">
+      <div
+        className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm"
+        style={{ width: 40, height: 40, flexShrink: 0 }}
+      >
+        <i className={`bi ${icon} text-white`}></i>
+      </div>
+      <h2 className="ac-title mb-0 d-flex align-items-center gap-2 flex-wrap">
+        {title}
+        {badge}
+      </h2>
+    </div>
+  );
+}
 
 // ── Status config ─────────────────────────────────────────────────────────────
 
@@ -96,10 +113,12 @@ function InstructorAttendance() {
     markAllPresent,
     loadQrCode,
     selectSession,
+    loadSessionDetails,
     recentScans,
     setRecentScans,
   } = useInstructorAttendance();
 
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showQrModal, setShowQrModal]   = useState(false);
   const [toastMessage, setToastMessage] = useState(null); // { name, status }
 
@@ -121,6 +140,33 @@ function InstructorAttendance() {
     activeSession?.session_id ?? null,
     handleStudentScanned
   );
+
+  useEffect(() => {
+    const sessionId = searchParams.get("session");
+    if (!sessionId || loading) return;
+
+    const matchedSession = todaySessions.find(
+      (session) => String(session.session_id) === String(sessionId),
+    );
+
+    if (matchedSession) {
+      if (String(activeSession?.session_id) !== String(sessionId)) {
+        selectSession(matchedSession);
+      }
+    } else if (String(activeSession?.session_id) !== String(sessionId)) {
+      loadSessionDetails(Number(sessionId));
+    }
+
+    setSearchParams({}, { replace: true });
+  }, [
+    activeSession?.session_id,
+    loading,
+    loadSessionDetails,
+    searchParams,
+    selectSession,
+    setSearchParams,
+    todaySessions,
+  ]);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -198,16 +244,15 @@ function InstructorAttendance() {
         </div>
 
         {activeSession && (
-          <Button
-            variant="outline-success"
-            className="d-flex align-items-center gap-2 fw-medium"
-            style={{ minHeight: "44px" }}
+          <button
+            type="button"
+            className="btn btn-danger ac-add-btn d-flex align-items-center gap-2"
             onClick={handleShowQr}
             disabled={activeSession.status !== "active"}
           >
-            <i className="bi bi-qr-code fs-5"></i>
+            <i className="bi bi-qr-code"></i>
             {isArabic ? "عرض رمز QR" : "Show QR Code"}
-          </Button>
+          </button>
         )}
       </div>
 
@@ -342,16 +387,15 @@ function InstructorAttendance() {
                     </small>
                   </div>
 
-                  <Button
-                    variant="outline-danger"
-                    size="sm"
-                    style={{ minHeight: "44px" }}
+                  <button
+                    type="button"
+                    className="btn btn-danger ac-add-btn"
                     onClick={handleShowQr}
                     disabled={activeSession.status !== "active"}
                   >
                     <i className="bi bi-qr-code me-1"></i>
                     {isArabic ? "رمز QR" : "QR Code"}
-                  </Button>
+                  </button>
                 </div>
               </div>
             </div>
@@ -361,13 +405,15 @@ function InstructorAttendance() {
           {activeSession && (
             <div className="ac-table-card mb-4">
               <div className="d-flex justify-content-between align-items-center mb-3 px-1">
-                <h5 className="fw-bold mb-0 text-dark">
-                  <i className="bi bi-activity me-2 text-danger"></i>
-                  {isArabic ? "آخر عمليات المسح" : "Recent Scans"}
-                  <Badge bg="danger" className="ms-2 rounded-pill" style={{ fontSize: "0.75rem" }}>
-                    {recentScans.length}
-                  </Badge>
-                </h5>
+                <SectionTitle
+                  icon="bi-activity"
+                  title={isArabic ? "آخر عمليات المسح" : "Recent Scans"}
+                  badge={
+                    <Badge bg="danger" className="rounded-pill" style={{ fontSize: "0.75rem" }}>
+                      {recentScans.length}
+                    </Badge>
+                  }
+                />
                 {isPolling && (
                   <span className="text-muted small d-flex align-items-center gap-1">
                     <Spinner animation="border" size="sm" variant="secondary"
@@ -440,27 +486,28 @@ function InstructorAttendance() {
           {/* ── STUDENTS TABLE ── */}
           {activeSession && (
             <div className="ac-table-card">
-              <div className="d-flex justify-content-between align-items-center mb-3 px-1">
-                <h5 className="fw-bold mb-0 text-dark">
-                  <i className="bi bi-people me-2 text-danger"></i>
-                  {isArabic ? "قائمة الطلاب" : "Student List"}
-                  {notMarkedCount > 0 && (
-                    <Badge bg="secondary" className="ms-2 rounded-pill" style={{ fontSize: "0.75rem" }}>
-                      {notMarkedCount} {isArabic ? "لم يسجَّل" : "unmarked"}
-                    </Badge>
-                  )}
-                </h5>
+              <div className="d-flex justify-content-between align-items-center mb-3 px-1 flex-wrap gap-2">
+                <SectionTitle
+                  icon="bi-people"
+                  title={isArabic ? "قائمة الطلاب" : "Student List"}
+                  badge={
+                    notMarkedCount > 0 && (
+                      <Badge bg="secondary" className="rounded-pill" style={{ fontSize: "0.75rem" }}>
+                        {notMarkedCount} {isArabic ? "لم يسجَّل" : "unmarked"}
+                      </Badge>
+                    )
+                  }
+                />
 
-                <Button
-                  variant="outline-success"
-                  size="sm"
-                  style={{ minHeight: "44px" }}
+                <button
+                  type="button"
+                  className="btn btn-danger ac-add-btn"
                   onClick={markAllPresent}
                   disabled={detailLoading || notMarkedCount === 0}
                 >
                   <i className="bi bi-check-all me-1"></i>
                   {isArabic ? "تحضير الكل" : "Mark All Present"}
-                </Button>
+                </button>
               </div>
 
               <div
@@ -627,21 +674,25 @@ function InstructorAttendance() {
       )}
 
       {/* ── QR CODE MODAL ── */}
-      <Modal
+      <DetailModal
         show={showQrModal}
         onHide={handleCloseQr}
-        centered
         size="sm"
         dir={isArabic ? "rtl" : "ltr"}
-      >
-        <Modal.Header closeButton className="border-0 pb-0">
-          <Modal.Title className="fw-bold fs-6">
+        title={
+          <>
             <i className="bi bi-qr-code me-2 text-danger"></i>
             {isArabic ? "رمز الحضور" : "Attendance QR Code"}
-          </Modal.Title>
-        </Modal.Header>
-
-        <Modal.Body className="text-center pb-4">
+          </>
+        }
+        bodyClassName="text-center pb-4 pt-0"
+        footer={
+          <button type="button" className="btn btn-outline-dark ac-add-btn" onClick={handleCloseQr}>
+            {isArabic ? "إغلاق" : "Close"}
+          </button>
+        }
+        footerClassName="border-0 pt-0 justify-content-center"
+      >
           {qrLoading ? (
             <div className="py-4">
               <Spinner animation="border" variant="danger" />
@@ -680,14 +731,7 @@ function InstructorAttendance() {
               </p>
             </div>
           )}
-        </Modal.Body>
-
-        <Modal.Footer className="border-0 pt-0 justify-content-center">
-          <Button variant="outline-secondary" onClick={handleCloseQr} style={{ minHeight: "44px" }}>
-            {isArabic ? "إغلاق" : "Close"}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      </DetailModal>
     </div>
   );
 }

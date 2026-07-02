@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { Badge, Dropdown, Spinner } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../../hooks/useNotifications";
+import { resolveNotificationUrl } from "../../utils/notifications";
 
 function NotificationsDropdown() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation("studentDashboard");
+  const isArabic = i18n.language?.startsWith("ar");
+  const locale = isArabic ? "ar-EG" : "en-GB";
   const [show, setShow] = useState(false);
   const {
     notifications,
@@ -15,9 +20,9 @@ function NotificationsDropdown() {
     markAllAsRead,
     setDropdownOpen,
     formatTimeAgo,
+    userRole,
   } = useNotifications();
 
-  // Notify parent hook about dropdown state for polling strategy
   useEffect(() => {
     setDropdownOpen(show);
   }, [show, setDropdownOpen]);
@@ -31,12 +36,9 @@ function NotificationsDropdown() {
       await markAsRead(notification.id);
     }
 
-    if (notification.action_url) {
-      const relativePath = notification.action_url.startsWith("http")
-        ? new URL(notification.action_url).pathname
-        : notification.action_url;
-
-      navigate(relativePath);
+    const targetUrl = resolveNotificationUrl(notification, userRole);
+    if (targetUrl) {
+      navigate(targetUrl);
     }
 
     setShow(false);
@@ -68,14 +70,14 @@ function NotificationsDropdown() {
 
       <Dropdown.Menu style={{ minWidth: "320px", maxWidth: "360px" }}>
         <div className="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
-          <strong>Notifications</strong>
+          <strong>{t("notifications.title")}</strong>
           {unreadCount > 0 && (
             <button
               type="button"
               className="btn btn-link btn-sm p-0"
               onClick={handleMarkAllAsRead}
             >
-              Mark all as read
+              {t("notifications.markAllRead")}
             </button>
           )}
         </div>
@@ -83,19 +85,19 @@ function NotificationsDropdown() {
         {isLoading && (
           <div className="px-3 py-4 text-center text-muted">
             <Spinner animation="border" size="sm" className="me-2" />
-            Loading...
+            {t("notifications.loading")}
           </div>
         )}
 
         {!isLoading && error && (
           <div className="px-3 py-4 text-center text-danger">
-            Unable to load notifications right now.
+            {t("notifications.loadError")}
           </div>
         )}
 
         {!isLoading && !error && notifications.length === 0 && (
           <div className="px-3 py-4 text-center text-muted">
-            No notifications
+            {t("notifications.emptyShort")}
           </div>
         )}
 
@@ -122,7 +124,7 @@ function NotificationsDropdown() {
                       {notification.message}
                     </div>
                     <div className="small text-secondary mt-1">
-                      {formatTimeAgo(notification)}
+                      {formatTimeAgo(notification, locale)}
                     </div>
                   </div>
                   {!notification.is_read && (

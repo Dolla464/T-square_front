@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal } from "react-bootstrap";
+import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
 import { useCertificates } from "../../hooks/useCertificates";
 import "./DashboardCertificates.css";
 import StatCard from "../../components/StatCard";
@@ -165,23 +165,12 @@ function DashboardCertificates() {
           </p>
 
           {/* ── مودال تفاصيل الشهادة ── */}
-          <Modal
+          <DetailModal
             show={showModal}
             onHide={() => setShowModal(false)}
-            centered
-            size="md"
-            className="cert-detail-modal"
+            title={isArabic ? "تفاصيل الشهادة" : "Certificate Details"}
+            dir={isArabic ? "rtl" : "ltr"}
           >
-            <div
-              className="d-flex align-items-center justify-content-between pt-2 px-3"
-              dir={isArabic ? "rtl" : "ltr"}
-            >
-              <Modal.Title className="fs-5 fw-bold">
-                {isArabic ? "تفاصيل الشهادة" : "Certificate Details"}
-              </Modal.Title>
-              <Modal.Header closeButton className="border-0 "></Modal.Header>
-            </div>
-            <Modal.Body className="pt-0">
               {selectedCert && (
                 <div className="cert-modal-content">
                   {/* dynamic iframe preview */}
@@ -286,8 +275,7 @@ function DashboardCertificates() {
                   </button>
                 </div>
               )}
-            </Modal.Body>
-          </Modal>
+          </DetailModal>
         </>
       )}
     </div>

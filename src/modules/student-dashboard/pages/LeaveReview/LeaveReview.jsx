@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import i18next from "i18next";
-import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
+import { Spinner } from "react-bootstrap";
 import { useLeaveReview } from "../../hooks/useLeaveReview";
 import { ALL_QUESTION_IDS, REVIEW_GROUPS } from "./reviewQuestions";
 import "./LeaveReview.css";
@@ -17,10 +17,9 @@ const RATING_SCALE = [
 
 function LeaveReview() {
   const { courseId } = useParams();
-  const navigate = useNavigate();
   const isArabic = i18next.language === "ar";
 
-  useLeaveReview();
+  const { loading, submitting, error, submitReview } = useLeaveReview(courseId);
 
   const [ratings, setRatings] = useState({});
   const [overallComment, setOverallComment] = useState("");
@@ -31,26 +30,19 @@ function LeaveReview() {
   );
 
   const handleBack = useCallback(() => {
-    navigate(`/student/course/${courseId}`);
-  }, [navigate, courseId]);
+    window.history.back();
+  }, []);
 
   const handleRatingChange = useCallback((questionId, value) => {
     setRatings((prev) => ({ ...prev, [questionId]: value }));
   }, []);
 
   const handleSubmit = useCallback(
-    (e) => {
+    async (e) => {
       e.preventDefault();
-
-      toastSuccess(
-        isArabic
-          ? "تم إرسال تقييماتك بنجاح! شكراً لك على مشاركة رأيك الصادق."
-          : "Your reviews have been submitted successfully! Thank you for sharing your honest feedback."
-      );
-
-      navigate(`/student/course/${courseId}`);
+      await submitReview({ ratings, overallComment });
     },
-    [navigate, courseId, isArabic]
+    [submitReview, ratings, overallComment]
   );
 
   const getRatingLabel = useCallback(
@@ -101,22 +93,22 @@ function LeaveReview() {
     const currentRating = ratings[question.id] || 0;
 
     return (
-    <div key={question.id} className="lr-question-item">
-      <p className="lr-question-en">{question.en}</p>
-      <p className="lr-question-ar" dir="rtl">
-        {question.ar}
-      </p>
-      <div className="lr-rating-group">
-        {renderStars(question.id, currentRating, (value) =>
-          handleRatingChange(question.id, value)
-        )}
-        {currentRating > 0 && (
-          <span className="lr-rating-selected-label">
-            {getRatingLabel(currentRating)}
-          </span>
-        )}
+      <div key={question.id} className="lr-question-item">
+        <p className="lr-question-en">{question.en}</p>
+        <p className="lr-question-ar" dir="rtl">
+          {question.ar}
+        </p>
+        <div className="lr-rating-group">
+          {renderStars(question.id, currentRating, (value) =>
+            handleRatingChange(question.id, value)
+          )}
+          {currentRating > 0 && (
+            <span className="lr-rating-selected-label">
+              {getRatingLabel(currentRating)}
+            </span>
+          )}
+        </div>
       </div>
-    </div>
     );
   };
 
@@ -132,6 +124,14 @@ function LeaveReview() {
       </div>
     </div>
   );
+
+  if (loading) {
+    return (
+      <div className="lr-page d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
+        <Spinner animation="border" variant="danger" />
+      </div>
+    );
+  }
 
   return (
     <div className="lr-page" dir={isArabic ? "rtl" : "ltr"}>
@@ -154,15 +154,23 @@ function LeaveReview() {
           </h1>
           <p className="lr-hero-sub">
             {isArabic
-              ? "ملاحظاتك تساعدنا على تحسين محتوى الكورسات، أداء المحاضرين، وتجربة السنتر والمنصة بشكل عام."
-              : "Your feedback helps us improve course content, instructor performance, and the overall center and platform experience."}
+              ? "ملاحظاتك تساعدنا على تحسين محتوى الكورسات، أداء المحاضرين، وتجربة السنتر والمنصة بشكل عام. بعد إرسال التقييم ستصبح شهادتك متاحة للتحميل."
+              : "Your feedback helps us improve course content, instructor performance, and the overall center and platform experience. After submitting your review, your certificate will become available."}
           </p>
         </div>
       </section>
 
-      <div className="container mt-4">
+      <div className="container-fluid px-3 px-lg-4 mt-4">
+        {error && (
+          <div className="alert alert-danger" role="alert">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="lr-body">
-          {REVIEW_GROUPS.map(renderQuestionGroup)}
+          <div className="lr-columns-grid">
+            {REVIEW_GROUPS.map(renderQuestionGroup)}
+          </div>
 
           <div className="lr-card lr-overall-comment">
             <div className="lr-form-group">
@@ -189,12 +197,18 @@ function LeaveReview() {
             <button
               type="submit"
               className="lr-btn-submit"
-              disabled={!allQuestionsRated}
+              disabled={!allQuestionsRated || submitting}
             >
               <i className="bi bi-send-fill"></i>
-              {isArabic ? "إرسال التقييمات" : "Submit Reviews"}
+              {submitting
+                ? isArabic
+                  ? "جاري الإرسال..."
+                  : "Submitting..."
+                : isArabic
+                  ? "إرسال التقييمات"
+                  : "Submit Reviews"}
             </button>
-            <button type="button" onClick={handleBack} className="lr-btn-cancel">
+            <button type="button" onClick={handleBack} className="lr-btn-cancel" disabled={submitting}>
               {isArabic ? "إلغاء" : "Cancel"}
             </button>
           </div>

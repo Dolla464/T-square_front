@@ -81,10 +81,10 @@ export const useGroups = () => {
   );
 
   // جلب المجموعات المخصصة للـ Select فقط (خفيفة وسريعة)
-  const getGroupsSelection = useCallback(async () => {
+  const getGroupsSelection = useCallback(async (params = {}) => {
     setLoading(true);
     try {
-      const res = await fetchGroupsSelection();
+      const res = await fetchGroupsSelection(params);
       const data = res?.data || [];
       setSelectionGroups(data);
       return data;

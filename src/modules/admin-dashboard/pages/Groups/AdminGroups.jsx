@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Pagination, Modal, Button, Spinner } from "react-bootstrap";
+import { Button, Spinner } from "react-bootstrap";
+import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
+import AdminPagination from "../../components/shared/AdminPagination";
 import { useInstructors } from "../../hooks/useInstractor";
 import { useGroups } from "../../hooks/useGroups";
-import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { showDeleteConfirm, showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { useAdminCourses } from "../../hooks/useAdminCourses";
-import { toastError } from "../../../../components/shared/Toaster/toaster";
+import { toastError, toastSuccess } from "../../../../components/shared/Toaster/toaster";
 import { getLearningGroupSessions, exportGroupStudents } from "../../services/learningGroupServices";
 import { exportSchedule } from "../../services/adminScheduleService";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
@@ -57,8 +59,30 @@ const defaultFormData = {
   course_id: "",
   instructor_id: "",
   start_date: "",
+  status: "active",
   schedules: [],
   students: [],
+};
+
+const GROUP_STATUS_CONFIG = {
+  active: {
+    bg: "bg-success-subtle text-success",
+    icon: "bi-play-circle-fill",
+    labelEn: "Active",
+    labelAr: "نشطة",
+  },
+  completed: {
+    bg: "bg-secondary-subtle text-secondary",
+    icon: "bi-check-circle-fill",
+    labelEn: "Completed",
+    labelAr: "مكتملة",
+  },
+  cancelled: {
+    bg: "bg-danger-subtle text-danger",
+    icon: "bi-x-circle-fill",
+    labelEn: "Cancelled",
+    labelAr: "ملغاة",
+  },
 };
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -159,6 +183,24 @@ const getDayNameFromDate = (dateStr, isArabic) => {
   return isArabic ? DAY_NAMES_AR[idx] : DAY_NAMES_EN[idx];
 };
 
+function GroupStatusBadge({ status, isArabic }) {
+  const cfg = GROUP_STATUS_CONFIG[status] ?? {
+    bg: "bg-light text-dark",
+    icon: "bi-circle",
+    labelEn: status,
+    labelAr: status,
+  };
+  return (
+    <span
+      className={`badge rounded-pill px-2 py-1 ${cfg.bg}`}
+      style={{ fontSize: "0.75rem" }}
+    >
+      <i className={`bi ${cfg.icon} me-1`}></i>
+      {isArabic ? cfg.labelAr : cfg.labelEn}
+    </span>
+  );
+}
+
 function SessionStatusBadge({ status, isArabic }) {
   const cfg = SESSION_STATUS_CONFIG[status] ?? {
     bg: "bg-light text-dark",
@@ -206,11 +248,13 @@ function AdminGroups() {
   const [timeFilter, setTimeFilter] = useState("all");
   const [courseFilter, setCourseFilter] = useState("all");
   const [instructorFilter, setInstructorFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [formData, setFormData] = useState(defaultFormData);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [scheduleErrors, setScheduleErrors] = useState([]);
   const originalSchedulesRef = useRef(null);
+  const originalStatusRef = useRef("active");
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [groupSessions, setGroupSessions] = useState([]);
   const [scheduleModalLoading, setScheduleModalLoading] = useState(false);
@@ -248,7 +292,7 @@ function AdminGroups() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, timeFilter, courseFilter, instructorFilter]);
+  }, [debouncedSearch, timeFilter, courseFilter, instructorFilter, statusFilter]);
 
   const handlePageChange = (page) => setCurrentPage(page);
 
@@ -261,6 +305,8 @@ function AdminGroups() {
       const matchInstructor =
         instructorFilter === "all" ||
         String(group.instructor_id) === String(instructorFilter);
+      const matchStatus =
+        statusFilter === "all" || group.status === statusFilter;
 
       let matchTime = true;
       if (group.created_at) {
@@ -275,9 +321,9 @@ function AdminGroups() {
         }
       }
 
-      return matchCourse && matchInstructor && matchTime;
+      return matchCourse && matchInstructor && matchStatus && matchTime;
     });
-  }, [groups, courseFilter, instructorFilter, timeFilter]);
+  }, [groups, courseFilter, instructorFilter, statusFilter, timeFilter]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
@@ -311,6 +357,7 @@ function AdminGroups() {
         : "",
       instructor_name: groupData.instructor_name || "",
       start_date: groupData.start_date || "",
+      status: groupData.status || "active",
       schedules: groupData.schedules
         ? groupData.schedules.map((s) => ({
             day_of_week: Number(s.day_of_week),
@@ -322,6 +369,8 @@ function AdminGroups() {
       students_count: groupData.students_count || 0,
       students: normalizedStudents,
     });
+
+    originalStatusRef.current = groupData.status || "active";
 
     originalSchedulesRef.current = groupData.schedules
       ? groupData.schedules.map((s) => ({
@@ -355,6 +404,7 @@ function AdminGroups() {
       instructor_name: group.instructor_name || "",
       start_date: group.start_date || "",
       end_date: group.end_date || "",
+      status: group.status || "active",
       schedules: group.schedules
         ? group.schedules.map((s) => ({
             day_of_week: Number(s.day_of_week),
@@ -606,16 +656,44 @@ function AdminGroups() {
 
     if (!validateSchedules()) return;
 
+    const nextStatus = formData.status || "active";
+    const previousStatus = originalStatusRef.current || "active";
+
+    if (editingItem && nextStatus === "completed" && previousStatus !== "completed") {
+      const ok = await showConfirmCustom({
+        title: isArabic ? "إغلاق المجموعة" : "Close Group",
+        message: isArabic
+          ? "سيتم تعليم جميع طلاب المجموعة كمكتملين وإشعارهم لعمل تقييم. الشهادة لن تُصدر إلا بعد التقييم."
+          : "All students in this group will be marked as completed and notified to leave a review. Certificates will only be issued after a review is submitted.",
+        icon: "warning",
+        confirmText: isArabic ? "تأكيد" : "Confirm",
+      });
+      if (!ok) return;
+    }
+
+    if (editingItem && previousStatus === "completed" && nextStatus === "active") {
+      const ok = await showConfirmCustom({
+        title: isArabic ? "إعادة فتح المجموعة" : "Reopen Group",
+        message: isArabic
+          ? "سيتم إرجاع جميع طلاب المجموعة إلى قيد الدراسة. تحذير: يشمل الطلاب الذين أكملوا عبر الامتحان النهائي."
+          : "All students in this group will be marked as in progress. Warning: this includes students who completed via the final exam.",
+        icon: "warning",
+        confirmText: isArabic ? "تأكيد" : "Confirm",
+      });
+      if (!ok) return;
+    }
+
     try {
       if (editingItem) {
         const allStudentsData = [
           ...formData.students.map((s) => ({
             id: Number(s.id),
-            is_completed: !!s.is_completed,
+            is_completed:
+              nextStatus === "completed" ? true : !!s.is_completed,
           })),
           ...selectedStudents.map((id) => ({
             id: Number(id),
-            is_completed: false,
+            is_completed: nextStatus === "completed",
           })),
         ];
 
@@ -630,6 +708,7 @@ function AdminGroups() {
           course_id: Number(formData.course_id),
           instructor_id: Number(formData.instructor_id),
           start_date: formData.start_date,
+          status: nextStatus,
           student_ids,
           student_statuses,
         };
@@ -638,15 +717,57 @@ function AdminGroups() {
           payload.schedules = formData.schedules;
         }
 
-        await updateGroup(editingItem, payload);
+        const response = await updateGroup(editingItem, payload);
+        const sync = response?.data?.sync;
+        if (sync) {
+          const parts = [];
+          if (sync.enrollments_completed > 0) {
+            parts.push(
+              isArabic
+                ? `${sync.enrollments_completed} طالب مكتمل`
+                : `${sync.enrollments_completed} student(s) marked completed`,
+            );
+          }
+          if (sync.enrollments_reopened > 0) {
+            parts.push(
+              isArabic
+                ? `${sync.enrollments_reopened} طالب قيد الدراسة`
+                : `${sync.enrollments_reopened} student(s) marked in progress`,
+            );
+          }
+          if (sync.notifications_sent > 0) {
+            parts.push(
+              isArabic
+                ? `${sync.notifications_sent} إشعار`
+                : `${sync.notifications_sent} notification(s) sent`,
+            );
+          }
+          if (parts.length > 0) {
+            toastSuccess(parts.join(isArabic ? " · " : " · "));
+          }
+        }
       } else {
         const payload = {
           group_name: formData.group_name,
           course_id: Number(formData.course_id),
           instructor_id: Number(formData.instructor_id),
           start_date: formData.start_date,
+          status: nextStatus,
           schedules: formData.schedules,
         };
+
+        if (nextStatus === "completed") {
+          const ok = await showConfirmCustom({
+            title: isArabic ? "إنشاء مجموعة مغلقة" : "Create Closed Group",
+            message: isArabic
+              ? "المجموعة ستُنشأ بحالة مكتملة. أي طلاب يُضافون لاحقاً سيُعلَّمون مكتملين عند الإغلاق."
+              : "The group will be created as completed. Students added later will be marked completed when the group is closed.",
+            icon: "warning",
+            confirmText: isArabic ? "تأكيد" : "Confirm",
+          });
+          if (!ok) return;
+        }
+
         await createGroup(payload);
       }
 
@@ -741,6 +862,25 @@ function AdminGroups() {
                         </option>
                       ))}
                     </select>
+
+                    <select
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${statusFilter !== "all" ? "border-danger bg-danger-subtle text-danger-emphasis" : "border-light bg-light text-muted"}`}
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                      <option value="all">
+                        {isArabic ? "كل الحالات" : "All Statuses"}
+                      </option>
+                      <option value="active">
+                        {isArabic ? "نشطة" : "Active"}
+                      </option>
+                      <option value="completed">
+                        {isArabic ? "مكتملة" : "Completed"}
+                      </option>
+                      <option value="cancelled">
+                        {isArabic ? "ملغاة" : "Cancelled"}
+                      </option>
+                    </select>
                   </div>
                 </div>
 
@@ -763,6 +903,9 @@ function AdminGroups() {
                           {isArabic ? "عدد الطلاب" : "Students"}
                         </th>
                         <th className="text-center">
+                          {isArabic ? "الحالة" : "Status"}
+                        </th>
+                        <th className="text-center">
                           {isArabic ? "تاريخ الإنشاء" : "Created At"}
                         </th>
                         <th className="text-center">
@@ -773,7 +916,7 @@ function AdminGroups() {
                     <tbody>
                       {loading ? (
                         <tr>
-                          <td colSpan={7} className="text-center py-5">
+                          <td colSpan={8} className="text-center py-5">
                             <div
                               className="spinner-border text-danger"
                               role="status"
@@ -814,6 +957,12 @@ function AdminGroups() {
                               <td className="text-center text-secondary">
                                 {group.students_count}
                               </td>
+                              <td className="text-center">
+                                <GroupStatusBadge
+                                  status={group.status || "active"}
+                                  isArabic={isArabic}
+                                />
+                              </td>
                               <td className="text-center text-secondary">
                                 {group.created_at}
                               </td>
@@ -848,7 +997,7 @@ function AdminGroups() {
                       ) : (
                         <tr>
                           <td
-                            colSpan={7}
+                            colSpan={8}
                             className="text-center py-4 text-muted"
                           >
                             {isArabic ? "لا توجد مجموعات" : "No groups found"}
@@ -863,65 +1012,7 @@ function AdminGroups() {
 
             {/* ── Pagination ── */}
             {apiPagination && (
-              <div className="d-flex justify-content-center mt-5">
-                <Pagination className="custom-pagination">
-                  <Pagination.Prev
-                    disabled={apiPagination.current_page === 1}
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page - 1)
-                    }
-                  />
-                  {(() => {
-                    const cp = apiPagination.current_page;
-                    const total = apiPagination.total_pages;
-                    const start = Math.floor((cp - 1) / 3) * 3 + 1;
-                    const end = Math.min(start + 2, total);
-                    const items = [];
-
-                    if (start > 1) {
-                      items.push(
-                        <Pagination.Ellipsis
-                          key="prev-ellipsis"
-                          onClick={() => handlePageChange(start - 1)}
-                        />,
-                      );
-                    }
-
-                    for (let p = start; p <= end; p++) {
-                      items.push(
-                        <Pagination.Item
-                          style={{ margin: "0 3px" }}
-                          key={p}
-                          active={cp === p}
-                          onClick={() => handlePageChange(p)}
-                        >
-                          {p}
-                        </Pagination.Item>,
-                      );
-                    }
-
-                    if (end < total) {
-                      items.push(
-                        <Pagination.Ellipsis
-                          key="next-ellipsis"
-                          onClick={() => handlePageChange(end + 1)}
-                        />,
-                      );
-                    }
-
-                    return items;
-                  })()}
-                  <Pagination.Next
-                    style={{ margin: "0 6px 0" }}
-                    disabled={
-                      apiPagination.current_page === apiPagination.total_pages
-                    }
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page + 1)
-                    }
-                  />
-                </Pagination>
-              </div>
+              <AdminPagination pagination={apiPagination} onPageChange={handlePageChange} />
             )}
           </div>
         </>
@@ -952,7 +1043,7 @@ function AdminGroups() {
             {viewingItem && (
               <button
                 type="button"
-                className="btn btn-outline-danger btn-sm rounded-3"
+                className="btn btn-sm ac-btn-view border-0 rounded-3"
                 onClick={handleOpenScheduleModal}
               >
                 <i className="bi bi-calendar-week me-1"></i>
@@ -980,6 +1071,38 @@ function AdminGroups() {
                   onChange={handleChange}
                   disabled={!!viewingItem}
                 />
+              </div>
+
+              {/* ── Group Status ── */}
+              <div className="mb-4">
+                <label className="form-label fw-bold text-dark">
+                  {isArabic ? "حالة المجموعة" : "Group Status"}
+                </label>
+                {viewingItem ? (
+                  <div className="mt-1">
+                    <GroupStatusBadge
+                      status={formData.status || "active"}
+                      isArabic={isArabic}
+                    />
+                  </div>
+                ) : (
+                  <select
+                    name="status"
+                    className="form-select ac-form-select p-3 bg-light border-0 rounded-3"
+                    value={formData.status || "active"}
+                    onChange={handleChange}
+                  >
+                    <option value="active">
+                      {isArabic ? "نشطة" : "Active"}
+                    </option>
+                    <option value="completed">
+                      {isArabic ? "مكتملة" : "Completed"}
+                    </option>
+                    <option value="cancelled">
+                      {isArabic ? "ملغاة" : "Cancelled"}
+                    </option>
+                  </select>
+                )}
               </div>
 
               {/* ── Course + Instructor ── */}
@@ -1094,7 +1217,7 @@ function AdminGroups() {
                   {!viewingItem && (
                     <button
                       type="button"
-                      className="btn btn-sm btn-outline-danger rounded-3"
+                      className="btn btn-sm ac-add-lesson-btn rounded-3 border-2"
                       onClick={addSchedule}
                     >
                       <i className="bi bi-plus-circle me-1"></i>
@@ -1337,9 +1460,9 @@ function AdminGroups() {
                         </div>
                       </div>
                       <div className="d-flex gap-2 flex-wrap">
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
+                        <button
+                          type="button"
+                          className="btn-download-pdf"
                           onClick={() => handleExportGroupStudents("pdf")}
                           disabled={studentsExportLoading}
                         >
@@ -1349,10 +1472,10 @@ function AdminGroups() {
                             <i className="bi bi-file-earmark-pdf me-1"></i>
                           )}
                           PDF
-                        </Button>
-                        <Button
-                          variant="outline-success"
-                          size="sm"
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-download-excel"
                           onClick={() => handleExportGroupStudents("excel")}
                           disabled={studentsExportLoading}
                         >
@@ -1362,7 +1485,7 @@ function AdminGroups() {
                             <i className="bi bi-file-earmark-spreadsheet me-1"></i>
                           )}
                           Excel
-                        </Button>
+                        </button>
                       </div>
                     </div>
 
@@ -1478,7 +1601,7 @@ function AdminGroups() {
                                     <td className="py-3 text-center">
                                       <button
                                         type="button"
-                                        className="btn btn-sm btn-outline-danger border-0"
+                                        className="btn btn-sm ac-btn-deleteTable border-0"
                                         title={
                                           isArabic
                                             ? "إزالة مؤقتة من المجموعة"
@@ -1666,21 +1789,44 @@ function AdminGroups() {
         </div>
       )}
 
-      <Modal
+      <DetailModal
         show={showScheduleModal}
         onHide={handleCloseScheduleModal}
-        centered
         size="lg"
         scrollable
-      >
-        <Modal.Header closeButton className="border-0 pb-0">
-          <Modal.Title className="fs-5 fw-bold">
+        dir={isArabic ? "rtl" : "ltr"}
+        title={
+          <>
             <i className="bi bi-calendar-week me-2 text-danger"></i>
             {formData.group_name || (isArabic ? "المجموعة" : "Group")} —{" "}
             {isArabic ? "جدول مواعيد المجموعة" : "Group Schedule"}
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="pt-2">
+          </>
+        }
+        footer={
+          <>
+            <button
+              type="button"
+              className="btn ac-draft-btn border px-3 py-2 rounded-3"
+              onClick={handleCloseScheduleModal}
+            >
+              {isArabic ? "إغلاق" : "Close"}
+            </button>
+            <button
+              type="button"
+              className="btn-download-pdf"
+              onClick={handleExportGroupSchedulePdf}
+              disabled={scheduleExportLoading || scheduleModalLoading}
+            >
+              {scheduleExportLoading ? (
+                <Spinner animation="border" size="sm" className="me-1" />
+              ) : (
+                <i className="bi bi-file-earmark-pdf me-1"></i>
+              )}
+              {isArabic ? "تصدير PDF" : "Export PDF"}
+            </button>
+          </>
+        }
+      >
           {scheduleModalLoading ? (
             <div className="text-center py-5">
               <Spinner animation="border" variant="danger" />
@@ -1752,30 +1898,7 @@ function AdminGroups() {
               </table>
             </div>
           )}
-        </Modal.Body>
-        <Modal.Footer className="border-0 pt-0">
-          <Button
-            variant="outline-secondary"
-            size="sm"
-            onClick={handleCloseScheduleModal}
-          >
-            {isArabic ? "إغلاق" : "Close"}
-          </Button>
-          <Button
-            variant="outline-danger"
-            size="sm"
-            onClick={handleExportGroupSchedulePdf}
-            disabled={scheduleExportLoading || scheduleModalLoading}
-          >
-            {scheduleExportLoading ? (
-              <Spinner animation="border" size="sm" className="me-1" />
-            ) : (
-              <i className="bi bi-file-earmark-pdf me-1"></i>
-            )}
-            {isArabic ? "تصدير PDF" : "Export PDF"}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      </DetailModal>
     </div>
   );
 }

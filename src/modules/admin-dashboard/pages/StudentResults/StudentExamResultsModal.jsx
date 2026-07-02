@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal } from "react-bootstrap";
+import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
 import { useAdminExamResults } from "../../hooks/useAdminExamResults";
 import "../../../student-dashboard/styles/dashboardShared.css";
 
@@ -85,32 +85,18 @@ function StudentExamResultsModal({
     attempt.status === "failed" || attempt.is_passed === false;
 
   return (
-    <Modal
+    <DetailModal
       show={show}
       onHide={onHide}
-      centered
-      size="md"
-      className="quiz-detail-modal"
       scrollable
+      dir={isArabic ? "rtl" : "ltr"}
+      title={
+        loadingStudentAttempts
+          ? t("studentResults.loading", "Loading…")
+          : studentName || t("studentResults.studentDetails", "Student Details")
+      }
+      bodyClassName="pt-0 px-4 pb-4"
     >
-      <div
-        className="d-flex align-items-center justify-content-between pt-3 px-4 pb-2"
-        dir={isArabic ? "rtl" : "ltr"}
-      >
-        <Modal.Title className="fs-5 fw-bold">
-          {loadingStudentAttempts
-            ? t("studentResults.loading", "Loading…")
-            : studentName || t("studentResults.studentDetails", "Student Details")}
-        </Modal.Title>
-        <button
-          type="button"
-          className="btn-close border-0 bg-transparent"
-          onClick={onHide}
-          aria-label="Close"
-        />
-      </div>
-
-      <Modal.Body className="pt-3 px-4 pb-4" dir={isArabic ? "rtl" : "ltr"}>
         {examTitle && (
           <p className="text-muted small mb-3">
             {examTitle}
@@ -301,8 +287,7 @@ function StudentExamResultsModal({
             </div>
           </div>
         )}
-      </Modal.Body>
-    </Modal>
+    </DetailModal>
   );
 }
 

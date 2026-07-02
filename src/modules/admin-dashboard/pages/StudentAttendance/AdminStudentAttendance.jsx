@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import {
   Alert,
   Badge,
-  Button,
   Col,
   Form,
   Row,
@@ -11,6 +10,8 @@ import {
   Table,
 } from "react-bootstrap";
 import { useAdminAttendance } from "../../hooks/useAdminAttendance";
+import ExportBar from "../../components/shared/ExportBar";
+import { selectClass } from "../../components/shared/adminUiStyles";
 import StudentCourseAttendanceModal from "./StudentCourseAttendanceModal";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
@@ -52,29 +53,6 @@ const getEffectiveSession = (sess) => {
     effectiveEnd: fmt(sess.override_end_time || sess.schedule?.end_time),
   };
 };
-
-function ExportBar({ onExport, loading, disabled }) {
-  return (
-    <div className="d-flex gap-2 flex-wrap">
-      <Button
-        variant="outline-danger"
-        size="sm"
-        onClick={() => onExport("pdf")}
-        disabled={loading || disabled}
-      >
-        <i className="bi bi-file-earmark-pdf me-1"></i>PDF
-      </Button>
-      <Button
-        variant="outline-success"
-        size="sm"
-        onClick={() => onExport("excel")}
-        disabled={loading || disabled}
-      >
-        <i className="bi bi-file-earmark-spreadsheet me-1"></i>Excel
-      </Button>
-    </div>
-  );
-}
 
 function AttendanceStatusBadge({ status, isArabic }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.not_marked;
@@ -191,7 +169,8 @@ function AdminStudentAttendance() {
               <i className="bi bi-people me-1"></i>
               {t("studentAttendance.selectGroup", "Select Group")}
             </Form.Label>
-            <Form.Select
+            <select
+              className={selectClass(!!selectedGroupId)}
               value={selectedGroupId}
               onChange={handleGroupChange}
               disabled={loadingGroups}
@@ -204,7 +183,7 @@ function AdminStudentAttendance() {
                   {group.name}
                 </option>
               ))}
-            </Form.Select>
+            </select>
           </Col>
 
           <Col xs={12} md={5}>
@@ -212,7 +191,8 @@ function AdminStudentAttendance() {
               <i className="bi bi-calendar-event me-1"></i>
               {t("studentAttendance.selectSession", "Select Session")}
             </Form.Label>
-            <Form.Select
+            <select
+              className={selectClass(!!selectedSessionId)}
               value={selectedSessionId}
               onChange={handleSessionChange}
               disabled={!selectedGroupId || loadingSessions}
@@ -227,7 +207,7 @@ function AdminStudentAttendance() {
                   {session.label}
                 </option>
               ))}
-            </Form.Select>
+            </select>
           </Col>
         </Row>
       </div>

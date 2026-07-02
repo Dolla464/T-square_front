@@ -275,7 +275,7 @@ function BasicInfoTab({
           {!isReadOnly && (
             <button
               type="button"
-              className="btn btn-sm btn-outline-danger rounded-circle p-0 d-flex align-items-center justify-content-center"
+              className="btn btn-sm ac-btn-deleteTable border-0 rounded-circle p-0 d-flex align-items-center justify-content-center"
               style={{ width: "24px", height: "24px" }}
               onClick={addLearning}
             >
@@ -366,7 +366,7 @@ function BasicInfoTab({
               <div className="d-flex gap-2 mt-2">
                 <label
                   htmlFor="thumbnailUpload"
-                  className="btn btn-outline-danger btn-sm rounded-3 px-3 py-2 d-flex align-items-center gap-2"
+                  className="btn btn-sm ac-btn-deleteTable border-0 rounded-3 px-3 py-2 d-flex align-items-center gap-2"
                   style={{ cursor: "pointer" }}
                 >
                   <i className="bi bi-pencil-square"></i>{" "}
@@ -445,7 +445,7 @@ function BasicInfoTab({
               <div className="d-flex gap-2 mt-2">
                 <label
                   htmlFor="coverUpload"
-                  className="btn btn-outline-danger btn-sm rounded-3 px-3 py-2 d-flex align-items-center gap-2"
+                  className="btn btn-sm ac-btn-deleteTable border-0 rounded-3 px-3 py-2 d-flex align-items-center gap-2"
                   style={{ cursor: "pointer" }}
                 >
                   <i className="bi bi-pencil-square"></i>{" "}

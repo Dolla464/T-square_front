@@ -137,11 +137,27 @@ function CourseDetails() {
 
   const statusInfo = getStatusLabel(enrollment?.status, isArabic);
   const langFlag = language === "ar" ? "ar" : language === "en" ? "en" : "🌐";
+  const isCompleted = enrollment?.status === "completed";
+  const hasReview = enrollment?.has_review === true;
+  const certificateAvailable = enrollment?.certificate_available === true;
+  const reviewStatus = enrollment?.review_status;
+
   const handleCertificateClick = () => {
     navigate("/student/certificates");
   };
   const handleReviewClick = () => {
     navigate(`/student/review/${courseId}`);
+  };
+
+  const getReviewStatusMessage = () => {
+    if (!hasReview) return null;
+    if (reviewStatus === "accepted") {
+      return isArabic ? "تم قبول تقييمك" : "Your review has been accepted";
+    }
+    if (reviewStatus === "rejected") {
+      return isArabic ? "تم رفض تقييمك" : "Your review was rejected";
+    }
+    return isArabic ? "تم إرسال تقييمك وهو قيد المراجعة" : "Your review has been submitted and is pending approval";
   };
   return (
     <div className="cd-page" dir={isArabic ? "rtl" : "ltr"}>
@@ -229,23 +245,29 @@ function CourseDetails() {
                   {isArabic ? "متابعة التعلم" : "Continue Learning"}
                 </button>
               )}
-              {enrollment.status === "completed" && (
-                <>
-                  <button
-                    onClick={handleCertificateClick}
-                    className="cd-btn-certificate"
-                  >
-                    <i className="bi bi-file-earmark-pdf me-1"></i>
-                    {isArabic ? "عرض الشهادة" : "View Certificate"}
-                  </button>
-                  <button
-                    onClick={handleReviewClick}
-                    className="cd-btn-certificate"
-                  >
-                    <i className="bi bi-file-earmark-text me-1"></i>
-                    {isArabic ? "اترك تقييم" : "Leave Review"}
-                  </button>
-                </>
+              {isCompleted && certificateAvailable && (
+                <button
+                  onClick={handleCertificateClick}
+                  className="cd-btn-certificate"
+                >
+                  <i className="bi bi-file-earmark-pdf me-1"></i>
+                  {isArabic ? "عرض الشهادة" : "View Certificate"}
+                </button>
+              )}
+              {isCompleted && !hasReview && (
+                <button
+                  onClick={handleReviewClick}
+                  className="cd-btn-certificate"
+                >
+                  <i className="bi bi-file-earmark-text me-1"></i>
+                  {isArabic ? "اترك تقييم" : "Leave Review"}
+                </button>
+              )}
+              {isCompleted && hasReview && (
+                <span className="cd-review-status-badge">
+                  <i className="bi bi-check-circle me-1"></i>
+                  {getReviewStatusMessage()}
+                </span>
               )}
               {/* 1. الزر الذي سيقوم بالانتقال */}
               {previews?.length > 0 && (

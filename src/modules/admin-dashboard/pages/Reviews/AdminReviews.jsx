@@ -1,8 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
-import { Pagination, Modal, Button } from "react-bootstrap";
+import { Button } from "react-bootstrap";
+import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
+import AdminPagination from "../../components/shared/AdminPagination";
 import { useReviews } from "../../hooks/useReviews";
+import { getCompletedLearningGroupsSelection } from "../../services/learningGroupServices";
 import { showConfirmCustom, showDeleteConfirm, showReviewPendingConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 
 import "./review.css";
@@ -15,8 +19,15 @@ function AdminReviews() {
   const [searchTerm, setSearchTerm] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [groupFilter, setGroupFilter] = useState("all");
+  const [completedGroups, setCompletedGroups] = useState([]);
+  const [commentPopup, setCommentPopup] = useState(null);
   const [selectedReview, setSelectedReview] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
+
+  const notReviewedMessage = isArabic
+    ? "لم يقم الطالب بعمل تقييم"
+    : "Student has not reviewed";
 
   // حماية السيرفر من إرسال طلبات مكثفة أثناء الكتابة السريعة (Debounce)
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -36,7 +47,42 @@ function AdminReviews() {
     deleteReview,
   } = useReviews();
 
-  // 1. الربط مع السيرفر: يتم جلب البيانات بناءً على الصفحة والبحث والفلتر المختار
+  useEffect(() => {
+    getCompletedLearningGroupsSelection()
+      .then((res) => setCompletedGroups(Array.isArray(res?.data) ? res.data : []))
+      .catch((err) => console.error("Error fetching completed groups:", err));
+  }, []);
+
+  const openCommentPopup = useCallback((event, comment) => {
+    if (!comment) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const popupWidth = 320;
+    const maxLeft = window.innerWidth - popupWidth - 16;
+
+    setCommentPopup({
+      text: comment,
+      top: Math.min(rect.bottom + 8, window.innerHeight - 180),
+      left: Math.min(Math.max(16, rect.left), Math.max(16, maxLeft)),
+    });
+  }, []);
+
+  const closeCommentPopup = useCallback(() => {
+    setCommentPopup(null);
+  }, []);
+
+  useEffect(() => {
+    if (!commentPopup) return undefined;
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") closeCommentPopup();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [commentPopup, closeCommentPopup]);
+
+  // 1. الربط مع السيرفر
   useEffect(() => {
     const params = {
       page: currentPage,
@@ -44,10 +90,11 @@ function AdminReviews() {
     };
 
     if (debouncedSearch) params.search = debouncedSearch;
-    if (statusFilter !== "all") params.review_status = statusFilter; // متوافق مع الحالات الجديدة
+    if (statusFilter !== "all") params.review_status = statusFilter;
+    if (groupFilter !== "all") params.group_id = groupFilter;
 
     getReviews(params);
-  }, [currentPage, debouncedSearch, statusFilter, getReviews]);
+  }, [currentPage, debouncedSearch, statusFilter, groupFilter, getReviews]);
 
   // 2. الفلترة المتبقية بداخل الـ Frontend (مثل تقييم النجوم لتقليل حمل السيرفر)
   const filteredReviews = useMemo(() => {
@@ -61,7 +108,8 @@ function AdminReviews() {
 
       const matchRating =
         ratingFilter === "all" ||
-        Math.floor(Number(item.rating)) === Number(ratingFilter);
+        (item.has_review !== false &&
+          Math.floor(Number(item.rating)) === Number(ratingFilter));
 
       const matchStatus =
         statusFilter === "all" ||
@@ -167,7 +215,7 @@ function AdminReviews() {
                 <i className="bi bi-arrow-up-right me-1"></i>+64
               </span> */}
               <span className="fw-semibold text-muted" style={{ fontSize: "0.85rem" }}>
-                {isArabic ? "هذا الشهر" : "This month"}
+                {isArabic ? "كل الأوقات" : "All Time"}
               </span>
             </div>
             <div>
@@ -287,7 +335,29 @@ function AdminReviews() {
                 }}
               />
             </div>
-            <div className="d-flex gap-3">
+            <div className="d-flex gap-3 flex-wrap flex-md-nowrap justify-content-md-end w-100">
+              <select
+                className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                  groupFilter !== "all"
+                    ? "border-danger bg-danger-subtle text-danger-emphasis"
+                    : "border-light bg-light text-muted"
+                }`}
+                value={groupFilter}
+                onChange={(e) => {
+                  setGroupFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                style={{ minWidth: "150px" }}
+              >
+                <option value="all">
+                  {isArabic ? "جميع المجموعات" : "All Groups"}
+                </option>
+                {completedGroups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
               <select
                 className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${ratingFilter !== "all" ? "border-danger bg-danger-subtle text-danger-emphasis" : "border-light bg-light text-muted"}`}
                 value={ratingFilter}
@@ -317,6 +387,7 @@ function AdminReviews() {
                 <option value="accepted">{isArabic ? "مقبولة" : "Accepted"}</option>
                 <option value="pending">{isArabic ? "قيد الانتظار" : "Pending"}</option>
                 <option value="rejected">{isArabic ? "مرفوضة" : "Rejected"}</option>
+                <option value="not_reviewed">{isArabic ? "لم يقيّم" : "Not Reviewed"}</option>
               </select>
             </div>
           </div>
@@ -347,76 +418,116 @@ function AdminReviews() {
                     </td>
                   </tr>
                 ) : filteredReviews.length > 0 ? (
-                  filteredReviews.map((item) => (
-                    <tr key={item.id}>
-                      <td className="fw-medium text-dark">
-                        {item.student_name}
-                      </td>
-                      <td className="fw-medium text-dark">
-                        {item.course_title}
-                      </td>
-                      <td className="align-content-center">
-                        <span
-                          className="text-warning"
-                          style={{ fontSize: "12px" }}
-                        >
-                          {[1, 2, 3, 4, 5].map((star) => {
-                            const rating = Number(item.rating);
-                            if (rating >= star)
-                              return (
-                                <i key={star} className="bi bi-star-fill"></i>
-                              );
-                            if (rating >= star - 0.5)
-                              return (
-                                <i key={star} className="bi bi-star-half"></i>
-                              );
-                            return <i key={star} className="bi bi-star"></i>;
-                          })}
-                        </span>
-                      </td>
-                      <td className="ac-truncate-text text-secondary">
-                        {item.overall_comment}
-                      </td>
-                      <td>
-                        <span
-                          className={`badge rounded-pill cp ${item.review_status === "accepted" ? "bg-success-subtle text-success" : item.review_status === "pending" ? "bg-warning-subtle text-warning" : "bg-danger-subtle text-danger"}`}
-                          style={{
-                            cursor: "pointer",
-                            padding: "8px 16px",
-                          }}
-                          onClick={() => handleStatusChange(item.id, item.review_status)}
-                        >
-                          <i
-                            className={`bi ${item.review_status === "accepted" ? "bi-patch-check-fill" : item.review_status === "pending" ? "bi-exclamation-triangle-fill" : "bi-shield-exclamation"} me-1`}
-                          ></i>
-                          {item.review_status == "pending"
-                            ? isArabic ? "قيد الانتظار" : "Pending"
-                            : item.review_status == "accepted"
-                              ? isArabic ? "مقبول" : "Accepted"
-                              : isArabic ? "مرفوض" : "Rejected"}
-                        </span>
-                      </td>
-                      <td className="text-center">
-                        <div className="d-flex justify-content-center gap-2">
-                          <button
-                            className="btn btn-sm ac-btn-view border-0"
-                            title="View"
-                            onClick={() => handleView(item.id)}
-                          >
-                            <i className="bi bi-eye fs-6"></i>
-                          </button>
+                  filteredReviews.map((item) => {
+                    const rowKey = item.id ?? `student-${item.student_id}`;
+                    const hasReview = item.has_review !== false;
 
-                          <button
-                            className="btn btn-sm ac-btn-deleteTable border-0"
-                            title="Delete"
-                            onClick={() => handleDelete(item.id)}
+                    if (!hasReview) {
+                      return (
+                        <tr key={rowKey}>
+                          <td className="fw-medium text-dark">
+                            {item.student_name}
+                          </td>
+                          <td className="fw-medium text-dark">
+                            {item.course_title}
+                          </td>
+                          <td className="text-muted fst-italic small">
+                            {notReviewedMessage}
+                          </td>
+                          <td className="text-muted fst-italic small">
+                            {notReviewedMessage}
+                          </td>
+                          <td>
+                            <span className="badge rounded-pill bg-secondary-subtle text-secondary px-3 py-2">
+                              {isArabic ? "لم يقيّم" : "Not Reviewed"}
+                            </span>
+                          </td>
+                          <td className="text-center text-muted">—</td>
+                        </tr>
+                      );
+                    }
+
+                    return (
+                      <tr key={rowKey}>
+                        <td className="fw-medium text-dark">
+                          {item.student_name}
+                        </td>
+                        <td className="fw-medium text-dark">
+                          {item.course_title}
+                        </td>
+                        <td className="align-content-center">
+                          <span
+                            className="text-warning"
+                            style={{ fontSize: "12px" }}
                           >
-                            <i className="bi bi-trash fs-6"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                            {[1, 2, 3, 4, 5].map((star) => {
+                              const rating = Number(item.rating);
+                              if (rating >= star)
+                                return (
+                                  <i key={star} className="bi bi-star-fill"></i>
+                                );
+                              if (rating >= star - 0.5)
+                                return (
+                                  <i key={star} className="bi bi-star-half"></i>
+                                );
+                              return <i key={star} className="bi bi-star"></i>;
+                            })}
+                          </span>
+                        </td>
+                        <td
+                          className={`text-secondary ac-truncate-text ${item.overall_comment ? "review-comment-expandable" : ""}`}
+                          title={
+                            item.overall_comment
+                              ? isArabic
+                                ? "اضغط لعرض التعليق كاملاً"
+                                : "Click to show full comment"
+                              : undefined
+                          }
+                          onClick={(event) => openCommentPopup(event, item.overall_comment)}
+                        >
+                          {item.overall_comment || "—"}
+                        </td>
+                        <td>
+                          <span
+                            className={`badge rounded-pill cp ${item.review_status === "accepted" ? "bg-success-subtle text-success" : item.review_status === "pending" ? "bg-warning-subtle text-warning" : "bg-danger-subtle text-danger"}`}
+                            style={{
+                              cursor: "pointer",
+                              padding: "8px 16px",
+                            }}
+                            onClick={() => handleStatusChange(item.id, item.review_status)}
+                          >
+                            <i
+                              className={`bi ${item.review_status === "accepted" ? "bi-patch-check-fill" : item.review_status === "pending" ? "bi-exclamation-triangle-fill" : "bi-shield-exclamation"} me-1`}
+                            ></i>
+                            {item.review_status == "pending"
+                              ? isArabic ? "قيد الانتظار" : "Pending"
+                              : item.review_status == "accepted"
+                                ? isArabic ? "مقبول" : "Accepted"
+                                : isArabic ? "مرفوض" : "Rejected"}
+                          </span>
+                        </td>
+                        <td className="text-center">
+                          <div className="d-flex justify-content-center gap-2">
+                            <button
+                              className="btn btn-sm ac-btn-view border-0"
+                              title="View"
+                              onClick={() => handleView(item.id)}
+                            >
+                              <i className="bi bi-eye fs-6"></i>
+                            </button>
+
+                            <button
+                              className="btn btn-sm ac-btn-deleteTable border-0"
+                              title="Delete"
+                              onClick={() => handleDelete(item.id)}
+                            >
+                              <i className="bi bi-trash fs-6"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td
@@ -434,83 +545,16 @@ function AdminReviews() {
       </div>
 
       {apiPagination && (
-        <div className="d-flex justify-content-center mt-5">
-          <Pagination className="custom-pagination">
-            <Pagination.Prev
-              disabled={apiPagination.current_page === 1}
-              onClick={() => handlePageChange(apiPagination.current_page - 1)}
-            />
-
-            {(() => {
-              const currentPage = apiPagination.current_page;
-              const totalPages = apiPagination.total_pages;
-              const startPage = Math.floor((currentPage - 1) / 3) * 3 + 1;
-              const endPage = Math.min(startPage + 2, totalPages);
-              const items = [];
-
-              if (startPage > 1) {
-                items.push(
-                  <Pagination.Ellipsis
-                    key="prev-ellipsis"
-                    onClick={() => handlePageChange(startPage - 1)}
-                  />
-                );
-              }
-
-              for (let p = startPage; p <= endPage; p++) {
-                items.push(
-                  <Pagination.Item
-                    style={{ margin: "0 3px" }}
-                    key={p}
-                    active={currentPage === p}
-                    onClick={() => handlePageChange(p)}
-                  >
-                    {p}
-                  </Pagination.Item>
-                );
-              }
-
-              if (endPage < totalPages) {
-                items.push(
-                  <Pagination.Ellipsis
-                    key="next-ellipsis"
-                    onClick={() => handlePageChange(endPage + 1)}
-                  />
-                );
-              }
-
-              return items;
-            })()}
-
-            <Pagination.Next
-              style={{ margin: "0 6px 0" }}
-              disabled={
-                apiPagination.current_page === apiPagination.total_pages
-              }
-              onClick={() => handlePageChange(apiPagination.current_page + 1)}
-            />
-          </Pagination>
-        </div>
+        <AdminPagination pagination={apiPagination} onPageChange={handlePageChange} />
       )}
 
       {/* View Modal  */}
-      <Modal
+      <DetailModal
         show={showViewModal}
         onHide={() => setShowViewModal(false)}
-        centered
-        size="md"
-        className="cert-detail-modal"
+        title={isArabic ? "تفاصيل التقييم" : "Review Details"}
+        dir={isArabic ? "rtl" : "ltr"}
       >
-        <div
-          className="d-flex align-items-center justify-content-between pt-2 px-3"
-          dir={isArabic ? "rtl" : "ltr"}
-        >
-          <Modal.Title className="fs-5 fw-bold">
-            {isArabic ? "تفاصيل التقييم" : "Review Details"}
-          </Modal.Title>
-          <Modal.Header closeButton className="border-0"></Modal.Header>
-        </div>
-        <Modal.Body className="pt-0">
           {selectedReview && (
             <div className="cert-modal-content">
               <div className="cert-info-list p-3 bg-light rounded-3 mt-3">
@@ -615,8 +659,30 @@ function AdminReviews() {
               </Button>
             </div>
           )}
-        </Modal.Body>
-      </Modal>
+      </DetailModal>
+
+      {commentPopup &&
+        createPortal(
+          <>
+            <div
+              className="review-comment-backdrop"
+              onClick={closeCommentPopup}
+              aria-hidden="true"
+            />
+            <div
+              className="review-comment-popup"
+              style={{ top: commentPopup.top, left: commentPopup.left }}
+              onClick={(event) => event.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+            >
+              <p className="review-comment-popup__text mb-0">
+                {commentPopup.text}
+              </p>
+            </div>
+          </>,
+          document.body,
+        )}
     </div>
   );
 }

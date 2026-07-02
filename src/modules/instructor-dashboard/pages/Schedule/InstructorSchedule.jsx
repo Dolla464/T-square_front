@@ -8,9 +8,13 @@ import {
   Form,
   Row,
   Col,
-  Button,
 } from "react-bootstrap";
 import { useInstructorSchedule } from "../../hooks/useInstructorDashboard";
+import {
+  dateInputClass,
+  viewModeBtnClass,
+} from "../../../admin-dashboard/components/shared/adminUiStyles";
+import "../../../admin-dashboard/components/shared/AdminContentPage/AdminContentPage.css";
 import "./InstructorSchedule.css";
 
 // ── Status badge helper ───────────────────────────────────────────────────────
@@ -43,7 +47,7 @@ function SessionCard({ session }) {
           <div>
             <h6 className="fw-bold mb-1">{session.group_name}</h6>
             <div className="text-muted small mb-2">
-              <i className="bi bi-book me-1"></i>
+              <i className="bi bi-book me-1 text-danger"></i>
               {session.course_title ?? "—"}
             </div>
           </div>
@@ -52,7 +56,7 @@ function SessionCard({ session }) {
 
         <div className="d-flex flex-wrap gap-3 mt-2">
           <div className="session-meta">
-            <i className="bi bi-clock text-primary me-1"></i>
+            <i className="bi bi-clock text-danger me-1"></i>
             <span className="fw-semibold">
               {session.start_time} – {session.end_time}
             </span>
@@ -60,13 +64,13 @@ function SessionCard({ session }) {
 
           {session.room && (
             <div className="session-meta">
-              <i className="bi bi-door-open text-secondary me-1"></i>
+              <i className="bi bi-door-open text-danger me-1"></i>
               <span>{t("schedule.room", "Room")}: {session.room}</span>
             </div>
           )}
 
           <div className="session-meta">
-            <i className="bi bi-calendar3 text-info me-1"></i>
+            <i className="bi bi-calendar3 text-danger me-1"></i>
             <span>{session.session_date}</span>
           </div>
         </div>
@@ -81,7 +85,7 @@ function EmptyState({ date }) {
   const { t } = useTranslation("instructorDashboard");
   return (
     <div className="empty-state text-center py-5">
-      <i className="bi bi-calendar-x text-muted" style={{ fontSize: "3rem" }}></i>
+      <i className="bi bi-calendar-x text-danger" style={{ fontSize: "3rem" }}></i>
       <h5 className="mt-3 text-muted fw-semibold">
         {t("schedule.noSessions", "No sessions scheduled")}
       </h5>
@@ -107,8 +111,8 @@ function DayGroup({ date, sessions }) {
   return (
     <div className="day-group mb-4">
       <div className="day-label d-flex align-items-center gap-2 mb-3">
-        <span className="fw-bold text-primary">{dayLabel}</span>
-        <Badge bg="primary" className="rounded-pill">{sessions.length}</Badge>
+        <span className="ac-title mb-0">{dayLabel}</span>
+        <Badge bg="danger" className="rounded-pill">{sessions.length}</Badge>
       </div>
       {sessions.map((session) => (
         <SessionCard key={session.session_id} session={session} />
@@ -144,60 +148,72 @@ function InstructorSchedule() {
   };
 
   return (
-    <div className="instructor-schedule p-3 p-md-4">
+    <div className="admin-content-page instructor-schedule">
       {/* ── Header ──────────────────────────────────────────────── */}
-      <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+      <div className="ac-header d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
         <div>
-          <h5 className="fw-bold mb-0">
-            <i className="bi bi-calendar-week me-2 text-primary"></i>
+          <h2 className="ac-title d-flex align-items-center gap-2 mb-0">
+            <span
+              className="bg-danger rounded-3 p-2 d-inline-flex align-items-center justify-content-center shadow-sm"
+              style={{ width: 40, height: 40 }}
+            >
+              <i className="bi bi-calendar-week text-white"></i>
+            </span>
             {t("schedule.title", "My Schedule")}
-          </h5>
+          </h2>
           {schedule && (
-            <div className="text-muted small mt-1">
+            <p className="ac-subtitle mb-0 mt-1">
               {schedule.type === "day"
                 ? `${t("schedule.showing", "Showing")}: ${schedule.date}`
                 : `${t("schedule.week", "Week")}: ${schedule.start_date} → ${schedule.end_date}`}
-            </div>
+            </p>
           )}
         </div>
 
-        <Button variant="outline-secondary" size="sm" onClick={refetch}>
+        <button
+          type="button"
+          className="btn ac-btn-view border-0 rounded-3 px-3 py-2 fw-medium"
+          onClick={refetch}
+        >
           <i className="bi bi-arrow-clockwise me-1"></i>
           {t("schedule.refresh", "Refresh")}
-        </Button>
+        </button>
       </div>
 
       {/* ── Date Picker ─────────────────────────────────────────── */}
-      <Card className="border-0 shadow-sm mb-4">
+      <Card className="border-0 shadow-sm mb-4 ac-filters-bar">
         <Card.Body className="p-3">
           <Row className="align-items-end g-3">
             <Col xs={12} sm={6} md={4}>
               <Form.Label className="fw-semibold small text-muted mb-1">
-                <i className="bi bi-calendar-date me-1"></i>
+                <i className="bi bi-calendar-date me-1 text-danger"></i>
                 {t("schedule.selectDate", "Select Date")}
               </Form.Label>
-              <Form.Control
+              <input
                 type="date"
+                className={dateInputClass(selectedDate)}
                 value={selectedDate}
-                max={undefined}
                 onChange={(e) => setSelectedDate(e.target.value)}
               />
             </Col>
-            <Col xs="auto">
-              <Button
-                variant="primary"
-                disabled={!selectedDate}
+            <Col xs="auto" className="d-flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={`${viewModeBtnClass(selectedDate === today)} ac-btn-view`}
                 onClick={() => setSelectedDate(today)}
-                className="me-2"
               >
                 <i className="bi bi-calendar-check me-1"></i>
                 {t("schedule.today", "Today")}
-              </Button>
+              </button>
               {selectedDate && (
-                <Button variant="outline-secondary" onClick={handleClearDate}>
+                <button
+                  type="button"
+                  className={`${viewModeBtnClass(false)} ac-btn-view`}
+                  onClick={handleClearDate}
+                >
                   <i className="bi bi-x-lg me-1"></i>
                   {t("schedule.showWeek", "Show Week")}
-                </Button>
+                </button>
               )}
             </Col>
           </Row>
@@ -207,7 +223,7 @@ function InstructorSchedule() {
       {/* ── Content ─────────────────────────────────────────────── */}
       {loading && (
         <div className="text-center py-5">
-          <Spinner animation="border" variant="primary" />
+          <Spinner animation="border" variant="danger" />
         </div>
       )}
 

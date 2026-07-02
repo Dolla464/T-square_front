@@ -359,8 +359,14 @@ function QuizExamPage() {
       bsIcon: isFailed ? "bi-x-circle" : "bi-check2-circle",
       duration: 4000,
     });
+
+    if (!isFailed && scoreResult?.requires_review && scoreResult?.course_id) {
+      navigate(`/student/review/${scoreResult.course_id}`);
+      return;
+    }
+
     handleExit();
-  }, [scoreResult?.status, isArabic, handleExit]);
+  }, [scoreResult, isArabic, handleExit, navigate]);
 
   if (loading) {
     return (
@@ -508,8 +514,14 @@ function QuizExamPage() {
             className="btn-continue btn-exit mt-2"
             onClick={handleFinishWithToast}
           >
-            <i className="bi bi-arrow-left me-2"></i>
-            {isArabic ? "خروج" : "Exit"}
+            <i className={`bi ${scoreResult?.requires_review ? "bi-star-fill" : "bi-arrow-left"} me-2`}></i>
+            {!isFailed && scoreResult?.requires_review
+              ? isArabic
+                ? "اترك تقييم للحصول على الشهادة"
+                : "Leave Review to Get Certificate"
+              : isArabic
+                ? "خروج"
+                : "Exit"}
           </button>
         </div>
       </div>

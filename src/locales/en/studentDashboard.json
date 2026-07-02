@@ -106,5 +106,14 @@
     "date": "Attempt Date",
     "loading": "Loading results details...",
     "error": "An error occurred while loading results. Please try again."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "markAllSuccess": "All notifications marked as read",
+    "empty": "No notifications yet",
+    "emptyShort": "No notifications",
+    "loading": "Loading...",
+    "loadError": "Unable to load notifications right now."
   }
 }

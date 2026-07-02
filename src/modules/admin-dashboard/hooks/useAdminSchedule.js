@@ -29,10 +29,18 @@ export const getWeekBounds = (dateStr) => {
   return { from: formatLocalDate(sat), to: formatLocalDate(fri) };
 };
 
-const buildApiParams = (filters, viewMode) => {
-  const params = { ...filters };
+/** Calendar month: first day → last day of the same month. */
+export const getMonthBounds = (dateStr) => {
+  const d = new Date(`${dateStr}T00:00:00`);
+  const first = new Date(d.getFullYear(), d.getMonth(), 1);
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  return { from: formatLocalDate(first), to: formatLocalDate(last) };
+};
 
-  if (viewMode === "week") {
+const buildApiParams = (filters, viewMode) => {
+  const params = { ...filters, view_mode: viewMode };
+
+  if (viewMode === "week" || viewMode === "month") {
     delete params.date;
   } else {
     delete params.date_from;
@@ -132,6 +140,10 @@ export const useAdminSchedule = () => {
         const { from, to } = getWeekBounds(dateStr);
         return { ...prev, date: dateStr, date_from: from, date_to: to, page: 1 };
       }
+      if (viewMode === "month") {
+        const { from, to } = getMonthBounds(dateStr);
+        return { ...prev, date: dateStr, date_from: from, date_to: to, page: 1 };
+      }
       return { ...prev, date: dateStr, date_from: "", date_to: "", page: 1 };
     });
   }, [viewMode]);
@@ -143,6 +155,17 @@ export const useAdminSchedule = () => {
       if (mode === "week") {
         const { from, to } = getWeekBounds(refDate);
         return { ...prev, date: refDate, date_from: from, date_to: to, page: 1 };
+      }
+      if (mode === "month") {
+        const { from, to } = getMonthBounds(refDate);
+        return {
+          ...prev,
+          date: refDate,
+          date_from: from,
+          date_to: to,
+          per_page: prev.per_page < 50 ? 50 : prev.per_page,
+          page: 1,
+        };
       }
       return { ...prev, date: refDate, date_from: "", date_to: "", page: 1 };
     });
@@ -234,6 +257,11 @@ export const useAdminSchedule = () => {
       ? { from: filters.date_from, to: filters.date_to }
       : getWeekBounds(filters.date || today());
 
+  const monthBounds =
+    viewMode === "month" && filters.date_from && filters.date_to
+      ? { from: filters.date_from, to: filters.date_to }
+      : getMonthBounds(filters.date || today());
+
   return {
     sessions,
     pagination,
@@ -244,6 +272,7 @@ export const useAdminSchedule = () => {
     filters,
     viewMode,
     weekBounds,
+    monthBounds,
     updateFilter,
     handleDateChange,
     setViewMode,

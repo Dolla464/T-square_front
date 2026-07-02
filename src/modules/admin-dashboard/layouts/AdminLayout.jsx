@@ -14,7 +14,7 @@ const ADMIN_NAV = [
   { key: "studentResults", path: "/admin/student-results", icon: "bi-bar-chart-line" },
   { key: "categories", path: "/admin/categories", icon: "bi-list" },
   { key: "courses", path: "/admin/courses", icon: "bi-mortarboard" },
-  { key: "Quzzies", path: "/admin/quizzes", icon: "bi-chat-right-quote" },
+  { key: "quizzes", path: "/admin/quizzes", icon: "bi-chat-right-quote" },
   { key: "groups", path: "/admin/groups", icon: "bi-people" },
   { key: "students", path: "/admin/students", icon: "bi-people" },
   {
@@ -94,7 +94,7 @@ function AdminLayout() {
       case "/admin/categories":
         return isArabic ? "التصنيفات" : "Categories";
       case "/admin/quizzes":
-        return isArabic ? "الاختبارات" : "Quzzies";
+        return isArabic ? "الاختبارات" : "Quizzes";
       case "/admin/schedule":
         return isArabic ? "الجدول الزمني" : "Schedule";
       case "/admin/student-attendance":

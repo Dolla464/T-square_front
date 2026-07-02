@@ -1,35 +1,16 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
-import { Pagination, Modal, Button } from "react-bootstrap";
+import { Button } from "react-bootstrap";
+import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
+import AdminPagination from "../../components/shared/AdminPagination";
 import { showDeleteConfirm, showPaymentStatusConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastError } from "../../../../components/shared/Toaster/toaster";
 import { useOrders } from "../../hooks/useOrders";
+import ExportBar from "../../components/shared/ExportBar";
+import { dateInputClass } from "../../components/shared/adminUiStyles";
 
 import "../Reviews/review.css";
-
-function ExportBar({ onExport, loading }) {
-  return (
-    <div className="d-flex gap-2 flex-wrap">
-      <Button
-        variant="outline-danger"
-        size="sm"
-        onClick={() => onExport("pdf")}
-        disabled={loading}
-      >
-        <i className="bi bi-file-earmark-pdf me-1"></i>PDF
-      </Button>
-      <Button
-        variant="outline-success"
-        size="sm"
-        onClick={() => onExport("excel")}
-        disabled={loading}
-      >
-        <i className="bi bi-file-earmark-spreadsheet me-1"></i>Excel
-      </Button>
-    </div>
-  );
-}
 
 function AdminOrders() {
   const { t, i18n } = useTranslation("orderPayments");
@@ -180,13 +161,6 @@ function AdminOrders() {
       default: return status;
     }
   };
-
-  const dateInputClass = (value) =>
-    `form-control py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${
-      value
-        ? "border-danger bg-danger-subtle text-danger-emphasis"
-        : "border-light bg-light text-muted"
-    }`;
 
   return (
     <div className="admin-content-page">
@@ -470,69 +444,22 @@ function AdminOrders() {
           </div>
 
           {pagination && (
-            <div className="d-flex justify-content-center mt-5 pb-3" dir="ltr">
-              <Pagination className="custom-pagination mb-0">
-                <Pagination.Prev
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                />
-                {(() => {
-                  const lastPage = pagination.last_page;
-                  const startPage = Math.floor((currentPage - 1) / 3) * 3 + 1;
-                  const endPage = Math.min(startPage + 2, lastPage);
-                  const items = [];
-
-                  if (startPage > 1) {
-                    items.push(
-                      <Pagination.Ellipsis
-                        key="prev-ellipsis"
-                        onClick={() => handlePageChange(startPage - 1)}
-                      />
-                    );
-                  }
-
-                  for (let p = startPage; p <= endPage; p++) {
-                    items.push(
-                      <Pagination.Item
-                        style={{ margin: "0 3px" }}
-                        key={p}
-                        active={p === currentPage}
-                        onClick={() => handlePageChange(p)}
-                      >
-                        {p}
-                      </Pagination.Item>
-                    );
-                  }
-
-                  if (endPage < lastPage) {
-                    items.push(
-                      <Pagination.Ellipsis
-                        key="next-ellipsis"
-                        onClick={() => handlePageChange(endPage + 1)}
-                      />
-                    );
-                  }
-
-                  return items;
-                })()}
-                <Pagination.Next
-                  style={{ margin: "0 6px 0" }}
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === pagination.last_page}
-                />
-              </Pagination>
-            </div>
+            <AdminPagination
+              pagination={pagination}
+              onPageChange={handlePageChange}
+              wrapperClassName="d-flex justify-content-center mt-5 pb-3"
+            />
           )}
 
         </div>
       </div>
 
-      <Modal show={showViewModal} onHide={() => setShowViewModal(false)} centered size="md" className="cert-detail-modal">
-        <div className="d-flex align-items-center justify-content-between pt-2 px-3" dir={isArabic ? "rtl" : "ltr"}>
-          <Modal.Title className="fs-5 fw-bold">{isArabic ? "تفاصيل الطلب" : "Order Details"}</Modal.Title>
-          <Modal.Header closeButton className="border-0"></Modal.Header>
-        </div>
-        <Modal.Body className="pt-0">
+      <DetailModal
+        show={showViewModal}
+        onHide={() => setShowViewModal(false)}
+        title={isArabic ? "تفاصيل الطلب" : "Order Details"}
+        dir={isArabic ? "rtl" : "ltr"}
+      >
           {selectedOrder && (
             <div className="cert-modal-content">
               <div className="cert-info-list p-3 bg-light rounded-3 mt-3">
@@ -589,8 +516,7 @@ function AdminOrders() {
               </Button>
             </div>
           )}
-        </Modal.Body>
-      </Modal>
+      </DetailModal>
 
     </div>
   );

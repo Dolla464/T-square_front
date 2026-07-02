@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { useAdminCourses } from "../../hooks/useAdminCourses";
 import { useInstructors } from "../../hooks/useInstractor";
 import { useCategories } from "../../hooks/useCategories";
@@ -43,6 +44,7 @@ function AdminCourses() {
   // ─── i18n ──────────────────────────────────────────────────────────────────
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // ─── View state ────────────────────────────────────────────────────────────
   const [showForm, setShowForm] = useState(false);
@@ -118,6 +120,31 @@ function AdminCourses() {
       getInstructors();
     }
   }, [showForm, getTags, getInstructors]);
+
+  useEffect(() => {
+    const courseId = searchParams.get("course");
+    if (!courseId || showForm) return;
+
+    let cancelled = false;
+
+    (async () => {
+      const fullCourse = await getCourseById(courseId);
+      if (cancelled || !fullCourse) return;
+
+      setViewingItem(null);
+      setEditingItem(fullCourse);
+      formLogic.setFormData(mapItemToFormData(fullCourse));
+      formLogic.setThumbnailFile(null);
+      formLogic.setCoverFile(null);
+      formLogic.setActiveTab("basic");
+      setShowForm(true);
+      setSearchParams({}, { replace: true });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, showForm, getCourseById, formLogic, setSearchParams]);
 
   // ─── Client-side filter (second layer over API results) ───────────────────
   const filteredCourses = React.useMemo(() => {
