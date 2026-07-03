@@ -179,7 +179,7 @@ export const normalizeCurriculum = (rawCurriculum) => {
           ),
           video: lesson.video_url || lesson.video || "",
           sort_order: lesson.sort_order || "",
-          provider: lesson.video_provider || "HTML5",
+          provider: lesson.video_provider || "upload",
         })),
       },
     ];
@@ -200,7 +200,7 @@ export const normalizeCurriculum = (rawCurriculum) => {
             ),
             video: lesson.video_url || lesson.video || "",
             sort_order: lesson.sort_order || "",
-            provider: lesson.video_provider || "HTML5",
+            provider: lesson.video_provider || "upload",
           }))
         : [createLesson()],
   }));

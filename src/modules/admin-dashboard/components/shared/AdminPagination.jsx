@@ -9,7 +9,7 @@ export default function AdminPagination({
   className = "",
   wrapperClassName = "d-flex justify-content-center mt-5",
 }) {
-  if (!pagination) return null;
+  if (!pagination || pagination.total === 0) return null;
 
   const currentPage = pagination.current_page;
   const lastPage = getLastPage(pagination);

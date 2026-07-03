@@ -66,33 +66,35 @@ function ScheduleFilters({
   return (
     <div className="ac-filters-bar d-flex flex-column gap-3 mb-3">
       {/* Day / Week / Month toggle */}
-      <div className="d-flex gap-2 flex-wrap">
-        <button
-          type="button"
-          className={viewModeBtnClass(viewMode === "day")}
-          onClick={() => setViewMode("day")}
-        >
-          <i className="bi bi-calendar-day me-1"></i>Day
-        </button>
-        <button
-          type="button"
-          className={viewModeBtnClass(viewMode === "week")}
-          onClick={() => setViewMode("week")}
-        >
-          <i className="bi bi-calendar-week me-1"></i>Week
-        </button>
-        <button
-          type="button"
-          className={viewModeBtnClass(viewMode === "month")}
-          onClick={() => setViewMode("month")}
-        >
-          <i className="bi bi-calendar-month me-1"></i>Month
-        </button>
+      <div>
+        <div className="ac-tabs-menu">
+          <button
+            type="button"
+            className={`ac-tab-btn ${viewMode === "day" ? "active" : ""}`}
+            onClick={() => setViewMode("day")}
+          >
+            <i className="bi bi-calendar-day me-1"></i>Day
+          </button>
+          <button
+            type="button"
+            className={`ac-tab-btn ${viewMode === "week" ? "active" : ""}`}
+            onClick={() => setViewMode("week")}
+          >
+            <i className="bi bi-calendar-week me-1"></i>Week
+          </button>
+          <button
+            type="button"
+            className={`ac-tab-btn ${viewMode === "month" ? "active" : ""}`}
+            onClick={() => setViewMode("month")}
+          >
+            <i className="bi bi-calendar-month me-1"></i>Month
+          </button>
+        </div>
       </div>
 
-      <div className="d-flex flex-column flex-lg-row justify-content-between align-items-end gap-3 flex-wrap">
+      <div className="d-flex flex-column flex-md-row align-items-end gap-3 flex-wrap">
         {/* Date */}
-        <div style={{ minWidth: "11rem" }}>
+        <div>
           <label className="fw-semibold small text-muted mb-1 d-block">
             <i className="bi bi-calendar-date me-1"></i>
             {dateLabel}
@@ -116,71 +118,69 @@ function ScheduleFilters({
           )}
         </div>
 
-        <div className="d-flex gap-2 gap-md-3 flex-wrap align-items-end">
-          {/* Instructor */}
-          <div>
-            <label className="fw-semibold small text-muted mb-1 d-block">
-              <i className="bi bi-person-badge me-1"></i>Instructor
-            </label>
-            <select
-              className={selectClass(!!filters.instructor_id)}
-              value={filters.instructor_id}
-              onChange={(e) => updateFilter("instructor_id", e.target.value)}
-              disabled={instructorsLoading}
-            >
-              <option value="">All Instructors</option>
-              {instructors.map((inst) => (
-                <option key={inst.id} value={inst.id}>
-                  {inst.full_name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Status */}
-          <div>
-            <label className="fw-semibold small text-muted mb-1 d-block">
-              <i className="bi bi-funnel me-1"></i>Status
-            </label>
-            <select
-              className={selectClass(!!filters.status)}
-              value={filters.status}
-              onChange={(e) => updateFilter("status", e.target.value)}
-            >
-              <option value="">All Statuses</option>
-              <option value="upcoming">Upcoming</option>
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-
-          {/* Per page */}
-          <div>
-            <label className="fw-semibold small text-muted mb-1 d-block">
-              <i className="bi bi-list-ol me-1"></i>Per Page
-            </label>
-            <select
-              className={selectClass(filters.per_page !== 15)}
-              value={filters.per_page}
-              onChange={(e) => updateFilter("per_page", Number(e.target.value))}
-            >
-              <option value={10}>10</option>
-              <option value={15}>15</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
-
-          {/* Reset */}
-          <button
-            type="button"
-            className="btn ac-btn-view border-0 rounded-3 px-3 py-2 fw-medium"
-            onClick={resetFilters}
+        {/* Instructor */}
+        <div>
+          <label className="fw-semibold small text-muted mb-1 d-block">
+            <i className="bi bi-person-badge me-1"></i>Instructor
+          </label>
+          <select
+            className={selectClass(!!filters.instructor_id)}
+            value={filters.instructor_id}
+            onChange={(e) => updateFilter("instructor_id", e.target.value)}
+            disabled={instructorsLoading}
           >
-            <i className="bi bi-arrow-counterclockwise me-1"></i>Reset
-          </button>
+            <option value="">All Instructors</option>
+            {instructors.map((inst) => (
+              <option key={inst.id} value={inst.id}>
+                {inst.full_name}
+              </option>
+            ))}
+          </select>
         </div>
+
+        {/* Status */}
+        <div>
+          <label className="fw-semibold small text-muted mb-1 d-block">
+            <i className="bi bi-funnel me-1"></i>Status
+          </label>
+          <select
+            className={selectClass(!!filters.status)}
+            value={filters.status}
+            onChange={(e) => updateFilter("status", e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+
+        {/* Per page */}
+        <div>
+          <label className="fw-semibold small text-muted mb-1 d-block">
+            <i className="bi bi-list-ol me-1"></i>Per Page
+          </label>
+          <select
+            className={selectClass(filters.per_page !== 15)}
+            value={filters.per_page}
+            onChange={(e) => updateFilter("per_page", Number(e.target.value))}
+          >
+            <option value={10}>10</option>
+            <option value={15}>15</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+        </div>
+
+        {/* Reset */}
+        <button
+          type="button"
+          className="btn ac-btn-view border-0 rounded-3 px-3 py-2 fw-medium"
+          onClick={resetFilters}
+        >
+          <i className="bi bi-arrow-counterclockwise me-1"></i>Reset
+        </button>
       </div>
     </div>
   );
@@ -189,29 +189,35 @@ function ScheduleFilters({
 // ── Session Table ─────────────────────────────────────────────────────────────
 
 function ScheduleTable({ sessions, loading, error, onReschedule, onCancel }) {
-  if (loading) {
+  if (error) {
     return (
-      <div className="text-center py-5">
-        <Spinner animation="border" variant="danger" />
-        <div className="text-muted mt-3 small">Loading schedule…</div>
+      <div className="p-3">
+        <Alert variant="danger" className="mb-0">
+          <i className="bi bi-exclamation-triangle-fill me-2"></i>{error}
+        </Alert>
       </div>
     );
   }
 
-  if (error) {
+  if (loading) {
     return (
-      <Alert variant="danger" className="mt-3">
-        <i className="bi bi-exclamation-triangle-fill me-2"></i>{error}
-      </Alert>
+      <div className="text-center py-5">
+        <div className="spinner-border text-danger mb-2" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <div className="text-muted small">Loading schedule…</div>
+      </div>
     );
   }
 
   if (!sessions.length) {
     return (
       <div className="text-center py-5 text-muted">
-        <i className="bi bi-calendar-x" style={{ fontSize: "3rem" }}></i>
-        <p className="mt-3 fw-semibold">No sessions found for the selected filters.</p>
-        <p className="small">Try a different date or instructor.</p>
+        <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}>
+          <i className="bi bi-calendar-x" style={{ fontSize: "2rem" }}></i>
+        </div>
+        <h5 className="fw-bold text-dark mb-1">No sessions found</h5>
+        <p className="small text-muted mb-0">Try a different date or instructor filter.</p>
       </div>
     );
   }
@@ -605,7 +611,7 @@ function AdminSchedule() {
               instructorsLoading={instructorsLoading}
             />
 
-            {pagination && !loading && (
+            {/* {pagination && !loading && (
               <div className="d-flex gap-3 flex-wrap mb-3 px-3 px-md-4">
                 {[
                   { label: "Total", value: pagination.total, color: "#374151" },
@@ -621,7 +627,7 @@ function AdminSchedule() {
                   </div>
                 ))}
               </div>
-            )}
+            )} */}
 
             <ScheduleTable
               sessions={sessions}
@@ -630,8 +636,8 @@ function AdminSchedule() {
               onReschedule={openRescheduleModal}
               onCancel={openCancelModal}
             />
-            <AdminPagination pagination={pagination} onPageChange={handlePageChange} />
           </div>
+            <AdminPagination pagination={pagination} onPageChange={handlePageChange} />
         </div>
       </div>
 

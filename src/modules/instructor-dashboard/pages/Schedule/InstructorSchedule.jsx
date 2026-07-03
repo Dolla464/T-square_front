@@ -41,7 +41,14 @@ function SessionCard({ session }) {
   const { t } = useTranslation("instructorDashboard");
 
   return (
-    <Card className="session-card border-0 shadow-sm mb-3">
+    <Card
+      className="session-card mb-3"
+      style={{
+        border: "1px solid #eaeaea",
+        borderRadius: "12px",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
+      }}
+    >
       <Card.Body className="p-4">
         <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
           <div>
@@ -84,12 +91,17 @@ function SessionCard({ session }) {
 function EmptyState({ date }) {
   const { t } = useTranslation("instructorDashboard");
   return (
-    <div className="empty-state text-center py-5">
-      <i className="bi bi-calendar-x text-danger" style={{ fontSize: "3rem" }}></i>
-      <h5 className="mt-3 text-muted fw-semibold">
+    <div className="text-center py-5 text-muted">
+      <div
+        className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+        style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}
+      >
+        <i className="bi bi-calendar-x" style={{ fontSize: "2rem" }}></i>
+      </div>
+      <h5 className="fw-bold text-dark mb-1">
         {t("schedule.noSessions", "No sessions scheduled")}
       </h5>
-      <p className="text-muted small">
+      <p className="small text-muted mb-0">
         {date
           ? t("schedule.noSessionsForDate", `No sessions found for ${date}`)
           : t("schedule.noSessionsThisWeek", "No sessions scheduled for this week.")}
@@ -153,12 +165,6 @@ function InstructorSchedule() {
       <div className="ac-header d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
         <div>
           <h2 className="ac-title d-flex align-items-center gap-2 mb-0">
-            <span
-              className="bg-danger rounded-3 p-2 d-inline-flex align-items-center justify-content-center shadow-sm"
-              style={{ width: 40, height: 40 }}
-            >
-              <i className="bi bi-calendar-week text-white"></i>
-            </span>
             {t("schedule.title", "My Schedule")}
           </h2>
           {schedule && (
@@ -172,7 +178,7 @@ function InstructorSchedule() {
 
         <button
           type="button"
-          className="btn ac-btn-view border-0 rounded-3 px-3 py-2 fw-medium"
+          className="btn btn-danger ac-add-btn"
           onClick={refetch}
         >
           <i className="bi bi-arrow-clockwise me-1"></i>
@@ -180,71 +186,84 @@ function InstructorSchedule() {
         </button>
       </div>
 
-      {/* ── Date Picker ─────────────────────────────────────────── */}
-      <Card className="border-0 shadow-sm mb-4 ac-filters-bar">
-        <Card.Body className="p-3">
-          <Row className="align-items-end g-3">
-            <Col xs={12} sm={6} md={4}>
-              <Form.Label className="fw-semibold small text-muted mb-1">
-                <i className="bi bi-calendar-date me-1 text-danger"></i>
-                {t("schedule.selectDate", "Select Date")}
-              </Form.Label>
-              <input
-                type="date"
-                className={dateInputClass(selectedDate)}
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-              />
-            </Col>
-            <Col xs="auto" className="d-flex flex-wrap gap-2">
-              <button
-                type="button"
-                className={`${viewModeBtnClass(selectedDate === today)} ac-btn-view`}
-                onClick={() => setSelectedDate(today)}
-              >
-                <i className="bi bi-calendar-check me-1"></i>
-                {t("schedule.today", "Today")}
-              </button>
-              {selectedDate && (
+      {/* ── Integrated Filter Bar and Content Card ──────────────── */}
+      <div className="ac-table-card">
+        <div className="ac-table-container">
+          <div className="ac-rounded-table p-3 p-md-0">
+            <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+              <div className="d-flex align-items-center gap-2 flex-wrap">
+                <div className="position-relative">
+                  <input
+                    type="date"
+                    className={`form-control border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                      selectedDate
+                        ? "border-danger bg-danger-subtle text-danger-emphasis"
+                        : "border-light bg-light text-muted"
+                    }`}
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    style={{ minWidth: 180 }}
+                  />
+                </div>
+              </div>
+
+              <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
                 <button
                   type="button"
-                  className={`${viewModeBtnClass(false)} ac-btn-view`}
-                  onClick={handleClearDate}
+                  className={`btn border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                    selectedDate === today
+                      ? "btn-danger border-danger text-white"
+                      : "btn-light border-light text-muted"
+                  }`}
+                  onClick={() => setSelectedDate(today)}
                 >
-                  <i className="bi bi-x-lg me-1"></i>
-                  {t("schedule.showWeek", "Show Week")}
+                  <i className="bi bi-calendar-check me-1"></i>
+                  {t("schedule.today", "Today")}
                 </button>
-              )}
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
+                {selectedDate && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-dark border-2 rounded-3 shadow-sm fw-medium transition-all"
+                    onClick={handleClearDate}
+                  >
+                    <i className="bi bi-x-lg me-1"></i>
+                    {t("schedule.showWeek", "Show Week")}
+                  </button>
+                )}
+              </div>
+            </div>
 
-      {/* ── Content ─────────────────────────────────────────────── */}
-      {loading && (
-        <div className="text-center py-5">
-          <Spinner animation="border" variant="danger" />
+            {/* ── Content ─────────────────────────────────────────────── */}
+            {loading && (
+              <div className="text-center py-5">
+                <div className="spinner-border text-danger mb-2" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <div className="text-muted small">{t("schedule.loading", "Loading schedule…")}</div>
+              </div>
+            )}
+
+            {error && !loading && (
+              <Alert variant="danger" className="mb-0">
+                <i className="bi bi-exclamation-triangle me-2"></i>
+                {error}
+              </Alert>
+            )}
+
+            {!loading && !error && schedule && (
+              <>
+                {sortedDates.length === 0 ? (
+                  <EmptyState date={selectedDate} />
+                ) : (
+                  sortedDates.map((date) => (
+                    <DayGroup key={date} date={date} sessions={sessionsByDate[date]} />
+                  ))
+                )}
+              </>
+            )}
+          </div>
         </div>
-      )}
-
-      {error && !loading && (
-        <Alert variant="danger">
-          <i className="bi bi-exclamation-triangle me-2"></i>
-          {error}
-        </Alert>
-      )}
-
-      {!loading && !error && schedule && (
-        <>
-          {sortedDates.length === 0 ? (
-            <EmptyState date={selectedDate} />
-          ) : (
-            sortedDates.map((date) => (
-              <DayGroup key={date} date={date} sessions={sessionsByDate[date]} />
-            ))
-          )}
-        </>
-      )}
+      </div>
     </div>
   );
 }
