@@ -464,7 +464,7 @@ function RescheduleModal({ show, session, onClose, onSubmit, loading }) {
       onHide={onClose}
       title={
         <>
-          <i className="bi bi-pencil-fill text-primary me-2"></i>
+          <i className="bi bi-pencil-fill text-danger me-2"></i>
           Reschedule Session
         </>
       }

@@ -10,6 +10,7 @@ import { useAdminCourses } from "../../hooks/useAdminCourses";
 import { toastError, toastSuccess } from "../../../../components/shared/Toaster/toaster";
 import { getLearningGroupSessions, exportGroupStudents } from "../../services/learningGroupServices";
 import { exportSchedule } from "../../services/adminScheduleService";
+import { parseApiDateOnly } from "../../../../utils/formatDateTime";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
 const DAY_NAMES_EN = [
@@ -163,7 +164,7 @@ const SESSION_STATUS_CONFIG = {
 
 const getEffectiveSession = (sess) => {
   const dateRaw = sess.override_date || sess.session_date || "";
-  const effectiveDate = String(dateRaw).slice(0, 10);
+  const effectiveDate = parseApiDateOnly(dateRaw);
   return {
     effectiveDate,
     effectiveStart: fmt(
