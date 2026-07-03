@@ -117,12 +117,12 @@ function InstructorStudentResults() {
 
   return (
     <div className="admin-content-page">
-      <div className="ac-page-header mb-4">
+      <div className="ac-header d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h4 className="fw-bold mb-1">
+          <h2 className="ac-title mb-0">
             {t("studentResults.title", "Students Results")}
-          </h4>
-          <p className="text-muted mb-0 small">
+          </h2>
+          <p className="ac-subtitle mb-0 mt-1">
             {t(
               "studentResults.subtitle",
               "View exam results by group and exam"
@@ -131,66 +131,81 @@ function InstructorStudentResults() {
         </div>
       </div>
 
-      <div className="ac-filters-bar mb-4">
-        <Row className="align-items-end g-3">
-          <Col xs={12} md={5}>
-            <Form.Label className="fw-semibold small text-muted mb-1">
-              <i className="bi bi-people me-1"></i>
-              {t("studentResults.selectGroup", "Select Group")}
-            </Form.Label>
-            <select
-              className={selectClass(!!selectedGroupId)}
-              value={selectedGroupId}
-              onChange={handleGroupChange}
-              disabled={loadingGroups}
-            >
-              <option value="">
-                {t("studentResults.chooseGroup", "Choose a group…")}
-              </option>
-              {selectionGroups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name}
-                </option>
-              ))}
-            </select>
-          </Col>
+      {/* ── Integrated Filter Bar and Results Card ──────────────── */}
+      <div className="ac-table-card">
+        <div className="ac-table-container">
+          <div className="ac-rounded-table p-3 p-md-0">
+            <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+              <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap w-100 justify-content-start">
+                <select
+                  className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                    selectedGroupId
+                      ? "border-danger bg-danger-subtle text-danger-emphasis"
+                      : "border-light bg-light text-muted"
+                  }`}
+                  value={selectedGroupId}
+                  onChange={handleGroupChange}
+                  disabled={loadingGroups}
+                  style={{ minWidth: 220 }}
+                >
+                  <option value="">
+                    {t("studentResults.chooseGroup", "Choose a group…")}
+                  </option>
+                  {selectionGroups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
 
-          <Col xs={12} md={5}>
-            <Form.Label className="fw-semibold small text-muted mb-1">
-              <i className="bi bi-journal-text me-1"></i>
-              {t("studentResults.selectExam", "Select Exam")}
-            </Form.Label>
-            <select
-              className={selectClass(!!selectedExamId)}
-              value={selectedExamId}
-              onChange={handleExamChange}
-              disabled={!selectedGroupId || loadingExams}
-            >
-              <option value="">
-                {selectedGroupId
-                  ? t("studentResults.chooseExam", "Choose an exam…")
-                  : t("studentResults.selectGroupFirst", "Select a group first")}
-              </option>
-              {exams.map((exam) => (
-                <option key={exam.id} value={exam.id}>
-                  {exam.title}
-                </option>
-              ))}
-            </select>
-          </Col>
-        </Row>
-      </div>
+                <select
+                  className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                    selectedExamId
+                      ? "border-danger bg-danger-subtle text-danger-emphasis"
+                      : "border-light bg-light text-muted"
+                  }`}
+                  value={selectedExamId}
+                  onChange={handleExamChange}
+                  disabled={!selectedGroupId || loadingExams}
+                  style={{ minWidth: 220 }}
+                >
+                  <option value="">
+                    {selectedGroupId
+                      ? t("studentResults.chooseExam", "Choose an exam…")
+                      : t("studentResults.selectGroupFirst", "Select a group first")}
+                  </option>
+                  {exams.map((exam) => (
+                    <option key={exam.id} value={exam.id}>
+                      {exam.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
       {!selectedGroupId && (
-        <Alert variant="light" className="border text-center py-4">
-          <i className="bi bi-funnel fs-3 text-muted d-block mb-2"></i>
-          {t("studentResults.emptyGroup", "Select a group to get started.")}
-        </Alert>
+        <div className="text-center py-5 text-muted">
+          <div
+            className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+            style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}
+          >
+            <i className="bi bi-funnel" style={{ fontSize: "2rem" }}></i>
+          </div>
+          <h5 className="fw-bold text-dark mb-1">
+            {t("studentResults.selectGroupTitle", "Select a Group")}
+          </h5>
+          <p className="small text-muted mb-0">
+            {t("studentResults.emptyGroup", "Select a group to get started.")}
+          </p>
+        </div>
       )}
 
       {selectedGroupId && !selectedExamId && loadingExams && (
         <div className="text-center py-5">
-          <Spinner animation="border" variant="danger" />
+          <div className="spinner-border text-danger mb-2" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <div className="text-muted small">{t("studentResults.loadingExams", "Loading exams…")}</div>
         </div>
       )}
 
@@ -198,25 +213,48 @@ function InstructorStudentResults() {
         !selectedExamId &&
         !loadingExams &&
         exams.length === 0 && (
-          <Alert variant="light" className="border text-center py-4">
-            <i className="bi bi-journal-x fs-3 text-muted d-block mb-2"></i>
-            {t("studentResults.noExams", "No exams found for this group's course.")}
-          </Alert>
+          <div className="text-center py-5 text-muted">
+            <div
+              className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+              style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}
+            >
+              <i className="bi bi-journal-x" style={{ fontSize: "2rem" }}></i>
+            </div>
+            <h5 className="fw-bold text-dark mb-1">
+              {t("studentResults.noExamsTitle", "No Exams Found")}
+            </h5>
+            <p className="small text-muted mb-0">
+              {t("studentResults.noExams", "No exams found for this group's course.")}
+            </p>
+          </div>
         )}
 
       {selectedGroupId &&
         !selectedExamId &&
         !loadingExams &&
         exams.length > 0 && (
-          <Alert variant="light" className="border text-center py-4">
-            <i className="bi bi-journal-check fs-3 text-muted d-block mb-2"></i>
-            {t("studentResults.emptyExam", "Select an exam to view results.")}
-          </Alert>
+          <div className="text-center py-5 text-muted">
+            <div
+              className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+              style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}
+            >
+              <i className="bi bi-journal-check" style={{ fontSize: "2rem" }}></i>
+            </div>
+            <h5 className="fw-bold text-dark mb-1">
+              {t("studentResults.selectExamTitle", "Select an Exam")}
+            </h5>
+            <p className="small text-muted mb-0">
+              {t("studentResults.emptyExam", "Select an exam to view results.")}
+            </p>
+          </div>
         )}
 
       {loadingResults && (
         <div className="text-center py-5">
-          <Spinner animation="border" variant="danger" />
+          <div className="spinner-border text-danger mb-2" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <div className="text-muted small">{t("studentResults.loadingResults", "Loading results…")}</div>
         </div>
       )}
 
@@ -254,13 +292,24 @@ function InstructorStudentResults() {
           </div>
 
           {students.length === 0 ? (
-            <Alert variant="info">
-              {t("studentResults.noStudents", "No students enrolled in this group.")}
-            </Alert>
+            <div className="text-center py-5 text-muted">
+              <div
+                className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}
+              >
+                <i className="bi bi-people" style={{ fontSize: "2rem" }}></i>
+              </div>
+              <h5 className="fw-bold text-dark mb-1">
+                {t("studentResults.noStudentsTitle", "No Students")}
+              </h5>
+              <p className="small text-muted mb-0">
+                {t("studentResults.noStudents", "No students enrolled in this group.")}
+              </p>
+            </div>
           ) : (
             <div className="table-responsive">
-              <Table hover className="align-middle mb-0">
-                <thead className="table-light">
+              <table className="table ac-table align-middle mb-0">
+                <thead>
                   <tr>
                     <th style={{ width: 60 }}>#</th>
                     <th>{t("studentResults.studentName", "Student Name")}</th>
@@ -303,11 +352,14 @@ function InstructorStudentResults() {
                     </tr>
                   ))}
                 </tbody>
-              </Table>
+              </table>
             </div>
           )}
         </>
       )}
+          </div>
+        </div>
+      </div>
 
       <StudentExamResultsModal
         show={Boolean(modalStudent)}

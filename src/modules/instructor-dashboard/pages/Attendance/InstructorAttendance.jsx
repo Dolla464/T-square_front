@@ -259,15 +259,23 @@ function InstructorAttendance() {
       {/* ── TODAY'S SESSION CARDS ── */}
       {loading ? (
         <div className="text-center py-5">
-          <Spinner animation="border" variant="danger" />
+          <div className="spinner-border text-danger mb-2" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <div className="text-muted small">{isArabic ? "جاري تحميل الجلسات..." : "Loading sessions…"}</div>
         </div>
       ) : todaySessions.length === 0 ? (
-        <div
-          className="text-center py-5 rounded-4 border"
-          style={{ background: "#fafafa" }}
-        >
-          <i className="bi bi-calendar-x fs-1 text-muted d-block mb-3"></i>
-          <p className="text-muted fw-medium mb-0">
+        <div className="text-center py-5 text-muted border rounded-4 bg-white shadow-sm my-3">
+          <div
+            className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+            style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}
+          >
+            <i className="bi bi-calendar-x" style={{ fontSize: "2rem" }}></i>
+          </div>
+          <h5 className="fw-bold text-dark mb-1">
+            {isArabic ? "لا توجد جلسات اليوم" : "No Sessions Today"}
+          </h5>
+          <p className="small text-muted mb-0">
             {isArabic ? "لا توجد جلسات مجدولة اليوم" : "No sessions scheduled for today"}
           </p>
         </div>
@@ -285,14 +293,15 @@ function InstructorAttendance() {
               return (
                 <div key={session.session_id} className="col-sm-6 col-xl-4">
                   <div
-                    className="card h-100 shadow-sm"
+                    className="card h-100"
                     style={{
-                      borderRadius: "14px",
+                      borderRadius: "12px",
                       cursor: "pointer",
                       border: isActive
-                        ? "2.5px solid #dc3545"
-                        : "1.5px solid #e9ecef",
-                      background: isActive ? "#fff5f5" : "#fff",
+                        ? "2px solid #be1522"
+                        : "1px solid #eaeaea",
+                      background: isActive ? "#fff5f5" : "#ffffff",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
                       transition: "all 0.2s ease",
                     }}
                     onClick={() => selectSession(session)}
@@ -423,10 +432,7 @@ function InstructorAttendance() {
                 )}
               </div>
 
-              <div
-                className="card border-0 shadow-sm overflow-hidden"
-                style={{ borderRadius: "14px", background: "#f8f9fc" }}
-              >
+              <div className="ac-rounded-table">
                 {recentScans.length === 0 ? (
                   <div className="text-center py-4 text-muted">
                     <i className="bi bi-hourglass-split fs-3 d-block mb-2 opacity-50"></i>
@@ -438,16 +444,16 @@ function InstructorAttendance() {
                   </div>
                 ) : (
                   <div className="table-responsive">
-                    <table className="table mb-0 align-middle" dir="ltr">
+                    <table className="table ac-table mb-0 align-middle" dir="ltr">
                       <thead>
-                        <tr style={{ background: "#f0f0f0" }}>
-                          <th className="ps-4 py-3 border-0 text-secondary small fw-bold">
+                        <tr>
+                          <th>
                             {isArabic ? "الطالب" : "Student"}
                           </th>
-                          <th className="py-3 border-0 text-secondary small fw-bold text-center">
+                          <th className="text-center">
                             {isArabic ? "الحالة" : "Status"}
                           </th>
-                          <th className="py-3 pe-4 border-0 text-secondary small fw-bold text-center">
+                          <th className="text-center">
                             {isArabic ? "وقت المسح" : "Scanned At"}
                           </th>
                         </tr>
@@ -510,29 +516,29 @@ function InstructorAttendance() {
                 </button>
               </div>
 
-              <div
-                className="card border-0 shadow-sm overflow-hidden"
-                style={{ borderRadius: "14px", background: "#f8f9fc" }}
-              >
+              <div className="ac-rounded-table">
                 {detailLoading ? (
                   <div className="text-center py-5">
-                    <Spinner animation="border" variant="danger" size="sm" />
+                    <div className="spinner-border text-danger mb-2" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <div className="text-muted small">{isArabic ? "جاري تحميل قائمة الطلاب..." : "Loading student list…"}</div>
                   </div>
                 ) : (
                   <div className="table-responsive">
-                    <table className="table mb-0 align-middle" dir="ltr">
+                    <table className="table ac-table mb-0 align-middle" dir="ltr">
                       <thead>
-                        <tr style={{ background: "#f0f0f0" }}>
-                          <th className="ps-4 py-3 border-0 text-secondary small fw-bold">
+                        <tr>
+                          <th>
                             {isArabic ? "الطالب" : "Student"}
                           </th>
-                          <th className="py-3 border-0 text-secondary small fw-bold text-center">
+                          <th className="text-center">
                             {isArabic ? "الحالة" : "Status"}
                           </th>
-                          <th className="py-3 border-0 text-secondary small fw-bold text-center">
+                          <th className="text-center">
                             {isArabic ? "وقت التسجيل" : "Marked At"}
                           </th>
-                          <th className="py-3 pe-4 border-0 text-secondary small fw-bold text-center">
+                          <th className="text-center">
                             {isArabic ? "إجراءات" : "Actions"}
                           </th>
                         </tr>
@@ -546,7 +552,6 @@ function InstructorAttendance() {
                           </tr>
                         ) : (
                           students.map((student) => {
-                            const cfg = STATUS_CONFIG[student.status] ?? STATUS_CONFIG.not_marked;
                             return (
                               <tr
                                 key={student.student_id}
@@ -687,7 +692,7 @@ function InstructorAttendance() {
         }
         bodyClassName="text-center pb-4 pt-0"
         footer={
-          <button type="button" className="btn btn-outline-dark ac-add-btn" onClick={handleCloseQr}>
+          <button type="button" className="btn btn-secondary rounded-3 px-4" onClick={handleCloseQr}>
             {isArabic ? "إغلاق" : "Close"}
           </button>
         }
@@ -695,8 +700,10 @@ function InstructorAttendance() {
       >
           {qrLoading ? (
             <div className="py-4">
-              <Spinner animation="border" variant="danger" />
-              <p className="text-muted mt-3 mb-0 small">
+              <div className="spinner-border text-danger mb-2" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="text-muted mt-2 mb-0 small">
                 {isArabic ? "جاري التحميل..." : "Loading QR code..."}
               </p>
             </div>
