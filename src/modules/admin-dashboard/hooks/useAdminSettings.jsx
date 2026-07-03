@@ -366,6 +366,74 @@ export const useAdminSettingsState = () => {
   };
 
   // ================= رفع الميديا =================
+  const DISCOVERY_BATCH_SIZE = 6;
+
+  const chunkFiles = (files, batchSize) => {
+    const batches = [];
+    for (let i = 0; i < files.length; i += batchSize) {
+      batches.push(files.slice(i, i + batchSize));
+    }
+    return batches;
+  };
+
+  const uploadMediaBatch = async (files, key, action) => {
+    const formData = new FormData();
+    formData.append("key", key);
+    formData.append("action", action);
+
+    for (let i = 0; i < files.length; i++) {
+      formData.append("images[]", files[i]);
+    }
+
+    return apiUploadMedia(formData);
+  };
+
+  const uploadDiscoveryMediaBatched = async (files, action = "append") => {
+    if (!files || files.length === 0) return false;
+
+    setUploading(true);
+    const totalFiles = files.length;
+    const batches = chunkFiles(Array.from(files), DISCOVERY_BATCH_SIZE);
+    let toastId = toastLoading(
+      isArabic
+        ? `جاري رفع 0/${totalFiles}...`
+        : `Uploading 0/${totalFiles}...`,
+    );
+
+    try {
+      for (let index = 0; index < batches.length; index++) {
+        const batch = batches[index];
+        const batchAction =
+          action === "replace" && index === 0 ? "replace" : "append";
+        const uploadedSoFar = Math.min(
+          (index + 1) * DISCOVERY_BATCH_SIZE,
+          totalFiles,
+        );
+
+        toastDismiss(toastId);
+        toastId = toastLoading(
+          isArabic
+            ? `جاري رفع ${uploadedSoFar}/${totalFiles}...`
+            : `Uploading ${uploadedSoFar}/${totalFiles}...`,
+        );
+
+        await uploadMediaBatch(batch, "discovery_media", batchAction);
+      }
+
+      clearHeroAndAboutCache();
+      toastDismiss(toastId);
+      toastSuccess(t("success.created", "تم الرفع بنجاح"));
+      await fetchMediaSettings(true);
+      return true;
+    } catch (err) {
+      toastDismiss(toastId);
+      handleError(err, "errors.create_failed");
+      return false;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const uploadMedia = async (files, key, action = "append") => {
     if (!files || files.length === 0) return false;
 
@@ -443,6 +511,7 @@ export const useAdminSettingsState = () => {
     saveSetting,
     saveGeneralSettings,
     uploadMedia,
+    uploadDiscoveryMediaBatched,
     deleteMedia,
   };
 };

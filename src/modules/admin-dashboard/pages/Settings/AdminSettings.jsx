@@ -26,6 +26,7 @@ function AdminSettings() {
     saveGeneralSettings,
     saveSetting,
     uploadMedia,
+    uploadDiscoveryMediaBatched,
     deleteMedia,
   } = useAdminSettings();
 
@@ -328,9 +329,8 @@ function AdminSettings() {
       }
     }
 
-    const success = await uploadMedia(
+    const success = await uploadDiscoveryMediaBatched(
       files,
-      "discovery_media",
       discoveryAction,
     );
     if (success && discoveryInputRef.current) {
