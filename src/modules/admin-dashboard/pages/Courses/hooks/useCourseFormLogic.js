@@ -175,12 +175,12 @@ export const useCourseFormLogic = () => {
 
       startUpload(lessonId, uploadedFile, courseId, previewIndex, {
         onComplete: (serverResponse) => {
-          // Blob URL is no longer needed – the server URL takes over
-          if (blobUrlsRef.current[lessonId]) {
-            URL.revokeObjectURL(blobUrlsRef.current[lessonId]);
-            delete blobUrlsRef.current[lessonId];
-          }
-          handleLessonChange(sectionId, lessonId, "blobUrl", null);
+           // Keep the blob URL for immediate high-performance local preview and thumbnail rendering
+           // if (blobUrlsRef.current[lessonId]) {
+           //   URL.revokeObjectURL(blobUrlsRef.current[lessonId]);
+           //   delete blobUrlsRef.current[lessonId];
+           // }
+           // handleLessonChange(sectionId, lessonId, "blobUrl", null);
 
           // Store the server-returned path and duration on the lesson
           handleLessonChange(

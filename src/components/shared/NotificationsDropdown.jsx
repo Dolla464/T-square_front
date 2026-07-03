@@ -1,11 +1,20 @@
 import { useEffect, useState } from "react";
-import { Badge, Dropdown, Spinner } from "react-bootstrap";
+import { Dropdown, Spinner } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../../hooks/useNotifications";
 import { resolveNotificationUrl } from "../../utils/notifications";
+import "./NotificationsDropdown.css";
 
-function NotificationsDropdown() {
+const getIconForNotification = (notification) => {
+  const type = notification.type || "";
+  if (type.includes("quiz") || type.includes("exam")) return "bi-journal-check";
+  if (type.includes("attendance")) return "bi-calendar-check";
+  if (type.includes("payment")) return "bi-credit-card";
+  return "bi-bell";
+};
+
+function NotificationsDropdown({ isDarkMode, Tbtn }) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation("studentDashboard");
   const isArabic = i18n.language?.startsWith("ar");
@@ -50,31 +59,44 @@ function NotificationsDropdown() {
   };
 
   return (
-    <Dropdown align="end" show={show} onToggle={handleToggle}>
+    <Dropdown show={show} onToggle={handleToggle}>
       <Dropdown.Toggle
-        variant="link"
+        as="button"
         id="notifications-dropdown"
-        className="text-decoration-none p-0 border-0 position-relative"
+        className={`search-trigger-btn position-relative ${Tbtn}`}
+        title={isArabic ? "الإشعارات" : "Notifications"}
+        aria-label={isArabic ? "الإشعارات" : "Notifications"}
       >
-        <i className="bi bi-bell-fill fs-5 text-dark" />
+        <i className="bi bi-bell" />
         {unreadCount > 0 && (
-          <Badge
-            bg="danger"
-            pill
-            className="position-absolute top-0 start-100 translate-middle"
+          <span
+            className="badge bg-danger rounded-pill position-absolute"
+            style={{
+              fontSize: "0.6rem",
+              top: "-2px",
+              right: "-2px",
+              padding: "4px 6px",
+              minWidth: "16px",
+              height: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 0 0 2px var(--bs-body-bg, #fff)"
+            }}
           >
             {unreadCount > 9 ? "9+" : unreadCount}
-          </Badge>
+          </span>
         )}
       </Dropdown.Toggle>
 
-      <Dropdown.Menu style={{ minWidth: "320px", maxWidth: "360px" }}>
-        <div className="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
-          <strong>{t("notifications.title")}</strong>
+      <Dropdown.Menu className="notifications-dropdown-menu" style={{ minWidth: "320px", maxWidth: "360px" }}>
+        <div className="px-3 py-2 border-bottom d-flex justify-content-between align-items-center" style={{ background: "#f8fafc" }}>
+          <strong className="text-dark" style={{ fontSize: "0.85rem" }}>{t("notifications.title")}</strong>
           {unreadCount > 0 && (
             <button
               type="button"
-              className="btn btn-link btn-sm p-0"
+              className="btn btn-link btn-sm p-0 text-decoration-none text-danger fw-semibold"
+              style={{ fontSize: "0.8rem" }}
               onClick={handleMarkAllAsRead}
             >
               {t("notifications.markAllRead")}
@@ -103,38 +125,26 @@ function NotificationsDropdown() {
 
         {!isLoading && !error && notifications.length > 0 && (
           <div
-            className="py-2"
-            style={{ maxHeight: "400px", overflowY: "auto" }}
+            className="notifications-scroll-area py-1"
+            style={{ maxHeight: "360px", overflowY: "auto" }}
           >
             {notifications.map((notification) => (
-              <Dropdown.Item
+              <button
                 key={notification.id}
-                as="button"
-                className={`border-0 rounded-0 px-3 py-2 ${
-                  notification.is_read ? "" : "bg-light"
-                }`}
+                type="button"
+                className={`notification-item ${notification.is_read ? "" : "unread"}`}
                 onClick={() => handleNotificationClick(notification)}
               >
-                <div className="d-flex justify-content-between align-items-start gap-2">
-                  <div className="flex-grow-1 text-start">
-                    <div className="fw-semibold small">
-                      {notification.title}
-                    </div>
-                    <div className="small text-muted">
-                      {notification.message}
-                    </div>
-                    <div className="small text-secondary mt-1">
-                      {formatTimeAgo(notification, locale)}
-                    </div>
-                  </div>
-                  {!notification.is_read && (
-                    <span
-                      className="rounded-circle bg-danger flex-shrink-0 mt-1"
-                      style={{ width: "8px", height: "8px" }}
-                    />
-                  )}
+                <div className="notification-icon">
+                  <i className={`bi ${getIconForNotification(notification)}`}></i>
                 </div>
-              </Dropdown.Item>
+                <div className="notification-content">
+                  <div className="notification-title">{notification.title}</div>
+                  <div className="notification-desc">{notification.message}</div>
+                  <div className="notification-time">{formatTimeAgo(notification, locale)}</div>
+                </div>
+                {!notification.is_read && <span className="notification-dot"></span>}
+              </button>
             ))}
           </div>
         )}

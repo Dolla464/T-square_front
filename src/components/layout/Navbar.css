@@ -3,11 +3,16 @@
 }
 
 .lang-switch {
+  padding: 5px;
+  border-radius: 30px !important;
+
   transition: 0.2s;
+  cursor: pointer !important;
 }
 
 .lang-switch:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.505) !important;
+  color: #520105 !important;
 }
 
 .navbar .custom-toggler {
