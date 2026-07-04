@@ -67,6 +67,14 @@ export const getNotificationsPagePath = (userRole) => {
   return "/student/notifications";
 };
 
+export const resolveNotificationPath = (notification, userRole) => {
+  const actionUrl = notification?.action_url;
+  if (actionUrl && actionUrl.startsWith("/")) {
+    return actionUrl;
+  }
+  return getNotificationsPagePath(userRole);
+};
+
 export const NOTIFICATION_ICON_MAP = {
   enrollment: "bi-book",
   exam_result: "bi-patch-check",

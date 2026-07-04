@@ -1,0 +1,38 @@
+.student-attendance-page .student-attendance-tabs .nav-link {
+  color: #6c757d;
+  cursor: pointer;
+  border: none;
+  border-bottom: 2px solid transparent;
+}
+
+.student-attendance-page .student-attendance-tabs .nav-link.active {
+  color: #be1522;
+  border-bottom-color: #be1522;
+  background: transparent;
+}
+
+.student-session-card {
+  width: 100%;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  background: #fff;
+  padding: 1rem;
+  text-align: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.student-session-card:hover,
+.student-session-card.active {
+  border-color: #be1522;
+  box-shadow: 0 0 0 1px rgba(190, 21, 34, 0.08);
+}
+
+.student-qr-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  border: 1px dashed #dee2e6;
+  border-radius: 16px;
+  background: #fafafa;
+}

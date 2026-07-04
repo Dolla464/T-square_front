@@ -61,6 +61,10 @@ const DashboardProfile = lazy(
   () =>
     import("./modules/student-dashboard/pages/DashboardProfile/DashboardProfile"),
 );
+const StudentAttendance = lazy(
+  () =>
+    import("./modules/student-dashboard/pages/StudentAttendance/StudentAttendance"),
+);
 const CourseDetails = lazy(
   () => import("./modules/student-dashboard/pages/CourseDetails/CourseDetails"),
 );
@@ -503,6 +507,7 @@ function AppContent() {
                     <Route path="quizzes" element={<DashboardQuizzes />} />
                     <Route path="quizzes/:quizId" element={<QuizExamPage />} />
                     <Route path="profile" element={<DashboardProfile />} />
+                    <Route path="attendance" element={<StudentAttendance />} />
                     <Route
                       path="notifications"
                       element={<NotificationsPage />}

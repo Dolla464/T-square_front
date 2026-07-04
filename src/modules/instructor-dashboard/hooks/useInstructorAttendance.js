@@ -81,7 +81,42 @@ export const useInstructorAttendance = (recentScansLimit = 10) => {
     }
   }, []);
 
-  // ── Mark attendance (with optimistic update) ──────────────────────────────
+  const applyScannedRecord = useCallback((record) => {
+    if (!record?.student_id) return;
+
+    setStudents((prev) =>
+      prev.map((s) =>
+        s.student_id === record.student_id
+          ? {
+              ...s,
+              status: record.status,
+              marked_at: record.marked_at,
+              marked_by: record.marked_by,
+            }
+          : s,
+      ),
+    );
+
+    setTodaySessions((prev) =>
+      prev.map((sess) => {
+        if (sess.session_id !== record.session_id) return sess;
+
+        const wasPresent = ["present", "late"].includes(
+          students.find((s) => s.student_id === record.student_id)?.status,
+        );
+        const isPresent = ["present", "late"].includes(record.status);
+        const delta = isPresent && !wasPresent ? 1 : !isPresent && wasPresent ? -1 : 0;
+
+        return {
+          ...sess,
+          attendance: {
+            ...sess.attendance,
+            present: Math.max(0, (sess.attendance?.present ?? 0) + delta),
+          },
+        };
+      }),
+    );
+  }, [students]);
 
   const markAttendance = useCallback(
     async (studentId, status) => {
@@ -225,5 +260,6 @@ export const useInstructorAttendance = (recentScansLimit = 10) => {
     markAllPresent,
     loadQrCode,
     selectSession,
+    applyScannedRecord,
   };
 };

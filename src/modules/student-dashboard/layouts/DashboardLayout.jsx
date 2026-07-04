@@ -13,6 +13,7 @@ const STUDENT_NAV = [
     end: true,
   },
   { key: "quiz", path: "/student/quizzes", icon: "bi-pencil-square" },
+  { key: "attendance", path: "/student/attendance", icon: "bi-calendar-check" },
   { key: "certificates", path: "/student/certificates", icon: "bi-award-fill" },
   {
     key: "notifications",
@@ -59,6 +60,8 @@ function DashboardLayout() {
         return HomePageTitle;
       case "/student/quizzes":
         return isArabic ? "الأختبارات" : "Quizzes";
+      case "/student/attendance":
+        return isArabic ? "الحضور" : "Attendance";
       case "/student/certificates":
         return isArabic ? "الشهادات" : "Certificates";
       case "/student/notifications":

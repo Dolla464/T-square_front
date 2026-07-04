@@ -4,6 +4,7 @@
     "dashboard": "Dashboard",
     "quiz": "Quiz",
     "certificates": "Certificates",
+    "attendance": "Attendance",
     "notifications": "Notifications",
     "profile": "Profile"
   },
@@ -115,5 +116,46 @@
     "emptyShort": "No notifications",
     "loading": "Loading...",
     "loadError": "Unable to load notifications right now."
+  },
+  "attendance": {
+    "title": "My Attendance",
+    "refresh": "Refresh",
+    "tabs": {
+      "today": "Today",
+      "schedule": "Schedule",
+      "history": "History"
+    },
+    "todaySessions": "Today's Sessions",
+    "noSessionsToday": "No sessions scheduled for today.",
+    "qrTitle": "Attendance QR Code",
+    "selectSession": "Select a session to view your QR code.",
+    "alreadyMarked": "Your attendance has been recorded for this session.",
+    "sessionNotActive": "This session is not active yet.",
+    "qrNotAvailable": "QR code is not available outside the attendance window.",
+    "qrWindow": "Available from {{start}} to {{end}}",
+    "qrHint": "Show this code to the scanner to register your attendance.",
+    "qrExpires": "Expires at {{time}}",
+    "refreshQr": "Refresh QR",
+    "generateQr": "Generate QR Code",
+    "upcomingSchedule": "Upcoming Sessions",
+    "noUpcoming": "No upcoming sessions in the next 30 days.",
+    "date": "Date",
+    "course": "Course",
+    "time": "Time",
+    "room": "Room",
+    "session": "Session",
+    "yourStatus": "Your Status",
+    "myGroups": "My Groups",
+    "noGroups": "You are not assigned to any learning group yet.",
+    "selectGroup": "Select a group to view your attendance history.",
+    "attended": "Attended",
+    "remaining": "Remaining",
+    "sessionsAttended": "sessions attended",
+    "sessionStatus": {
+      "upcoming": "Upcoming",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
   }
 }

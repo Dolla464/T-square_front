@@ -1,11 +1,16 @@
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { formatDateTime } from "../../../utils/formatDateTime";
 import { useNotifications } from "../../../hooks/useNotifications";
-import { NOTIFICATION_ICON_MAP } from "../../../utils/notifications";
+import {
+  NOTIFICATION_ICON_MAP,
+  resolveNotificationPath,
+} from "../../../utils/notifications";
 
 function NotificationCard({ notification }) {
   const { i18n } = useTranslation();
-  const { markAsRead } = useNotifications();
+  const navigate = useNavigate();
+  const { markAsRead, userRole } = useNotifications();
   const isArabic = i18n.language?.startsWith("ar");
   const { id, type, title, message, icon, created_at, is_read } = notification;
 
@@ -23,6 +28,8 @@ function NotificationCard({ notification }) {
     if (!is_read) {
       await markAsRead(id);
     }
+
+    navigate(resolveNotificationPath(notification, userRole));
   };
 
   return (

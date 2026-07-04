@@ -114,6 +114,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
     loadQrCode,
     selectSession,
     loadSessionDetails,
+    applyScannedRecord,
     recentScans,
     setRecentScans,
   } = useAttendanceHook();
@@ -125,16 +126,16 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
   // ── Real-time polling ──────────────────────────────────────────────────────
 
   const handleStudentScanned = useCallback((record) => {
-    // Update the recent scans list (newest first, capped at limit)
+    applyScannedRecord(record);
+
     setRecentScans((prev) => {
       const filtered = prev.filter((s) => s.student_id !== record.student_id);
       return [record, ...filtered].slice(0, RECENT_SCANS_LIMIT);
     });
 
-    // Show toast notification for 3 seconds
     setToastMessage({ name: record.student_name, status: record.status });
     setTimeout(() => setToastMessage(null), 3000);
-  }, []);
+  }, [applyScannedRecord, setRecentScans]);
 
   const { isPolling } = useAttendanceRealtime(
     activeSession?.session_id ?? null,
