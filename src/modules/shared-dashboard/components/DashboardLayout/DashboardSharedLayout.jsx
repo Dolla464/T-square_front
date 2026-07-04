@@ -66,6 +66,8 @@ function DashboardSharedLayout({
       navigate("/admin/notifications");
     } else if (userRoleName === "Instructor" || user?.role === "instructor") {
       navigate("/instructor/notifications");
+    } else if (userRoleName === "Receptionist" || user?.role === "receptionist") {
+      // Receptionist has no dedicated notifications page — no-op
     } else {
       navigate("/student/notifications");
     }
@@ -245,7 +247,12 @@ function DashboardSharedLayout({
                   userRoleName === "Instructor" ||
                   user?.role === "instructor"
                 ) {
-                  navigate("/instructor/profile"); // أو /instructor/settings حسب اللي موجود
+                  navigate("/instructor/profile");
+                } else if (
+                  userRoleName === "Receptionist" ||
+                  user?.role === "receptionist"
+                ) {
+                  // Receptionist has no dedicated profile page — no-op
                 } else {
                   navigate("/admin/settings");
                 }

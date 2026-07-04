@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { getSessionRecords } from "../services/instructorAttendanceServices";
+import { getSessionRecords as defaultGetSessionRecords } from "../services/instructorAttendanceServices";
 
 const BASE_INTERVAL_MS = 10_000; // 5 ثواني (الأساس)
 const MAX_INTERVAL_MS = 30_000; // 30 ثانية (الحد الأقصى)
 const BACKOFF_MULTIPLIER = 2; // نضاعف المدة ×2
 const CONSECUTIVE_EMPTY_BEFORE_BACKOFF = 2; // نبدأ backoff بعد كام poll فاضي
 
-export const useAttendanceRealtime = (sessionId, onStudentScanned) => {
+export const useAttendanceRealtime = (sessionId, onStudentScanned, getRecordsFn = defaultGetSessionRecords) => {
   const [isPolling, setIsPolling] = useState(false);
 
   const intervalRef = useRef(null);
@@ -30,7 +30,7 @@ export const useAttendanceRealtime = (sessionId, onStudentScanned) => {
     const since = lastCheckRef.current;
 
     try {
-      const res = await getSessionRecords(sessionId, since);
+      const res = await getRecordsFn(sessionId, since);
       const records = Array.isArray(res?.data) ? res.data : [];
 
       // ✅ Deduplicate by student_id (not record_id)

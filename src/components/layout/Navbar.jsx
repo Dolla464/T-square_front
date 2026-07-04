@@ -272,6 +272,10 @@ function AppNavbar({ isLoggedIn, userName }) {
                     <NavDropdown.Item as={Link} to="/instructor">
                       {isArabic() ? "لوحة التحكم" : "Instructor Dashboard"}
                     </NavDropdown.Item>
+                  ) : user.role === "receptionist" ? (
+                    <NavDropdown.Item as={Link} to="/receptionist">
+                      {isArabic() ? "لوحة التحكم" : "Receptionist Dashboard"}
+                    </NavDropdown.Item>
                   ) : (
                     <NavDropdown.Item as={Link} to="/admin">
                       {isArabic() ? "لوحة التحكم" : "Admin Dashboard"}

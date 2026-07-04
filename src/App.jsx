@@ -170,6 +170,18 @@ const InstructorStudentResults = lazy(
   () =>
     import("./modules/instructor-dashboard/pages/StudentResults/InstructorStudentResults"),
 );
+const ReceptionistLayout = lazy(
+  () =>
+    import("./modules/receptionist-dashboard/layouts/ReceptionistLayout"),
+);
+const ReceptionistDashboard = lazy(
+  () =>
+    import("./modules/receptionist-dashboard/pages/Dashboard/ReceptionistDashboard"),
+);
+const ReceptionistAttendance = lazy(
+  () =>
+    import("./modules/receptionist-dashboard/pages/Attendance/ReceptionistAttendance"),
+);
 
 // مكون فرعي للتحكم في عرض الـ Layout والتوجيه
 function AppContent() {
@@ -434,6 +446,19 @@ function AppContent() {
                     <Route
                       path="notifications"
                       element={<NotificationsPage />}
+                    />
+                  </Route>
+                </Route>
+
+                {/* RECEPTIONIST */}
+                <Route
+                  element={<ProtectedRoute allowedRoles={["receptionist"]} />}
+                >
+                  <Route path="/receptionist" element={<ReceptionistLayout />}>
+                    <Route index element={<ReceptionistDashboard />} />
+                    <Route
+                      path="attendance"
+                      element={<ReceptionistAttendance />}
                     />
                   </Route>
                 </Route>

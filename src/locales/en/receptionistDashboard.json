@@ -1,0 +1,9 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "attendance": "Attendance"
+  },
+  "topbar": {
+    "role": "Receptionist"
+  }
+}

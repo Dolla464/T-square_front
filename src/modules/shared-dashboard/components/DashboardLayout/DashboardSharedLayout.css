@@ -19,7 +19,7 @@ body.dashboard-active {
 
 /* ══════════════ Sidebar ══════════════ */
 .shared-dashboard-sidebar {
-  width: 260px;
+  width: 230px;
   height: 100vh;
   height: 100dvh;
   position: sticky;

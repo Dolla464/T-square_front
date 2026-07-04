@@ -188,7 +188,7 @@ function ScheduleFilters({
 
 // ── Session Table ─────────────────────────────────────────────────────────────
 
-function ScheduleTable({ sessions, loading, error, onReschedule, onCancel }) {
+function ScheduleTable({ sessions, loading, error, onReschedule, onCancel, readOnly = false }) {
   if (error) {
     return (
       <div className="p-3">
@@ -236,7 +236,7 @@ function ScheduleTable({ sessions, loading, error, onReschedule, onCancel }) {
             <th>Students</th>
             <th>Session</th>
             <th>Status</th>
-            <th className="text-center">Actions</th>
+            {!readOnly && <th className="text-center">Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -328,30 +328,32 @@ function ScheduleTable({ sessions, loading, error, onReschedule, onCancel }) {
                 </td>
 
                 {/* Actions */}
-                <td className="text-center">
-                  <div className="d-flex justify-content-center gap-2">
-                    {isEditable ? (
-                      <>
-                        <button
-                          className="btn btn-sm ac-btn-edit border-0"
-                          title="Reschedule session"
-                          onClick={() => onReschedule(sess)}
-                        >
-                          <i className="bi bi-pencil-square fs-6"></i>
-                        </button>
-                        <button
-                          className="btn btn-sm ac-btn-deleteTable border-0"
-                          title="Cancel session"
-                          onClick={() => onCancel(sess)}
-                        >
-                          <i className="bi bi-trash fs-6"></i>
-                        </button>
-                      </>
-                    ) : (
-                      <span className="text-muted small">—</span>
-                    )}
-                  </div>
-                </td>
+                {!readOnly && (
+                  <td className="text-center">
+                    <div className="d-flex justify-content-center gap-2">
+                      {isEditable ? (
+                        <>
+                          <button
+                            className="btn btn-sm ac-btn-edit border-0"
+                            title="Reschedule session"
+                            onClick={() => onReschedule(sess)}
+                          >
+                            <i className="bi bi-pencil-square fs-6"></i>
+                          </button>
+                          <button
+                            className="btn btn-sm ac-btn-deleteTable border-0"
+                            title="Cancel session"
+                            onClick={() => onCancel(sess)}
+                          >
+                            <i className="bi bi-trash fs-6"></i>
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-muted small">—</span>
+                      )}
+                    </div>
+                  </td>
+                )}
               </tr>
             );
           })}
@@ -551,7 +553,7 @@ function CancelModal({ show, session, onClose, onSubmit, loading }) {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-function AdminSchedule() {
+function AdminSchedule({ useScheduleHook = useAdminSchedule, readOnly = false }) {
   const {
     sessions,
     pagination,
@@ -578,7 +580,7 @@ function AdminSchedule() {
     handleCancel,
     handleExport,
     actionLoading,
-  } = useAdminSchedule();
+  } = useScheduleHook();
 
   return (
     <div className="admin-content-page" id="admin-schedule-page">
@@ -587,7 +589,9 @@ function AdminSchedule() {
         <div>
           <h2 className="ac-title">Center Daily Schedule</h2>
           <p className="ac-subtitle text-muted mb-0">
-            View, filter, edit and cancel sessions across all groups.
+            {readOnly
+              ? "View and filter sessions across all groups."
+              : "View, filter, edit and cancel sessions across all groups."}
           </p>
         </div>
         <div className="d-flex gap-2 align-items-center flex-wrap">
@@ -635,6 +639,7 @@ function AdminSchedule() {
               error={error}
               onReschedule={openRescheduleModal}
               onCancel={openCancelModal}
+              readOnly={readOnly}
             />
           </div>
             <AdminPagination pagination={pagination} onPageChange={handlePageChange} />
@@ -642,22 +647,26 @@ function AdminSchedule() {
       </div>
 
       {/* ── Reschedule Modal ─────────────────────────────────────────────────── */}
-      <RescheduleModal
-        show={rescheduleModal.show}
-        session={rescheduleModal.session}
-        onClose={closeRescheduleModal}
-        onSubmit={handleReschedule}
-        loading={actionLoading}
-      />
+      {!readOnly && (
+        <RescheduleModal
+          show={rescheduleModal.show}
+          session={rescheduleModal.session}
+          onClose={closeRescheduleModal}
+          onSubmit={handleReschedule}
+          loading={actionLoading}
+        />
+      )}
 
       {/* ── Cancel Modal ─────────────────────────────────────────────────────── */}
-      <CancelModal
-        show={cancelModal.show}
-        session={cancelModal.session}
-        onClose={closeCancelModal}
-        onSubmit={handleCancel}
-        loading={actionLoading}
-      />
+      {!readOnly && (
+        <CancelModal
+          show={cancelModal.show}
+          session={cancelModal.session}
+          onClose={closeCancelModal}
+          onSubmit={handleCancel}
+          loading={actionLoading}
+        />
+      )}
     </div>
   );
 }

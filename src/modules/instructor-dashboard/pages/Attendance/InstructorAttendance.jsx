@@ -97,7 +97,7 @@ function StatusBadge({ status, isArabic }) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-function InstructorAttendance() {
+function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, getRecordsFn }) {
   const { i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
 
@@ -116,7 +116,7 @@ function InstructorAttendance() {
     loadSessionDetails,
     recentScans,
     setRecentScans,
-  } = useInstructorAttendance();
+  } = useAttendanceHook();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [showQrModal, setShowQrModal]   = useState(false);
@@ -138,7 +138,8 @@ function InstructorAttendance() {
 
   const { isPolling } = useAttendanceRealtime(
     activeSession?.session_id ?? null,
-    handleStudentScanned
+    handleStudentScanned,
+    getRecordsFn
   );
 
   useEffect(() => {

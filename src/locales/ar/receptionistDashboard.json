@@ -1,0 +1,9 @@
+{
+  "sidebar": {
+    "dashboard": "لوحة التحكم",
+    "attendance": "الحضور"
+  },
+  "topbar": {
+    "role": "موظف استقبال"
+  }
+}

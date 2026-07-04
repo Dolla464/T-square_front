@@ -49,6 +49,8 @@ import arAdminDashboard from "./locales/ar/adminDashboard.json";
 import arCoursesDetails from "./locales/ar/coursesDetails.json";
 import arorderPayments from "./locales/ar/orderPayments.json";
 import arAdminReviews from "./locales/ar/AdminReviews.json";
+import enReceptionistDashboard from "./locales/en/receptionistDashboard.json";
+import arReceptionistDashboard from "./locales/ar/receptionistDashboard.json";
 
 i18n
   .use(LanguageDetector)
@@ -78,6 +80,7 @@ i18n
         coursesDetails: enCoursesDetails,
         orderPayments: enorderPayments,
         AdminReviews: enAdminReviews,
+        receptionistDashboard: enReceptionistDashboard,
       },
       ar: {
         navbar: arNavbar,
@@ -102,6 +105,7 @@ i18n
         coursesDetails: arCoursesDetails,
         orderPayments: arorderPayments,
         AdminReviews: arAdminReviews,
+        receptionistDashboard: arReceptionistDashboard,
       },
     },
 
@@ -129,6 +133,7 @@ i18n
       "coursesDetails",
       "orderPayments",
       "AdminReviews",
+      "receptionistDashboard",
     ],
     defaultNS: "common",
 
