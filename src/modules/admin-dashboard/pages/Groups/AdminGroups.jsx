@@ -51,6 +51,17 @@ const normalizeSchedules = (schedules) =>
     .map(normalizeScheduleEntry)
     .sort((a, b) => a.day_of_week - b.day_of_week);
 
+const dedupeStudentsById = (students) => {
+  const seen = new Set();
+  return (students || [])
+    .map((s) => ({ ...s, id: Number(s.id) }))
+    .filter((s) => {
+      if (seen.has(s.id)) return false;
+      seen.add(s.id);
+      return true;
+    });
+};
+
 const schedulesAreEqual = (current, original) =>
   JSON.stringify(normalizeSchedules(current)) ===
   JSON.stringify(normalizeSchedules(original));
@@ -345,9 +356,7 @@ function AdminGroups() {
 
     const groupData = await getGroupById(group_id);
 
-    const normalizedStudents = groupData.students
-      ? groupData.students.map((s) => ({ ...s, id: Number(s.id) }))
-      : [];
+    const normalizedStudents = dedupeStudentsById(groupData.students);
 
     setFormData({
       group_name: groupData.group_name || "",
@@ -393,9 +402,7 @@ function AdminGroups() {
     setScheduleErrors([]);
 
     const group = await getGroupById(group_id);
-    const normalizedStudents = group.students
-      ? group.students.map((s) => ({ ...s, id: Number(s.id) }))
-      : [];
+    const normalizedStudents = dedupeStudentsById(group.students);
 
     setFormData({
       group_name: group.group_name || "",
@@ -698,9 +705,15 @@ function AdminGroups() {
           })),
         ];
 
-        const student_ids = allStudentsData.map((s) => s.id);
-        const student_statuses = {};
+        const uniqueStudentsMap = new Map();
         allStudentsData.forEach((s) => {
+          uniqueStudentsMap.set(s.id, s);
+        });
+        const uniqueStudentsData = [...uniqueStudentsMap.values()];
+
+        const student_ids = uniqueStudentsData.map((s) => s.id);
+        const student_statuses = {};
+        uniqueStudentsData.forEach((s) => {
           student_statuses[String(s.id)] = s.is_completed;
         });
 
@@ -741,6 +754,13 @@ function AdminGroups() {
               isArabic
                 ? `${sync.notifications_sent} إشعار`
                 : `${sync.notifications_sent} notification(s) sent`,
+            );
+          }
+          if (sync.skipped_student_ids?.length > 0) {
+            parts.push(
+              isArabic
+                ? `${sync.skipped_student_ids.length} طالب غير مشترك في الكورس`
+                : `${sync.skipped_student_ids.length} student(s) skipped (not enrolled in course)`,
             );
           }
           if (parts.length > 0) {

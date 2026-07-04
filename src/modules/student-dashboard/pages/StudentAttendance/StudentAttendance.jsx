@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -54,12 +54,106 @@ function StatusBadge({ status, isArabic }) {
   );
 }
 
+// ── QR Camera Scanner ─────────────────────────────────────────────────────────
+// Tracks cleanup across React StrictMode double-invoke so a new scanner never
+// tries to open the camera while the previous one is still releasing it.
+let qrCleanupPromise = Promise.resolve();
+
+function stopScanner(scanner) {
+  return new Promise((resolve) => {
+    try {
+      scanner.stop().catch(() => {}).finally(resolve);
+    } catch {
+      resolve();
+    }
+  });
+}
+
+function QrScannerWidget({ onScan, onError, isArabic }) {
+  const containerRef = useRef(null);
+  // Keep latest callbacks in refs so the effect never needs to restart when
+  // the parent re-renders and passes new function references.
+  const onScanRef = useRef(onScan);
+  const onErrorRef = useRef(onError);
+  useEffect(() => { onScanRef.current = onScan; }, [onScan]);
+  useEffect(() => { onErrorRef.current = onError; }, [onError]);
+
+  useEffect(() => {
+    const containerId = "student-qr-scan-box";
+    let active = true;
+    let scanner = null;
+    let startPromise = null;
+
+    // Capture the previous cleanup so we can wait for it before opening camera.
+    const previousCleanup = qrCleanupPromise;
+
+    const run = async () => {
+      await previousCleanup;
+      if (!active || !containerRef.current) return;
+
+      const { Html5Qrcode } = await import("html5-qrcode");
+      if (!active || !containerRef.current) return;
+
+      scanner = new Html5Qrcode(containerId);
+
+      startPromise = scanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        (decodedText) => {
+          if (decodedText.startsWith("sess_")) {
+            stopScanner(scanner);
+            onScanRef.current(decodedText);
+          }
+        },
+        () => {},
+      );
+
+      try {
+        await startPromise;
+      } catch (err) {
+        if (active) onErrorRef.current(err instanceof Error ? err : new Error(String(err)));
+      }
+    };
+
+    run();
+
+    return () => {
+      active = false;
+      const s = scanner;
+      scanner = null;
+      // Publish this cleanup so the next effect waits for the camera to be free.
+      qrCleanupPromise = Promise.resolve(startPromise)
+        .catch(() => {})
+        .then(() => (s ? stopScanner(s) : undefined));
+    };
+  }, []); // stable — callbacks are accessed via refs above
+
+  return (
+    <div className="text-center">
+      <div
+        id="student-qr-scan-box"
+        ref={containerRef}
+        style={{ width: "100%", maxWidth: 300, margin: "0 auto" }}
+      />
+      <p className="small text-muted mt-2 mb-0">
+        {isArabic
+          ? "وجّه الكاميرا نحو رمز QR الذي يعرضه المدرب."
+          : "Point your camera at the QR code displayed by the instructor."}
+      </p>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function StudentAttendance() {
   const { t, i18n } = useTranslation("studentDashboard");
   const isArabic = i18n.language?.startsWith("ar");
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("today");
   const [selectedGroupId, setSelectedGroupId] = useState(null);
+  const [scanMode, setScanMode] = useState("show_qr");
+  const [cameraError, setCameraError] = useState(null);
 
   const {
     summary,
@@ -72,11 +166,35 @@ function StudentAttendance() {
     loading,
     qrLoading,
     historyLoading,
+    checkInLoading,
+    checkInSuccess,
+    checkInError,
     loadToday,
     loadQrCode,
+    handleCheckIn,
+    resetCheckIn,
     selectSession,
     selectGroup,
   } = useStudentAttendance();
+
+  const handleScanModeSwitch = (mode) => {
+    setScanMode(mode);
+    setCameraError(null);
+    resetCheckIn();
+  };
+
+  const handleCameraError = useCallback((err) => {
+    const raw = (err?.message ?? String(err ?? "")).toLowerCase();
+    const isPermission = raw.includes("permission") || raw.includes("denied") || raw.includes("notallowed");
+    const msg = isPermission
+      ? isArabic
+        ? "تم رفض إذن الكاميرا. يرجى السماح بالوصول إليها من إعدادات المتصفح."
+        : "Camera permission denied. Please allow camera access in your browser settings."
+      : isArabic
+        ? "تعذّر فتح الكاميرا. تأكد من أنها غير مستخدمة من تطبيق آخر وأعد المحاولة."
+        : "Could not open camera. Make sure it is not in use by another app and try again.";
+    setCameraError(msg);
+  }, [isArabic]);
 
   useEffect(() => {
     const sessionId = searchParams.get("session");
@@ -89,6 +207,7 @@ function StudentAttendance() {
     if (matched) {
       selectSession(matched);
       setActiveTab("today");
+      setScanMode("show_qr");
     }
 
     setSearchParams({}, { replace: true });
@@ -233,39 +352,122 @@ function StudentAttendance() {
                       </small>
                     ) : null}
                   </div>
-                ) : qrLoading ? (
-                  <div className="py-5">
-                    <Spinner animation="border" variant="danger" />
-                  </div>
-                ) : qrCode ? (
-                  <div className="student-qr-wrap">
-                    <QRCodeSVG value={qrCode} size={220} level="M" includeMargin />
-                    <p className="small text-muted mt-3 mb-2">{t("attendance.qrHint")}</p>
-                    {qrExpiresAt ? (
-                      <small className="text-muted d-block">
-                        {t("attendance.qrExpires", {
-                          time: new Date(qrExpiresAt).toLocaleTimeString(
-                            isArabic ? "ar-EG" : "en-US",
-                          ),
-                        })}
-                      </small>
-                    ) : null}
-                    <button
-                      type="button"
-                      className="btn btn-outline-danger btn-sm mt-3"
-                      onClick={() => loadQrCode(activeSession.session_id)}
-                    >
-                      {t("attendance.refreshQr")}
-                    </button>
-                  </div>
                 ) : (
-                  <button
-                    type="button"
-                    className="btn btn-danger"
-                    onClick={() => loadQrCode(activeSession.session_id)}
-                  >
-                    {t("attendance.generateQr")}
-                  </button>
+                  <>
+                    {/* ── Mode toggle ── */}
+                    <div className="btn-group mb-4" role="group">
+                      <button
+                        type="button"
+                        className={`btn btn-sm ${scanMode === "show_qr" ? "btn-danger" : "btn-outline-danger"}`}
+                        onClick={() => handleScanModeSwitch("show_qr")}
+                      >
+                        <i className="bi bi-qr-code me-1" />
+                        {t("attendance.showQr")}
+                      </button>
+                      <button
+                        type="button"
+                        className={`btn btn-sm ${scanMode === "scan_qr" ? "btn-danger" : "btn-outline-danger"}`}
+                        onClick={() => handleScanModeSwitch("scan_qr")}
+                      >
+                        <i className="bi bi-camera me-1" />
+                        {t("attendance.scanQr")}
+                      </button>
+                    </div>
+
+                    {/* ── Show My QR (att_*) ── */}
+                    {scanMode === "show_qr" && (
+                      <>
+                        {qrLoading ? (
+                          <div className="py-5">
+                            <Spinner animation="border" variant="danger" />
+                          </div>
+                        ) : qrCode ? (
+                          <div className="student-qr-wrap">
+                            <QRCodeSVG value={qrCode} size={220} level="M" includeMargin />
+                            <p className="small text-muted mt-3 mb-2">{t("attendance.qrHint")}</p>
+                            {qrExpiresAt ? (
+                              <small className="text-muted d-block">
+                                {t("attendance.qrExpires", {
+                                  time: new Date(qrExpiresAt).toLocaleTimeString(
+                                    isArabic ? "ar-EG" : "en-US",
+                                  ),
+                                })}
+                              </small>
+                            ) : null}
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger btn-sm mt-3"
+                              onClick={() => loadQrCode(activeSession.session_id)}
+                            >
+                              {t("attendance.refreshQr")}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-danger"
+                            onClick={() => loadQrCode(activeSession.session_id)}
+                          >
+                            {t("attendance.generateQr")}
+                          </button>
+                        )}
+                      </>
+                    )}
+
+                    {/* ── Scan Session QR (sess_*) ── */}
+                    {scanMode === "scan_qr" && (
+                      <>
+                        {checkInSuccess ? (
+                          <div className="py-4">
+                            <i className="bi bi-check-circle-fill text-success fs-1 mb-3 d-block" />
+                            <p className="fw-semibold text-success mb-1">
+                              {t("attendance.checkInSuccess")}
+                            </p>
+                          </div>
+                        ) : checkInLoading ? (
+                          <div className="py-5">
+                            <Spinner animation="border" variant="danger" />
+                            <p className="text-muted small mt-2 mb-0">
+                              {t("attendance.scanning")}
+                            </p>
+                          </div>
+                        ) : cameraError ? (
+                          <div className="py-4">
+                            <i className="bi bi-camera-video-off fs-1 text-danger mb-3 d-block" />
+                            <div className="alert alert-danger py-2 mb-3 small" role="alert">
+                              <i className="bi bi-exclamation-triangle me-1" />
+                              {cameraError}
+                            </div>
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger btn-sm"
+                              onClick={() => {
+                                setCameraError(null);
+                                resetCheckIn();
+                              }}
+                            >
+                              <i className="bi bi-arrow-clockwise me-1" />
+                              {isArabic ? "إعادة المحاولة" : "Retry"}
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            {checkInError && (
+                              <div className="alert alert-danger py-2 mb-3 small" role="alert">
+                                <i className="bi bi-exclamation-triangle me-1" />
+                                {checkInError}
+                              </div>
+                            )}
+                            <QrScannerWidget
+                              onScan={handleCheckIn}
+                              onError={handleCameraError}
+                              isArabic={isArabic}
+                            />
+                          </>
+                        )}
+                      </>
+                    )}
+                  </>
                 )}
               </Card.Body>
             </Card>

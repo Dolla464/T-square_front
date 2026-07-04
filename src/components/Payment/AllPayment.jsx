@@ -10,6 +10,7 @@ import { showConfirmCustom } from "../shared/ConfirmDialog/confirmDialog";
 import { toastSuccess, toastError } from "../shared/Toaster/toaster";
 import usePayment from "../../hooks/usePayment";
 import { formatCoursePrice } from "../../utils/coursePrice";
+import LoadingSpiner from "../../LoadingSpiner";
 
 function AllPayment() {
   const { slug } = useParams();
@@ -18,15 +19,10 @@ function AllPayment() {
   const { courseData, loading, error } = useCourseSlug(slug);
   const { t } = useTranslation(["payment", "navbar", "courses"]);
   const isArabic = i18n.language === "ar";
-
-  if (!slug || slug == null) {
-    return <Navigate to="/courses" replace />;
-  }
-
-  const course = courseData;
   const { user } = useAuth();
+  const { createEnrollment } = usePayment();
 
-  // Student form state
+  // Student form state — initialised with user data when available
   const [formData, setFormData] = useState({
     fullName: user?.name || user?.student?.full_name || "",
     email: user?.email || "",
@@ -38,16 +34,35 @@ function AllPayment() {
   // Submission state
   const [submitted, setSubmitted] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
-
   const [responseMessage, setResponseMessage] = useState("");
   const [isError, setIsError] = useState(false);
+
+  // ── Early returns AFTER all hooks ──
+  if (!slug) {
+    return <Navigate to="/courses" replace />;
+  }
+
+  if (loading) {
+    return <LoadingSpiner />;
+  }
+
+  if (error || !courseData) {
+    return (
+      <div className="payment-page d-flex flex-column align-items-center justify-content-center" style={{ minHeight: "60vh" }}>
+        <p className="text-danger mb-3">{error || (isArabic ? "تعذّر تحميل بيانات الكورس" : "Failed to load course data")}</p>
+        <Link to="/courses" className="btn btn-outline-danger">
+          {isArabic ? "العودة للكورسات" : "Back to Courses"}
+        </Link>
+      </div>
+    );
+  }
+
+  const course = courseData;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
-  const { createEnrollment } = usePayment();
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -6,6 +6,7 @@ import {
   getAttendanceSchedule,
   getGroupAttendanceHistory,
   getAttendanceQr,
+  checkInWithSessionQr,
 } from "../services/studentAttendanceService";
 
 const QR_POLL_INTERVAL_MS = 12_000;
@@ -22,6 +23,9 @@ export const useStudentAttendance = () => {
   const [loading, setLoading] = useState(false);
   const [qrLoading, setQrLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [checkInLoading, setCheckInLoading] = useState(false);
+  const [checkInSuccess, setCheckInSuccess] = useState(false);
+  const [checkInError, setCheckInError] = useState(null);
 
   const qrPollRef = useRef(null);
   const todayPollRef = useRef(null);
@@ -107,11 +111,38 @@ export const useStudentAttendance = () => {
     }
   }, []);
 
+  const handleCheckIn = useCallback(
+    async (qrCode) => {
+      setCheckInLoading(true);
+      setCheckInError(null);
+      setCheckInSuccess(false);
+      try {
+        const res = await checkInWithSessionQr(qrCode);
+        setCheckInSuccess(true);
+        await loadToday({ silent: true });
+        return res;
+      } catch (err) {
+        const msg = err?.response?.data?.message || "Check-in failed.";
+        setCheckInError(msg);
+        throw err;
+      } finally {
+        setCheckInLoading(false);
+      }
+    },
+    [loadToday],
+  );
+
+  const resetCheckIn = useCallback(() => {
+    setCheckInSuccess(false);
+    setCheckInError(null);
+  }, []);
+
   const selectSession = useCallback((session) => {
     setActiveSession(session);
     setQrCode(null);
     setQrExpiresAt(null);
-  }, []);
+    resetCheckIn();
+  }, [resetCheckIn]);
 
   const selectGroup = useCallback(
     async (groupId) => {
@@ -173,11 +204,16 @@ export const useStudentAttendance = () => {
     loading,
     qrLoading,
     historyLoading,
+    checkInLoading,
+    checkInSuccess,
+    checkInError,
     loadSummary,
     loadToday,
     loadSchedule,
     loadGroupHistory,
     loadQrCode,
+    handleCheckIn,
+    resetCheckIn,
     selectSession,
     selectGroup,
   };

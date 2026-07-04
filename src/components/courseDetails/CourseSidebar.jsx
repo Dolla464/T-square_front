@@ -44,9 +44,13 @@ const CourseSidebar = ({ course }) => {
     }
 
     // التوجيه لصفحة الدفع بعد انتهاء الفحص
-    navigate(`/payment/${course.slug}`, {
-      state: { isEnrolled: isEnrolled },
-    });
+    if (isEnrolled) {
+      navigate(`/student/course/${course.id}`);
+    } else {
+      navigate(`/payment/${course.slug}`, {
+        state: { isEnrolled: false },
+      });
+    }
   };
 
   return (
