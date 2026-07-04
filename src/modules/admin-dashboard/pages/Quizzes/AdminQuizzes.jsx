@@ -342,11 +342,7 @@ function AdminQuizzes() {
   return (
     <div className="admin-content-page">
       {/* Loading Overlay */}
-      {loading && (
-        <div className="ac-loading-overlay">
-          <Spinner animation="border" variant="danger" />
-        </div>
-      )}
+
 
       {!showForm ? (
         <>
@@ -414,11 +410,10 @@ function AdminQuizzes() {
 
                     <input
                       type="text"
-                      className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${
-                        searchTerm
-                          ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
-                          : "border-light bg-light text-muted"
-                      }`}
+                      className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
+                        ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
+                        : "border-light bg-light text-muted"
+                        }`}
                       placeholder={t("quizzes_page.search_placeholder")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -429,11 +424,10 @@ function AdminQuizzes() {
                   <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
                     {/* Status Filter */}
                     <select
-                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
-                        selectedStatus !== "all"
-                          ? "border-danger bg-danger-subtle text-danger-emphasis"
-                          : "border-light bg-light text-muted"
-                      }`}
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedStatus !== "all"
+                        ? "border-danger bg-danger-subtle text-danger-emphasis"
+                        : "border-light bg-light text-muted"
+                        }`}
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                     >
@@ -450,11 +444,10 @@ function AdminQuizzes() {
 
                     {/* Date-Range Filter */}
                     <select
-                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
-                        selectedPeriod !== "all"
-                          ? "border-danger bg-danger-subtle text-danger-emphasis"
-                          : "border-light bg-light text-muted"
-                      }`}
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedPeriod !== "all"
+                        ? "border-danger bg-danger-subtle text-danger-emphasis"
+                        : "border-light bg-light text-muted"
+                        }`}
                       value={selectedPeriod}
                       onChange={(e) => setSelectedPeriod(e.target.value)}
                     >
@@ -474,6 +467,7 @@ function AdminQuizzes() {
 
                 {/* Quizzes Table */}
                 <div className="table-responsive">
+
                   <table
                     className={`table ac-table mb-0 align-middle${showTrash ? " table-secondary" : ""}`}
                   >
@@ -503,8 +497,18 @@ function AdminQuizzes() {
                         </th>
                       </tr>
                     </thead>
+
                     <tbody>
-                      {quizzes && quizzes.length > 0 ? (
+                      {loading ? (
+                        <tr>
+                          <td colSpan="6" className="text-center py-4">
+                            <div
+                              className="spinner-border text-danger"
+                              role="status"
+                            ></div>
+                          </td>
+                        </tr>
+                      ) : quizzes && quizzes.length > 0 ? (
                         quizzes.map((quizItem) => (
                           <tr key={quizItem.id}>
                             <td className="text-center fw-medium text-dark">
@@ -525,8 +529,8 @@ function AdminQuizzes() {
                                   <i className="bi bi-trash me-1"></i>
                                   {quizItem.deleted_at
                                     ? new Date(
-                                        quizItem.deleted_at,
-                                      ).toLocaleDateString()
+                                      quizItem.deleted_at,
+                                    ).toLocaleDateString()
                                     : ""}
                                 </span>
                               ) : (

@@ -75,6 +75,7 @@ function AdminCourses() {
 
   // ─── Form logic hook ───────────────────────────────────────────────────────
   const formLogic = useCourseFormLogic();
+  const { setFormData, setThumbnailFile, setCoverFile, setActiveTab } = formLogic;
 
   // ─── Data fetching ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -102,6 +103,7 @@ function AdminCourses() {
   ]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [
     debouncedSearch,
@@ -132,12 +134,12 @@ function AdminCourses() {
       const fullCourse = await getCourseById(courseId);
       if (cancelled || !fullCourse) return;
 
-      setViewingItem(null);
-      setEditingItem(fullCourse);
-      formLogic.setFormData(mapItemToFormData(fullCourse));
-      formLogic.setThumbnailFile(null);
-      formLogic.setCoverFile(null);
-      formLogic.setActiveTab("basic");
+      setEditingItem(null);
+      setViewingItem(fullCourse);
+      setFormData(mapItemToFormData(fullCourse));
+      setThumbnailFile(null);
+      setCoverFile(null);
+      setActiveTab("basic");
       setShowForm(true);
       setSearchParams({}, { replace: true });
     })();
@@ -145,7 +147,7 @@ function AdminCourses() {
     return () => {
       cancelled = true;
     };
-  }, [searchParams, showForm, getCourseById, formLogic, setSearchParams]);
+  }, [searchParams, showForm, getCourseById, setFormData, setThumbnailFile, setCoverFile, setActiveTab, setSearchParams]);
 
   // ─── Client-side filter (second layer over API results) ───────────────────
   const filteredCourses = React.useMemo(() => {

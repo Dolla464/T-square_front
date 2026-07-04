@@ -69,12 +69,16 @@ function InstructorStudentResults() {
   useEffect(() => {
     if (!selectedGroupId) {
       resetExamData();
-      setSelectedExamId("");
+      setTimeout(() => {
+        setSelectedExamId("");
+      }, 0);
       return;
     }
 
-    setSelectedExamId("");
-    setModalStudent(null);
+    setTimeout(() => {
+      setSelectedExamId("");
+      setModalStudent(null);
+    }, 0);
     loadExams(selectedGroupId);
   }, [selectedGroupId, loadExams, resetExamData]);
 
@@ -117,12 +121,13 @@ function InstructorStudentResults() {
 
   return (
     <div className="admin-content-page">
+      {/* Header */}
       <div className="ac-header d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="ac-title mb-0">
+          <h2 className="ac-title">
             {t("studentResults.title", "Students Results")}
           </h2>
-          <p className="ac-subtitle mb-0 mt-1">
+          <p className="ac-subtitle text-muted mb-0">
             {t(
               "studentResults.subtitle",
               "View exam results by group and exam"
@@ -131,18 +136,18 @@ function InstructorStudentResults() {
         </div>
       </div>
 
-      {/* ── Integrated Filter Bar and Results Card ──────────────── */}
       <div className="ac-table-card">
-        <div className="ac-table-container">
-          <div className="ac-rounded-table p-3 p-md-0">
-            <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
-              <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap w-100 justify-content-start">
+        <div className="ac-rounded-table p-3 p-md-0">
+          <div className="ac-filters-bar d-flex flex-column gap-3 mb-3">
+            <div className="d-flex flex-column flex-md-row align-items-end gap-3 flex-wrap">
+              {/* Select Group */}
+              <div>
+                <label className="fw-semibold small text-muted mb-1 d-block">
+                  <i className="bi bi-people me-1"></i>
+                  {t("studentResults.selectGroup", "Select Group")}
+                </label>
                 <select
-                  className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
-                    selectedGroupId
-                      ? "border-danger bg-danger-subtle text-danger-emphasis"
-                      : "border-light bg-light text-muted"
-                  }`}
+                  className={selectClass(!!selectedGroupId)}
                   value={selectedGroupId}
                   onChange={handleGroupChange}
                   disabled={loadingGroups}
@@ -157,13 +162,16 @@ function InstructorStudentResults() {
                     </option>
                   ))}
                 </select>
+              </div>
 
+              {/* Select Exam */}
+              <div>
+                <label className="fw-semibold small text-muted mb-1 d-block">
+                  <i className="bi bi-journal-text me-1"></i>
+                  {t("studentResults.selectExam", "Select Exam")}
+                </label>
                 <select
-                  className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
-                    selectedExamId
-                      ? "border-danger bg-danger-subtle text-danger-emphasis"
-                      : "border-light bg-light text-muted"
-                  }`}
+                  className={selectClass(!!selectedExamId)}
                   value={selectedExamId}
                   onChange={handleExamChange}
                   disabled={!selectedGroupId || loadingExams}
@@ -182,182 +190,182 @@ function InstructorStudentResults() {
                 </select>
               </div>
             </div>
-
-      {!selectedGroupId && (
-        <div className="text-center py-5 text-muted">
-          <div
-            className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-            style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}
-          >
-            <i className="bi bi-funnel" style={{ fontSize: "2rem" }}></i>
-          </div>
-          <h5 className="fw-bold text-dark mb-1">
-            {t("studentResults.selectGroupTitle", "Select a Group")}
-          </h5>
-          <p className="small text-muted mb-0">
-            {t("studentResults.emptyGroup", "Select a group to get started.")}
-          </p>
-        </div>
-      )}
-
-      {selectedGroupId && !selectedExamId && loadingExams && (
-        <div className="text-center py-5">
-          <div className="spinner-border text-danger mb-2" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <div className="text-muted small">{t("studentResults.loadingExams", "Loading exams…")}</div>
-        </div>
-      )}
-
-      {selectedGroupId &&
-        !selectedExamId &&
-        !loadingExams &&
-        exams.length === 0 && (
-          <div className="text-center py-5 text-muted">
-            <div
-              className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-              style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}
-            >
-              <i className="bi bi-journal-x" style={{ fontSize: "2rem" }}></i>
-            </div>
-            <h5 className="fw-bold text-dark mb-1">
-              {t("studentResults.noExamsTitle", "No Exams Found")}
-            </h5>
-            <p className="small text-muted mb-0">
-              {t("studentResults.noExams", "No exams found for this group's course.")}
-            </p>
-          </div>
-        )}
-
-      {selectedGroupId &&
-        !selectedExamId &&
-        !loadingExams &&
-        exams.length > 0 && (
-          <div className="text-center py-5 text-muted">
-            <div
-              className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-              style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}
-            >
-              <i className="bi bi-journal-check" style={{ fontSize: "2rem" }}></i>
-            </div>
-            <h5 className="fw-bold text-dark mb-1">
-              {t("studentResults.selectExamTitle", "Select an Exam")}
-            </h5>
-            <p className="small text-muted mb-0">
-              {t("studentResults.emptyExam", "Select an exam to view results.")}
-            </p>
-          </div>
-        )}
-
-      {loadingResults && (
-        <div className="text-center py-5">
-          <div className="spinner-border text-danger mb-2" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <div className="text-muted small">{t("studentResults.loadingResults", "Loading results…")}</div>
-        </div>
-      )}
-
-      {selectedExamId && !loadingResults && examResults && (
-        <>
-          <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-            <div>
-              <h6 className="fw-bold mb-1">
-                {examResults.group_name}
-                {examResults.course_title && (
-                  <span className="text-muted fw-normal">
-                    {" "}
-                    — {examResults.course_title}
-                  </span>
-                )}
-              </h6>
-              <div className="text-muted small">
-                {examResults.exam_title}
-                {examResults.total_marks != null && (
-                  <span>
-                    {" "}
-                    | {t("studentResults.totalMarks", "Total")}:{" "}
-                    {examResults.total_marks}
-                  </span>
-                )}
-              </div>
-            </div>
-            <ExportBar
-              onExport={(format) =>
-                handleExportResults(selectedGroupId, selectedExamId, format)
-              }
-              loading={exportLoading}
-              disabled={!canExport}
-            />
           </div>
 
-          {students.length === 0 ? (
+          {!selectedGroupId && (
             <div className="text-center py-5 text-muted">
               <div
                 className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}
+                style={{ width: 64, height: 64, background: "#f3f4f6", color: "#6b7280" }}
               >
                 <i className="bi bi-people" style={{ fontSize: "2rem" }}></i>
               </div>
               <h5 className="fw-bold text-dark mb-1">
-                {t("studentResults.noStudentsTitle", "No Students")}
+                {t("studentResults.selectGroup", "Select Group")}
               </h5>
               <p className="small text-muted mb-0">
-                {t("studentResults.noStudents", "No students enrolled in this group.")}
+                {t("studentResults.emptyGroup", "Select a group to get started.")}
               </p>
             </div>
-          ) : (
-            <div className="table-responsive">
-              <table className="table ac-table align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th style={{ width: 60 }}>#</th>
-                    <th>{t("studentResults.studentName", "Student Name")}</th>
-                    <th>{t("studentResults.highestScore", "Highest Score")}</th>
-                    <th>{t("studentResults.status", "Status")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {students.map((student, idx) => (
-                    <tr key={student.student_id}>
-                      <td className="text-muted">{idx + 1}</td>
-                      <td>
-                        <button
-                          type="button"
-                          className="btn btn-link p-0 text-decoration-none fw-semibold"
-                          onClick={() => openStudentModal(student)}
-                        >
-                          {student.full_name}
-                        </button>
-                        {student.email && (
-                          <div className="text-muted small">{student.email}</div>
-                        )}
-                      </td>
-                      <td>
-                        <span className="fw-semibold">
-                          {formatHighestScore(student)}
-                        </span>
-                        {student.attempts_count > 0 && (
-                          <div className="text-muted small">
-                            {t("studentResults.attemptsCount", {
-                              count: student.attempts_count,
-                              defaultValue: `${student.attempts_count} attempt(s)`,
-                            })}
-                          </div>
-                        )}
-                      </td>
-                      <td>
-                        <ResultStatusBadge student={student} t={t} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          )}
+
+          {selectedGroupId && !selectedExamId && loadingExams && (
+            <div className="text-center py-5">
+              <div className="spinner-border text-danger mb-2" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <div className="text-muted small">
+                {t("studentResults.loadingExams", "Loading exams…")}
+              </div>
             </div>
           )}
-        </>
-      )}
-          </div>
+
+          {selectedGroupId &&
+            !selectedExamId &&
+            !loadingExams &&
+            exams.length === 0 && (
+              <div className="text-center py-5 text-muted">
+                <div
+                  className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                  style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}
+                >
+                  <i className="bi bi-journal-x" style={{ fontSize: "2rem" }}></i>
+                </div>
+                <h5 className="fw-bold text-dark mb-1">
+                  {t("studentResults.noExamsTitle", "No Exams Found")}
+                </h5>
+                <p className="small text-muted mb-0">
+                  {t("studentResults.noExams", "No exams found for this group's course.")}
+                </p>
+              </div>
+            )}
+
+          {selectedGroupId &&
+            !selectedExamId &&
+            !loadingExams &&
+            exams.length > 0 && (
+              <div className="text-center py-5 text-muted">
+                <div
+                  className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                  style={{ width: 64, height: 64, background: "#f3f4f6", color: "#6b7280" }}
+                >
+                  <i className="bi bi-journal-check" style={{ fontSize: "2rem" }}></i>
+                </div>
+                <h5 className="fw-bold text-dark mb-1">
+                  {t("studentResults.selectExam", "Select Exam")}
+                </h5>
+                <p className="small text-muted mb-0">
+                  {t("studentResults.emptyExam", "Select an exam to view results.")}
+                </p>
+              </div>
+            )}
+
+          {selectedExamId && (
+            <>
+              <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 px-3 px-md-4">
+                <div>
+                  <h6 className="fw-bold mb-1">
+                    {examResults?.group_name || "..."}
+                    {examResults?.course_title && (
+                      <span className="text-muted fw-normal">
+                        {" "}
+                        — {examResults.course_title}
+                      </span>
+                    )}
+                  </h6>
+                  <div className="text-muted small">
+                    {examResults?.exam_title || "..."}
+                    {examResults?.total_marks != null && (
+                      <span>
+                        {" "}
+                        | {t("studentResults.totalMarks", "Total")}:{" "}
+                        {examResults.total_marks}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <ExportBar
+                  onExport={(format) =>
+                    handleExportResults(selectedGroupId, selectedExamId, format)
+                  }
+                  loading={exportLoading}
+                  disabled={!canExport}
+                />
+              </div>
+
+              {loadingResults || !examResults ? (
+                <div className="text-center py-5">
+                  <div className="spinner-border text-danger" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              ) : students.length === 0 ? (
+                <div className="text-center py-5 text-muted">
+                  <div
+                    className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                    style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}
+                  >
+                    <i className="bi bi-people" style={{ fontSize: "2rem" }}></i>
+                  </div>
+                  <h5 className="fw-bold text-dark mb-1">
+                    {t("studentResults.noStudentsTitle", "No Students")}
+                  </h5>
+                  <p className="small text-muted mb-0">
+                    {t("studentResults.noStudents", "No students enrolled in this group.")}
+                  </p>
+                </div>
+              ) : (
+                <div className="table-responsive">
+                  <table className="table ac-table mb-0 align-middle">
+                    <thead>
+                      <tr>
+                        <th style={{ width: 60 }}>#</th>
+                        <th>{t("studentResults.studentName", "Student Name")}</th>
+                        <th>{t("studentResults.highestScore", "Highest Score")}</th>
+                        <th>{t("studentResults.status", "Status")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {students.map((student, idx) => (
+                        <tr key={student.student_id}>
+                          <td className="text-muted small">{idx + 1}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className="btn btn-link p-0 text-decoration-none fw-semibold text-dark"
+                              style={{ fontSize: "0.9rem" }}
+                              onClick={() => openStudentModal(student)}
+                            >
+                              {student.full_name}
+                            </button>
+                            {student.email && (
+                              <div className="text-muted small">{student.email}</div>
+                            )}
+                          </td>
+                          <td>
+                            <span className="fw-semibold">
+                              {formatHighestScore(student)}
+                            </span>
+                            {student.attempts_count > 0 && (
+                              <div className="text-muted small">
+                                {t("studentResults.attemptsCount", {
+                                  count: student.attempts_count,
+                                  defaultValue: `${student.attempts_count} attempt(s)`,
+                                })}
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <ResultStatusBadge student={student} t={t} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 

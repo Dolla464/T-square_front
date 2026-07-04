@@ -24,7 +24,9 @@ function StudentExamResultsModal({
 
   useEffect(() => {
     if (show && groupId && studentId && examId) {
-      setSelectedAttempt(null);
+      setTimeout(() => {
+        setSelectedAttempt(null);
+      }, 0);
       loadStudentExamAttempts(groupId, studentId, examId);
     }
   }, [show, groupId, studentId, examId, loadStudentExamAttempts]);

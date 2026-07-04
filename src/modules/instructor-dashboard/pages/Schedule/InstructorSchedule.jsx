@@ -19,19 +19,22 @@ import "./InstructorSchedule.css";
 
 // ── Status badge helper ───────────────────────────────────────────────────────
 
-const STATUS_VARIANT = {
-  active:    "success",
-  completed: "secondary",
-  cancelled: "danger",
-  pending:   "warning",
+const STATUS_CONFIG = {
+  upcoming:  { bg: "bg-primary-subtle text-primary",   icon: "bi-clock",              label: "Upcoming"  },
+  active:    { bg: "bg-success-subtle text-success",   icon: "bi-play-circle-fill",   label: "Active"    },
+  completed: { bg: "bg-secondary-subtle text-secondary", icon: "bi-check-circle-fill", label: "Completed" },
+  cancelled: { bg: "bg-danger-subtle text-danger",     icon: "bi-x-circle-fill",      label: "Cancelled" },
+  pending:   { bg: "bg-warning-subtle text-warning",   icon: "bi-clock-history",      label: "Pending"   },
 };
 
 function StatusBadge({ status }) {
   const { t } = useTranslation("instructorDashboard");
+  const cfg = STATUS_CONFIG[status] ?? { bg: "bg-light text-dark", icon: "bi-circle", label: status };
   return (
-    <Badge bg={STATUS_VARIANT[status] ?? "light"} text={STATUS_VARIANT[status] ? undefined : "dark"}>
-      {t(`schedule.status.${status}`, status)}
-    </Badge>
+    <span className={`badge rounded-pill px-2 py-1 ${cfg.bg}`} style={{ fontSize: "0.75rem" }}>
+      <i className={`bi ${cfg.icon} me-1`}></i>
+      {t(`schedule.status.${status}`, cfg.label)}
+    </span>
   );
 }
 
@@ -41,29 +44,22 @@ function SessionCard({ session }) {
   const { t } = useTranslation("instructorDashboard");
 
   return (
-    <Card
-      className="session-card mb-3"
-      style={{
-        border: "1px solid #eaeaea",
-        borderRadius: "12px",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
-      }}
-    >
+    <Card className="session-card mx-2 mb-3 border-0">
       <Card.Body className="p-4">
         <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
           <div>
-            <h6 className="fw-bold mb-1">{session.group_name}</h6>
-            <div className="text-muted small mb-2">
-              <i className="bi bi-book me-1 text-danger"></i>
-              {session.course_title ?? "—"}
+            <h6 className="fw-bold mb-1 text-dark">{session.group_name}</h6>
+            <div className="text-muted small mb-2 d-flex align-items-center gap-1">
+              <i className="bi bi-book"></i>
+              <span>{session.course_title ?? "—"}</span>
             </div>
           </div>
           <StatusBadge status={session.status} />
         </div>
 
-        <div className="d-flex flex-wrap gap-3 mt-2">
+        <div className="d-flex flex-wrap gap-3 mt-3">
           <div className="session-meta">
-            <i className="bi bi-clock text-danger me-1"></i>
+            <i className="bi bi-clock"></i>
             <span className="fw-semibold">
               {session.start_time} – {session.end_time}
             </span>
@@ -71,13 +67,13 @@ function SessionCard({ session }) {
 
           {session.room && (
             <div className="session-meta">
-              <i className="bi bi-door-open text-danger me-1"></i>
+              <i className="bi bi-door-open"></i>
               <span>{t("schedule.room", "Room")}: {session.room}</span>
             </div>
           )}
 
           <div className="session-meta">
-            <i className="bi bi-calendar3 text-danger me-1"></i>
+            <i className="bi bi-calendar3"></i>
             <span>{session.session_date}</span>
           </div>
         </div>
@@ -94,7 +90,7 @@ function EmptyState({ date }) {
     <div className="text-center py-5 text-muted">
       <div
         className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-        style={{ width: 64, height: 64, background: "#fff1f2", color: "#be1522" }}
+        style={{ width: 64, height: 64, background: "#f3f4f6", color: "#6b7280" }}
       >
         <i className="bi bi-calendar-x" style={{ fontSize: "2rem" }}></i>
       </div>
@@ -190,46 +186,46 @@ function InstructorSchedule() {
       <div className="ac-table-card">
         <div className="ac-table-container">
           <div className="ac-rounded-table p-3 p-md-0">
-            <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
-              <div className="d-flex align-items-center gap-2 flex-wrap">
-                <div className="position-relative">
-                  <input
-                    type="date"
-                    className={`form-control border-2 rounded-3 shadow-sm fw-medium transition-all ${
-                      selectedDate
-                        ? "border-danger bg-danger-subtle text-danger-emphasis"
-                        : "border-light bg-light text-muted"
-                    }`}
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    style={{ minWidth: 180 }}
-                  />
+            <div className="ac-filters-bar d-flex flex-column gap-3 mb-3">
+              <div className="d-flex flex-column flex-md-row align-items-end justify-content-between gap-3 flex-wrap w-100">
+                <div className="d-flex align-items-end gap-3 flex-wrap">
+                  {/* Select Date */}
+                  <div>
+                    <label className="fw-semibold small text-muted mb-1 d-block">
+                      <i className="bi bi-calendar-date me-1"></i>
+                      {t("schedule.selectDate", "Select Date")}
+                    </label>
+                    <input
+                      type="date"
+                      className={dateInputClass(!!selectedDate)}
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      style={{ minWidth: 200 }}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
-                <button
-                  type="button"
-                  className={`btn border-2 rounded-3 shadow-sm fw-medium transition-all ${
-                    selectedDate === today
-                      ? "btn-danger border-danger text-white"
-                      : "btn-light border-light text-muted"
-                  }`}
-                  onClick={() => setSelectedDate(today)}
-                >
-                  <i className="bi bi-calendar-check me-1"></i>
-                  {t("schedule.today", "Today")}
-                </button>
-                {selectedDate && (
+                <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap align-items-end">
                   <button
                     type="button"
-                    className="btn btn-outline-dark border-2 rounded-3 shadow-sm fw-medium transition-all"
-                    onClick={handleClearDate}
+                    className={viewModeBtnClass(selectedDate === today)}
+                    onClick={() => setSelectedDate(today)}
                   >
-                    <i className="bi bi-x-lg me-1"></i>
-                    {t("schedule.showWeek", "Show Week")}
+                    <i className="bi bi-calendar-check me-1"></i>
+                    {t("schedule.today", "Today")}
                   </button>
-                )}
+                  {selectedDate && (
+                    <button
+                      type="button"
+                      className="btn btn-outline-dark border-2 rounded-3 shadow-sm fw-semibold transition-all px-3 py-2"
+                      onClick={handleClearDate}
+                      style={{ fontSize: "0.9rem" }}
+                    >
+                      <i className="bi bi-x-lg me-1"></i>
+                      {t("schedule.showWeek", "Show Week")}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
