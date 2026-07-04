@@ -4,7 +4,7 @@ function PricingTab({ formData, handleChange, isReadOnly, isArabic, t }) {
   return (
     <>
       {isFree && (
-        <p className="text-muted small mb-3">
+        <p className="text-danger small mb-3">
           {isArabic
             ? "الكورس مجاني — حقول السعر غير مطلوبة."
             : "This course is free — pricing fields are not required."}

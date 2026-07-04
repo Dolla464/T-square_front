@@ -1,20 +1,12 @@
 import { useEffect, useState } from "react";
-import { Dropdown, Spinner } from "react-bootstrap";
+import { Badge, NavDropdown, Spinner } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../../hooks/useNotifications";
-import { resolveNotificationUrl } from "../../utils/notifications";
+import { getNotificationsPagePath } from "../../utils/notifications";
 import "./NotificationsDropdown.css";
 
-const getIconForNotification = (notification) => {
-  const type = notification.type || "";
-  if (type.includes("quiz") || type.includes("exam")) return "bi-journal-check";
-  if (type.includes("attendance")) return "bi-calendar-check";
-  if (type.includes("payment")) return "bi-credit-card";
-  return "bi-bell";
-};
-
-function NotificationsDropdown({ isDarkMode, Tbtn }) {
+function NotificationsDropdown({ Tbtn = "" }) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation("studentDashboard");
   const isArabic = i18n.language?.startsWith("ar");
@@ -45,11 +37,7 @@ function NotificationsDropdown({ isDarkMode, Tbtn }) {
       await markAsRead(notification.id);
     }
 
-    const targetUrl = resolveNotificationUrl(notification, userRole);
-    if (targetUrl) {
-      navigate(targetUrl);
-    }
-
+    navigate(getNotificationsPagePath(userRole));
     setShow(false);
   };
 
@@ -59,44 +47,35 @@ function NotificationsDropdown({ isDarkMode, Tbtn }) {
   };
 
   return (
-    <Dropdown show={show} onToggle={handleToggle}>
-      <Dropdown.Toggle
-        as="button"
-        id="notifications-dropdown"
-        className={`search-trigger-btn position-relative ${Tbtn}`}
-        title={isArabic ? "الإشعارات" : "Notifications"}
-        aria-label={isArabic ? "الإشعارات" : "Notifications"}
-      >
-        <i className="bi bi-bell" />
-        {unreadCount > 0 && (
-          <span
-            className="badge bg-danger rounded-pill position-absolute"
-            style={{
-              fontSize: "0.6rem",
-              top: "-2px",
-              right: "-2px",
-              padding: "4px 6px",
-              minWidth: "16px",
-              height: "16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 0 0 2px var(--bs-body-bg, #fff)"
-            }}
-          >
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
-        )}
-      </Dropdown.Toggle>
-
-      <Dropdown.Menu className="notifications-dropdown-menu" style={{ minWidth: "320px", maxWidth: "360px" }}>
-        <div className="px-3 py-2 border-bottom d-flex justify-content-between align-items-center" style={{ background: "#f8fafc" }}>
-          <strong className="text-dark" style={{ fontSize: "0.85rem" }}>{t("notifications.title")}</strong>
+    <NavDropdown
+      title={
+        <span className="notifications-bell-toggle">
+          <i className="bi bi-bell-fill fs-5" />
+          {unreadCount > 0 && (
+            <Badge
+              bg="danger"
+              pill
+              className="notifications-bell-badge"
+            >
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </Badge>
+          )}
+        </span>
+      }
+      id="notifications-dropdown"
+      align="end"
+      show={show}
+      onToggle={handleToggle}
+      className={`fw-bold notifications-nav-dropdown ${Tbtn}`}
+      menuVariant="light"
+      menuClassName="notifications-nav-dropdown-menu"
+    >
+        <div className="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+          <strong>{t("notifications.title")}</strong>
           {unreadCount > 0 && (
             <button
               type="button"
-              className="btn btn-link btn-sm p-0 text-decoration-none text-danger fw-semibold"
-              style={{ fontSize: "0.8rem" }}
+              className="btn btn-link btn-sm p-0"
               onClick={handleMarkAllAsRead}
             >
               {t("notifications.markAllRead")}
@@ -125,31 +104,42 @@ function NotificationsDropdown({ isDarkMode, Tbtn }) {
 
         {!isLoading && !error && notifications.length > 0 && (
           <div
-            className="notifications-scroll-area py-1"
-            style={{ maxHeight: "360px", overflowY: "auto" }}
+            className="py-2"
+            style={{ maxHeight: "400px", overflowY: "auto" }}
           >
             {notifications.map((notification) => (
-              <button
+              <NavDropdown.Item
                 key={notification.id}
-                type="button"
-                className={`notification-item ${notification.is_read ? "" : "unread"}`}
+                as="button"
+                className={`border-0 rounded-0 px-3 py-2 ${
+                  notification.is_read ? "" : "bg-light"
+                }`}
                 onClick={() => handleNotificationClick(notification)}
               >
-                <div className="notification-icon">
-                  <i className={`bi ${getIconForNotification(notification)}`}></i>
+                <div className="d-flex justify-content-between align-items-start gap-2">
+                  <div className="flex-grow-1 text-start">
+                    <div className="fw-semibold small">
+                      {notification.title}
+                    </div>
+                    <div className="small text-muted">
+                      {notification.message}
+                    </div>
+                    <div className="small text-secondary mt-1">
+                      {formatTimeAgo(notification, locale)}
+                    </div>
+                  </div>
+                  {!notification.is_read && (
+                    <span
+                      className="rounded-circle bg-danger flex-shrink-0 mt-1"
+                      style={{ width: "8px", height: "8px" }}
+                    />
+                  )}
                 </div>
-                <div className="notification-content">
-                  <div className="notification-title">{notification.title}</div>
-                  <div className="notification-desc">{notification.message}</div>
-                  <div className="notification-time">{formatTimeAgo(notification, locale)}</div>
-                </div>
-                {!notification.is_read && <span className="notification-dot"></span>}
-              </button>
+              </NavDropdown.Item>
             ))}
           </div>
         )}
-      </Dropdown.Menu>
-    </Dropdown>
+    </NavDropdown>
   );
 }
 

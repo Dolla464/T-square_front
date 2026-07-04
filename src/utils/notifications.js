@@ -61,57 +61,10 @@ export const getNotificationsPayload = (response) => {
   return { items, meta };
 };
 
-const SESSION_TYPES = new Set([
-  "session_rescheduled",
-  "session_cancelled",
-  "session_activated",
-]);
-
-const normalizeLegacyActionUrl = (actionUrl) => {
-  if (!actionUrl) return null;
-
-  const legacyInstructorSession = actionUrl.match(
-    /^\/instructor\/attendance\/sessions\/(\d+)$/,
-  );
-  if (legacyInstructorSession) {
-    return `/instructor/attendance?session=${legacyInstructorSession[1]}`;
-  }
-
-  const legacyAdminCourse = actionUrl.match(/^\/admin\/courses\/(\d+)$/);
-  if (legacyAdminCourse) {
-    return `/admin/courses?course=${legacyAdminCourse[1]}`;
-  }
-
-  return actionUrl;
-};
-
-export const resolveNotificationUrl = (notification, userRole) => {
-  const directUrl = normalizeLegacyActionUrl(notification?.action_url);
-  if (directUrl) {
-    return directUrl;
-  }
-
-  if (!SESSION_TYPES.has(notification?.type)) {
-    return null;
-  }
-
-  if (userRole === "instructor") {
-    if (notification.type === "session_activated" && notification.session_id) {
-      return `/instructor/attendance?session=${notification.session_id}`;
-    }
-
-    return "/instructor/schedule";
-  }
-
-  if (userRole === "student" && notification.course_id) {
-    return `/student/course/${notification.course_id}`;
-  }
-
-  if (userRole === "admin") {
-    return "/admin/schedule";
-  }
-
-  return null;
+export const getNotificationsPagePath = (userRole) => {
+  if (userRole === "admin") return "/admin/notifications";
+  if (userRole === "instructor") return "/instructor/notifications";
+  return "/student/notifications";
 };
 
 export const NOTIFICATION_ICON_MAP = {
@@ -123,4 +76,6 @@ export const NOTIFICATION_ICON_MAP = {
   session_cancelled: "bi-calendar-x",
   course_review_required: "bi-star",
   admin_enrollment: "bi-people",
+  group_assigned: "bi-people",
+  instructor_exam_result: "bi-patch-check",
 };

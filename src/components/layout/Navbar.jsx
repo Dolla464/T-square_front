@@ -209,8 +209,8 @@ function AppNavbar({ isLoggedIn, userName }) {
             <SearchDropdown isDarkMode={!isDarkMode} Tbtn={Tbtn} />
 
             {isLoggedIn && (
-              <div className="d-flex align-items-center gap-3">
-                <NotificationsDropdown  isDarkMode={!isDarkMode} Tbtn={Tbtn}  />
+              <div className="d-flex align-items-center">
+                <NotificationsDropdown Tbtn={Tbtn} />
               </div>
             )}
 
@@ -219,7 +219,7 @@ function AppNavbar({ isLoggedIn, userName }) {
               onClick={toggleLanguage}
             >
               <HiOutlineGlobeAlt size={20} className="me-1" />
-              <span className="fw-semibold fs-6 ">
+              <span className="fw-semibold fs-6">
                 {i18n.language === "ar" ? "EN" : "AR"}
               </span>
             </div>
