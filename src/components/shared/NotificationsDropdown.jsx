@@ -3,7 +3,10 @@ import { Badge, NavDropdown, Spinner } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../../hooks/useNotifications";
-import { resolveNotificationPath } from "../../utils/notifications";
+import {
+  getNotificationsPagePath,
+  getNotificationTarget,
+} from "../../utils/notifications";
 import "./NotificationsDropdown.css";
 
 function NotificationsDropdown({ Tbtn = "" }) {
@@ -37,7 +40,8 @@ function NotificationsDropdown({ Tbtn = "" }) {
       await markAsRead(notification.id);
     }
 
-    navigate(resolveNotificationPath(notification, userRole));
+    const target = getNotificationTarget(notification);
+    navigate(target ?? getNotificationsPagePath(userRole));
     setShow(false);
   };
 

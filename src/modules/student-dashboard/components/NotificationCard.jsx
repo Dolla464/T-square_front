@@ -4,14 +4,13 @@ import { formatDateTime } from "../../../utils/formatDateTime";
 import { useNotifications } from "../../../hooks/useNotifications";
 import {
   NOTIFICATION_ICON_MAP,
-  resolveNotificationPath,
-  getNotificationsPagePath,
+  getNotificationTarget,
 } from "../../../utils/notifications";
 
 function NotificationCard({ notification }) {
   const { i18n } = useTranslation();
   const navigate = useNavigate();
-  const { markAsRead, userRole } = useNotifications();
+  const { markAsRead } = useNotifications();
   const isArabic = i18n.language?.startsWith("ar");
   const { id, type, title, message, icon, created_at, is_read } = notification;
 
@@ -25,28 +24,23 @@ function NotificationCard({ notification }) {
       ? icon
       : NOTIFICATION_ICON_MAP[type] ?? "bi-bell";
 
-  const targetPath = resolveNotificationPath(notification, userRole);
-  const hasAction = targetPath && targetPath !== getNotificationsPagePath(userRole);
+  const target = getNotificationTarget(notification);
 
   const handleCardClick = async () => {
     if (!is_read) {
       await markAsRead(id);
     }
-  };
-
-  const handleActionClick = async (e) => {
-    e.stopPropagation();
-    if (!is_read) {
-      await markAsRead(id);
+    if (target) {
+      navigate(target);
     }
-    navigate(targetPath);
   };
 
   return (
     <div
-      className={`notification-card ${is_read ? "" : "notification-unread"}`}
+      className={`notification-card ${is_read ? "" : "notification-unread"} ${target ? "notification-clickable" : ""}`}
       onClick={handleCardClick}
       dir="ltr"
+      style={target ? { cursor: "pointer" } : undefined}
     >
       <div className="notification-icon-wrap">
         <i className={`bi ${iconClass}`} aria-hidden="true" />
@@ -59,16 +53,6 @@ function NotificationCard({ notification }) {
         <div className="notification-time">
           <span>{formattedDate}</span>
         </div>
-        {hasAction && (
-          <button
-            type="button"
-            className="notification-action-btn"
-            onClick={handleActionClick}
-          >
-            {isArabic ? "عرض التفاصيل" : "View Details"}
-            <i className="bi bi-arrow-right-short" aria-hidden="true" />
-          </button>
-        )}
       </div>
     </div>
   );

@@ -381,9 +381,7 @@ function QuizExamPage() {
     );
   }
 
-  // ابحث عن شرط عرض الخطأ واستبدله بهذا المنطق:
   if (error || (!loading && !exam)) {
-    // استخراج رسالة الخطأ القادمة من السيرفر إن وجدت
     const serverErrorMessage = error?.response?.data?.message;
 
     return (
@@ -400,6 +398,30 @@ function QuizExamPage() {
                 : isArabic
                   ? "الكويز غير موجود أو حدث خطأ"
                   : "Quiz not found or error occurred"}
+            </h5>
+            <button className="btn-continue" onClick={handleExit}>
+              <i className="bi bi-arrow-left me-1"></i>
+              {isArabic ? "العودة" : "Back"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (exam && questions.length === 0) {
+    return (
+      <div className="quiz-exam-page">
+        <div className="quiz-exam-container">
+          <div className="quiz-exam-placeholder">
+            <i
+              className="bi bi-journal-x placeholder-icon"
+              style={{ color: "#f59e0b" }}
+            ></i>
+            <h5>
+              {isArabic
+                ? "لا توجد أسئلة في هذا الامتحان حالياً. تواصل مع الإدارة."
+                : "This exam has no questions yet. Please contact the administrator."}
             </h5>
             <button className="btn-continue" onClick={handleExit}>
               <i className="bi bi-arrow-left me-1"></i>

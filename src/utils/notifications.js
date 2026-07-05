@@ -28,15 +28,6 @@ export const normalizeNotification = (notification) => ({
       notification?.isRead ??
       false,
   ),
-  action_url:
-    notification?.action_url ??
-    notification?.actionUrl ??
-    notification?.url ??
-    notification?.action_link ??
-    notification?.data?.action_url ??
-    notification?.data?.url ??
-    notification?.data?.action_link ??
-    null,
   data: notification?.data ?? null,
 });
 
@@ -67,14 +58,6 @@ export const getNotificationsPagePath = (userRole) => {
   return "/student/notifications";
 };
 
-export const resolveNotificationPath = (notification, userRole) => {
-  const actionUrl = notification?.action_url;
-  if (actionUrl && actionUrl.startsWith("/")) {
-    return actionUrl;
-  }
-  return getNotificationsPagePath(userRole);
-};
-
 export const NOTIFICATION_ICON_MAP = {
   enrollment: "bi-book",
   exam_result: "bi-patch-check",
@@ -86,4 +69,31 @@ export const NOTIFICATION_ICON_MAP = {
   admin_enrollment: "bi-people",
   group_assigned: "bi-people",
   instructor_exam_result: "bi-patch-check",
+};
+
+/**
+ * Returns the deep-link navigation path for a notification, or null if there
+ * is no dedicated page (caller should fall back to the notifications page).
+ */
+export const getNotificationTarget = (notification) => {
+  const type = notification?.type ?? notification?.data?.type;
+  const courseId =
+    notification?.course_id ?? notification?.data?.course_id ?? null;
+
+  switch (type) {
+    case "course_review_required":
+      return courseId ? `/student/review/${courseId}` : null;
+    case "certificate":
+      return "/student/certificates";
+    case "session_activated":
+    case "session_rescheduled":
+    case "session_cancelled":
+      return "/student/attendance";
+    case "exam_result":
+      return "/student/quizzes";
+    case "enrollment":
+      return courseId ? `/student/course/${courseId}` : "/student/dashboard";
+    default:
+      return null;
+  }
 };
