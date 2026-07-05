@@ -22,10 +22,10 @@ import "./AdminSchedule.css";
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  upcoming:  { bg: "bg-primary-subtle text-primary",   icon: "bi-clock",              label: "Upcoming"  },
-  active:    { bg: "bg-success-subtle text-success",   icon: "bi-play-circle-fill",   label: "Active"    },
+  upcoming: { bg: "bg-primary-subtle text-primary", icon: "bi-clock", label: "Upcoming" },
+  active: { bg: "bg-success-subtle text-success", icon: "bi-play-circle-fill", label: "Active" },
   completed: { bg: "bg-secondary-subtle text-secondary", icon: "bi-check-circle-fill", label: "Completed" },
-  cancelled: { bg: "bg-danger-subtle text-danger",     icon: "bi-x-circle-fill",      label: "Cancelled" },
+  cancelled: { bg: "bg-danger-subtle text-danger", icon: "bi-x-circle-fill", label: "Cancelled" },
 };
 
 const fmt = (t) => (t ? t.slice(0, 5) : "—");
@@ -92,18 +92,19 @@ function ScheduleFilters({
         </div>
       </div>
 
-      <div className="d-flex flex-column flex-md-row align-items-end gap-3 flex-wrap">
+      <section className="d-flex flex-column flex-md-row align-items-end gap-3 flex-wrap w-100">
         {/* Date */}
-        <div>
+        <div className="w-100 w-md-auto">
           <label className="fw-semibold small text-muted mb-1 d-block">
             <i className="bi bi-calendar-date me-1"></i>
             {dateLabel}
           </label>
           <input
             type="date"
-            className={dateInputClass(filters.date)}
+            className={`w-100 w-md-auto ${dateInputClass(filters.date)}`}
             value={filters.date}
             onChange={(e) => handleDateChange(e.target.value)}
+            style={{ minWidth: "11rem", flex: "0 0 auto" }}
           />
           {(viewMode === "week" || viewMode === "month") && rangeBounds && (
             <div className="mt-1">
@@ -119,15 +120,16 @@ function ScheduleFilters({
         </div>
 
         {/* Instructor */}
-        <div>
+        <div className="w-100 w-md-auto">
           <label className="fw-semibold small text-muted mb-1 d-block">
             <i className="bi bi-person-badge me-1"></i>Instructor
           </label>
           <select
-            className={selectClass(!!filters.instructor_id)}
+            className={`w-100 w-md-auto ${selectClass(!!filters.instructor_id)}`}
             value={filters.instructor_id}
             onChange={(e) => updateFilter("instructor_id", e.target.value)}
             disabled={instructorsLoading}
+            style={{ minWidth: "11rem", flex: "0 0 auto" }}
           >
             <option value="">All Instructors</option>
             {instructors.map((inst) => (
@@ -139,14 +141,15 @@ function ScheduleFilters({
         </div>
 
         {/* Status */}
-        <div>
+        <div className="w-100 w-md-auto">
           <label className="fw-semibold small text-muted mb-1 d-block">
             <i className="bi bi-funnel me-1"></i>Status
           </label>
           <select
-            className={selectClass(!!filters.status)}
+            className={`w-100 w-md-auto ${selectClass(!!filters.status)}`}
             value={filters.status}
             onChange={(e) => updateFilter("status", e.target.value)}
+            style={{ minWidth: "11rem", flex: "0 0 auto" }}
           >
             <option value="">All Statuses</option>
             <option value="upcoming">Upcoming</option>
@@ -157,14 +160,15 @@ function ScheduleFilters({
         </div>
 
         {/* Per page */}
-        <div>
+        <div className="w-100 w-md-auto">
           <label className="fw-semibold small text-muted mb-1 d-block">
             <i className="bi bi-list-ol me-1"></i>Per Page
           </label>
           <select
-            className={selectClass(filters.per_page !== 15)}
+            className={`w-100 w-md-auto ${selectClass(filters.per_page !== 15)}`}
             value={filters.per_page}
             onChange={(e) => updateFilter("per_page", Number(e.target.value))}
+            style={{ minWidth: "11rem", flex: "0 0 auto" }}
           >
             <option value={10}>10</option>
             <option value={15}>15</option>
@@ -176,12 +180,12 @@ function ScheduleFilters({
         {/* Reset */}
         <button
           type="button"
-          className="btn ac-btn-view border-0 rounded-3 px-3 py-2 fw-medium"
+          className="btn ac-btn-view border-0 rounded-3 px-3 py-2 fw-medium w-100 w-md-auto"
           onClick={resetFilters}
         >
           <i className="bi bi-arrow-counterclockwise me-1"></i>Reset
         </button>
-      </div>
+      </section>
     </div>
   );
 }
@@ -368,17 +372,17 @@ function ScheduleTable({ sessions, loading, error, onReschedule, onCancel, readO
 // Inner form — mounted fresh each time session changes (via key prop on wrapper)
 function RescheduleForm({ session, onClose, onSubmit, loading }) {
   const [form, setForm] = useState({
-    date:       session.effective_date       ?? "",
+    date: session.effective_date ?? "",
     start_time: session.effective_start_time ? session.effective_start_time.slice(0, 5) : "",
-    end_time:   session.effective_end_time   ? session.effective_end_time.slice(0, 5)   : "",
+    end_time: session.effective_end_time ? session.effective_end_time.slice(0, 5) : "",
   });
   const [errors, setErrors] = useState({});
 
   const validate = () => {
     const errs = {};
-    if (!form.date)       errs.date       = "Date is required.";
+    if (!form.date) errs.date = "Date is required.";
     if (!form.start_time) errs.start_time = "Start time is required.";
-    if (!form.end_time)   errs.end_time   = "End time is required.";
+    if (!form.end_time) errs.end_time = "End time is required.";
     if (form.start_time && form.end_time && form.start_time >= form.end_time)
       errs.end_time = "End time must be after start time.";
     return errs;
@@ -471,16 +475,16 @@ function RescheduleModal({ show, session, onClose, onSubmit, loading }) {
         </>
       }
     >
-        {show && session && (
-          // key forces a fresh mount (and fresh useState) whenever the session changes
-          <RescheduleForm
-            key={session.id}
-            session={session}
-            onClose={onClose}
-            onSubmit={onSubmit}
-            loading={loading}
-          />
-        )}
+      {show && session && (
+        // key forces a fresh mount (and fresh useState) whenever the session changes
+        <RescheduleForm
+          key={session.id}
+          session={session}
+          onClose={onClose}
+          onSubmit={onSubmit}
+          loading={loading}
+        />
+      )}
     </DetailModal>
   );
 }
@@ -508,45 +512,45 @@ function CancelModal({ show, session, onClose, onSubmit, loading }) {
         </>
       }
     >
-        {session && (
-          <div className="mb-3 p-3 rounded-3" style={{ background: "#fff5f5", border: "1px solid #fecaca" }}>
-            <div className="fw-bold">{session.group_name}</div>
-            <div className="text-muted small">
-              {session.effective_date} &bull;&nbsp;
-              {fmt(session.effective_start_time)} – {fmt(session.effective_end_time)}
-            </div>
+      {session && (
+        <div className="mb-3 p-3 rounded-3" style={{ background: "#fff5f5", border: "1px solid #fecaca" }}>
+          <div className="fw-bold">{session.group_name}</div>
+          <div className="text-muted small">
+            {session.effective_date} &bull;&nbsp;
+            {fmt(session.effective_start_time)} – {fmt(session.effective_end_time)}
           </div>
-        )}
+        </div>
+      )}
 
-        <p className="text-muted small mb-3">
-          Cancelling this session will send notifications to all enrolled students and the instructor.
-        </p>
+      <p className="text-muted small mb-3">
+        Cancelling this session will send notifications to all enrolled students and the instructor.
+      </p>
 
-        <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-4">
-            <Form.Label className="fw-semibold small">Cancellation Reason <span className="text-muted">(optional)</span></Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              className={`${dateInputClass(reason)} py-2`}
-              placeholder="e.g. Instructor unavailable, public holiday…"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              maxLength={500}
-            />
-            <Form.Text className="text-muted">{reason.length}/500</Form.Text>
-          </Form.Group>
+      <Form onSubmit={handleSubmit}>
+        <Form.Group className="mb-4">
+          <Form.Label className="fw-semibold small">Cancellation Reason <span className="text-muted">(optional)</span></Form.Label>
+          <Form.Control
+            as="textarea"
+            rows={3}
+            className={`${dateInputClass(reason)} py-2`}
+            placeholder="e.g. Instructor unavailable, public holiday…"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            maxLength={500}
+          />
+          <Form.Text className="text-muted">{reason.length}/500</Form.Text>
+        </Form.Group>
 
-          <div className="d-flex justify-content-end gap-2">
-            <button type="button" className="btn ac-draft-btn border px-3" onClick={handleClose} disabled={loading}>
-              Keep Session
-            </button>
-            <button type="submit" className="btn ac-publish-btn text-white px-3" disabled={loading}>
-              {loading ? <Spinner animation="border" size="sm" className="me-1" /> : null}
-              Cancel & Notify
-            </button>
-          </div>
-        </Form>
+        <div className="d-flex justify-content-end gap-2">
+          <button type="button" className="btn ac-draft-btn border px-3" onClick={handleClose} disabled={loading}>
+            Keep Session
+          </button>
+          <button type="submit" className="btn ac-publish-btn text-white px-3" disabled={loading}>
+            {loading ? <Spinner animation="border" size="sm" className="me-1" /> : null}
+            Cancel & Notify
+          </button>
+        </div>
+      </Form>
     </DetailModal>
   );
 }
@@ -585,7 +589,7 @@ function AdminSchedule({ useScheduleHook = useAdminSchedule, readOnly = false })
   return (
     <div className="admin-content-page" id="admin-schedule-page">
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="ac-header d-flex justify-content-between align-items-center mb-4">
+      <div className="ac-header d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
         <div>
           <h2 className="ac-title">Center Daily Schedule</h2>
           <p className="ac-subtitle text-muted mb-0">
@@ -594,9 +598,7 @@ function AdminSchedule({ useScheduleHook = useAdminSchedule, readOnly = false })
               : "View, filter, edit and cancel sessions across all groups."}
           </p>
         </div>
-        <div className="d-flex gap-2 align-items-center flex-wrap">
-          <ExportBar onExport={handleExport} loading={actionLoading} />
-        </div>
+        <ExportBar onExport={handleExport} loading={actionLoading} />
       </div>
 
       <div className="ac-table-card">
@@ -642,7 +644,7 @@ function AdminSchedule({ useScheduleHook = useAdminSchedule, readOnly = false })
               readOnly={readOnly}
             />
           </div>
-            <AdminPagination pagination={pagination} onPageChange={handlePageChange} />
+          <AdminPagination pagination={pagination} onPageChange={handlePageChange} />
         </div>
       </div>
 

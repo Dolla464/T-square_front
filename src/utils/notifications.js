@@ -75,11 +75,60 @@ export const NOTIFICATION_ICON_MAP = {
  * Returns the deep-link navigation path for a notification, or null if there
  * is no dedicated page (caller should fall back to the notifications page).
  */
-export const getNotificationTarget = (notification) => {
+export const getNotificationTarget = (notification, userRole) => {
+  const role = userRole || (typeof window !== "undefined"
+    ? (window.location.pathname.startsWith("/admin") ? "admin"
+       : window.location.pathname.startsWith("/instructor") ? "instructor"
+       : "student")
+    : "student");
+
   const type = notification?.type ?? notification?.data?.type;
   const courseId =
     notification?.course_id ?? notification?.data?.course_id ?? null;
 
+  if (role === "admin") {
+    switch (type) {
+      case "course_review_required":
+        return "/admin/reviews";
+      case "certificate":
+        return "/admin/certificates";
+      case "session_activated":
+      case "session_rescheduled":
+      case "session_cancelled":
+        return "/admin/schedule";
+      case "exam_result":
+      case "instructor_exam_result":
+        return "/admin/quizzes";
+      case "enrollment":
+      case "admin_enrollment":
+        return "/admin/courses";
+      case "group_assigned":
+        return "/admin/groups";
+      default:
+        return null;
+    }
+  }
+
+  if (role === "instructor") {
+    switch (type) {
+      case "session_activated":
+      case "session_rescheduled":
+      case "session_cancelled":
+        return "/instructor/attendance";
+      case "exam_result":
+      case "instructor_exam_result":
+        return "/instructor/student-results";
+      case "enrollment":
+      case "admin_enrollment":
+        return "/instructor/schedule";
+      case "group_assigned":
+        return "/instructor/schedule";
+      default:
+        return null;
+    }
+  }
+
+  // Student role default
   switch (type) {
     case "course_review_required":
       return courseId ? `/student/review/${courseId}` : null;

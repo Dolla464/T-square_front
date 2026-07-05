@@ -202,7 +202,7 @@ function AdminReviews() {
 
       <div className="row g-3 mb-4">
         {/* Card 1: Total Reviews */}
-        <div className="col-lg-3 col-6 ">
+        <div className="col-lg-3 col-12 ">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div
@@ -230,7 +230,7 @@ function AdminReviews() {
         </div>
 
         {/* Card 2: Average Rating */}
-        <div className="col-lg-3 col-6 ">
+        <div className="col-lg-3 col-12 ">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div

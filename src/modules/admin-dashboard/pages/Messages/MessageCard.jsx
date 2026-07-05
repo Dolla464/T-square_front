@@ -25,16 +25,16 @@ function MessageCard({ message, onView, onWhatsapp }) {
           </div>
 
           <p
-            className="text-dark fw-bold mb-0 mt-3 text-truncate"
+            className="text-dark fw-bold mb-0 mt-3"
             style={{
-              maxWidth: "90ch",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
               overflow: "hidden",
-              textOverflow: "ellipsis",
             }}
           >
             <i className="bi bi-envelope mx-1"></i>
             {message.content || message.message}
-            {message.content.length > 90 ? "..." : ""}
           </p>
 
           <p className="my-1 small text-secondary">
