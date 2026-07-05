@@ -72,13 +72,31 @@ export const useChunkedUpload = ({ chunkSize = DEFAULT_CHUNK_SIZE } = {}) => {
         fd.append("filename", file.name);
         fd.append("preview_index", String(previewIndex));
 
+        // Track real transfer progress within this chunk
+        const handleChunkProgress = (progressEvent) => {
+          if (!progressEvent.total) return;
+          const chunkFraction = progressEvent.loaded / progressEvent.total;
+          const rawProgress = ((i + chunkFraction) / totalChunks) * 100;
+          // Cap at 99 on the last chunk — server assembly happens after transfer
+          const progress =
+            i === totalChunks - 1
+              ? Math.min(Math.round(rawProgress), 99)
+              : Math.round(rawProgress);
+          patch(lessonKey, { progress, status: "uploading" });
+        };
+
         // Retry each individual chunk up to MAX_RETRIES times
         let lastError;
         let chunkResponse;
 
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
           try {
-            chunkResponse = await uploadChunk(courseId, fd, controller.signal);
+            chunkResponse = await uploadChunk(
+              courseId,
+              fd,
+              controller.signal,
+              handleChunkProgress,
+            );
             lastError = null;
             break;
           } catch (err) {
