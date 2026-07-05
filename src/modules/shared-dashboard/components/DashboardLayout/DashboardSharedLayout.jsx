@@ -13,11 +13,11 @@ import { showLogoutConfirm } from "../../../../components/shared/ConfirmDialog/c
 import { toastCustom } from "../../../../components/shared/Toaster/toaster";
 import logoDark from "../../../../assets/logo-dark.webp";
 import "./DashboardSharedLayout.css";
-import { resendVerificationNotification } from '../../../../services/register';
+import { resendVerificationNotification } from "../../../../services/register";
 import toast from "react-hot-toast";
-import { Alert, Button, Spinner } from "react-bootstrap";
-import { useNotifications } from "../../notificationsServices/useNotifications";
-// import { includes } from "zod";
+import { Alert, Spinner } from "react-bootstrap";
+import { useUnreadCount } from "../../../../hooks/useNotifications";
+
 function DashboardSharedLayout({
   navItems,
   translationNs,
@@ -27,7 +27,7 @@ function DashboardSharedLayout({
 }) {
   const { t, i18n } = useTranslation([translationNs, "studentDashboard"]);
   const { user, logout, userProfile } = useAuth();
-  const isAdmin = user.role == "admin";
+  const isAdmin = user?.role === "admin" || userRoleName === "Admin";
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -43,28 +43,34 @@ function DashboardSharedLayout({
   const isCourseDetailsPage = location.pathname.includes("/student/course/");
   const isExmam = location.pathname.includes("/student/quizzes/");
   const isLeaveReviewPage = location.pathname.includes("/student/review/");
-  const { notificationsData } = useNotifications();
-  // const totalNotifications = notificationsData.total;
-  const unreadCount = notificationsData.unread_count;
+  const { unreadCount } = useUnreadCount();
 
   const initials = user?.name
     ? user.name
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase()
-    : user?.student?.full_name ?
-      user?.student?.full_name.split(" ")
+        .split(" ")
         .map((w) => w[0])
         .join("")
         .slice(0, 2)
-        .toUpperCase() : "US";
+        .toUpperCase()
+    : user?.student?.full_name
+      ? user?.student?.full_name
+          .split(" ")
+          .map((w) => w[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
+      : "US";
 
   const handleNotificationsClick = () => {
-    isAdmin
-      ? navigate("/admin/notifications")
-      : navigate("/student/notifications");
+    if (isAdmin) {
+      navigate("/admin/notifications");
+    } else if (userRoleName === "Instructor" || user?.role === "instructor") {
+      navigate("/instructor/notifications");
+    } else if (userRoleName === "Receptionist" || user?.role === "receptionist") {
+      // Receptionist has no dedicated notifications page — no-op
+    } else {
+      navigate("/student/notifications");
+    }
   };
 
   const handleLogout = async () => {
@@ -85,17 +91,21 @@ function DashboardSharedLayout({
     try {
       setIsResending(true);
       await resendVerificationNotification();
-      toast.success(t("verification_link_sent") || "تم إرسال رابط تفعيل جديد إلى بريدك الإلكتروني.");
+      toast.success(
+        t("verification_link_sent") ||
+          "تم إرسال رابط تفعيل جديد إلى بريدك الإلكتروني.",
+      );
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
-        t("resend_failed") ||
-        "حدث خطأ أثناء محاولة إرسال الرابط. يرجى المحاولة لاحقاً."
+          t("resend_failed") ||
+          "حدث خطأ أثناء محاولة إرسال الرابط. يرجى المحاولة لاحقاً.",
       );
     } finally {
       setIsResending(false);
     }
   };
+
   return (
     <div className="shared-dashboard-wrapper">
       <Helmet>
@@ -109,12 +119,12 @@ function DashboardSharedLayout({
         />
       )}
 
-
       {/* ── Sidebar ── */}
       {!isCourseDetailsPage && !isLeaveReviewPage && (
         <aside
-          className={`shared-dashboard-sidebar ${sidebarOpen ? "sidebar-open" : ""
-            }`}
+          className={`shared-dashboard-sidebar ${
+            sidebarOpen ? "sidebar-open" : ""
+          }`}
         >
           {/* اللوجو */}
           <Link to="/" className="sidebar-logo text-decoration-none">
@@ -129,12 +139,21 @@ function DashboardSharedLayout({
                 to={item.path}
                 end={item.end}
                 className={({ isActive }) =>
-                  `sidebar-link text-decoration-none ${isActive ? "sidebar-link-active" : ""}`
+                  `sidebar-link text-decoration-none d-flex align-items-center justify-content-between ${isActive ? "sidebar-link-active" : ""}`
                 }
                 onClick={() => setSidebarOpen(false)}
               >
-                <i className={`bi ${item.icon} sidebar-link-icon`}></i>
-                <span>{t(`${translationNs}:sidebar.${item.key}`)}</span>
+                <div className="d-flex align-items-center">
+                  <i className={`bi ${item.icon} sidebar-link-icon`}></i>
+                  <span className="px-3 fs-6">
+                    {t(`${translationNs}:sidebar.${item.key}`)}
+                  </span>
+                </div>
+                {item.badge && (
+                  <span className="badge bg-danger rounded-pill ms-2">
+                    {item.badge}
+                  </span>
+                )}
               </NavLink>
             ))}
           </nav>
@@ -175,7 +194,7 @@ function DashboardSharedLayout({
               </button>
             )}
 
-            {/* 🔥 Page Title هنا في الشمال */}
+            {/* Page Title */}
             {pageTitle && (
               <div className="topbar-page-title d-md-block d-none dash-page-title">
                 {pageTitle}
@@ -183,14 +202,14 @@ function DashboardSharedLayout({
             )}
           </div>
 
-          {/* محتوى في المنتصف (مثل شريط البحث) */}
+          {/* محتوى في المنتصف */}
           {topbarCenter && (
             <div className="topbar-center-wrap">{topbarCenter}</div>
           )}
 
           {/* الجانب الأيمن */}
           <div className="topbar-right">
-            {/* تنبيه الحساب غير مفعل (Topbar) - يظهر دائما لو اليوزر مهوش فعال */}
+            {/* تنبيه الحساب غير مفعل */}
             {user &&
               user.hasOwnProperty("is_verified") &&
               String(user.is_verified) !== "true" && (
@@ -218,26 +237,53 @@ function DashboardSharedLayout({
 
             {/* أيقونة المستخدم */}
             <button
-              className={`topbar-user-btn ${userRoleName === "Student" ? "clickable" : ""
-                }`}
-              onClick={() =>
+              className={`topbar-user-btn ${
+                userRoleName === "Student" ? "clickable" : ""
+              }`}
+              onClick={() => {
+                if (userRoleName === "Student" || user?.role === "student") {
+                  navigate("/student/profile");
+                } else if (
+                  userRoleName === "Instructor" ||
+                  user?.role === "instructor"
+                ) {
+                  navigate("/instructor/profile");
+                } else if (
+                  userRoleName === "Receptionist" ||
+                  user?.role === "receptionist"
+                ) {
+                  // Receptionist has no dedicated profile page — no-op
+                } else {
+                  navigate("/admin/settings");
+                }
+              }}
+              title={
                 userRoleName === "Student"
-                  ? navigate("/student/profile")
+                  ? "Profile & Settings"
                   : userRoleName === "Instructor"
-                    ? navigate("/instructor/settings")
-                    : navigate("/admin/settings")
+                    ? "Profile & Settings"
+                    : ""
               }
-              title={userRoleName === "Student" ? "Profile & Settings" : userRoleName === "Instructor" ? "Profile & Settings" : ""}
             >
               <div className="topbar-avatar">
-                {userProfile?.student?.avatar.includes('default-student.png') ? initials : userProfile?.student?.avatar || userProfile?.instructor?.avatar ? (
+                {userProfile?.student?.avatar?.includes(
+                  "default-student.png",
+                ) ? (
+                  initials
+                ) : userProfile?.student?.avatar ||
+                  userProfile?.instructor?.avatar ? (
                   <img
-                    src={userProfile?.student?.avatar || userProfile?.instructor?.avatar}
+                    src={
+                      userProfile?.student?.avatar ||
+                      userProfile?.instructor?.avatar
+                    }
                     alt={user?.name}
                     className="w-100 h-100 rounded-circle"
-                    style={{ objectFit: 'cover' }}
-                  />)
-                  : initials}
+                    style={{ objectFit: "cover" }}
+                  />
+                ) : (
+                  initials
+                )}
               </div>
               <div className="topbar-user-info">
                 <span className="topbar-user-name">{user?.name || "User"}</span>
@@ -257,7 +303,6 @@ function DashboardSharedLayout({
             String(user.is_verified) !== "true" && (
               <Alert className="activation-banner d-flex justify-content-between">
                 <div className="d-flex align-items-center gap-2">
-
                   <i className="bi bi-exclamation-circle-fill"></i>
                   <span>
                     {isArabic
@@ -265,28 +310,40 @@ function DashboardSharedLayout({
                       : `Account not activated - please check your email: ${user?.email}`}
                   </span>
                 </div>
-                <Button
-                  variant="outline-danger"
-                  className="mt-2 fw-bold mb-1 btn btn-outline-danger"
+                <button
+                  type="button"
+                  className="mt-2 fw-bold mb-1 btn ac-publish-btn text-white px-3 py-2"
                   onClick={handleResend}
                   disabled={isResending}
                 >
                   {isResending ? (
                     <>
-                      <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                        className="me-2"
+                      />
                       {t("sending") || "جاري الإرسال..."}
                     </>
                   ) : (
                     "Send verification link again" || "إعادة إرسال رابط التفعيل"
                   )}
-                </Button>
+                </button>
               </Alert>
             )}
-          <Suspense fallback={
-            <div className="d-flex justify-content-center align-items-center w-100" style={{ minHeight: "300px" }}>
-              <Spinner animation="border" variant="danger" />
-            </div>
-          }>
+          <Suspense
+            fallback={
+              <div
+                className="d-flex justify-content-center align-items-center w-100"
+                style={{ minHeight: "300px" }}
+              >
+                <Spinner animation="border" variant="danger" />
+              </div>
+            }
+          >
             <Outlet />
           </Suspense>
         </main>

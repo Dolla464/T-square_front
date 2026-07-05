@@ -1,0 +1,54 @@
+.instructor-schedule {
+  min-height: 100%;
+}
+
+/* Session cards */
+.session-card {
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border: 1px dashed #be1522 !important; /* T-square brand red */
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .session-card:hover {
+    transform: translatey(-4px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06) !important;
+  }
+}
+
+.session-meta {
+  font-size: 0.875rem;
+  color: #4b5563; /* Tailwind gray-600 */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.session-meta i {
+  color: #be1522 !important; /* Brand red for icons */
+}
+
+/* Day group label */
+.day-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid #f3f4f64a; 
+  padding: 8px 0;
+}
+
+.day-label .ac-title {
+  font-size: 1.15rem;
+  color: #1f2937; 
+  font-weight: 700;
+}
+
+/* Empty state */
+.empty-state {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}

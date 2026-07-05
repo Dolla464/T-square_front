@@ -1,4 +1,11 @@
-import React, { createContext, useState, useContext, useEffect, useMemo, useCallback } from "react";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import axios from "axios";
 import axiosClient from "../api/axios";
 import Loading from "../Loading";
@@ -94,7 +101,7 @@ export const AuthProvider = ({ children }) => {
       try {
         await Promise.race([
           checkMaintenanceStatus(),
-          new Promise((resolve) => setTimeout(resolve, 2000))
+          new Promise((resolve) => setTimeout(resolve, 2000)),
         ]);
       } catch (e) {
         console.error("Maintenance check timed out or failed:", e);
@@ -118,18 +125,24 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, [checkMaintenanceStatus, fetchUserProfile, clearAllStorage]);
 
-  const login = useCallback((responseData, rememberMe = true) => {
-    const { token, user } = responseData;
-    setToken(token);
-    setUser(user);
-    clearAllStorage();
+  const login = useCallback(
+    async (responseData, rememberMe = true) => {
+      const { token, user } = responseData;
 
-    const storage = getStorage(rememberMe);
-    storage.setItem("token", token);
-    storage.setItem("user", JSON.stringify(user));
+      clearAllStorage(); // Clear the storage first
 
-    fetchUserProfile(token);
-  }, [clearAllStorage, getStorage, fetchUserProfile]);
+      const storage = getStorage(rememberMe);
+      storage.setItem("token", token);
+      storage.setItem("user", JSON.stringify(user));
+
+      setToken(token);
+      setUser(user);
+
+      // Fetch the profile after login
+      await fetchUserProfile(token);
+    },
+    [clearAllStorage, getStorage, fetchUserProfile],
+  );
 
   const updateUser = useCallback((updatedUser) => {
     setUser(updatedUser);
@@ -163,30 +176,33 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token, clearAllStorage]);
 
-  const contextValue = useMemo(() => ({
-    user,
-    userProfile,
-    token,
-    login,
-    logout,
-    updateUser,
-    fetchUserProfile,
-    loading,
-    isMaintenance,
-    checkMaintenanceStatus,
-    isLoggedIn: !!token,
-  }), [
-    user,
-    userProfile,
-    token,
-    login,
-    logout,
-    updateUser,
-    fetchUserProfile,
-    loading,
-    isMaintenance,
-    checkMaintenanceStatus,
-  ]);
+  const contextValue = useMemo(
+    () => ({
+      user,
+      userProfile,
+      token,
+      login,
+      logout,
+      updateUser,
+      fetchUserProfile,
+      loading,
+      isMaintenance,
+      checkMaintenanceStatus,
+      isLoggedIn: !!token,
+    }),
+    [
+      user,
+      userProfile,
+      token,
+      login,
+      logout,
+      updateUser,
+      fetchUserProfile,
+      loading,
+      isMaintenance,
+      checkMaintenanceStatus,
+    ],
+  );
 
   return (
     <AuthContext.Provider value={contextValue}>

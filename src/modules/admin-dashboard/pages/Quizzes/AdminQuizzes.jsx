@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Pagination, Spinner } from "react-bootstrap";
+import { Spinner } from "react-bootstrap";
+import AdminPagination from "../../components/shared/AdminPagination";
 import { useTranslation } from "react-i18next";
 import {
   showConfirmCustom,
@@ -341,11 +342,7 @@ function AdminQuizzes() {
   return (
     <div className="admin-content-page">
       {/* Loading Overlay */}
-      {loading && (
-        <div className="ac-loading-overlay">
-          <Spinner animation="border" variant="danger" />
-        </div>
-      )}
+
 
       {!showForm ? (
         <>
@@ -413,11 +410,10 @@ function AdminQuizzes() {
 
                     <input
                       type="text"
-                      className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${
-                        searchTerm
-                          ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
-                          : "border-light bg-light text-muted"
-                      }`}
+                      className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
+                        ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
+                        : "border-light bg-light text-muted"
+                        }`}
                       placeholder={t("quizzes_page.search_placeholder")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -428,11 +424,10 @@ function AdminQuizzes() {
                   <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
                     {/* Status Filter */}
                     <select
-                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
-                        selectedStatus !== "all"
-                          ? "border-danger bg-danger-subtle text-danger-emphasis"
-                          : "border-light bg-light text-muted"
-                      }`}
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedStatus !== "all"
+                        ? "border-danger bg-danger-subtle text-danger-emphasis"
+                        : "border-light bg-light text-muted"
+                        }`}
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                     >
@@ -449,11 +444,10 @@ function AdminQuizzes() {
 
                     {/* Date-Range Filter */}
                     <select
-                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
-                        selectedPeriod !== "all"
-                          ? "border-danger bg-danger-subtle text-danger-emphasis"
-                          : "border-light bg-light text-muted"
-                      }`}
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${selectedPeriod !== "all"
+                        ? "border-danger bg-danger-subtle text-danger-emphasis"
+                        : "border-light bg-light text-muted"
+                        }`}
                       value={selectedPeriod}
                       onChange={(e) => setSelectedPeriod(e.target.value)}
                     >
@@ -473,6 +467,7 @@ function AdminQuizzes() {
 
                 {/* Quizzes Table */}
                 <div className="table-responsive">
+
                   <table
                     className={`table ac-table mb-0 align-middle${showTrash ? " table-secondary" : ""}`}
                   >
@@ -502,8 +497,18 @@ function AdminQuizzes() {
                         </th>
                       </tr>
                     </thead>
+
                     <tbody>
-                      {quizzes && quizzes.length > 0 ? (
+                      {loading ? (
+                        <tr>
+                          <td colSpan="6" className="text-center py-4">
+                            <div
+                              className="spinner-border text-danger"
+                              role="status"
+                            ></div>
+                          </td>
+                        </tr>
+                      ) : quizzes && quizzes.length > 0 ? (
                         quizzes.map((quizItem) => (
                           <tr key={quizItem.id}>
                             <td className="text-center fw-medium text-dark">
@@ -524,8 +529,8 @@ function AdminQuizzes() {
                                   <i className="bi bi-trash me-1"></i>
                                   {quizItem.deleted_at
                                     ? new Date(
-                                        quizItem.deleted_at,
-                                      ).toLocaleDateString()
+                                      quizItem.deleted_at,
+                                    ).toLocaleDateString()
                                     : ""}
                                 </span>
                               ) : (
@@ -556,7 +561,7 @@ function AdminQuizzes() {
                                 {showTrash ? (
                                   <>
                                     <button
-                                      className="btn btn-sm btn-outline-success border-0"
+                                      className="btn btn-sm ac-btn-view border-0"
                                       title={t("quizzes_page.restore")}
                                       onClick={() =>
                                         handleRestore(
@@ -568,11 +573,7 @@ function AdminQuizzes() {
                                       <i className="bi bi-arrow-counterclockwise fs-6"></i>
                                     </button>
                                     <button
-                                      className="btn btn-sm border-0"
-                                      style={{
-                                        color: "#7f1d1d",
-                                        backgroundColor: "transparent",
-                                      }}
+                                      className="btn btn-sm ac-btn-deleteTable border-0"
                                       title={t("quizzes_page.force_delete")}
                                       onClick={() =>
                                         handleForceDelete(
@@ -596,7 +597,7 @@ function AdminQuizzes() {
                                       <i className="bi bi-eye fs-6"></i>
                                     </button>
                                     <button
-                                      className="btn btn-sm ac-btn-view border-0 text-primary"
+                                      className="btn btn-sm ac-btn-edit border-0"
                                       title={t("quizzes_page.edit_quiz")}
                                       onClick={() => handleEdit(quizItem)}
                                     >
@@ -638,65 +639,7 @@ function AdminQuizzes() {
 
             {/* Pagination controls */}
             {apiPagination && (
-              <div className="d-flex justify-content-center mt-5">
-                <Pagination className="custom-pagination">
-                  <Pagination.Prev
-                    disabled={apiPagination.current_page === 1}
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page - 1)
-                    }
-                  />
-                  {(() => {
-                    const currentPage = apiPagination.current_page;
-                    const totalPages = apiPagination.total_pages;
-                    const startPage = Math.floor((currentPage - 1) / 3) * 3 + 1;
-                    const endPage = Math.min(startPage + 2, totalPages);
-                    const items = [];
-
-                    if (startPage > 1) {
-                      items.push(
-                        <Pagination.Ellipsis
-                          key="prev-ellipsis"
-                          onClick={() => handlePageChange(startPage - 1)}
-                        />
-                      );
-                    }
-
-                    for (let p = startPage; p <= endPage; p++) {
-                      items.push(
-                        <Pagination.Item
-                          style={{ margin: "0 3px" }}
-                          key={p}
-                          active={currentPage === p}
-                          onClick={() => handlePageChange(p)}
-                        >
-                          {p}
-                        </Pagination.Item>
-                      );
-                    }
-
-                    if (endPage < totalPages) {
-                      items.push(
-                        <Pagination.Ellipsis
-                          key="next-ellipsis"
-                          onClick={() => handlePageChange(endPage + 1)}
-                        />
-                      );
-                    }
-
-                    return items;
-                  })()}
-                  <Pagination.Next
-                    style={{ margin: "0 6px 0" }}
-                    disabled={
-                      apiPagination.current_page === apiPagination.total_pages
-                    }
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page + 1)
-                    }
-                  />
-                </Pagination>
-              </div>
+              <AdminPagination pagination={apiPagination} onPageChange={handlePageChange} />
             )}
           </div>
         </>

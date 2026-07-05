@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toastSuccess, toastError } from "../../../components/shared/Toaster/toaster";
+import { getApiErrorMessage } from "../../../utils/apiErrors";
 import {
   getQuizzes as apiGetQuizzes,
   getQuizById as apiGetQuizById,
@@ -118,10 +119,6 @@ export const useQuizzes = () => {
         const response = await apiGetQuizById(id);
         const item = response.data || {};
 
-        // Load questions from local storage if not returned by API to preserve EditExam's mock capability
-        const savedQuestions = localStorage.getItem(`t_square_quiz_questions_${id}`);
-        const questionsList = item.questions || (savedQuestions ? JSON.parse(savedQuestions) : []);
-
         const mapped = {
           id: item.id,
           title: item.title,
@@ -141,7 +138,6 @@ export const useQuizzes = () => {
           is_active: !!item.is_active,
           is_final: !!item.is_final,
           shuffle_questions: !!item.shuffle_questions,
-          questions: questionsList,
         };
         setQuiz(mapped);
         return mapped;
@@ -282,27 +278,10 @@ export const useQuizzes = () => {
     }
   }, [t]);
 
-  // Save Quiz Questions update
-  const saveQuizQuestions = useCallback(async (id, questions) => {
-    setLoading(true);
-    setError(null);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      localStorage.setItem(`t_square_quiz_questions_${id}`, JSON.stringify(questions));
-      toastSuccess("Saved exam questions successfully");
-      return true;
-    } catch (err) {
-      toastError("Failed to save questions");
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   const getQuestionsForExam = useCallback(async (examId) => {
     try {
       const response = await apiGetQuestionsForExam(examId);
-      return response.data;
+      return Array.isArray(response?.data) ? response.data : [];
     } catch (err) {
       toastError("Failed to fetch questions for exam");
       return [];
@@ -327,7 +306,7 @@ export const useQuizzes = () => {
       toastSuccess(t("success.created", "Created successfully"));
       return response.data || true;
     } catch (err) {
-      const errorMsg = t("errors.create_failed", "Failed to create");
+      const errorMsg = getApiErrorMessage(err, t("errors.create_failed", "Failed to create"));
       setError(errorMsg);
       toastError(errorMsg);
       return false;
@@ -344,7 +323,7 @@ export const useQuizzes = () => {
       toastSuccess(t("success.updated", "Updated successfully"));
       return true;
     } catch (err) {
-      const errorMsg = t("errors.update_failed", "Failed to update");
+      const errorMsg = getApiErrorMessage(err, t("errors.update_failed", "Failed to update"));
       setError(errorMsg);
       toastError(errorMsg);
       return false;
@@ -375,7 +354,7 @@ export const useQuizzes = () => {
     setError(null);
     try {
       const response = await apiGetTrashedQuestions({ exam_id: examId });
-      return response.data || [];
+      return Array.isArray(response?.data) ? response.data : [];
     } catch (err) {
       toastError("Failed to fetch trashed questions");
       return [];

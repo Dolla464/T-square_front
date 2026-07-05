@@ -1,20 +1,237 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Pagination } from "react-bootstrap";
+import { Button, Spinner } from "react-bootstrap";
+import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
+import AdminPagination from "../../components/shared/AdminPagination";
 import { useInstructors } from "../../hooks/useInstractor";
 import { useGroups } from "../../hooks/useGroups";
-import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { showDeleteConfirm, showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { useAdminCourses } from "../../hooks/useAdminCourses";
-import { toastError } from "../../../../components/shared/Toaster/toaster";
+import { toastError, toastSuccess } from "../../../../components/shared/Toaster/toaster";
+import { getLearningGroupSessions, exportGroupStudents } from "../../services/learningGroupServices";
+import { exportSchedule } from "../../services/adminScheduleService";
+import { parseApiDateOnly } from "../../../../utils/formatDateTime";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
-// Valores por defecto
+const DAY_NAMES_EN = [
+  "Saturday",
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+];
+const DAY_NAMES_AR = [
+  "السبت",
+  "الأحد",
+  "الاثنين",
+  "الثلاثاء",
+  "الأربعاء",
+  "الخميس",
+  "الجمعة",
+];
+
+const EMPTY_SCHEDULE = {
+  day_of_week: 0,
+  start_time: "",
+  end_time: "",
+  room: "",
+};
+
+const normalizeScheduleEntry = (s) => ({
+  day_of_week: Number(s.day_of_week),
+  start_time: (s.start_time || "").slice(0, 5),
+  end_time: (s.end_time || "").slice(0, 5),
+  room: s.room || "",
+});
+
+const normalizeSchedules = (schedules) =>
+  [...(schedules || [])]
+    .map(normalizeScheduleEntry)
+    .sort((a, b) => a.day_of_week - b.day_of_week);
+
+const dedupeStudentsById = (students) => {
+  const seen = new Set();
+  return (students || [])
+    .map((s) => ({ ...s, id: Number(s.id) }))
+    .filter((s) => {
+      if (seen.has(s.id)) return false;
+      seen.add(s.id);
+      return true;
+    });
+};
+
+const schedulesAreEqual = (current, original) =>
+  JSON.stringify(normalizeSchedules(current)) ===
+  JSON.stringify(normalizeSchedules(original));
+
 const defaultFormData = {
   group_name: "",
   course_id: "",
   instructor_id: "",
+  start_date: "",
+  status: "active",
+  schedules: [],
   students: [],
 };
+
+const GROUP_STATUS_CONFIG = {
+  active: {
+    bg: "bg-success-subtle text-success",
+    icon: "bi-play-circle-fill",
+    labelEn: "Active",
+    labelAr: "نشطة",
+  },
+  completed: {
+    bg: "bg-secondary-subtle text-secondary",
+    icon: "bi-check-circle-fill",
+    labelEn: "Completed",
+    labelAr: "مكتملة",
+  },
+  cancelled: {
+    bg: "bg-danger-subtle text-danger",
+    icon: "bi-x-circle-fill",
+    labelEn: "Cancelled",
+    labelAr: "ملغاة",
+  },
+};
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+/** Returns the next occurrence date-string (YYYY-MM-DD) for a schedule array */
+function getNextSessionDate(schedules) {
+  if (!schedules || schedules.length === 0) return null;
+
+  // Map our day numbering (0=Sat…6=Fri) → JS getDay() (0=Sun…6=Sat)
+  const toJsDay = [6, 0, 1, 2, 3, 4, 5];
+
+  const now = new Date();
+  const nowDay = now.getDay();
+  const nowMs = now.getTime();
+
+  let earliest = null;
+
+  schedules.forEach((s) => {
+    const jsDay = toJsDay[s.day_of_week];
+    if (jsDay === undefined) return;
+
+    let diff = (jsDay - nowDay + 7) % 7;
+
+    // If same day, check if the session hasn't passed yet
+    if (diff === 0) {
+      const [h, m] = (s.start_time || "00:00").split(":").map(Number);
+      const sessionMs = new Date(now).setHours(h, m, 0, 0);
+      if (sessionMs <= nowMs) diff = 7; // already passed today, next week
+    }
+
+    const candidate = new Date(now);
+    candidate.setDate(now.getDate() + diff);
+
+    if (!earliest || candidate < earliest.date) {
+      earliest = { date: candidate, schedule: s };
+    }
+  });
+
+  if (!earliest) return null;
+
+  const d = earliest.date;
+  const pad = (n) => String(n).padStart(2, "0");
+  return {
+    dateStr: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    time: earliest.schedule.start_time,
+    dayName: DAY_NAMES_EN[earliest.schedule.day_of_week],
+  };
+}
+
+const fmt = (t) => (t ? String(t).slice(0, 5) : "—");
+
+const SESSION_STATUS_CONFIG = {
+  upcoming: {
+    bg: "bg-primary-subtle text-primary",
+    icon: "bi-clock",
+    labelEn: "Upcoming",
+    labelAr: "قادمة",
+  },
+  active: {
+    bg: "bg-success-subtle text-success",
+    icon: "bi-play-circle-fill",
+    labelEn: "Active",
+    labelAr: "نشطة",
+  },
+  completed: {
+    bg: "bg-secondary-subtle text-secondary",
+    icon: "bi-check-circle-fill",
+    labelEn: "Completed",
+    labelAr: "مكتملة",
+  },
+  cancelled: {
+    bg: "bg-danger-subtle text-danger",
+    icon: "bi-x-circle-fill",
+    labelEn: "Cancelled",
+    labelAr: "ملغاة",
+  },
+};
+
+const getEffectiveSession = (sess) => {
+  const dateRaw = sess.override_date || sess.session_date || "";
+  const effectiveDate = parseApiDateOnly(dateRaw);
+  return {
+    effectiveDate,
+    effectiveStart: fmt(
+      sess.override_start_time || sess.schedule?.start_time
+    ),
+    effectiveEnd: fmt(sess.override_end_time || sess.schedule?.end_time),
+    room: sess.schedule?.room || "—",
+  };
+};
+
+const getDayNameFromDate = (dateStr, isArabic) => {
+  if (!dateStr) return "—";
+  const d = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return "—";
+  const jsToProjectDay = [1, 2, 3, 4, 5, 6, 0];
+  const idx = jsToProjectDay[d.getDay()];
+  return isArabic ? DAY_NAMES_AR[idx] : DAY_NAMES_EN[idx];
+};
+
+function GroupStatusBadge({ status, isArabic }) {
+  const cfg = GROUP_STATUS_CONFIG[status] ?? {
+    bg: "bg-light text-dark",
+    icon: "bi-circle",
+    labelEn: status,
+    labelAr: status,
+  };
+  return (
+    <span
+      className={`badge rounded-pill px-2 py-1 ${cfg.bg}`}
+      style={{ fontSize: "0.75rem" }}
+    >
+      <i className={`bi ${cfg.icon} me-1`}></i>
+      {isArabic ? cfg.labelAr : cfg.labelEn}
+    </span>
+  );
+}
+
+function SessionStatusBadge({ status, isArabic }) {
+  const cfg = SESSION_STATUS_CONFIG[status] ?? {
+    bg: "bg-light text-dark",
+    icon: "bi-circle",
+    labelEn: status,
+    labelAr: status,
+  };
+  return (
+    <span
+      className={`badge rounded-pill px-2 py-1 ${cfg.bg}`}
+      style={{ fontSize: "0.75rem" }}
+    >
+      <i className={`bi ${cfg.icon} me-1`}></i>
+      {isArabic ? cfg.labelAr : cfg.labelEn}
+    </span>
+  );
+}
+
+// ── Component ────────────────────────────────────────────────────────────────
 
 function AdminGroups() {
   const {
@@ -35,7 +252,7 @@ function AdminGroups() {
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
 
-  // --- States ---
+  // ── State ──────────────────────────────────────────────────────────────────
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
@@ -43,9 +260,18 @@ function AdminGroups() {
   const [timeFilter, setTimeFilter] = useState("all");
   const [courseFilter, setCourseFilter] = useState("all");
   const [instructorFilter, setInstructorFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [formData, setFormData] = useState(defaultFormData);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStudents, setSelectedStudents] = useState([]);
+  const [scheduleErrors, setScheduleErrors] = useState([]);
+  const originalSchedulesRef = useRef(null);
+  const originalStatusRef = useRef("active");
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [groupSessions, setGroupSessions] = useState([]);
+  const [scheduleModalLoading, setScheduleModalLoading] = useState(false);
+  const [scheduleExportLoading, setScheduleExportLoading] = useState(false);
+  const [studentsExportLoading, setStudentsExportLoading] = useState(false);
 
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
 
@@ -78,16 +304,12 @@ function AdminGroups() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, timeFilter, courseFilter, instructorFilter]);
+  }, [debouncedSearch, timeFilter, courseFilter, instructorFilter, statusFilter]);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+  const handlePageChange = (page) => setCurrentPage(page);
 
   const filteredGroups = useMemo(() => {
     if (!groups) return [];
-
-    // المجموعات قادمة الآن مفلترة بالبحث جاهزة من الـ API
     return groups.filter((group) => {
       const matchCourse =
         courseFilter === "all" ||
@@ -95,6 +317,8 @@ function AdminGroups() {
       const matchInstructor =
         instructorFilter === "all" ||
         String(group.instructor_id) === String(instructorFilter);
+      const matchStatus =
+        statusFilter === "all" || group.status === statusFilter;
 
       let matchTime = true;
       if (group.created_at) {
@@ -109,15 +333,18 @@ function AdminGroups() {
         }
       }
 
-      return matchCourse && matchInstructor && matchTime;
+      return matchCourse && matchInstructor && matchStatus && matchTime;
     });
-  }, [groups, courseFilter, instructorFilter, timeFilter]);
+  }, [groups, courseFilter, instructorFilter, statusFilter, timeFilter]);
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
 
   const handleAddNew = () => {
     setViewingItem(null);
     setEditingItem(null);
     setFormData(defaultFormData);
     setSelectedStudents([]);
+    setScheduleErrors([]);
     setShowForm(true);
   };
 
@@ -125,13 +352,11 @@ function AdminGroups() {
     setViewingItem(null);
     setEditingItem(group_id);
     setSelectedStudents([]);
+    setScheduleErrors([]);
 
     const groupData = await getGroupById(group_id);
 
-    // 👈 تأمين وتحويل الـ IDs القادمة من السيرفر لأرقام فوراً لضمان مطابقة الـ Includes
-    const normalizedStudents = groupData.students
-      ? groupData.students.map((s) => ({ ...s, id: Number(s.id) }))
-      : [];
+    const normalizedStudents = dedupeStudentsById(groupData.students);
 
     setFormData({
       group_name: groupData.group_name || "",
@@ -141,9 +366,30 @@ function AdminGroups() {
         ? Number(groupData.instructor_id)
         : "",
       instructor_name: groupData.instructor_name || "",
+      start_date: groupData.start_date || "",
+      status: groupData.status || "active",
+      schedules: groupData.schedules
+        ? groupData.schedules.map((s) => ({
+            day_of_week: Number(s.day_of_week),
+            start_time: s.start_time || "",
+            end_time: s.end_time || "",
+            room: s.room || "",
+          }))
+        : [],
       students_count: groupData.students_count || 0,
       students: normalizedStudents,
     });
+
+    originalStatusRef.current = groupData.status || "active";
+
+    originalSchedulesRef.current = groupData.schedules
+      ? groupData.schedules.map((s) => ({
+          day_of_week: Number(s.day_of_week),
+          start_time: s.start_time || "",
+          end_time: s.end_time || "",
+          room: s.room || "",
+        }))
+      : [];
 
     await getAvailableStudents(group_id);
     setShowForm(true);
@@ -153,11 +399,10 @@ function AdminGroups() {
     setEditingItem(null);
     setViewingItem(group_id);
     setSelectedStudents([]);
+    setScheduleErrors([]);
 
     const group = await getGroupById(group_id);
-    const normalizedStudents = group.students
-      ? group.students.map((s) => ({ ...s, id: Number(s.id) }))
-      : [];
+    const normalizedStudents = dedupeStudentsById(group.students);
 
     setFormData({
       group_name: group.group_name || "",
@@ -165,9 +410,21 @@ function AdminGroups() {
       course_title: group.course_title || "",
       instructor_id: group.instructor_id ? Number(group.instructor_id) : "",
       instructor_name: group.instructor_name || "",
+      start_date: group.start_date || "",
+      end_date: group.end_date || "",
+      status: group.status || "active",
+      schedules: group.schedules
+        ? group.schedules.map((s) => ({
+            day_of_week: Number(s.day_of_week),
+            start_time: s.start_time || "",
+            end_time: s.end_time || "",
+            room: s.room || "",
+          }))
+        : [],
       students_count: group.students_count || 0,
       students: normalizedStudents,
     });
+
     setShowForm(true);
   };
 
@@ -176,6 +433,64 @@ function AdminGroups() {
     setEditingItem(null);
     setViewingItem(null);
     setSelectedStudents([]);
+    setScheduleErrors([]);
+    originalSchedulesRef.current = null;
+    setShowScheduleModal(false);
+    setGroupSessions([]);
+  };
+
+  const handleCloseScheduleModal = () => {
+    setShowScheduleModal(false);
+    setGroupSessions([]);
+  };
+
+  const handleOpenScheduleModal = async () => {
+    if (!viewingItem) return;
+    setShowScheduleModal(true);
+    setScheduleModalLoading(true);
+    try {
+      const res = await getLearningGroupSessions(viewingItem);
+      setGroupSessions(Array.isArray(res?.data) ? res.data : []);
+    } catch (err) {
+      toastError(
+        err?.response?.data?.message ||
+          (isArabic ? "فشل تحميل جدول المواعيد" : "Failed to load group schedule")
+      );
+      setGroupSessions([]);
+    } finally {
+      setScheduleModalLoading(false);
+    }
+  };
+
+  const handleExportGroupSchedulePdf = async () => {
+    if (!viewingItem) return;
+    setScheduleExportLoading(true);
+    try {
+      await exportSchedule({ group_id: viewingItem }, "pdf");
+    } catch (err) {
+      toastError(
+        err?.response?.data?.message ||
+          (isArabic ? "فشل التصدير" : "Export failed. Please try again.")
+      );
+    } finally {
+      setScheduleExportLoading(false);
+    }
+  };
+
+  const handleExportGroupStudents = async (format) => {
+    const groupId = viewingItem || editingItem;
+    if (!groupId) return;
+    setStudentsExportLoading(true);
+    try {
+      await exportGroupStudents(groupId, format);
+    } catch (err) {
+      toastError(
+        err?.response?.data?.message ||
+          (isArabic ? "فشل التصدير" : "Export failed. Please try again.")
+      );
+    } finally {
+      setStudentsExportLoading(false);
+    }
   };
 
   const handleDelete = async (groupId) => {
@@ -183,11 +498,62 @@ function AdminGroups() {
     const ok = await showDeleteConfirm(group?.group_name || "");
     if (ok) {
       const success = await deleteGroup(groupId);
-      if (success) {
-        getGroups({ page: currentPage });
-      }
+      if (success) getGroups({ page: currentPage });
     }
   };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+        type === "checkbox"
+          ? checked
+          : name === "course_id" || name === "instructor_id"
+            ? Number(value)
+            : value,
+    }));
+  };
+
+  // ── Schedule management ──────────────────────────────────────────────────
+
+  const addSchedule = () => {
+    setFormData((prev) => ({
+      ...prev,
+      schedules: [...prev.schedules, { ...EMPTY_SCHEDULE }],
+    }));
+    setScheduleErrors((prev) => [...prev, {}]);
+  };
+
+  const removeSchedule = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      schedules: prev.schedules.filter((_, i) => i !== index),
+    }));
+    setScheduleErrors((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleScheduleChange = (index, field, value) => {
+    setFormData((prev) => {
+      const updated = prev.schedules.map((s, i) =>
+        i === index
+          ? { ...s, [field]: field === "day_of_week" ? Number(value) : value }
+          : s,
+      );
+      return { ...prev, schedules: updated };
+    });
+
+    // Clear the error for that field when the user edits it
+    setScheduleErrors((prev) => {
+      const updated = [...prev];
+      if (updated[index]) {
+        updated[index] = { ...updated[index], [field]: undefined };
+      }
+      return updated;
+    });
+  };
+
+  // ── Student management ───────────────────────────────────────────────────
 
   const handleRemoveStudentLocal = (studentId) => {
     setFormData((prev) => ({
@@ -198,7 +564,7 @@ function AdminGroups() {
   };
 
   const toggleStudentSelection = (studentId) => {
-    const targetId = Number(studentId); // توحيد النوع لرقم صريح
+    const targetId = Number(studentId);
     setSelectedStudents((prev) =>
       prev.includes(targetId)
         ? prev.filter((id) => id !== targetId)
@@ -206,13 +572,11 @@ function AdminGroups() {
     );
   };
 
-  // تأمين وتوحيد الـ IDs الخاصة بالطلاب المتاحين أيضاً
   const normalizedAvailableStudents = useMemo(() => {
     if (!availableStudents) return [];
     return availableStudents.map((s) => ({ ...s, id: Number(s.id) }));
   }, [availableStudents]);
 
-  // فلترة ذكية ومؤمنة تماماً ضد تكرار الـ Keys
   const filteredAvailableStudents = useMemo(() => {
     if (!normalizedAvailableStudents) return [];
     if (!formData.students) return normalizedAvailableStudents;
@@ -233,64 +597,123 @@ function AdminGroups() {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]:
-        type === "checkbox"
-          ? checked
-          : name === "course_id" || name === "instructor_id"
-            ? Number(value)
-            : value,
-    }));
-  };
-
-  // دالة لتحديث حالة الطالب محلياً في وضع التعديل فقط
   const handleLocalStatusChange = (studentId, newStatus) => {
-    const isCompletedValue = newStatus === "completed";
-
     setFormData((prev) => ({
       ...prev,
       students: prev.students.map((s) =>
-        s.id === studentId ? { ...s, is_completed: isCompletedValue } : s,
+        s.id === studentId
+          ? { ...s, is_completed: newStatus === "completed" }
+          : s,
       ),
     }));
   };
+
+  // ── Validation ───────────────────────────────────────────────────────────
+
+  const validateSchedules = () => {
+    let valid = true;
+    const errors = formData.schedules.map((s) => {
+      const err = {};
+      if (!s.start_time) {
+        err.start_time = isArabic
+          ? "وقت البدء مطلوب"
+          : "Start time is required";
+        valid = false;
+      }
+      if (!s.end_time) {
+        err.end_time = isArabic
+          ? "وقت الانتهاء مطلوب"
+          : "End time is required";
+        valid = false;
+      }
+      if (s.start_time && s.end_time && s.end_time <= s.start_time) {
+        err.end_time = isArabic
+          ? "يجب أن يكون وقت الانتهاء بعد وقت البدء"
+          : "End time must be after start time";
+        valid = false;
+      }
+      return err;
+    });
+    setScheduleErrors(errors);
+    return valid;
+  };
+
+  // ── Submit ───────────────────────────────────────────────────────────────
 
   const handleSubmitWrapper = async (e) => {
     e.preventDefault();
 
     if (!formData.group_name) {
+      toastError(isArabic ? "يجب إدخال اسم المجموعة" : "Group name is required");
+      return;
+    }
+
+    if (!formData.start_date) {
+      toastError(isArabic ? "تاريخ البدء مطلوب" : "Start date is required");
+      return;
+    }
+
+    if (!formData.schedules || formData.schedules.length === 0) {
       toastError(
-        isArabic ? "يجب إدخال اسم المجموعة" : "Group name is required",
+        isArabic
+          ? "يجب إضافة جدول أسبوعي واحد على الأقل"
+          : "At least one weekly schedule is required",
       );
       return;
     }
 
+    if (!validateSchedules()) return;
+
+    const nextStatus = formData.status || "active";
+    const previousStatus = originalStatusRef.current || "active";
+
+    if (editingItem && nextStatus === "completed" && previousStatus !== "completed") {
+      const ok = await showConfirmCustom({
+        title: isArabic ? "إغلاق المجموعة" : "Close Group",
+        message: isArabic
+          ? "سيتم تعليم جميع طلاب المجموعة كمكتملين وإشعارهم لعمل تقييم. الشهادة لن تُصدر إلا بعد التقييم."
+          : "All students in this group will be marked as completed and notified to leave a review. Certificates will only be issued after a review is submitted.",
+        icon: "warning",
+        confirmText: isArabic ? "تأكيد" : "Confirm",
+      });
+      if (!ok) return;
+    }
+
+    if (editingItem && previousStatus === "completed" && nextStatus === "active") {
+      const ok = await showConfirmCustom({
+        title: isArabic ? "إعادة فتح المجموعة" : "Reopen Group",
+        message: isArabic
+          ? "سيتم إرجاع جميع طلاب المجموعة إلى قيد الدراسة. تحذير: يشمل الطلاب الذين أكملوا عبر الامتحان النهائي."
+          : "All students in this group will be marked as in progress. Warning: this includes students who completed via the final exam.",
+        icon: "warning",
+        confirmText: isArabic ? "تأكيد" : "Confirm",
+      });
+      if (!ok) return;
+    }
+
     try {
       if (editingItem) {
-        // 1. Merge current students (with their locally-updated statuses) and
-        //    newly checked students (default status: false = in progress).
         const allStudentsData = [
           ...formData.students.map((s) => ({
             id: Number(s.id),
-            is_completed: !!s.is_completed,
+            is_completed:
+              nextStatus === "completed" ? true : !!s.is_completed,
           })),
           ...selectedStudents.map((id) => ({
             id: Number(id),
-            is_completed: false,
+            is_completed: nextStatus === "completed",
           })),
         ];
 
-        // 2. Build student_ids as a flat array — matches 'student_ids' validation rule.
-        const student_ids = allStudentsData.map((s) => s.id);
-
-        // 3. Build student_statuses as { [id]: boolean } — matches 'student_statuses' rule.
-        //    Using String keys so JSON serialisation is deterministic; the service
-        //    already handles both integer and string key lookups.
-        const student_statuses = {};
+        const uniqueStudentsMap = new Map();
         allStudentsData.forEach((s) => {
+          uniqueStudentsMap.set(s.id, s);
+        });
+        const uniqueStudentsData = [...uniqueStudentsMap.values()];
+
+        const student_ids = uniqueStudentsData.map((s) => s.id);
+        const student_statuses = {};
+        uniqueStudentsData.forEach((s) => {
           student_statuses[String(s.id)] = s.is_completed;
         });
 
@@ -298,29 +721,91 @@ function AdminGroups() {
           group_name: formData.group_name,
           course_id: Number(formData.course_id),
           instructor_id: Number(formData.instructor_id),
-          student_ids, // array of numbers  → validated by 'student_ids.*'
-          student_statuses, // object of booleans → validated by 'student_statuses.*'
+          start_date: formData.start_date,
+          status: nextStatus,
+          student_ids,
+          student_statuses,
         };
 
-        await updateGroup(editingItem, payload);
+        if (!schedulesAreEqual(formData.schedules, originalSchedulesRef.current)) {
+          payload.schedules = formData.schedules;
+        }
+
+        const response = await updateGroup(editingItem, payload);
+        const sync = response?.data?.sync;
+        if (sync) {
+          const parts = [];
+          if (sync.enrollments_completed > 0) {
+            parts.push(
+              isArabic
+                ? `${sync.enrollments_completed} طالب مكتمل`
+                : `${sync.enrollments_completed} student(s) marked completed`,
+            );
+          }
+          if (sync.enrollments_reopened > 0) {
+            parts.push(
+              isArabic
+                ? `${sync.enrollments_reopened} طالب قيد الدراسة`
+                : `${sync.enrollments_reopened} student(s) marked in progress`,
+            );
+          }
+          if (sync.notifications_sent > 0) {
+            parts.push(
+              isArabic
+                ? `${sync.notifications_sent} إشعار`
+                : `${sync.notifications_sent} notification(s) sent`,
+            );
+          }
+          if (sync.skipped_student_ids?.length > 0) {
+            parts.push(
+              isArabic
+                ? `${sync.skipped_student_ids.length} طالب غير مشترك في الكورس`
+                : `${sync.skipped_student_ids.length} student(s) skipped (not enrolled in course)`,
+            );
+          }
+          if (parts.length > 0) {
+            toastSuccess(parts.join(isArabic ? " · " : " · "));
+          }
+        }
       } else {
         const payload = {
           group_name: formData.group_name,
           course_id: Number(formData.course_id),
           instructor_id: Number(formData.instructor_id),
+          start_date: formData.start_date,
+          status: nextStatus,
+          schedules: formData.schedules,
         };
+
+        if (nextStatus === "completed") {
+          const ok = await showConfirmCustom({
+            title: isArabic ? "إنشاء مجموعة مغلقة" : "Create Closed Group",
+            message: isArabic
+              ? "المجموعة ستُنشأ بحالة مكتملة. أي طلاب يُضافون لاحقاً سيُعلَّمون مكتملين عند الإغلاق."
+              : "The group will be created as completed. Students added later will be marked completed when the group is closed.",
+            icon: "warning",
+            confirmText: isArabic ? "تأكيد" : "Confirm",
+          });
+          if (!ok) return;
+        }
+
         await createGroup(payload);
       }
 
       getGroups({ page: currentPage });
       handleBack();
-    } catch (err) { }
+    } catch (err) {}
   };
 
+  // ── Today's date (min for date input) ────────────────────────────────────
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="admin-content-page">
       {!showForm ? (
         <>
+          {/* ── List header ── */}
           <div className="ac-header d-flex justify-content-between align-items-center mb-4">
             <div>
               <h2 className="ac-title">
@@ -346,8 +831,9 @@ function AdminGroups() {
           <div className="ac-table-card">
             <div className="ac-table-container">
               <div className="ac-rounded-table p-3 p-md-0">
-                <div className="ac-filters-bar d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-5 ">
-                  <div className="ac-search-input-wrapper position-relative ">
+                {/* ── Filters ── */}
+                <div className="ac-filters-bar d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-5">
+                  <div className="ac-search-input-wrapper position-relative">
                     <i
                       className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"}`}
                       style={{ zIndex: 3 }}
@@ -397,9 +883,29 @@ function AdminGroups() {
                         </option>
                       ))}
                     </select>
+
+                    <select
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${statusFilter !== "all" ? "border-danger bg-danger-subtle text-danger-emphasis" : "border-light bg-light text-muted"}`}
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                      <option value="all">
+                        {isArabic ? "كل الحالات" : "All Statuses"}
+                      </option>
+                      <option value="active">
+                        {isArabic ? "نشطة" : "Active"}
+                      </option>
+                      <option value="completed">
+                        {isArabic ? "مكتملة" : "Completed"}
+                      </option>
+                      <option value="cancelled">
+                        {isArabic ? "ملغاة" : "Cancelled"}
+                      </option>
+                    </select>
                   </div>
                 </div>
 
+                {/* ── Table ── */}
                 <div className="table-responsive">
                   <table className="table ac-table mb-0 align-middle" dir="ltr">
                     <thead>
@@ -412,7 +918,13 @@ function AdminGroups() {
                           {isArabic ? "اسم المحاضر" : "Instructor Name"}
                         </th>
                         <th className="text-center">
-                          {isArabic ? "عدد الطلاب" : "Students Count"}
+                          {isArabic ? "الجلسة القادمة" : "Next Session"}
+                        </th>
+                        <th className="text-center">
+                          {isArabic ? "عدد الطلاب" : "Students"}
+                        </th>
+                        <th className="text-center">
+                          {isArabic ? "الحالة" : "Status"}
                         </th>
                         <th className="text-center">
                           {isArabic ? "تاريخ الإنشاء" : "Created At"}
@@ -425,66 +937,88 @@ function AdminGroups() {
                     <tbody>
                       {loading ? (
                         <tr>
-                          <td colSpan={6} className="text-center py-5">
+                          <td colSpan={8} className="text-center py-5">
                             <div
                               className="spinner-border text-danger"
                               role="status"
                             >
-                              <span className="visually-hidden">
-                                Loading...
-                              </span>
+                              <span className="visually-hidden">Loading...</span>
                             </div>
                           </td>
                         </tr>
                       ) : filteredGroups && filteredGroups.length > 0 ? (
-                        filteredGroups.map((group) => (
-                          <tr key={group.id}>
-                            <td className="fw-medium text-dark">
-                              {group.group_name}
-                            </td>
-                            <td className="text-center text-secondary">
-                              {group.course_title}
-                            </td>
-                            <td className="text-center text-secondary">
-                              {group.instructor_name}
-                            </td>
-                            <td className="text-center text-secondary">
-                              {group.students_count}
-                            </td>
-                            <td className="text-center text-secondary">
-                              {group.created_at}
-                            </td>
-                            <td className="text-center">
-                              <div className="d-flex justify-content-center gap-2">
-                                <button
-                                  className="btn btn-sm ac-btn-view border-0"
-                                  title="View"
-                                  onClick={() => handleView(group.id)}
-                                >
-                                  <i className="bi bi-eye fs-6"></i>
-                                </button>
-                                <button
-                                  className="btn btn-sm ac-btn-edit border-0"
-                                  title="Edit"
-                                  onClick={() => handleEdit(group.id)}
-                                >
-                                  <i className="bi bi-pencil-square fs-6"></i>
-                                </button>
-                                <button
-                                  className="btn btn-sm ac-btn-deleteTable border-0"
-                                  title="Delete"
-                                  onClick={() => handleDelete(group.id)}
-                                >
-                                  <i className="bi bi-trash fs-6"></i>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
+                        filteredGroups.map((group) => {
+                          const next = getNextSessionDate(group.schedules);
+                          return (
+                            <tr key={group.id}>
+                              <td className="fw-medium text-dark">
+                                {group.group_name}
+                              </td>
+                              <td className="text-center text-secondary">
+                                {group.course_title}
+                              </td>
+                              <td className="text-center text-secondary">
+                                {group.instructor_name}
+                              </td>
+                              <td className="text-center">
+                                {next ? (
+                                  <span className="badge bg-danger-subtle text-danger-emphasis rounded-pill px-3 py-2">
+                                    <i className="bi bi-calendar-event me-1"></i>
+                                    {next.dateStr}
+                                    <span className="ms-1 opacity-75">
+                                      {next.time}
+                                    </span>
+                                  </span>
+                                ) : (
+                                  <span className="text-muted small">
+                                    {isArabic ? "لا يوجد جدول" : "No schedule"}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="text-center text-secondary">
+                                {group.students_count}
+                              </td>
+                              <td className="text-center">
+                                <GroupStatusBadge
+                                  status={group.status || "active"}
+                                  isArabic={isArabic}
+                                />
+                              </td>
+                              <td className="text-center text-secondary">
+                                {group.created_at}
+                              </td>
+                              <td className="text-center">
+                                <div className="d-flex justify-content-center gap-2">
+                                  <button
+                                    className="btn btn-sm ac-btn-view border-0"
+                                    title="View"
+                                    onClick={() => handleView(group.id)}
+                                  >
+                                    <i className="bi bi-eye fs-6"></i>
+                                  </button>
+                                  <button
+                                    className="btn btn-sm ac-btn-edit border-0"
+                                    title="Edit"
+                                    onClick={() => handleEdit(group.id)}
+                                  >
+                                    <i className="bi bi-pencil-square fs-6"></i>
+                                  </button>
+                                  <button
+                                    className="btn btn-sm ac-btn-deleteTable border-0"
+                                    title="Delete"
+                                    onClick={() => handleDelete(group.id)}
+                                  >
+                                    <i className="bi bi-trash fs-6"></i>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
                       ) : (
                         <tr>
                           <td
-                            colSpan={6}
+                            colSpan={8}
                             className="text-center py-4 text-muted"
                           >
                             {isArabic ? "لا توجد مجموعات" : "No groups found"}
@@ -497,70 +1031,16 @@ function AdminGroups() {
               </div>
             </div>
 
+            {/* ── Pagination ── */}
             {apiPagination && (
-              <div className="d-flex justify-content-center mt-5">
-                <Pagination className="custom-pagination">
-                  <Pagination.Prev
-                    disabled={apiPagination.current_page === 1}
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page - 1)
-                    }
-                  />
-                  {(() => {
-                    const currentPage = apiPagination.current_page;
-                    const totalPages = apiPagination.total_pages;
-                    const startPage = Math.floor((currentPage - 1) / 3) * 3 + 1;
-                    const endPage = Math.min(startPage + 2, totalPages);
-                    const items = [];
-
-                    if (startPage > 1) {
-                      items.push(
-                        <Pagination.Ellipsis
-                          key="prev-ellipsis"
-                          onClick={() => handlePageChange(startPage - 1)}
-                        />
-                      );
-                    }
-
-                    for (let p = startPage; p <= endPage; p++) {
-                      items.push(
-                        <Pagination.Item
-                          style={{ margin: "0 3px" }}
-                          key={p}
-                          active={currentPage === p}
-                          onClick={() => handlePageChange(p)}
-                        >
-                          {p}
-                        </Pagination.Item>
-                      );
-                    }
-
-                    if (endPage < totalPages) {
-                      items.push(
-                        <Pagination.Ellipsis
-                          key="next-ellipsis"
-                          onClick={() => handlePageChange(endPage + 1)}
-                        />
-                      );
-                    }
-
-                    return items;
-                  })()}
-                  <Pagination.Next
-                    style={{ margin: "0 6px 0" }}
-                    disabled={
-                      apiPagination.current_page === apiPagination.total_pages
-                    }
-                    onClick={() =>
-                      handlePageChange(apiPagination.current_page + 1)
-                    }
-                  />
-                </Pagination>
-              </div>
+              <AdminPagination pagination={apiPagination} onPageChange={handlePageChange} />
             )}
           </div>
         </>
       ) : (
+        /* ══════════════════════════════════════════════════════════════════
+           FORM PANEL (Add / Edit / View)
+           ══════════════════════════════════════════════════════════════════ */
         <div className="ac-form-container">
           <div className="ac-form-header d-flex justify-content-between align-items-center mb-4">
             <button className="ac-back-btn" onClick={handleBack}>
@@ -581,10 +1061,22 @@ function AdminGroups() {
                       : "Add New Group"}
               </span>
             </button>
+            {viewingItem && (
+              <button
+                type="button"
+                className="btn btn-sm ac-btn-view border-0 rounded-3"
+                onClick={handleOpenScheduleModal}
+              >
+                <i className="bi bi-calendar-week me-1"></i>
+                {isArabic ? "عرض جدول المواعيد" : "Show Group Schedule"}
+              </button>
+            )}
           </div>
 
           <div className="ac-form-body p-4 bg-white border rounded-4 shadow-sm">
             <div className="ac-tab-content basic-info">
+
+              {/* ── Group Name ── */}
               <div className="mb-4">
                 <label className="form-label fw-bold text-dark">
                   {isArabic ? "اسم المجموعة" : "Group Name"}
@@ -602,10 +1094,43 @@ function AdminGroups() {
                 />
               </div>
 
+              {/* ── Group Status ── */}
+              <div className="mb-4">
+                <label className="form-label fw-bold text-dark">
+                  {isArabic ? "حالة المجموعة" : "Group Status"}
+                </label>
+                {viewingItem ? (
+                  <div className="mt-1">
+                    <GroupStatusBadge
+                      status={formData.status || "active"}
+                      isArabic={isArabic}
+                    />
+                  </div>
+                ) : (
+                  <select
+                    name="status"
+                    className="form-select ac-form-select p-3 bg-light border-0 rounded-3"
+                    value={formData.status || "active"}
+                    onChange={handleChange}
+                  >
+                    <option value="active">
+                      {isArabic ? "نشطة" : "Active"}
+                    </option>
+                    <option value="completed">
+                      {isArabic ? "مكتملة" : "Completed"}
+                    </option>
+                    <option value="cancelled">
+                      {isArabic ? "ملغاة" : "Cancelled"}
+                    </option>
+                  </select>
+                )}
+              </div>
+
+              {/* ── Course + Instructor ── */}
               <div className="row mb-4">
                 <div className="col-md-6 mb-3 mb-md-0">
                   <label className="form-label fw-bold text-dark">
-                    {isArabic ? "عنوان الدورة  " : "Course title"}
+                    {isArabic ? "عنوان الدورة" : "Course Title"}
                   </label>
                   <select
                     name="course_id"
@@ -655,6 +1180,255 @@ function AdminGroups() {
                 </div>
               </div>
 
+              {/* ── Start Date / End Date ── */}
+              <div className="mb-4">
+                {viewingItem ? (
+                  <div className="row g-3">
+                    <div className="col-sm-6">
+                      <label className="form-label fw-bold text-dark">
+                        <i className="bi bi-calendar-date me-2 text-danger"></i>
+                        {isArabic ? "تاريخ بدء المجموعة" : "Group Start Date"}
+                      </label>
+                      <p className="form-control-plaintext fw-medium ps-1 mb-0">
+                        {formData.start_date || "—"}
+                      </p>
+                    </div>
+                    <div className="col-sm-6">
+                      <label className="form-label fw-bold text-dark">
+                        <i className="bi bi-calendar-check me-2 text-danger"></i>
+                        {isArabic ? "تاريخ انتهاء المجموعة" : "Group End Date"}
+                      </label>
+                      <p className="form-control-plaintext fw-medium ps-1 mb-0">
+                        {formData.end_date || "—"}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <label className="form-label fw-bold text-dark">
+                      <i className="bi bi-calendar-date me-2 text-danger"></i>
+                      {isArabic ? "تاريخ بدء المجموعة" : "Group Start Date"}
+                    </label>
+                    <input
+                      type="date"
+                      name="start_date"
+                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                      value={formData.start_date || ""}
+                      min={todayStr}
+                      onChange={handleChange}
+                    />
+                    <small className="text-muted">
+                      {isArabic
+                        ? "تاريخ الانتهاء يُحسب تلقائياً من مدة الدورة"
+                        : "End date is automatically calculated from the course duration"}
+                    </small>
+                  </>
+                )}
+              </div>
+
+              {/* ══════════════════════════════════════════════════════════════
+                  WEEKLY SCHEDULE SECTION
+                  ══════════════════════════════════════════════════════════ */}
+              <div className="mb-4">
+                <div className="d-flex align-items-center justify-content-between mb-3">
+                  <label className="form-label fw-bold text-dark mb-0">
+                    <i className="bi bi-clock me-2 text-danger"></i>
+                    {isArabic ? "الجدول الأسبوعي" : "Weekly Schedule"}
+                  </label>
+                  {!viewingItem && (
+                    <button
+                      type="button"
+                      className="btn btn-sm ac-add-lesson-btn rounded-3 border-2"
+                      onClick={addSchedule}
+                    >
+                      <i className="bi bi-plus-circle me-1"></i>
+                      {isArabic ? "إضافة يوم" : "Add Day"}
+                    </button>
+                  )}
+                </div>
+
+                {/* ── View mode: read-only schedule cards ── */}
+                {viewingItem && formData.schedules.length > 0 && (
+                  <div className="d-flex flex-wrap gap-3">
+                    {formData.schedules.map((s, i) => (
+                      <div
+                        key={i}
+                        className="card border-0 shadow-sm p-3"
+                        style={{
+                          borderRadius: "12px",
+                          minWidth: "210px",
+                          background: "linear-gradient(135deg,#fff5f5,#fff)",
+                        }}
+                      >
+                        <div className="d-flex align-items-center mb-2">
+                          <span
+                            className="badge bg-danger me-2"
+                            style={{ fontSize: "0.75rem" }}
+                          >
+                            {isArabic
+                              ? DAY_NAMES_AR[s.day_of_week]
+                              : DAY_NAMES_EN[s.day_of_week]}
+                          </span>
+                        </div>
+                        <div className="text-secondary small">
+                          <i className="bi bi-clock me-1"></i>
+                          {s.start_time} – {s.end_time}
+                        </div>
+                        {s.room && (
+                          <div className="text-muted small mt-1">
+                            <i className="bi bi-door-open me-1"></i>
+                            {s.room}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {viewingItem && formData.schedules.length === 0 && (
+                  <p className="text-muted fst-italic">
+                    {isArabic ? "لا يوجد جدول أسبوعي" : "No schedule defined"}
+                  </p>
+                )}
+
+                {/* ── Edit / Add mode: editable schedule rows ── */}
+                {!viewingItem && (
+                  <>
+                    {formData.schedules.length === 0 && (
+                      <div
+                        className="border border-dashed rounded-3 p-4 text-center text-muted"
+                        style={{ borderColor: "#dee2e6", background: "#fafafa" }}
+                      >
+                        <i className="bi bi-calendar-plus fs-2 d-block mb-2 text-danger opacity-50"></i>
+                        {isArabic
+                          ? 'اضغط "إضافة يوم" لتحديد أيام الجلسات الأسبوعية'
+                          : 'Click "Add Day" to define weekly session days'}
+                      </div>
+                    )}
+
+                    {formData.schedules.map((s, i) => {
+                      const err = scheduleErrors[i] || {};
+                      return (
+                        <div
+                          key={i}
+                          className="card border-0 shadow-sm mb-3 p-3"
+                          style={{ borderRadius: "12px", background: "#fff9f9" }}
+                        >
+                          {/* Card header */}
+                          <div className="d-flex align-items-center justify-content-between mb-3">
+                            <span className="fw-bold text-danger small">
+                              <i className="bi bi-calendar-week me-1"></i>
+                              {isArabic ? `يوم ${i + 1}` : `Day ${i + 1}`}
+                            </span>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-link text-danger p-0"
+                              onClick={() => removeSchedule(i)}
+                              title={isArabic ? "حذف هذا اليوم" : "Remove day"}
+                            >
+                              <i className="bi bi-trash fs-5"></i>
+                            </button>
+                          </div>
+
+                          <div className="row g-3">
+                            {/* Day of week */}
+                            <div className="col-sm-3">
+                              <label className="form-label small fw-medium text-dark mb-1">
+                                {isArabic ? "اليوم" : "Day"}
+                              </label>
+                              <select
+                                className="form-select bg-light border-0 rounded-3"
+                                value={s.day_of_week}
+                                onChange={(e) =>
+                                  handleScheduleChange(
+                                    i,
+                                    "day_of_week",
+                                    e.target.value,
+                                  )
+                                }
+                              >
+                                {DAY_NAMES_EN.map((name, idx) => (
+                                  <option key={idx} value={idx}>
+                                    {isArabic ? DAY_NAMES_AR[idx] : name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {/* Start time */}
+                            <div className="col-sm-3">
+                              <label className="form-label small fw-medium text-dark mb-1">
+                                {isArabic ? "وقت البدء" : "Start Time"}
+                              </label>
+                              <input
+                                type="time"
+                                className={`form-control bg-light border-0 rounded-3 ${err.start_time ? "is-invalid" : ""}`}
+                                value={s.start_time || ""}
+                                onChange={(e) =>
+                                  handleScheduleChange(
+                                    i,
+                                    "start_time",
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                              {err.start_time && (
+                                <div className="invalid-feedback">
+                                  {err.start_time}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* End time */}
+                            <div className="col-sm-3">
+                              <label className="form-label small fw-medium text-dark mb-1">
+                                {isArabic ? "وقت الانتهاء" : "End Time"}
+                              </label>
+                              <input
+                                type="time"
+                                className={`form-control bg-light border-0 rounded-3 ${err.end_time ? "is-invalid" : ""}`}
+                                value={s.end_time || ""}
+                                onChange={(e) =>
+                                  handleScheduleChange(
+                                    i,
+                                    "end_time",
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                              {err.end_time && (
+                                <div className="invalid-feedback">
+                                  {err.end_time}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Room */}
+                            <div className="col-sm-3">
+                              <label className="form-label small fw-medium text-dark mb-1">
+                                {isArabic
+                                  ? "القاعة (اختياري)"
+                                  : "Room (optional)"}
+                              </label>
+                              <input
+                                type="text"
+                                className="form-control bg-light border-0 rounded-3"
+                                placeholder={isArabic ? "مثال: A-101" : "e.g. A-101"}
+                                value={s.room || ""}
+                                onChange={(e) =>
+                                  handleScheduleChange(i, "room", e.target.value)
+                                }
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+
+              {/* ── Group Statistics (edit / view) ── */}
               {(viewingItem || editingItem) && (
                 <div className="row mb-4">
                   <div className="col-12">
@@ -681,7 +1455,7 @@ function AdminGroups() {
                 </div>
               )}
 
-              {/* جدول الطلاب الحاليين بالمجموعة */}
+              {/* ── Current Students Table ── */}
               {(viewingItem || editingItem) && (
                 <div className="ac-table-card mt-4">
                   <div className="ac-table-container">
@@ -705,6 +1479,34 @@ function AdminGroups() {
                               : "List of students currently enrolled in this group"}
                           </p>
                         </div>
+                      </div>
+                      <div className="d-flex gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          className="btn-download-pdf"
+                          onClick={() => handleExportGroupStudents("pdf")}
+                          disabled={studentsExportLoading}
+                        >
+                          {studentsExportLoading ? (
+                            <Spinner animation="border" size="sm" className="me-1" />
+                          ) : (
+                            <i className="bi bi-file-earmark-pdf me-1"></i>
+                          )}
+                          PDF
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-download-excel"
+                          onClick={() => handleExportGroupStudents("excel")}
+                          disabled={studentsExportLoading}
+                        >
+                          {studentsExportLoading ? (
+                            <Spinner animation="border" size="sm" className="me-1" />
+                          ) : (
+                            <i className="bi bi-file-earmark-spreadsheet me-1"></i>
+                          )}
+                          Excel
+                        </button>
                       </div>
                     </div>
 
@@ -739,8 +1541,7 @@ function AdminGroups() {
                             </tr>
                           </thead>
                           <tbody className="border-0">
-                            {formData.students &&
-                              formData.students.length > 0 ? (
+                            {formData.students && formData.students.length > 0 ? (
                               formData.students.map((student) => (
                                 <tr
                                   key={`current-${student.id}`}
@@ -757,10 +1558,8 @@ function AdminGroups() {
                                   <td className="py-3 text-center text-muted">
                                     {student.phone || "-"}
                                   </td>
-                                  {/* عمود الحالة التفاعلي داخل جدول الطلاب الحاليين */}
                                   <td className="py-3 text-center">
                                     {editingItem ? (
-                                      //  في وضع التعديل فقط: يظهر كـ Select Box على شكل بادج دائري أنيق يغير الحالة محلياً
                                       <select
                                         className="form-select form-select-sm rounded-pill px-3 fw-medium text-center border-0 shadow-sm d-inline-block transition-all"
                                         style={{
@@ -786,29 +1585,14 @@ function AdminGroups() {
                                           )
                                         }
                                       >
-                                        <option
-                                          value="progress"
-                                          style={{
-                                            backgroundColor: "#fff",
-                                            color: "#333",
-                                          }}
-                                        >
-                                          {isArabic
-                                            ? "قيد الدراسة"
-                                            : "In Progress"}
+                                        <option value="progress">
+                                          {isArabic ? "قيد الدراسة" : "In Progress"}
                                         </option>
-                                        <option
-                                          value="completed"
-                                          style={{
-                                            backgroundColor: "#fff",
-                                            color: "#333",
-                                          }}
-                                        >
+                                        <option value="completed">
                                           {isArabic ? "مكتمل" : "Completed"}
                                         </option>
                                       </select>
                                     ) : (
-                                      // في وضع العرض (Show Mode): يظهر كبادج ملون ثابت غير قابل للضغط للقراءة فقط
                                       <span
                                         className="badge rounded-pill px-3 py-2 fw-medium shadow-sm"
                                         style={{
@@ -838,7 +1622,7 @@ function AdminGroups() {
                                     <td className="py-3 text-center">
                                       <button
                                         type="button"
-                                        className="btn btn-sm btn-outline-danger border-0"
+                                        className="btn btn-sm ac-btn-deleteTable border-0"
                                         title={
                                           isArabic
                                             ? "إزالة مؤقتة من المجموعة"
@@ -857,7 +1641,7 @@ function AdminGroups() {
                             ) : (
                               <tr>
                                 <td
-                                  colSpan={editingItem ? 4 : 3}
+                                  colSpan={editingItem ? 5 : 4}
                                   className="text-center py-4 text-muted"
                                 >
                                   {isArabic
@@ -874,7 +1658,7 @@ function AdminGroups() {
                 </div>
               )}
 
-              {/* جدول تحديد طلاب جدد لإضافتهم للمجموعة */}
+              {/* ── Available Students Table ── */}
               {editingItem &&
                 filteredAvailableStudents &&
                 filteredAvailableStudents.length > 0 && (
@@ -911,7 +1695,7 @@ function AdminGroups() {
                             id="selectAllStudents"
                             checked={
                               selectedStudents.length ===
-                              filteredAvailableStudents.length &&
+                                filteredAvailableStudents.length &&
                               filteredAvailableStudents.length > 0
                             }
                             onChange={toggleSelectAllStudents}
@@ -969,7 +1753,6 @@ function AdminGroups() {
                                   }
                                 >
                                   <td className="ps-4 py-3">
-                                    {/* 👈 تم ضبط الـ Checkbox هنا ليعمل بمنتهى الكفاءة ودون أي تداخلات */}
                                     <input
                                       type="checkbox"
                                       className="form-check-input border-danger"
@@ -1005,6 +1788,7 @@ function AdminGroups() {
                   </div>
                 )}
 
+              {/* ── Submit button ── */}
               {!viewingItem && (
                 <div className="d-flex justify-content-end mt-4 pt-4 border-top">
                   <button
@@ -1025,6 +1809,117 @@ function AdminGroups() {
           </div>
         </div>
       )}
+
+      <DetailModal
+        show={showScheduleModal}
+        onHide={handleCloseScheduleModal}
+        size="lg"
+        scrollable
+        dir={isArabic ? "rtl" : "ltr"}
+        title={
+          <>
+            <i className="bi bi-calendar-week me-2 text-danger"></i>
+            {formData.group_name || (isArabic ? "المجموعة" : "Group")} —{" "}
+            {isArabic ? "جدول مواعيد المجموعة" : "Group Schedule"}
+          </>
+        }
+        footer={
+          <>
+            <button
+              type="button"
+              className="btn ac-draft-btn border px-3 py-2 rounded-3"
+              onClick={handleCloseScheduleModal}
+            >
+              {isArabic ? "إغلاق" : "Close"}
+            </button>
+            <button
+              type="button"
+              className="btn-download-pdf"
+              onClick={handleExportGroupSchedulePdf}
+              disabled={scheduleExportLoading || scheduleModalLoading}
+            >
+              {scheduleExportLoading ? (
+                <Spinner animation="border" size="sm" className="me-1" />
+              ) : (
+                <i className="bi bi-file-earmark-pdf me-1"></i>
+              )}
+              {isArabic ? "تصدير PDF" : "Export PDF"}
+            </button>
+          </>
+        }
+      >
+          {scheduleModalLoading ? (
+            <div className="text-center py-5">
+              <Spinner animation="border" variant="danger" />
+              <div className="text-muted mt-3 small">
+                {isArabic ? "جاري تحميل الجدول…" : "Loading schedule…"}
+              </div>
+            </div>
+          ) : groupSessions.length === 0 ? (
+            <div className="text-center py-5 text-muted">
+              <i className="bi bi-calendar-x" style={{ fontSize: "3rem" }}></i>
+              <p className="mt-3 fw-semibold mb-0">
+                {isArabic
+                  ? "لا توجد جلسات مجدولة"
+                  : "No scheduled sessions"}
+              </p>
+            </div>
+          ) : (
+            <div className="table-responsive ac-table-wrapper">
+              <table className="table ac-table align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>{isArabic ? "اليوم" : "Day"}</th>
+                    <th>{isArabic ? "التاريخ" : "Date"}</th>
+                    <th>{isArabic ? "الوقت" : "Time"}</th>
+                    <th>{isArabic ? "القاعة" : "Room"}</th>
+                    <th>{isArabic ? "الحالة" : "Status"}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groupSessions.map((sess, idx) => {
+                    const {
+                      effectiveDate,
+                      effectiveStart,
+                      effectiveEnd,
+                      room,
+                    } = getEffectiveSession(sess);
+                    return (
+                      <tr
+                        key={sess.id}
+                        className={
+                          sess.status === "cancelled" ? "opacity-60" : ""
+                        }
+                      >
+                        <td className="text-muted small">{idx + 1}</td>
+                        <td style={{ fontSize: "0.85rem" }}>
+                          {getDayNameFromDate(effectiveDate, isArabic)}
+                        </td>
+                        <td style={{ fontSize: "0.85rem" }}>{effectiveDate}</td>
+                        <td>
+                          <span
+                            className="fw-semibold"
+                            style={{ fontSize: "0.85rem", color: "#374151" }}
+                          >
+                            {effectiveStart} – {effectiveEnd}
+                          </span>
+                        </td>
+                        <td style={{ fontSize: "0.85rem" }}>{room}</td>
+                        <td>
+                          <SessionStatusBadge
+                            status={sess.status}
+                            isArabic={isArabic}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+      </DetailModal>
     </div>
   );
 }

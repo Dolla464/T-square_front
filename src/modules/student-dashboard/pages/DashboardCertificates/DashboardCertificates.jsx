@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal } from "react-bootstrap";
+import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
 import { useCertificates } from "../../hooks/useCertificates";
 import "./DashboardCertificates.css";
 import StatCard from "../../components/StatCard";
-import certImg from "../../../../assets/certificat.jpeg";
+
 import { getStudentCourses } from "../../hooks/useCourses";
 
 function DashboardCertificates() {
@@ -23,6 +23,39 @@ function DashboardCertificates() {
   const [selectedCert, setSelectedCert] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewUrls, setPreviewUrls] = useState({});
+
+  // Load preview URLs for all certificates
+  useEffect(() => {
+    let active = true;
+    if (certificates && certificates.length > 0) {
+      certificates.forEach(async (cert) => {
+        try {
+          const url = await getCertificatePreview(cert.id);
+          if (active) {
+            setPreviewUrls((prev) => ({ ...prev, [cert.id]: url }));
+          }
+        } catch (err) {
+          console.error(`Failed to load preview for cert ${cert.id}:`, err);
+        }
+      });
+    }
+    return () => {
+      active = false;
+    };
+  }, [certificates, getCertificatePreview]);
+
+  // Cleanup all preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      setPreviewUrls((prev) => {
+        Object.values(prev).forEach((url) => {
+          if (url) window.URL.revokeObjectURL(url);
+        });
+        return {};
+      });
+    };
+  }, []);
 
   // Calculate stats manually since they're no longer in the hook
   const { stats } = getStudentCourses() || {};
@@ -119,11 +152,18 @@ function DashboardCertificates() {
               <div className="cert-card" key={cert.id}>
                 {/* صورة الشهادة */}
                 <div className="cert-img-wrap">
-                  <img
-                    src={certImg}
-                    alt={cert?.course_title ?? "Certificate"}
-                    className="cert-img"
-                  />
+                  {previewUrls[cert.id] ? (
+                    <iframe
+                      src={`${previewUrls[cert.id]}#toolbar=0&navpanes=0&scrollbar=0`}
+                      title={cert?.course_title ?? "Certificate"}
+                      className="cert-img"
+                      style={{ border: "none", width: "100%", height: "100%", pointerEvents: "none" }}
+                    />
+                  ) : (
+                    <div className="d-flex align-items-center justify-content-center w-100 h-100 bg-light">
+                      <div className="spinner-border spinner-border-sm text-danger" role="status" />
+                    </div>
+                  )}
                 </div>
                 {/* تفاصيل */}
                 <div className="cert-card-body">
@@ -165,23 +205,12 @@ function DashboardCertificates() {
           </p>
 
           {/* ── مودال تفاصيل الشهادة ── */}
-          <Modal
+          <DetailModal
             show={showModal}
             onHide={() => setShowModal(false)}
-            centered
-            size="md"
-            className="cert-detail-modal"
+            title={isArabic ? "تفاصيل الشهادة" : "Certificate Details"}
+            dir={isArabic ? "rtl" : "ltr"}
           >
-            <div
-              className="d-flex align-items-center justify-content-between pt-2 px-3"
-              dir={isArabic ? "rtl" : "ltr"}
-            >
-              <Modal.Title className="fs-5 fw-bold">
-                {isArabic ? "تفاصيل الشهادة" : "Certificate Details"}
-              </Modal.Title>
-              <Modal.Header closeButton className="border-0 "></Modal.Header>
-            </div>
-            <Modal.Body className="pt-0">
               {selectedCert && (
                 <div className="cert-modal-content">
                   {/* dynamic iframe preview */}
@@ -286,8 +315,7 @@ function DashboardCertificates() {
                   </button>
                 </div>
               )}
-            </Modal.Body>
-          </Modal>
+          </DetailModal>
         </>
       )}
     </div>

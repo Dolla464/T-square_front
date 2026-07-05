@@ -2,20 +2,39 @@ import { useEffect, useState } from "react";
 import { getTestimonials } from "../services/testimonials";
 import { cache } from "../utils/cache";
 
+const CACHE_KEY = "testimonials_featured_v3";
+const LEGACY_CACHE_KEYS = [
+  "testimonials_data",
+  "testimonials_featured",
+  "testimonials_featured_v2",
+];
+
+const toReviewList = (value) => {
+  if (Array.isArray(value)) return value;
+  return [];
+};
+
+const clearLegacyCache = () => {
+  LEGACY_CACHE_KEYS.forEach((key) => cache.clear(key));
+};
+
 export const useTestimonials = () => {
   const [testimonials, setTestimonials] = useState(() => {
-    return cache.get("testimonials_data") || [];
+    clearLegacyCache();
+    const cached = cache.get(CACHE_KEY);
+    return cached ? toReviewList(cached) : [];
   });
-  const [loading, setLoading] = useState(() => {
-    return !cache.get("testimonials_data");
-  });
+  const [loading, setLoading] = useState(() => !cache.get(CACHE_KEY));
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const cached = cache.get("testimonials_data");
-    const isStale = cache.isStale("testimonials_data", 120000);
+    clearLegacyCache();
+
+    const cached = cache.get(CACHE_KEY);
+    const isStale = cache.isStale(CACHE_KEY, 60000);
 
     if (cached && !isStale) {
+      setTestimonials(toReviewList(cached));
       setLoading(false);
       return;
     }
@@ -24,17 +43,17 @@ export const useTestimonials = () => {
       try {
         if (!cached) setLoading(true);
         const res = await getTestimonials();
-        const data = res?.data?.data || [];
-        cache.set("testimonials_data", data);
-        setTestimonials(data);
+        const list = toReviewList(res?.data?.data);
+        cache.set(CACHE_KEY, list);
+        setTestimonials(list);
       } catch (err) {
         setError(err);
       } finally {
         setLoading(false);
       }
     };
-    fetchFromAPI();
 
+    fetchFromAPI();
   }, []);
 
   return { testimonials, loading, error };

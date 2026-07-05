@@ -9,9 +9,16 @@
 
   "awaitingPayment": "Awaiting payment",
   "thisMonth": "This month",
+  "allTime": "All time",
 
   "search": "Search students...",
   "allStudents": "All Students",
+  "allPayments": "All Payments",
+  "dateFrom": "Start date",
+  "dateTo": "End date",
+  "selectedPeriod": "Selected period",
+  "invalidDateRange": "End date must be on or after start date",
+  "exportFailed": "Export failed. Please try again.",
 
   "orderId": "Order ID",
   "student": "Student",
@@ -24,5 +31,8 @@
   "cancelled": "Cancelled",
   "failed": "Failed",
   "export": "Export Report",
-  "fromLastMonth": "from last month"
+  "fromLastMonth": "from last month",
+  "freeOrder": "Free",
+  "createdAt": "Created at",
+  "statusChangedAt": "Status changed at"
 }

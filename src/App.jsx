@@ -37,6 +37,8 @@ const Contact = lazy(() => import("./pages/Contact"));
 const Payment = lazy(() => import("./pages/Payment"));
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import NotificationsProvider from "./contexts/NotificationsContext";
+import { getRouteByRole } from "./config/routes";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import "./components/shared/ConfirmDialog/confirmDialog.css";
@@ -58,6 +60,10 @@ const DashboardQuizzes = lazy(
 const DashboardProfile = lazy(
   () =>
     import("./modules/student-dashboard/pages/DashboardProfile/DashboardProfile"),
+);
+const StudentAttendance = lazy(
+  () =>
+    import("./modules/student-dashboard/pages/StudentAttendance/StudentAttendance"),
 );
 const CourseDetails = lazy(
   () => import("./modules/student-dashboard/pages/CourseDetails/CourseDetails"),
@@ -123,12 +129,62 @@ import LoadingSpiner from "./LoadingSpiner";
 const AdminMessages = lazy(
   () => import("./modules/admin-dashboard/pages/Messages/AdminMessages"),
 );
-const MaintenancePage = lazy(() => import("./pages/Maintenance/MaintenancePage"));
+const AdminSchedule = lazy(
+  () => import("./modules/admin-dashboard/pages/Schedule/AdminSchedule"),
+);
+const AdminStudentAttendance = lazy(
+  () =>
+    import("./modules/admin-dashboard/pages/StudentAttendance/AdminStudentAttendance"),
+);
+const AdminStudentResults = lazy(
+  () =>
+    import("./modules/admin-dashboard/pages/StudentResults/AdminStudentResults"),
+);
+const MaintenancePage = lazy(
+  () => import("./pages/Maintenance/MaintenancePage"),
+);
 const InstructorOverview = lazy(
-  () => import("./modules/instructor-dashboard/pages/Overview/InstructorOverview"),
+  () =>
+    import("./modules/instructor-dashboard/pages/Overview/InstructorOverview"),
 );
 const InstructorLayout = lazy(
   () => import("./modules/instructor-dashboard/layouts/InstractorLayout"),
+);
+const InstructorAttendance = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/Attendance/InstructorAttendance"),
+);
+const InstructorSchedule = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/Schedule/InstructorSchedule"),
+);
+const InstructorQuizzes = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/Quizzes/InstructorQuizzes"),
+);
+const InstructorViewExam = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/Quizzes/components/ViewExam"),
+);
+const InstructorEditExam = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/Quizzes/components/EditExam"),
+);
+const InstructorStudentResults = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/StudentResults/InstructorStudentResults"),
+);
+const ReceptionistLayout = lazy(
+  () =>
+    import("./modules/receptionist-dashboard/layouts/ReceptionistLayout"),
+);
+const ReceptionistDashboard = lazy(
+  () =>
+    import("./modules/receptionist-dashboard/pages/Dashboard/ReceptionistDashboard"),
+);
+const ReceptionistAttendance = lazy(
+  () =>
+    import("./modules/receptionist-dashboard/pages/Attendance/ReceptionistAttendance"),
 );
 
 // مكون فرعي للتحكم في عرض الـ Layout والتوجيه
@@ -156,7 +212,9 @@ function AppContent() {
     location.pathname.startsWith("/courses/course_details/") ||
     location.pathname.startsWith("/payment/") ||
     location.pathname.startsWith("/admin") ||
-    location.pathname.startsWith("/student");
+    location.pathname.startsWith("/student") ||
+    location.pathname.startsWith("/instructor") ||
+    location.pathname.startsWith("/receptionist");
 
   // إذا كان الموقع قيد الصيانة والمستخدم ليس أدمن، نقوم بإخفاء الهيكل العام (Navbar/Footer) تلقائياً
   const isEffectiveMaintenance =
@@ -172,7 +230,9 @@ function AppContent() {
     location.pathname.includes("/verify-email") ||
     location.pathname.includes("password-reset") ||
     location.pathname.startsWith("/admin") ||
-    location.pathname.startsWith("/student");
+    location.pathname.startsWith("/student") ||
+    location.pathname.startsWith("/instructor") ||
+    location.pathname.startsWith("/receptionist");
 
   useEffect(() => {
     const dir = i18n.dir();
@@ -249,7 +309,10 @@ function AppContent() {
         />
         <meta name="twitter:site" content="@tsquare" />
         {/* iOS / Safari */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -259,8 +322,16 @@ function AppContent() {
         <meta name="mobile-web-app-capable" content="yes" />
 
         <meta name="theme-color" content="#2e0202ff" />
-        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#1f0101ff" />
-        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
+        <meta
+          name="theme-color"
+          media="(prefers-color-scheme: light)"
+          content="#1f0101ff"
+        />
+        <meta
+          name="theme-color"
+          media="(prefers-color-scheme: dark)"
+          content="#000000"
+        />
       </Helmet>
 
       <div className="min-h-screen">
@@ -277,7 +348,18 @@ function AppContent() {
           <Routes>
             {/* المسارات المتاحة دائماً تحت أي ظرف للمسؤولين ولعرض شاشة الصيانة */}
             <Route path="/maintenance" element={<MaintenancePage />} />
-            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/login"
+              element={
+                loading ? (
+                  <LoadingSpiner />
+                ) : user ? (
+                  <Navigate to={getRouteByRole(user.role)} replace />
+                ) : (
+                  <LoginPage />
+                )
+              }
+            />
 
             {/* قفل الشاشة وحقن التوجيه الإجباري إذا كانت الصيانة نشطة والمستخدم ليس أدمن */}
             {isEffectiveMaintenance ? (
@@ -310,6 +392,15 @@ function AppContent() {
                       path="quizzes/edit-exam/:id"
                       element={<EditExam />}
                     />
+                    <Route path="schedule" element={<AdminSchedule />} />
+                    <Route
+                      path="student-attendance"
+                      element={<AdminStudentAttendance />}
+                    />
+                    <Route
+                      path="student-results"
+                      element={<AdminStudentResults />}
+                    />
                     <Route path="groups" element={<AdminGroups />} />
                     <Route path="solutions" element={<AdminSolutions />} />
                     <Route path="students" element={<AdminStudents />} />
@@ -336,8 +427,42 @@ function AppContent() {
                   <Route path="/instructor" element={<InstructorLayout />}>
                     <Route index element={<InstructorOverview />} />
                     <Route
+                      path="attendance"
+                      element={<InstructorAttendance />}
+                    />
+                    <Route
+                      path="schedule"
+                      element={<InstructorSchedule />}
+                    />
+                    <Route path="quizzes" element={<InstructorQuizzes />} />
+                    <Route
+                      path="quizzes/view-exam/:id"
+                      element={<InstructorViewExam />}
+                    />
+                    <Route
+                      path="quizzes/edit-exam/:id"
+                      element={<InstructorEditExam />}
+                    />
+                    <Route
+                      path="student-results"
+                      element={<InstructorStudentResults />}
+                    />
+                    <Route
                       path="notifications"
                       element={<NotificationsPage />}
+                    />
+                  </Route>
+                </Route>
+
+                {/* RECEPTIONIST */}
+                <Route
+                  element={<ProtectedRoute allowedRoles={["receptionist"]} />}
+                >
+                  <Route path="/receptionist" element={<ReceptionistLayout />}>
+                    <Route index element={<ReceptionistDashboard />} />
+                    <Route
+                      path="attendance"
+                      element={<ReceptionistAttendance />}
                     />
                   </Route>
                 </Route>
@@ -346,7 +471,10 @@ function AppContent() {
                 <Route path="/" element={<Home />} />
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/forgot_password" element={<ForgotPassword />} />
-                <Route path="/password-reset/:token" element={<UpdatePassword />} />
+                <Route
+                  path="/password-reset/:token"
+                  element={<UpdatePassword />}
+                />
                 <Route path="/verify-email" element={<VerifyEmailPage />} />
                 <Route path="/courses" element={<Courses />} />
                 <Route
@@ -379,11 +507,15 @@ function AppContent() {
                     <Route path="quizzes" element={<DashboardQuizzes />} />
                     <Route path="quizzes/:quizId" element={<QuizExamPage />} />
                     <Route path="profile" element={<DashboardProfile />} />
+                    <Route path="attendance" element={<StudentAttendance />} />
                     <Route
                       path="notifications"
                       element={<NotificationsPage />}
                     />
-                    <Route path="course/:courseId" element={<CourseDetails />} />
+                    <Route
+                      path="course/:courseId"
+                      element={<CourseDetails />}
+                    />
                     <Route path="review/:courseId" element={<LeaveReview />} />
                   </Route>
                 </Route>
@@ -405,14 +537,16 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <ErrorBoundary>
-          {/* مكون الإشعارات العالمي */}
-          <Toaster position="top-center" reverseOrder={false} />
-          <AppContent />
-          <ScrollToTop />
-        </ErrorBoundary>
-      </Router>
+      <NotificationsProvider>
+        <Router>
+          <ErrorBoundary>
+            {/* مكون الإشعارات العالمي */}
+            <Toaster position="top-center" reverseOrder={false} />
+            <AppContent />
+            <ScrollToTop />
+          </ErrorBoundary>
+        </Router>
+      </NotificationsProvider>
     </AuthProvider>
   );
 }

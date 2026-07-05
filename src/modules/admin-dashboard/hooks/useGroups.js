@@ -14,6 +14,9 @@ import {
   deleteLearningGroup as apiDeleteGroup,
   getAvailableStudents as fetchAvailableStudents,
   bulkAssignStudents as apiBulkAssignStudents,
+  getLearningGroupSchedule as fetchGroupSchedule,
+  getLearningGroupSessions as fetchGroupSessions,
+  getAttendanceReport as fetchAttendanceReport,
 } from "../services/learningGroupServices";
 
 export const useGroups = () => {
@@ -78,10 +81,10 @@ export const useGroups = () => {
   );
 
   // جلب المجموعات المخصصة للـ Select فقط (خفيفة وسريعة)
-  const getGroupsSelection = useCallback(async () => {
+  const getGroupsSelection = useCallback(async (params = {}) => {
     setLoading(true);
     try {
-      const res = await fetchGroupsSelection();
+      const res = await fetchGroupsSelection(params);
       const data = res?.data || [];
       setSelectionGroups(data);
       return data;
@@ -172,6 +175,69 @@ export const useGroups = () => {
     }
   };
 
+  const getGroupSchedule = useCallback(
+    async (id) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetchGroupSchedule(id);
+        return res?.data || [];
+      } catch (err) {
+        console.error("Error fetching group schedule:", err);
+        const errorMsg =
+          err.response?.data?.message ||
+          t("adminDashboard:errors.fetch_failed");
+        setError(errorMsg);
+        toastError(errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [t],
+  );
+
+  const getGroupSessions = useCallback(
+    async (id) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetchGroupSessions(id);
+        return res?.data || [];
+      } catch (err) {
+        console.error("Error fetching group sessions:", err);
+        const errorMsg =
+          err.response?.data?.message ||
+          t("adminDashboard:errors.fetch_failed");
+        setError(errorMsg);
+        toastError(errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [t],
+  );
+
+  const getAttendanceReport = useCallback(
+    async (id, sessionId = null) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetchAttendanceReport(id, sessionId);
+        return res?.data || [];
+      } catch (err) {
+        console.error("Error fetching attendance report:", err);
+        const errorMsg =
+          err.response?.data?.message ||
+          t("adminDashboard:errors.fetch_failed");
+        setError(errorMsg);
+        toastError(errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [t],
+  );
+
   const bulkAssign = async (id, payload) => {
     setLoading(true);
     setError(null);
@@ -211,5 +277,8 @@ export const useGroups = () => {
     updateGroup,
     deleteGroup,
     bulkAssign,
+    getGroupSchedule,
+    getGroupSessions,
+    getAttendanceReport,
   };
 };

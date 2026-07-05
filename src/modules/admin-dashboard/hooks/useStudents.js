@@ -6,6 +6,7 @@ import {
   getStudents as apiGetStudents,
   getStudentById as apiGetStudentById,
   registerStudents as apiRegisterStudent,
+  updateStudent as apiUpdateStudent,
   deleteStudent as apiDeleteStudent,
   updateStudentStatus as apiUpdateStatus,
   toggleStudentVerify as apiToggleVerify,
@@ -81,6 +82,23 @@ export const useStudents = () => {
       return res;
     } catch (err) {
       handleError(err, "errors.create_failed");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ================= UPDATE =================
+  const updateStudent = async (id, payload) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await apiUpdateStudent(id, payload);
+      toastSuccess("Updated successfully");
+      return res;
+    } catch (err) {
+      handleError(err, "errors.update_failed");
       throw err;
     } finally {
       setLoading(false);
@@ -209,6 +227,7 @@ export const useStudents = () => {
     getStudents,
     getStudentById,
     createStudent,
+    updateStudent,
     deleteStudent,
     updateStudentStatus,
     toggleStudentVerify,

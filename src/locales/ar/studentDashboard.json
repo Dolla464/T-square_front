@@ -4,6 +4,7 @@
     "dashboard": "لوحة التحكم",
     "quiz": "الاختبارات",
     "certificates": "الشهادات",
+    "attendance": "الحضور",
     "notifications": "الإشعارات",
     "profile": "الملف الشخصي"
   },
@@ -105,5 +106,62 @@
     "date": "تاريخ المحاولة",
     "loading": "جاري تحميل تفاصيل النتائج...",
     "error": "حدث خطأ أثناء تحميل النتائج. يرجى المحاولة مرة أخرى."
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "markAllRead": "تحديد الكل كمقروء",
+    "markAllSuccess": "تم تحديد جميع الإشعارات كمقروءة",
+    "empty": "لا توجد إشعارات حالياً",
+    "emptyShort": "لا توجد إشعارات",
+    "loading": "جاري التحميل...",
+    "loadError": "تعذر تحميل الإشعارات حالياً."
+  },
+  "attendance": {
+    "title": "حضوري",
+    "refresh": "تحديث",
+    "tabs": {
+      "today": "اليوم",
+      "schedule": "الجدول",
+      "history": "السجل"
+    },
+    "todaySessions": "جلسات اليوم",
+    "noSessionsToday": "لا توجد جلسات مجدولة لليوم.",
+    "qrTitle": "رمز QR للحضور",
+    "selectSession": "اختر جلسة لعرض رمز QR.",
+    "alreadyMarked": "تم تسجيل حضورك في هذه الجلسة.",
+    "sessionNotActive": "هذه الجلسة غير نشطة بعد.",
+    "qrNotAvailable": "رمز QR غير متاح خارج نافذة الحضور.",
+    "qrWindow": "متاح من {{start}} إلى {{end}}",
+    "qrHint": "اعرض هذا الرمز على السكانر لتسجيل حضورك.",
+    "qrExpires": "ينتهي في {{time}}",
+    "refreshQr": "تحديث الرمز",
+    "generateQr": "إنشاء رمز QR",
+    "showQr": "اعرض رمزي",
+    "scanQr": "امسح رمز الجلسة",
+    "scanHint": "وجّه الكاميرا نحو رمز QR الذي يعرضه المدرب.",
+    "scanning": "جاري المسح...",
+    "cameraError": "تعذّر الوصول للكاميرا. يرجى السماح بالإذن.",
+    "checkInSuccess": "تم تسجيل حضورك بنجاح!",
+    "checkInError": "تعذّر تسجيل الحضور. حاول مرة أخرى.",
+    "upcomingSchedule": "الجلسات القادمة",
+    "noUpcoming": "لا توجد جلسات قادمة خلال 30 يوماً.",
+    "date": "التاريخ",
+    "course": "الكورس",
+    "time": "الوقت",
+    "room": "القاعة",
+    "session": "الجلسة",
+    "yourStatus": "حالتك",
+    "myGroups": "مجموعاتي",
+    "noGroups": "لم يتم تعيينك في أي مجموعة بعد.",
+    "selectGroup": "اختر مجموعة لعرض سجل حضورك.",
+    "attended": "حضر",
+    "remaining": "متبقي",
+    "sessionsAttended": "جلسة حضرها",
+    "sessionStatus": {
+      "upcoming": "قادمة",
+      "active": "نشطة",
+      "completed": "منتهية",
+      "cancelled": "ملغاة"
+    }
   }
 }

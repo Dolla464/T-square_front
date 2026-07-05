@@ -1,0 +1,36 @@
+.notifications-nav-dropdown .nav-link.dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.375rem 0.5rem;
+}
+
+.notifications-nav-dropdown .nav-link.dropdown-toggle::after {
+  margin-inline-start: 0.15rem;
+}
+
+.notifications-bell-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.notifications-bell-badge {
+  position: absolute;
+  top: -6px;
+  inset-inline-end: -10px;
+  font-size: 0.6rem;
+  min-width: 1.1rem;
+  padding: 0.2em 0.35em;
+}
+
+.notifications-nav-dropdown-menu {
+  min-width: 320px;
+  max-width: 360px;
+}
+
+.notifications-nav-dropdown-menu .dropdown-item:focus,
+.notifications-nav-dropdown-menu .dropdown-item:hover {
+  background-color: rgba(197, 28, 36, 0.05);
+}

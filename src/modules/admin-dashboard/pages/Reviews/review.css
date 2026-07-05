@@ -1,23 +1,3 @@
-/* ── Review Modal (Based on Certificate Style) ── */
-.cert-detail-modal .modal-content {
-  border-radius: 18px;
-  border: none;
-}
-
-.cert-info-list {
-  border: 1px solid #eee;
-}
-
-.info-item {
-  border-bottom: 1px solid #f0f0f0;
-  padding-bottom: 8px;
-}
-
-.info-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
 .ac-truncate-text {
   max-width: 200px;
   white-space: nowrap;
@@ -25,5 +5,34 @@
   text-overflow: ellipsis;
 }
 
+.review-comment-expandable {
+  cursor: pointer;
+}
 
+.review-comment-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: transparent;
+}
 
+.review-comment-popup {
+  position: fixed;
+  z-index: 1051;
+  width: min(320px, calc(100vw - 32px));
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+}
+
+.review-comment-popup__text {
+  color: #374151;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

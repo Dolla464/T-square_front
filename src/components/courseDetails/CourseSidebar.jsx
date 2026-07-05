@@ -4,9 +4,11 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import axiosClient from "../../api/axios";
 import { useState } from "react";
+import { formatCoursePrice } from "../../utils/coursePrice";
 
 const CourseSidebar = ({ course }) => {
   const { t, i18n } = useTranslation("coursesDetails");
+  const { t: tCourses } = useTranslation("courses");
   const { user } = useAuth();
   const isArabic = i18n?.language === "ar";
   const navigate = useNavigate();
@@ -42,9 +44,13 @@ const CourseSidebar = ({ course }) => {
     }
 
     // التوجيه لصفحة الدفع بعد انتهاء الفحص
-    navigate(`/payment/${course.slug}`, {
-      state: { isEnrolled: isEnrolled },
-    });
+    if (isEnrolled) {
+      navigate(`/student/course/${course.id}`);
+    } else {
+      navigate(`/payment/${course.slug}`, {
+        state: { isEnrolled: false },
+      });
+    }
   };
 
   return (
@@ -52,7 +58,7 @@ const CourseSidebar = ({ course }) => {
       <div className="d-none d-lg-block h-100" dir={isArabic ? "rtl" : "ltr"}>
         <div className="p-4 shadow sidebar-card">
           <h3 className="fw-bold mb-2">
-            {course.price.final} {isArabic ? "ج . م" : "EGP"}
+            {formatCoursePrice(course, tCourses)}
           </h3>
           <p className="text-muted">{t("one_time_payment")}</p>
           <hr />
@@ -150,7 +156,7 @@ const CourseSidebar = ({ course }) => {
         <div className="offcanvas-body">
           <div className="p-4 shadow sidebar-card">
             <h3 className="fw-bold mb-2">
-              {course.price.final} {isArabic ? "ج . م" : "EGP"}
+              {formatCoursePrice(course, tCourses)}
             </h3>
             <p className="text-muted">{t("one_time_payment")}</p>
             <hr />

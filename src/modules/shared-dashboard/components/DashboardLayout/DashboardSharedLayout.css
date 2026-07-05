@@ -19,7 +19,7 @@ body.dashboard-active {
 
 /* ══════════════ Sidebar ══════════════ */
 .shared-dashboard-sidebar {
-  width: 230px;
+  width: 260px;
   height: 100vh;
   height: 100dvh;
   position: sticky;
@@ -29,11 +29,14 @@ body.dashboard-active {
   padding: 0;
   flex-shrink: 0;
   z-index: 100;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* تنعيم الحركة بشكل فيزيائي مريح */
-  will-change: transform; /* إجبار كارت الشاشة على تسريع حركة السايد بار في الموبايل */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* تنعيم الحركة بشكل فيزيائي مريح */
+  will-change: transform;
+  /* إجبار كارت الشاشة على تسريع حركة السايد بار في الموبايل */
   box-sizing: border-box;
   background-color: rgb(26, 26, 26);
-  overflow: hidden; /* منع السايد بار بالكامل من عمل سكرول */
+  overflow: hidden;
+  /* منع السايد بار بالكامل من عمل سكرول */
 }
 
 /* اللوجو (الهيدر - ثابت في الأعلى) */
@@ -42,14 +45,16 @@ body.dashboard-active {
   text-decoration: none;
   padding: 24px 24px 20px;
   padding-top: calc(24px + env(safe-area-inset-top, 0px));
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   margin-bottom: 8px;
-  flex-shrink: 0; /* منع اللوجو من الانضغاط */
+  flex-shrink: 0;
+  /* منع اللوجو من الانضغاط */
 }
 
 .sidebar-logo img {
   height: 50px;
-  filter: grayscale(1) brightness(0) invert(1) contrast(10); /* جعل اللوجو الدارك يظهر كأنه أبيض ليناسب الخلفية الغامقة */
+  filter: grayscale(1) brightness(0) invert(1) contrast(10);
+  /* جعل اللوجو الدارك يظهر كأنه أبيض ليناسب الخلفية الغامقة */
 }
 
 /* روابط التنقل (محتوى اللينكات - سكرول مستقل) */
@@ -59,15 +64,19 @@ body.dashboard-active {
   gap: 2px;
   padding: 4px 14px;
   flex: 1 1 auto;
-  overflow-y: auto; /* سكرول عمودي للينكات فقط عند زيادة عددها */
+  overflow-y: auto;
+  /* سكرول عمودي للينكات فقط عند زيادة عددها */
   overflow-x: hidden;
-  scrollbar-width: none; /* إخفاء الاسكرول بار في فايرفوكس بشكل افتراضي */
-  -ms-overflow-style: none; /* إخفاء في IE/Edge */
+  scrollbar-width: none;
+  /* إخفاء الاسكرول بار في فايرفوكس بشكل افتراضي */
+  -ms-overflow-style: none;
+  /* إخفاء في IE/Edge */
 }
 
 /* تخصيص شكل واسكرول روابط التنقل (كروم وسفاري) */
 .sidebar-nav::-webkit-scrollbar {
-  display: none; /* إخفاء الاسكرول بار بشكل افتراضي */
+  display: none;
+  /* إخفاء الاسكرول بار بشكل افتراضي */
   width: 5px;
 }
 
@@ -77,11 +86,13 @@ body.dashboard-active {
 }
 
 .sidebar-nav:hover::-webkit-scrollbar {
-  display: block; /* إظهار الاسكرول بار الرفيع عند الهوفر لسهولة الاستخدام */
+  display: block;
+  /* إظهار الاسكرول بار الرفيع عند الهوفر لسهولة الاستخدام */
 }
 
 .sidebar-nav::-webkit-scrollbar-track {
-  background: rgb(26, 26, 26); /* نفس لون خلفية السايد بار ليكون غير مرئي */
+  background: rgb(26, 26, 26);
+  /* نفس لون خلفية السايد بار ليكون غير مرئي */
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb {
@@ -97,8 +108,9 @@ body.dashboard-active {
 .sidebar-footer {
   margin-top: auto;
   padding: 8px 12px calc(24px + env(safe-area-inset-bottom, 0px));
-  flex-shrink: 0; /* منع الفوتر من الانضغاط */
-  border-top: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+  /* منع الفوتر من الانضغاط */
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
   background-color: rgb(26, 26, 26);
 }
 
@@ -117,17 +129,18 @@ body.dashboard-active {
 }
 
 .sidebar-link:hover {
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   color: #fff;
 }
 
 .sidebar-link-active {
   background-color: #be1522 !important;
   color: #fff !important;
+  font-size: 1.5rem !important;
 }
 
 .sidebar-link-icon {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   width: 20px;
   flex-shrink: 0;
   text-align: center;
@@ -378,15 +391,17 @@ body.dashboard-active {
   overflow-y: auto;
   height: 0;
   box-sizing: border-box;
-  overscroll-behavior: contain; /* لمنع انتقال السكرول للموقع بالكامل في الموبايل */
+  overscroll-behavior: contain;
+  /* لمنع انتقال السكرول للموقع بالكامل في الموبايل */
 }
 
 /* ══════════════ Overlay (Mobile) ══════════════ */
 .shared-dashboard-overlay {
-  display: none; /* مخفي افتراضياً لكي لا يغلق الشاشة */
+  display: none;
+  /* مخفي افتراضياً لكي لا يغلق الشاشة */
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 99;
   opacity: 0;
   transition: opacity 0.25s ease;
@@ -405,13 +420,13 @@ body.dashboard-active {
     top: 0;
     inset-inline-start: 0;
     transform: translateX(-100%);
-    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
   }
 
   [dir="rtl"] .shared-dashboard-sidebar {
     transform: translateX(100%);
   }
-  
+
   .shared-dashboard-sidebar.sidebar-open {
     transform: translateX(0) !important;
   }
@@ -419,7 +434,7 @@ body.dashboard-active {
   .sidebar-toggle-btn {
     display: flex;
   }
-  
+
   .shared-dashboard-content {
     padding: 20px 16px;
   }
@@ -431,14 +446,16 @@ body.dashboard-active {
 
 @media (max-width: 640px) {
   .activation-text {
-    display: none; 
+    display: none;
   }
+
   .topbar-activation-badge {
     padding: 4px 7px;
     border-radius: 50%;
     aspect-ratio: 1;
     justify-content: center;
   }
+
   .topbar-user-info {
     display: none;
   }

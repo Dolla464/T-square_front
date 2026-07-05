@@ -49,6 +49,8 @@ export const useAdminSettingsState = () => {
         contact_email: "N/A",
         whatsapp: "N/A",
         facebook_url: "N/A",
+        instagram_url: "N/A",
+        linkedin_url: "N/A",
         maintenance_mode: "false",
         hero_title_en: "N/A",
         hero_title_ar: "N/A",
@@ -109,6 +111,8 @@ export const useAdminSettingsState = () => {
         "contact_email",
         "whatsapp",
         "facebook_url",
+        "instagram_url",
+        "linkedin_url",
         "maintenance_mode",
         "hero_title_en",
         "hero_title_ar",
@@ -141,6 +145,8 @@ export const useAdminSettingsState = () => {
           emailRes,
           whatsappRes,
           facebookRes,
+          instagramRes,
+          linkedinRes,
           maintenanceRes,
           heroTitleEnRes,
           heroTitleArRes,
@@ -162,6 +168,8 @@ export const useAdminSettingsState = () => {
           apiGetSetting("contact_email").catch(() => null),
           apiGetSetting("whatsapp").catch(() => null),
           apiGetSetting("facebook_url").catch(() => null),
+          apiGetSetting("instagram_url").catch(() => null),
+          apiGetSetting("linkedin_url").catch(() => null),
           apiGetMaintenanceStatus().catch(() => false),
           apiGetSetting("hero_title_en").catch(() => null),
           apiGetSetting("hero_title_ar").catch(() => null),
@@ -215,6 +223,8 @@ export const useAdminSettingsState = () => {
         const contact_email = extractValue(emailRes, "N/A") || "N/A";
         const whatsapp = extractValue(whatsappRes, "N/A") || "N/A";
         const facebook_url = extractValue(facebookRes, "N/A") || "N/A";
+        const instagram_url = extractValue(instagramRes, "N/A") || "N/A";
+        const linkedin_url = extractValue(linkedinRes, "N/A") || "N/A";
 
         const maintenance_mode = maintenanceRes === true ? "true" : "false";
 
@@ -234,6 +244,8 @@ export const useAdminSettingsState = () => {
           contact_email,
           whatsapp,
           facebook_url,
+          instagram_url,
+          linkedin_url,
           maintenance_mode,
           hero_title_en,
           hero_title_ar,
@@ -354,6 +366,74 @@ export const useAdminSettingsState = () => {
   };
 
   // ================= رفع الميديا =================
+  const DISCOVERY_BATCH_SIZE = 6;
+
+  const chunkFiles = (files, batchSize) => {
+    const batches = [];
+    for (let i = 0; i < files.length; i += batchSize) {
+      batches.push(files.slice(i, i + batchSize));
+    }
+    return batches;
+  };
+
+  const uploadMediaBatch = async (files, key, action) => {
+    const formData = new FormData();
+    formData.append("key", key);
+    formData.append("action", action);
+
+    for (let i = 0; i < files.length; i++) {
+      formData.append("images[]", files[i]);
+    }
+
+    return apiUploadMedia(formData);
+  };
+
+  const uploadDiscoveryMediaBatched = async (files, action = "append") => {
+    if (!files || files.length === 0) return false;
+
+    setUploading(true);
+    const totalFiles = files.length;
+    const batches = chunkFiles(Array.from(files), DISCOVERY_BATCH_SIZE);
+    let toastId = toastLoading(
+      isArabic
+        ? `جاري رفع 0/${totalFiles}...`
+        : `Uploading 0/${totalFiles}...`,
+    );
+
+    try {
+      for (let index = 0; index < batches.length; index++) {
+        const batch = batches[index];
+        const batchAction =
+          action === "replace" && index === 0 ? "replace" : "append";
+        const uploadedSoFar = Math.min(
+          (index + 1) * DISCOVERY_BATCH_SIZE,
+          totalFiles,
+        );
+
+        toastDismiss(toastId);
+        toastId = toastLoading(
+          isArabic
+            ? `جاري رفع ${uploadedSoFar}/${totalFiles}...`
+            : `Uploading ${uploadedSoFar}/${totalFiles}...`,
+        );
+
+        await uploadMediaBatch(batch, "discovery_media", batchAction);
+      }
+
+      clearHeroAndAboutCache();
+      toastDismiss(toastId);
+      toastSuccess(t("success.created", "تم الرفع بنجاح"));
+      await fetchMediaSettings(true);
+      return true;
+    } catch (err) {
+      toastDismiss(toastId);
+      handleError(err, "errors.create_failed");
+      return false;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const uploadMedia = async (files, key, action = "append") => {
     if (!files || files.length === 0) return false;
 
@@ -431,6 +511,7 @@ export const useAdminSettingsState = () => {
     saveSetting,
     saveGeneralSettings,
     uploadMedia,
+    uploadDiscoveryMediaBatched,
     deleteMedia,
   };
 };

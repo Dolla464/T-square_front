@@ -30,9 +30,11 @@ function CourseForm({
   handleSectionTitleChange,
   handleLessonChange,
   handleVideoUpload,
+  handleCancelUpload,
   removeLesson,
   addSection,
   removeSection,
+  chunkUploads,
   // Tab navigation
   activeTab,
   setActiveTab,
@@ -94,7 +96,7 @@ function CourseForm({
             ) : (
               <>
                 <button
-                  className="btn btn-outline-danger px-4"
+                  className="btn ac-draft-btn border px-4"
                   onClick={(e) => handleSubmitWrapper(e, "draft")}
                 >
                   {isArabic ? "حفظ كمسودة" : "Save as Draft"}
@@ -177,10 +179,13 @@ function CourseForm({
             handleSectionTitleChange={handleSectionTitleChange}
             handleLessonChange={handleLessonChange}
             handleVideoUpload={handleVideoUpload}
+            handleCancelUpload={handleCancelUpload}
             removeLesson={removeLesson}
             addSection={addSection}
             removeSection={removeSection}
             handlePlayVideo={handlePlayVideo}
+            chunkUploads={chunkUploads}
+            courseId={editingItem?.id ?? null}
             isReadOnly={isReadOnly}
             isArabic={isArabic}
             t={t}
@@ -211,7 +216,7 @@ function CourseForm({
         <div className="ac-form-footer d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
           <button
             type="button"
-            className={`btn btn-outline-secondary rounded-3 px-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === 0 ? "invisible" : ""}`}
+            className={`btn ac-draft-btn border rounded-3 px-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === 0 ? "invisible" : ""}`}
             onClick={goToPrevTab}
           >
             <i
@@ -233,7 +238,7 @@ function CourseForm({
 
           <button
             type="button"
-            className={`btn btn-outline-danger rounded-3 px-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === tabOrder.length - 1 ? "invisible" : ""}`}
+            className={`btn ac-publish-btn text-white rounded-3 px-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === tabOrder.length - 1 ? "invisible" : ""}`}
             onClick={goToNextTab}
           >
             {isArabic ? "التالي" : "Next"}

@@ -245,6 +245,19 @@
   transition: all 0.22s ease;
 }
 
+.cd-review-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 .cd-btn-ghost:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: #fff;

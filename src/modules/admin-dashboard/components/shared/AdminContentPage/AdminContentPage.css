@@ -562,6 +562,27 @@
   background: #9a111b;
 }
 
+.btn-download-excel {
+  background: #217346;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-download-excel:hover:not(:disabled) {
+  background: #185c37;
+}
+
+.btn-download-excel:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .btn-view-cert {
   background: #f0f0f0;
   color: #1a1a1a;
@@ -578,24 +599,4 @@
 
 .btn-view-cert:hover {
   background: #e0e0e0;
-}
-
-/* ── Modal ── */
-.cert-detail-modal .modal-content {
-  border-radius: 18px;
-  border: none;
-}
-
-.cert-info-list {
-  border: 1px solid #eee;
-}
-
-.info-item {
-  border-bottom: 1px solid #f0f0f0;
-  padding-bottom: 8px;
-}
-
-.info-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
 }

@@ -1,9 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
-import { Pagination, Modal, Button } from "react-bootstrap";
+import { Button } from "react-bootstrap";
+import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
+import AdminPagination from "../../components/shared/AdminPagination";
 import { showDeleteConfirm, showPaymentStatusConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { toastError } from "../../../../components/shared/Toaster/toaster";
 import { useOrders } from "../../hooks/useOrders";
+import ExportBar from "../../components/shared/ExportBar";
+import { dateInputClass } from "../../components/shared/adminUiStyles";
 
 import "../Reviews/review.css";
 
@@ -11,14 +16,50 @@ function AdminOrders() {
   const { t, i18n } = useTranslation("orderPayments");
   const isArabic = i18n.language?.startsWith("ar");
 
-  const { orders, loading, stats, pagination, getOrders, getOrderById, updateOrderStatus, deleteOrder } = useOrders();
+  const {
+    orders,
+    loading,
+    exportLoading,
+    stats,
+    pagination,
+    getOrders,
+    getOrderById,
+    updateOrderStatus,
+    deleteOrder,
+    handleExport,
+  } = useOrders();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  const isDateRangeInvalid = useMemo(
+    () => dateFrom && dateTo && dateTo < dateFrom,
+    [dateFrom, dateTo]
+  );
+
+  const statsPeriodLabel = useMemo(() => {
+    if (dateFrom && dateTo) return `${dateFrom} → ${dateTo}`;
+    if (dateFrom) return `${t("dateFrom")}: ${dateFrom}`;
+    if (dateTo) return `${t("dateTo")}: ${dateTo}`;
+    return t("allTime");
+  }, [dateFrom, dateTo, t]);
+
+  const buildFilterParams = useCallback(
+    (page = currentPage) => ({
+      page,
+      search: debouncedSearch,
+      status: statusFilter === "all" ? "" : statusFilter,
+      date_from: dateFrom,
+      date_to: dateTo,
+    }),
+    [currentPage, debouncedSearch, statusFilter, dateFrom, dateTo]
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm), 500);
@@ -26,35 +67,13 @@ function AdminOrders() {
   }, [searchTerm]);
 
   useEffect(() => {
-    getOrders({
-      page: currentPage,
-      search: debouncedSearch,
-      status: statusFilter === "all" ? "" : statusFilter,
-    });
-  }, [getOrders, currentPage, debouncedSearch, statusFilter]);
+    if (isDateRangeInvalid) return;
+    getOrders(buildFilterParams());
+  }, [getOrders, buildFilterParams, isDateRangeInvalid]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, statusFilter]);
-
-  // Frontend filtering fallback
-  const filteredOrders = useMemo(() => {
-    if (!orders) return [];
-    return orders.filter((item) => {
-      const searchLower = debouncedSearch.toLowerCase();
-      const matchSearch =
-        !debouncedSearch ||
-        item["student.full_name"]?.toLowerCase().includes(searchLower) ||
-        item["enrollments.course.title"]?.toLowerCase().includes(searchLower) ||
-        item.billing_name?.toLowerCase().includes(searchLower) ||
-        String(item.id).includes(searchLower);
-
-      const matchStatus =
-        statusFilter === "all" || item.status === statusFilter;
-
-      return matchSearch && matchStatus;
-    });
-  }, [orders, debouncedSearch, statusFilter]);
+  }, [debouncedSearch, statusFilter, dateFrom, dateTo]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -67,7 +86,7 @@ function AdminOrders() {
         setSelectedOrder(data);
         setShowViewModal(true);
       }
-    } catch (err) {
+    } catch {
       // Error handled in hook
     }
   };
@@ -77,11 +96,7 @@ function AdminOrders() {
     if (newStatus) {
       const success = await updateOrderStatus(id, newStatus);
       if (success) {
-        getOrders({
-          page: currentPage,
-          search: debouncedSearch,
-          status: statusFilter === "all" ? "" : statusFilter,
-        });
+        getOrders(buildFilterParams());
       }
     }
   };
@@ -94,13 +109,20 @@ function AdminOrders() {
 
     if (confirmed) {
       await deleteOrder(id);
-      getOrders({
-        page: currentPage,
-        search: debouncedSearch,
-        status: statusFilter === "all" ? "" : statusFilter,
-      });
+      getOrders(buildFilterParams());
     }
   };
+
+  const onExport = (format) => {
+    if (isDateRangeInvalid) {
+      toastError(t("invalidDateRange"));
+      return;
+    }
+    const { page, ...exportFilters } = buildFilterParams();
+    handleExport(exportFilters, format);
+  };
+
+  const isFreeOrder = (amount) => Number(amount) === 0;
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -122,6 +144,14 @@ function AdminOrders() {
     }
   };
 
+  const formatOrderDate = (value) => {
+    if (!value) return "—";
+    return new Date(value).toLocaleString(isArabic ? "ar-EG" : "en-GB", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  };
+
   const getStatusText = (status) => {
     switch (status) {
       case "completed": return isArabic ? "مكتمل" : "Completed";
@@ -134,11 +164,12 @@ function AdminOrders() {
 
   return (
     <div className="admin-content-page">
-      <div className="ac-header d-flex justify-content-between align-items-center mb-4">
+      <div className="ac-header d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
         <div>
           <h2 className="ac-title">{t("orders")}</h2>
           <p className="ac-subtitle text-muted mb-0">{t("track")}</p>
         </div>
+        <ExportBar onExport={onExport} loading={exportLoading} />
       </div>
 
       <div className="row g-3 mb-4">
@@ -152,11 +183,8 @@ function AdminOrders() {
               >
                 <i className="bi bi-currency-dollar fs-5"></i>
               </div>
-              {/* <span className="fw-semibold" style={{ color: "#22c55e", fontSize: "0.85rem" }}>
-                <i className="bi bi-arrow-up-right me-1"></i>+12.5%
-              </span> */}
-              <span className="fw-semibold text-muted" style={{ fontSize: "0.85rem" }}>
-                {t("thisMonth")}
+              <span className="fw-semibold text-muted" style={{ fontSize: "0.75rem" }}>
+                {statsPeriodLabel}
               </span>
             </div>
             <div>
@@ -180,11 +208,8 @@ function AdminOrders() {
               >
                 <i className="bi bi-cart-check fs-5"></i>
               </div>
-              {/* <span className="fw-semibold" style={{ color: "#22c55e", fontSize: "0.85rem" }}>
-                <i className="bi bi-arrow-up-right me-1"></i>+8.2%
-              </span> */}
-              <span className="fw-semibold text-muted" style={{ fontSize: "0.85rem" }}>
-                {t("thisMonth")}
+              <span className="fw-semibold text-muted" style={{ fontSize: "0.75rem" }}>
+                {statsPeriodLabel}
               </span>
             </div>
             <div>
@@ -233,8 +258,8 @@ function AdminOrders() {
               >
                 <i className="bi bi-arrow-counterclockwise fs-5"></i>
               </div>
-              <span className="fw-semibold text-muted" style={{ fontSize: "0.85rem" }}>
-                {t("thisMonth")}
+              <span className="fw-semibold text-muted" style={{ fontSize: "0.75rem" }}>
+                {statsPeriodLabel}
               </span>
             </div>
             <div>
@@ -251,37 +276,79 @@ function AdminOrders() {
 
       <div className="ac-rounded-table p-3 p-md-0">
         <div className="review-table-container ">
-          <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
-            <div className="ac-search-input-wrapper position-relative ">
-              <i
-                className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
-                  }`}
-                style={{ zIndex: 3 }}
-              ></i>
-              <input
-                type="text"
-                className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
-                  ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
-                  : "border-light bg-light text-muted"}`}
-                placeholder={t("search")}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+          <div className="ac-filters-bar d-flex flex-column gap-2 mb-3">
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <div className="ac-search-input-wrapper position-relative flex-grow-1">
+                <i
+                  className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
+                    }`}
+                  style={{ zIndex: 3 }}
+                ></i>
+                <input
+                  type="text"
+                  className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
+                    ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
+                    : "border-light bg-light text-muted"}`}
+                  placeholder={t("search")}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
+
+                <select
+                  className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${statusFilter !== "all"
+                    ? "border-danger bg-danger-subtle text-danger-emphasis"
+                    : "border-light bg-light text-muted"
+                    }`}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  value={statusFilter}
+                >
+                  <option value="all">{t("allPayments")}</option>
+                  <option value="completed">{t("completed")}</option>
+                  <option value="pending">{t("pending")}</option>
+                  <option value="refunded">{t("refunded")}</option>
+                  <option value="cancelled">{isArabic ? "ملغي" : "Cancelled"}</option>
+                </select>
+                <input
+                  type="date"
+                  className={`${dateInputClass(dateFrom)} ${isDateRangeInvalid ? "border-danger" : ""}`}
+                  style={{ width: "auto", minWidth: "11rem", flex: "0 0 auto" }}
+                  title={t("dateFrom")}
+                  aria-label={t("dateFrom")}
+                  value={dateFrom}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value && dateTo && value > dateTo) {
+                      toastError(t("invalidDateRange"));
+                      return;
+                    }
+                    setDateFrom(value);
+                  }}
+                />
+                <input
+                  type="date"
+                  className={`${dateInputClass(dateTo)} ${isDateRangeInvalid ? "border-danger" : ""}`}
+                  style={{ width: "auto", minWidth: "11rem", flex: "0 0 auto" }}
+                  title={t("dateTo")}
+                  aria-label={t("dateTo")}
+                  value={dateTo}
+                  min={dateFrom || undefined}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value && dateFrom && value < dateFrom) {
+                      toastError(t("invalidDateRange"));
+                      return;
+                    }
+                    setDateTo(value);
+                  }}
+                />
+              </div>
             </div>
 
-            <div className="d-flex  gap-md-3">
-              <select className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${statusFilter !== "all"
-                ? "border-danger bg-danger-subtle text-danger-emphasis"
-                : "border-light bg-light text-muted"
-                }`}
-                onChange={(e) => setStatusFilter(e.target.value)}>
-                <option value="all">{t("allStudents")}</option>
-                <option value="completed">{t("completed")}</option>
-                <option value="pending">{t("pending")}</option>
-                <option value="refunded">{t("refunded")}</option>
-                <option value="cancelled">{isArabic ? "ملغي" : "Cancelled"}</option>
-              </select>
-            </div>
+            {/* <div className="d-flex flex-nowrap align-items-center gap-2 gap-md-3 orders-date-filters">
+              
+            </div> */}
           </div>
 
           <div className="table-responsive">
@@ -306,8 +373,8 @@ function AdminOrders() {
                       </div>
                     </td>
                   </tr>
-                ) : filteredOrders.length > 0 ? (
-                  filteredOrders.map((item) => (
+                ) : orders.length > 0 ? (
+                  orders.map((item) => (
                     <tr key={item.id}>
                       <td className="fw-bold text-dark">#{item.id}</td>
 
@@ -319,9 +386,17 @@ function AdminOrders() {
                         {item["enrollments.course.title"] || "N/A"}
                       </td>
 
-                      <td className="text-center fw-bold text-success"><span className="text-muted">EGP</span> {item.total_amount || 0}</td>
-
-
+                      <td className="text-center fw-bold text-success">
+                        {isFreeOrder(item.total_amount) ? (
+                          <span className="badge bg-info-subtle text-info px-3 py-2">
+                            {t("freeOrder")}
+                          </span>
+                        ) : (
+                          <>
+                            <span className="text-muted">EGP</span> {item.total_amount || 0}
+                          </>
+                        )}
+                      </td>
 
                       <td className="text-center">
                         <span
@@ -359,7 +434,7 @@ function AdminOrders() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="text-center py-5 text-secondary fw-bold">
+                    <td colSpan="6" className="text-center py-5 text-secondary fw-bold">
                       <div className="d-flex flex-column align-items-center justify-content-center">
                         <i className="bi bi-inbox fs-1 text-muted mb-2"></i>
                         {isArabic ? "لا توجد طلبات دفع" : "No payment orders found"}
@@ -371,116 +446,80 @@ function AdminOrders() {
             </table>
           </div>
 
-          {/* Pagination - Always visible if data exists */}
-          {pagination && (
-            <div className="d-flex justify-content-center mt-5 pb-3" dir="ltr">
-              <Pagination className="custom-pagination mb-0">
-                <Pagination.Prev
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                />
-                {(() => {
-                  const lastPage = pagination.last_page;
-                  const startPage = Math.floor((currentPage - 1) / 3) * 3 + 1;
-                  const endPage = Math.min(startPage + 2, lastPage);
-                  const items = [];
-
-                  if (startPage > 1) {
-                    items.push(
-                      <Pagination.Ellipsis
-                        key="prev-ellipsis"
-                        onClick={() => handlePageChange(startPage - 1)}
-                      />
-                    );
-                  }
-
-                  for (let p = startPage; p <= endPage; p++) {
-                    items.push(
-                      <Pagination.Item
-                        style={{ margin: "0 3px" }}
-                        key={p}
-                        active={p === currentPage}
-                        onClick={() => handlePageChange(p)}
-                      >
-                        {p}
-                      </Pagination.Item>
-                    );
-                  }
-
-                  if (endPage < lastPage) {
-                    items.push(
-                      <Pagination.Ellipsis
-                        key="next-ellipsis"
-                        onClick={() => handlePageChange(endPage + 1)}
-                      />
-                    );
-                  }
-
-                  return items;
-                })()}
-                <Pagination.Next
-                  style={{ margin: "0 6px 0" }}
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === pagination.last_page}
-                />
-              </Pagination>
-            </div>
-          )}
 
         </div>
       </div>
+      {pagination && (
+        <AdminPagination
+          pagination={pagination}
+          onPageChange={handlePageChange}
+          wrapperClassName="d-flex justify-content-center mt-5 pb-3"
+        />
+      )}
 
-      {/* View Modal */}
-      <Modal show={showViewModal} onHide={() => setShowViewModal(false)} centered size="md" className="cert-detail-modal">
-        <div className="d-flex align-items-center justify-content-between pt-2 px-3" dir={isArabic ? "rtl" : "ltr"}>
-          <Modal.Title className="fs-5 fw-bold">{isArabic ? "تفاصيل الطلب" : "Order Details"}</Modal.Title>
-          <Modal.Header closeButton className="border-0"></Modal.Header>
-        </div>
-        <Modal.Body className="pt-0">
-          {selectedOrder && (
-            <div className="cert-modal-content">
-              <div className="cert-info-list p-3 bg-light rounded-3 mt-3">
-                <div className="info-item d-flex justify-content-between mb-2">
-                  <span className="text-muted">{isArabic ? "رقم الطلب:" : "Order ID:"}</span>
-                  <span className="fw-bold text-dark">#{selectedOrder.id}</span>
-                </div>
-                <div className="info-item d-flex justify-content-between mb-2">
-                  <span className="text-muted">{isArabic ? "اسم الطالب:" : "Student Name:"}</span>
-                  <span className="fw-medium">{selectedOrder["student.full_name"] || selectedOrder.billing_name}</span>
-                </div>
-                <div className="info-item d-flex justify-content-between mb-2">
-                  <span className="text-muted">{isArabic ? "البريد الإلكتروني:" : "Email:"}</span>
-                  <span className="fw-medium text-muted">{selectedOrder["student.user.email"] || "N/A"}</span>
-                </div>
-                <div className="info-item d-flex align-items-center justify-content-between mb-2">
-                  <span className="text-muted">{isArabic ? "الكورس:" : "Course:"}</span>
-                  <span className="fw-medium text-end ms-2" style={{ maxWidth: "200px" }}>{selectedOrder["enrollments.course.title"] || "N/A"}</span>
-                </div>
-                <div className="info-item d-flex justify-content-between mb-2">
-                  <span className="text-muted">{isArabic ? "المبلغ:" : "Amount:"}</span>
-                  <span className="fw-bold text-success">${selectedOrder.total_amount || 0}</span>
-                </div>
+      <DetailModal
+        show={showViewModal}
+        onHide={() => setShowViewModal(false)}
+        title={isArabic ? "تفاصيل الطلب" : "Order Details"}
+        dir={isArabic ? "rtl" : "ltr"}
+      >
+        {selectedOrder && (
+          <div className="cert-modal-content">
+            <div className="cert-info-list p-3 bg-light rounded-3 mt-3">
+              <div className="info-item d-flex justify-content-between mb-2">
+                <span className="text-muted">{isArabic ? "رقم الطلب:" : "Order ID:"}</span>
+                <span className="fw-bold text-dark">#{selectedOrder.id}</span>
+              </div>
+              <div className="info-item d-flex justify-content-between mb-2">
+                <span className="text-muted">{isArabic ? "اسم الطالب:" : "Student Name:"}</span>
+                <span className="fw-medium">{selectedOrder["student.full_name"] || selectedOrder.billing_name}</span>
+              </div>
+              <div className="info-item d-flex justify-content-between mb-2">
+                <span className="text-muted">{isArabic ? "البريد الإلكتروني:" : "Email:"}</span>
+                <span className="fw-medium text-muted">{selectedOrder["student.user.email"] || "N/A"}</span>
+              </div>
+              <div className="info-item d-flex align-items-center justify-content-between mb-2">
+                <span className="text-muted">{isArabic ? "الكورس:" : "Course:"}</span>
+                <span className="fw-medium text-end ms-2" style={{ maxWidth: "200px" }}>{selectedOrder["enrollments.course.title"] || "N/A"}</span>
+              </div>
+              <div className="info-item d-flex justify-content-between mb-2">
+                <span className="text-muted">{isArabic ? "المبلغ:" : "Amount:"}</span>
+                {isFreeOrder(selectedOrder.total_amount) ? (
+                  <span className="badge bg-info-subtle text-info px-3 py-2">{t("freeOrder")}</span>
+                ) : (
+                  <span className="fw-bold text-success">EGP {selectedOrder.total_amount || 0}</span>
+                )}
+              </div>
 
-                <div className="info-item d-flex justify-content-between mb-2">
-                  <span className="text-muted">{isArabic ? "حالة الدفع:" : "Status:"}</span>
+              <div className="info-item d-flex justify-content-between mb-2">
+                <span className="text-muted">{t("createdAt")}</span>
+                <span className="fw-medium">{formatOrderDate(selectedOrder.created_at)}</span>
+              </div>
+
+              <div className="info-item d-flex justify-content-between align-items-center mb-2">
+                <span className="text-muted">{t("status")}</span>
+                <div className="d-flex align-items-center gap-2">
                   <span className={`badge rounded-pill ${getStatusBadge(selectedOrder.status || "pending")}`}>
                     {getStatusText(selectedOrder.status || "pending")}
                   </span>
+                  <small className="text-muted" title={t("statusChangedAt")}>
+                    {formatOrderDate(selectedOrder.status_changed_at)}
+                  </small>
                 </div>
-
               </div>
-              <Button
-                variant="dark"
-                className="mt-3 w-100 rounded-3 py-2 fw-bold"
-                onClick={() => setShowViewModal(false)}
-                style={{ backgroundColor: "#1a1a1a" }}
-              >
-                {isArabic ? "إغلاق" : "Close"}
-              </Button>
+
             </div>
-          )}
-        </Modal.Body>
-      </Modal>
+            <Button
+              variant="dark"
+              className="mt-3 w-100 rounded-3 py-2 fw-bold"
+              onClick={() => setShowViewModal(false)}
+              style={{ backgroundColor: "#1a1a1a" }}
+            >
+              {isArabic ? "إغلاق" : "Close"}
+            </Button>
+          </div>
+        )}
+      </DetailModal>
 
     </div>
   );

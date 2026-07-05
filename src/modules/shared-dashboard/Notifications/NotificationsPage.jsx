@@ -3,55 +3,39 @@ import { useTranslation } from "react-i18next";
 import { toastCustom } from "../../../components/shared/Toaster/toaster";
 import NotificationCard from "../../student-dashboard/components/NotificationCard";
 import "../components/DashboardLayout/DashboardSharedLayout";
-import { useNotifications } from "../notificationsServices/useNotifications";
-/**
- * صفحة الإشعارات - NotificationsPage
- * تعرض جميع إشعارات المستخدم مع إمكانية تحديدها كمقروءة
- */
-function NotificationsPage() {
-  const { i18n } = useTranslation("studentDashboard");
-  const isArabic = i18n.language === "ar";
+import { useNotifications } from "../../../hooks/useNotifications";
+import AdminPagination from "../../admin-dashboard/components/shared/AdminPagination";
 
-  // state الإشعارات
+function NotificationsPage() {
+  const { t } = useTranslation("studentDashboard");
+
   const {
-    notificationsData: rawNotificationsData,
-    loading,
-    handleMarkAsRead,
-    markNotificationAllRead,
+    notifications,
+    unreadCount,
+    isLoading,
+    pagination,
+    markAllAsRead,
+    goToPage,
   } = useNotifications();
 
-  const notificationsData = rawNotificationsData.data;
-  const unreadCount = rawNotificationsData.unread_count;
-
-  /**
-   * ترتيب الإشعارات (الأحدث أولاً)
-   */
   const sortedNotifications = useMemo(() => {
-    return [...notificationsData].sort((a, b) => {
-      return new Date(b.created_at) - new Date(a.created_at);
-    });
-  }, [notificationsData]);
+    return [...notifications].sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at),
+    );
+  }, [notifications]);
 
-  /**
-   * تحديد كل الإشعارات كمقروءة
-   */
   const handleMarkAllAsRead = async () => {
-    await markNotificationAllRead();
+    await markAllAsRead();
 
     toastCustom({
-      message: isArabic
-        ? "تم تحديد جميع الإشعارات كمقروءة"
-        : "All notifications marked as read",
+      message: t("notifications.markAllSuccess"),
       type: "success",
       bsIcon: "bi-check2-all",
       duration: 3000,
     });
   };
 
-  /**
-   * حالة اللودينج
-   */
-  if (loading) {
+  if (isLoading && notifications.length === 0) {
     return (
       <div className="dash-loading">
         <div className="spinner-border text-danger" role="status" />
@@ -61,11 +45,9 @@ function NotificationsPage() {
 
   return (
     <div className="notifications-page">
-      {/* شريط العنوان */}
       <div className="notifications-toolbar">
         <h4 className="notifications-page-title">
-          {isArabic ? "الإشعارات" : "Notifications"}
-
+          {t("notifications.title")}
           {unreadCount > 0 && (
             <span className="notifications-count-badge">{unreadCount}</span>
           )}
@@ -74,27 +56,32 @@ function NotificationsPage() {
         {unreadCount > 0 && (
           <button className="mark-all-btn" onClick={handleMarkAllAsRead}>
             <i className="bi bi-check2-all"></i>
-            {isArabic ? "تحديد الكل كمقروء" : "Mark all as read"}
+            {t("notifications.markAllRead")}
           </button>
         )}
       </div>
 
-      {/* قائمة الإشعارات */}
       {sortedNotifications.length === 0 ? (
         <div className="notifications-empty">
           <i className="bi bi-bell-slash notifications-empty-icon"></i>
-          <p>{isArabic ? "لا توجد إشعارات حالياً" : "No notifications yet"}</p>
+          <p>{t("notifications.empty")}</p>
         </div>
       ) : (
-        <div className="notifications-list">
-          {sortedNotifications.map((notification) => (
-            <NotificationCard
-              key={notification.id}
-              notification={notification}
-              onMarkAsRead={handleMarkAsRead}
+        <>
+          <div className="notifications-list">
+            {sortedNotifications.map((notification) => (
+              <NotificationCard key={notification.id} notification={notification} />
+            ))}
+          </div>
+
+          {pagination.last_page > 1 && (
+            <AdminPagination
+              pagination={pagination}
+              onPageChange={(page) => !isLoading && goToPage(page)}
+              wrapperClassName="d-flex justify-content-center mt-4"
             />
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );

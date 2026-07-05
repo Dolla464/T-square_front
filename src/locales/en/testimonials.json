@@ -1,4 +1,10 @@
 {
   "title": "What Our Students Say!",
-  "subtitle": "Hear from our graduates and clients about their experience with T-Square."
+  "subtitle": "Hear from our graduates and clients about their experience with T-Square.",
+  "latest_title": "Latest Reviews",
+  "top_rated_title": "Top Rated Reviews",
+  "prev_label": "Previous testimonials",
+  "next_label": "Next testimonials",
+  "empty": "No reviews yet.",
+  "errorLoading": "Failed to load testimonials."
 }

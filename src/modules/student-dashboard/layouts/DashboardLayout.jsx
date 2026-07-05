@@ -3,6 +3,7 @@ import DashboardSharedLayout from "../../shared-dashboard/components/DashboardLa
 import { useAuth } from "../../../contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 import i18next from "i18next";
+import { useUnreadCount } from "../../../hooks/useNotifications";
 
 const STUDENT_NAV = [
   {
@@ -12,8 +13,13 @@ const STUDENT_NAV = [
     end: true,
   },
   { key: "quiz", path: "/student/quizzes", icon: "bi-pencil-square" },
+  { key: "attendance", path: "/student/attendance", icon: "bi-calendar-check" },
   { key: "certificates", path: "/student/certificates", icon: "bi-award-fill" },
-  { key: "notifications", path: "/student/notifications", icon: "bi-bell-fill" },
+  {
+    key: "notifications",
+    path: "/student/notifications",
+    icon: "bi-bell-fill",
+  },
   { key: "profile", path: "/student/profile", icon: "bi-person-fill" },
 ];
 
@@ -21,7 +27,16 @@ function DashboardLayout() {
   const { user } = useAuth();
   const location = useLocation();
   const isArabic = i18next.language === "ar";
+  const { unreadCount } = useUnreadCount();
+
   if (!user) return null;
+
+  const navItems = STUDENT_NAV.map((item) => {
+    if (item.key === "notifications" && unreadCount > 0) {
+      return { ...item, badge: unreadCount > 9 ? "9+" : unreadCount };
+    }
+    return item;
+  });
 
   const HomePageTitle =
     user.role === "student"
@@ -35,6 +50,7 @@ function DashboardLayout() {
         : isArabic
           ? `مرحبا ${user.name}`
           : `Welcome Back ${user.name}`;
+
   const getPageTitle = (path) => {
     if (path.startsWith("/student/quizzes/")) {
       return isArabic ? "اختبار الكويز" : "Quiz Exam";
@@ -44,6 +60,8 @@ function DashboardLayout() {
         return HomePageTitle;
       case "/student/quizzes":
         return isArabic ? "الأختبارات" : "Quizzes";
+      case "/student/attendance":
+        return isArabic ? "الحضور" : "Attendance";
       case "/student/certificates":
         return isArabic ? "الشهادات" : "Certificates";
       case "/student/notifications":
@@ -58,9 +76,8 @@ function DashboardLayout() {
   const pageTitle = getPageTitle(location.pathname);
 
   return (
-    
     <DashboardSharedLayout
-      navItems={STUDENT_NAV}
+      navItems={navItems}
       translationNs="studentDashboard"
       userRoleName="Student"
       pageTitle={pageTitle}

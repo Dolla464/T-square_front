@@ -578,23 +578,3 @@
 .btn-view-cert:hover {
   background: #e0e0e0;
 }
-
-/* ── Modal ── */
-.cert-detail-modal .modal-content {
-  border-radius: 18px;
-  border: none;
-}
-
-.cert-info-list {
-  border: 1px solid #eee;
-}
-
-.info-item {
-  border-bottom: 1px solid #f0f0f0;
-  padding-bottom: 8px;
-}
-
-.info-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}

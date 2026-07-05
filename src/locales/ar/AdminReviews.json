@@ -7,9 +7,19 @@
     "averageRating": "متوسط التقييم",
     "pendingReview": "تقييمات معلقة",
     "rejected": "مرفوضة",
-    "thisMonth": "+64 هذا الشهر",
-    "awaiting": "في انتظار المراجعة",
-    "allTime": "إجمالي"
+    "allTime": "كل الأوقات",
+    "awaiting": "في انتظار المراجعة"
+  },
+
+  "filters": {
+    "allCourses": "جميع الكورسات",
+    "allGroups": "جميع المجموعات",
+    "selectCourseFirst": "اختر كورساً أولاً",
+    "notReviewed": "لم يقيّم"
+  },
+
+  "messages": {
+    "notReviewed": "لم يقم الطالب بعمل تقييم"
   },
 
   "table": {

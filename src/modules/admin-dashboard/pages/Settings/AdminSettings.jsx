@@ -26,6 +26,7 @@ function AdminSettings() {
     saveGeneralSettings,
     saveSetting,
     uploadMedia,
+    uploadDiscoveryMediaBatched,
     deleteMedia,
   } = useAdminSettings();
 
@@ -46,6 +47,8 @@ function AdminSettings() {
     contact_email: "",
     whatsapp: "",
     facebook_url: "",
+    instagram_url: "",
+    linkedin_url: "",
     maintenance_mode: "false",
     hero_title_en: "",
     hero_title_ar: "",
@@ -326,9 +329,8 @@ function AdminSettings() {
       }
     }
 
-    const success = await uploadMedia(
+    const success = await uploadDiscoveryMediaBatched(
       files,
-      "discovery_media",
       discoveryAction,
     );
     if (success && discoveryInputRef.current) {
@@ -411,7 +413,7 @@ function AdminSettings() {
                     {/* زر التراجع (Undo / Cancel) */}
                     <button
                       type="button"
-                      className="btn btn-sm btn-outline-secondary px-3 py-1 rounded-3 fw-bold"
+                      className="btn btn-sm ac-draft-btn border px-3 py-1 rounded-3 fw-bold"
                       onClick={handleCancelGeneral}
                     >
                       <i className="bi bi-arrow-counterclockwise me-1"></i>
@@ -432,7 +434,7 @@ function AdminSettings() {
                   /* زر التعديل الافتراضي في حالة العرض فقط */
                   <button
                     type="button"
-                    className="btn btn-sm btn-outline-danger px-3 py-1 rounded-3 fw-bold"
+                    className="btn btn-sm ac-btn-edit border-0 px-3 py-1 rounded-3 fw-bold"
                     onClick={() => setIsEditingGeneral(true)}
                   >
                     <i className="bi bi-pencil me-1"></i>
@@ -461,7 +463,7 @@ function AdminSettings() {
                     }
                   />
                 ) : (
-                  <span className="general-settings-value text-secondary">
+                  <span className="general-settings-value">
                     {localGeneralSettings.site_name}
                   </span>
                 )}
@@ -485,7 +487,7 @@ function AdminSettings() {
                     }
                   />
                 ) : (
-                  <span className="general-settings-value text-secondary">
+                  <span className="general-settings-value">
                     {localGeneralSettings.contact_email}
                   </span>
                 )}
@@ -509,7 +511,7 @@ function AdminSettings() {
                     }
                   />
                 ) : (
-                  <span className="general-settings-value text-secondary">
+                  <span className="general-settings-value">
                     {localGeneralSettings.whatsapp}
                   </span>
                 )}
@@ -533,8 +535,56 @@ function AdminSettings() {
                     }
                   />
                 ) : (
-                  <span className="general-settings-value text-secondary">
+                  <span className="general-settings-value">
                     {localGeneralSettings.facebook_url}
+                  </span>
+                )}
+              </div>
+
+              {/* Instagram URL */}
+              <div className="general-settings-row">
+                <span className="general-settings-label">
+                  {isArabic ? "Instagram URL" : "Instagram URL"}
+                </span>
+                {isEditingGeneral ? (
+                  <input
+                    type="text"
+                    className="form-control form-control-sm w-50"
+                    value={localGeneralSettings.instagram_url}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        instagram_url: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  <span className="general-settings-value">
+                    {localGeneralSettings.instagram_url}
+                  </span>
+                )}
+              </div>
+
+              {/* LinkedIn URL */}
+              <div className="general-settings-row">
+                <span className="general-settings-label">
+                  {isArabic ? "LinkedIn URL" : "LinkedIn URL"}
+                </span>
+                {isEditingGeneral ? (
+                  <input
+                    type="text"
+                    className="form-control form-control-sm w-50"
+                    value={localGeneralSettings.linkedin_url}
+                    onChange={(e) =>
+                      setLocalGeneralSettings({
+                        ...localGeneralSettings,
+                        linkedin_url: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  <span className="general-settings-value">
+                    {localGeneralSettings.linkedin_url}
                   </span>
                 )}
               </div>
@@ -878,7 +928,7 @@ function AdminSettings() {
             <div className="hero-card-footer">
               <button
                 type="button"
-                className="btn btn-sm btn-outline-secondary px-3 rounded-3 fw-bold"
+                className="btn btn-sm ac-draft-btn border px-3 rounded-3 fw-bold"
                 onClick={handleCancelHero}
                 disabled={uploading}
               >
@@ -1051,7 +1101,7 @@ function AdminSettings() {
                 />
                 <label
                   htmlFor="aboutUploadInput"
-                  className="btn btn-outline-danger px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2"
+                  className="btn ac-publish-btn text-white px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2"
                 >
                   <i className="bi bi-plus-lg"></i>
                   {isArabic ? "صور الاستبدال" : "Replacement Images"}
@@ -1230,7 +1280,7 @@ function AdminSettings() {
                 />
                 <label
                   htmlFor="discoveryUploadInput"
-                  className="btn btn-outline-danger px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2"
+                  className="btn ac-publish-btn text-white px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2"
                 >
                   <i className="bi bi-plus-lg"></i>
                   {isArabic ? "رفع وسائط المعرض" : "Upload Gallery Media"}

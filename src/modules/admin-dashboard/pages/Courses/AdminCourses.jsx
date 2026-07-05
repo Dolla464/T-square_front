@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { useAdminCourses } from "../../hooks/useAdminCourses";
 import { useInstructors } from "../../hooks/useInstractor";
 import { useCategories } from "../../hooks/useCategories";
@@ -18,6 +19,7 @@ import {
 import CourseFilters from "./components/CourseFilters";
 import CourseTable from "./components/CourseTable";
 import CourseForm from "./components/CourseForm";
+import AdminPagination from "../../components/shared/AdminPagination";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
 function AdminCourses() {
@@ -43,6 +45,7 @@ function AdminCourses() {
   // ─── i18n ──────────────────────────────────────────────────────────────────
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // ─── View state ────────────────────────────────────────────────────────────
   const [showForm, setShowForm] = useState(false);
@@ -72,6 +75,7 @@ function AdminCourses() {
 
   // ─── Form logic hook ───────────────────────────────────────────────────────
   const formLogic = useCourseFormLogic();
+  const { setFormData, setThumbnailFile, setCoverFile, setActiveTab } = formLogic;
 
   // ─── Data fetching ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -99,6 +103,7 @@ function AdminCourses() {
   ]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [
     debouncedSearch,
@@ -118,6 +123,31 @@ function AdminCourses() {
       getInstructors();
     }
   }, [showForm, getTags, getInstructors]);
+
+  useEffect(() => {
+    const courseId = searchParams.get("course");
+    if (!courseId || showForm) return;
+
+    let cancelled = false;
+
+    (async () => {
+      const fullCourse = await getCourseById(courseId);
+      if (cancelled || !fullCourse) return;
+
+      setEditingItem(null);
+      setViewingItem(fullCourse);
+      setFormData(mapItemToFormData(fullCourse));
+      setThumbnailFile(null);
+      setCoverFile(null);
+      setActiveTab("basic");
+      setShowForm(true);
+      setSearchParams({}, { replace: true });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, showForm, getCourseById, setFormData, setThumbnailFile, setCoverFile, setActiveTab, setSearchParams]);
 
   // ─── Client-side filter (second layer over API results) ───────────────────
   const filteredCourses = React.useMemo(() => {
@@ -271,22 +301,49 @@ function AdminCourses() {
     const previews = formData.curriculum
       .flatMap((section) =>
         section.lessons.map((lesson) => {
-          // Prefer an explicit File object; fall back to the stored URL string
-          const videoValue =
-            lesson.videoFile instanceof File
-              ? lesson.videoFile
-              : lesson.video &&
-                  typeof lesson.video === "string" &&
-                  lesson.video.trim()
-                ? lesson.video.trim()
-                : null;
+          // Normalize provider to backend-accepted values: youtube | vimeo | upload | external
+          const rawProvider = lesson.provider?.toLowerCase() || "upload";
+          let normalizedProvider;
+          if (rawProvider === "youtube") normalizedProvider = "youtube";
+          else if (rawProvider === "vimeo") normalizedProvider = "vimeo";
+          else if (rawProvider === "upload" || rawProvider === "html5") normalizedProvider = "upload";
+          else normalizedProvider = "external"; // google_drive and any unknown → external
+
+          const isUploadProvider = normalizedProvider === "upload";
+
+          // Priority for video value:
+          //   Upload provider → send uploaded server path OR raw File (binary)
+          //   Link providers  → send URL string only
+          let videoValue = null;
+          if (isUploadProvider) {
+            // Upload: prefer server-returned path, then raw File (create mode)
+            if (lesson.uploadedVideoUrl) {
+              videoValue = lesson.uploadedVideoUrl;
+            } else if (lesson.videoFile instanceof File) {
+              videoValue = lesson.videoFile;
+            } else if (
+              lesson.video &&
+              typeof lesson.video === "string" &&
+              lesson.video.trim() &&
+              // Only include if it looks like a storage path (not a youtube/external URL)
+              !lesson.video.includes("youtu") &&
+              !lesson.video.includes("drive.google")
+            ) {
+              videoValue = lesson.video.trim();
+            }
+          } else {
+            // Link providers (youtube, vimeo, external): send the raw URL string
+            if (lesson.video && typeof lesson.video === "string" && lesson.video.trim()) {
+              videoValue = lesson.video.trim();
+            }
+          }
 
           return {
             id: String(lesson.id).includes("lesson-") ? null : lesson.id,
             title: lesson.title?.trim() ?? "",
             description: lesson.description?.trim() ?? "",
             video_url: videoValue,
-            video_provider: lesson.provider || "upload",
+            video_provider: normalizedProvider,
             sort_order: lesson.sort_order ?? 0,
             duration_seconds: lesson.duration ?? "",
           };
@@ -365,7 +422,21 @@ function AdminCourses() {
 
   // ─── Video modal handlers ──────────────────────────────────────────────────
   const handlePlayVideo = (url, title) => {
-    setVideoPreviewUrl(url);
+    if (!url) return;
+
+    // Blob URLs and full http(s) URLs are used as-is.
+    // Relative server paths (e.g. "courses/previews/abc.mp4") are prefixed
+    // with the storage base URL so the <video> element can load them.
+    let playUrl = url;
+    if (!url.startsWith("blob:") && !url.startsWith("http")) {
+      const base = (import.meta.env.VITE_API_URL || "")
+        .replace(/\/api\/?$/, "")
+        .replace(/\/$/, "");
+      const path = url.startsWith("/") ? url.slice(1) : url;
+      playUrl = `${base}/storage/${path}`;
+    }
+
+    setVideoPreviewUrl(playUrl);
     setVideoTitle(title);
     setShowVideoModal(true);
   };
@@ -471,6 +542,13 @@ function AdminCourses() {
                   handlePageChange={setCurrentPage}
                 />
               </div>
+              {apiPagination ? (
+                <AdminPagination className=""
+                  pagination={apiPagination}
+                  onPageChange={setCurrentPage}
+                />
+              ) : null}
+
             </div>
           </div>
         </>

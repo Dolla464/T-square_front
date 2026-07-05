@@ -1,6 +1,7 @@
 // مكون كارد مشترك للكورسات والكويزات في الداشبورد
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 /**
  * مكون كارد مشترك للكورسات والكويزات في الداشبورد
@@ -12,10 +13,11 @@ import { useNavigate } from "react-router-dom";
  */
 function DashboardCard({ item, type, t }) {
   const navigate = useNavigate();
+  const { i18n } = useTranslation("studentDashboard");
+  const isArabic = i18n.language?.startsWith("ar");
   const isCourse = type === "course";
   const isQuiz = type === "quiz";
 
-  // تحديد حالة الاكتمال
   const isCompleted = isQuiz
     ? item.has_attempt === true
     : isCourse
@@ -27,7 +29,7 @@ function DashboardCard({ item, type, t }) {
     : isCourse
       ? item.enrollment?.status === "in_progress"
       : false;
-  // حساب التقدم للكورسات أو الكويزات
+
   let progress = 0;
   if (isCourse) {
     progress = item.progress;
@@ -38,44 +40,46 @@ function DashboardCard({ item, type, t }) {
         : 0;
   }
 
-  // تحديد لون النتيجة للكويزات
   const getScoreClass = (score) => {
     if (score >= 90) return "score-excellent";
     if (score >= 75) return "score-good";
     return "score-average";
   };
 
-  // تحديد مسار الرابط ونص الزر
   let linkTo = "#";
   let buttonText = "";
   let buttonClass = "btn-continue";
 
   if (isCourse) {
-    if (isCompleted) {
-      // الكورس مكتمل — الذهاب للشهادات
+    if (isCompleted && !item.enrollment?.has_review) {
+      buttonText = isArabic ? "اترك تقييم" : "Leave Review";
+      buttonClass += " btn-review";
+      linkTo = `/student/review/${item.id}`;
+    } else if (isCompleted) {
       buttonText = t("active_courses.review");
       buttonClass += " btn-review";
+      linkTo = `/student/course/${item.id}`;
     } else {
-      // الكورس قيد التنفيذ — الذهاب لصفحة تفاصيل الكورس
       buttonText = t("course.continue");
+      linkTo = `/student/course/${item.id}`;
     }
   }
 
-  // معالج حدث الضغط — ينتقل للرابط مع تمرير بيانات الكورس
   const handleClick = () => {
-    navigate(`/student/course/${item.id}`);
+    navigate(linkTo);
   };
+
   const handleCertificateClick = () => {
     navigate("/student/certificates");
   };
 
+  const certificateAvailable = item.enrollment?.certificate_available === true;
+
   return (
     <div className={`${isCourse ? "course-card" : "quiz-card"}`}>
-      {/* الصورة أو الأيقونة */}
       {isCourse ? (
         <div className="course-card-img-wrapper">
           <img
-            // item.thumbnail from api
             src={item.cover_image || "/default-course-cover.jpg"}
             alt={item.title}
             className="course-card-img"
@@ -105,17 +109,14 @@ function DashboardCard({ item, type, t }) {
         </div>
       )}
 
-      {/* جسم الكارد */}
       <div
         className={`${isCourse ? "course-card-body" : "quiz-card-body"}`}
         dir="ltr"
       >
-        {/* العنوان */}
         <h6 className={`${isCourse ? "course-card-title" : "quiz-card-title"}`}>
           {item.title}
         </h6>
 
-        {/* معلومات الميتا */}
         {isCourse ? (
           <p className="course-card-meta mb-2">
             <span>{item.instructor.full_name}</span>
@@ -126,7 +127,6 @@ function DashboardCard({ item, type, t }) {
           </p>
         )}
 
-        {/* معلومات إضافية للكويز (تاريخ الإنشاء) */}
         {isQuiz && (
           <p className="quiz-card-meta" style={{ fontSize: "0.72rem" }}>
             <i className="bi bi-alarm me-1"></i>
@@ -134,7 +134,6 @@ function DashboardCard({ item, type, t }) {
           </p>
         )}
 
-        {/* معلومات الكويز/النتيجة */}
         {isQuiz && (
           <div className="quiz-score-meta">
             <i className="bi bi-question-circle me-1"></i>
@@ -142,7 +141,6 @@ function DashboardCard({ item, type, t }) {
           </div>
         )}
 
-        {/* عرض النتيجة للكويزات المكتملة */}
         {isQuiz && isCompleted && item.score !== null && (
           <div className="quiz-score-display">
             <span className={`score-badge ${getScoreClass(item.score)}`}>
@@ -158,7 +156,6 @@ function DashboardCard({ item, type, t }) {
           </div>
         )}
 
-        {/* زر الإجراء — الانتقال للكورس أو الكويز */}
         <div className="d-flex gap-1">
           <button onClick={handleClick} className={buttonClass + " " + (isCompleted ? " " : "")}>
             <i
@@ -166,16 +163,17 @@ function DashboardCard({ item, type, t }) {
             ></i>
             {buttonText}
           </button>
-          {item.enrollment?.status === "completed" && (
-            <button onClick={handleCertificateClick} className={buttonClass} style={{ width: "fit-content" }}>
-              <i
-                className="bi bi-file-earmark-pdf me-1"
-              ></i>
+          {isCourse && certificateAvailable && (
+            <button
+              onClick={handleCertificateClick}
+              className={buttonClass}
+              style={{ width: "fit-content" }}
+              title={isArabic ? "عرض الشهادة" : "View Certificate"}
+            >
+              <i className="bi bi-file-earmark-pdf me-1"></i>
             </button>
           )}
         </div>
-
-
       </div>
     </div>
   );

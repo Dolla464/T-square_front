@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   defaultFormData,
   createLesson,
   createSection,
 } from "../utils/courseHelpers";
+import { useChunkedUpload } from "./useChunkedUpload";
 
 /**
  * Encapsulates all form state and mutation handlers for the Course form.
@@ -14,6 +15,21 @@ export const useCourseFormLogic = () => {
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [coverFile, setCoverFile] = useState(null);
   const [activeTab, setActiveTab] = useState("basic");
+
+  const { uploads: chunkUploads, startUpload, cancelUpload, clearUpload } =
+    useChunkedUpload();
+
+  // Track active blob URLs by lessonId so we can revoke them at the right time
+  const blobUrlsRef = useRef({});
+
+  useEffect(() => {
+    const urlsRef = blobUrlsRef;
+    return () => {
+      Object.values(urlsRef.current).forEach((url) => {
+        if (url) URL.revokeObjectURL(url);
+      });
+    };
+  }, []);
 
   // ─── Generic field handler ─────────────────────────────────────────────────
   const handleChange = (e) => {
@@ -83,39 +99,152 @@ export const useCourseFormLogic = () => {
     );
 
   /**
-   * Handles video file selection.
-   * Stores the raw File, sets display name, and auto-calculates duration
-   * via the browser's native video metadata API.
+   * Format raw seconds into a human-readable string (M:SS or H:MM:SS).
    */
-  const handleVideoUpload = (sectionId, lessonId, uploadedFile) => {
-    if (!uploadedFile) return;
-
-    handleLessonChange(sectionId, lessonId, "videoFile", uploadedFile);
-    handleLessonChange(sectionId, lessonId, "video", uploadedFile.name);
-
-    const video = document.createElement("video");
-    video.preload = "metadata";
-    video.onloadedmetadata = () => {
-      URL.revokeObjectURL(video.src);
-      const totalSeconds = Math.floor(video.duration);
-
-      // تنسيق للعرض فقط
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
-      const formatted =
-        hours > 0
-          ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
-          : `${minutes}:${String(seconds).padStart(2, "0")}`;
-
-      handleLessonChange(sectionId, lessonId, "duration", totalSeconds);
-      handleLessonChange(sectionId, lessonId, "durationFormatted", formatted);
-    };
-    video.onerror = () => console.error("Failed to load video metadata");
-    video.src = URL.createObjectURL(uploadedFile);
+  const formatDuration = (totalSeconds) => {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return h > 0
+      ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+      : `${m}:${String(s).padStart(2, "0")}`;
   };
 
-  const removeLesson = (sectionId, lessonId) =>
+  /**
+   * Handle video file selection.
+   *
+   * When `courseId` is provided (edit mode) the file is uploaded immediately
+   * in chunks. Progress and the final server-returned video_url are stored on
+   * the lesson.
+   *
+   * When `courseId` is null (create mode) the raw File is kept in `videoFile`
+   * and sent as a multipart attachment during form submission (legacy behaviour).
+   *
+   * @param {string}      sectionId
+   * @param {string}      lessonId
+   * @param {File}        uploadedFile
+   * @param {number|null} courseId      Pass editingItem.id from the parent component
+   * @param {number}      previewIndex  Zero-based index of this lesson in the flat list
+   */
+  const handleVideoUpload = (
+    sectionId,
+    lessonId,
+    uploadedFile,
+    courseId = null,
+    previewIndex = 0,
+  ) => {
+    if (!uploadedFile) return;
+
+    // Always set the display name immediately
+    handleLessonChange(sectionId, lessonId, "video", uploadedFile.name);
+    // Clear any previous server-side URL so the submission logic uses the new upload
+    handleLessonChange(sectionId, lessonId, "uploadedVideoUrl", null);
+
+    // Revoke any existing blob URL for this lesson before creating a new one
+    if (blobUrlsRef.current[lessonId]) {
+      URL.revokeObjectURL(blobUrlsRef.current[lessonId]);
+    }
+
+    // Create the blob URL once and keep it alive for the preview
+    const blobUrl = URL.createObjectURL(uploadedFile);
+    blobUrlsRef.current[lessonId] = blobUrl;
+    handleLessonChange(sectionId, lessonId, "blobUrl", blobUrl);
+
+    // Extract duration via HTML5 Video API (works before upload completes)
+    const videoEl = document.createElement("video");
+    videoEl.preload = "metadata";
+    videoEl.onloadedmetadata = () => {
+      // Do NOT revoke here – the same blob URL is still needed for video preview
+      const totalSeconds = Math.floor(videoEl.duration);
+      handleLessonChange(sectionId, lessonId, "duration", totalSeconds);
+      handleLessonChange(
+        sectionId,
+        lessonId,
+        "durationFormatted",
+        formatDuration(totalSeconds),
+      );
+    };
+    videoEl.onerror = () => console.error("Failed to load video metadata");
+    videoEl.src = blobUrl;
+
+    if (courseId) {
+      // ── Chunked upload path (edit mode) ────────────────────────────────────
+      // Mark the lesson as uploading so the UI can show a progress bar
+      handleLessonChange(sectionId, lessonId, "isUploading", true);
+      handleLessonChange(sectionId, lessonId, "uploadError", null);
+
+      startUpload(lessonId, uploadedFile, courseId, previewIndex, {
+        onComplete: (serverResponse) => {
+           // Keep the blob URL for immediate high-performance local preview and thumbnail rendering
+           // if (blobUrlsRef.current[lessonId]) {
+           //   URL.revokeObjectURL(blobUrlsRef.current[lessonId]);
+           //   delete blobUrlsRef.current[lessonId];
+           // }
+           // handleLessonChange(sectionId, lessonId, "blobUrl", null);
+
+          // Store the server-returned path and duration on the lesson
+          handleLessonChange(
+            sectionId,
+            lessonId,
+            "uploadedVideoUrl",
+            serverResponse.video_url,
+          );
+          // Use server duration when getID3 extracted it; otherwise keep the
+          // browser-extracted value that was set above via onloadedmetadata
+          if (serverResponse.duration_seconds != null) {
+            handleLessonChange(
+              sectionId,
+              lessonId,
+              "duration",
+              serverResponse.duration_seconds,
+            );
+            handleLessonChange(
+              sectionId,
+              lessonId,
+              "durationFormatted",
+              formatDuration(serverResponse.duration_seconds),
+            );
+          }
+          handleLessonChange(sectionId, lessonId, "isUploading", false);
+          handleLessonChange(sectionId, lessonId, "videoFile", null);
+        },
+        onError: (err) => {
+          handleLessonChange(sectionId, lessonId, "isUploading", false);
+          handleLessonChange(
+            sectionId,
+            lessonId,
+            "uploadError",
+            err?.message ?? "Upload failed",
+          );
+        },
+      });
+    } else {
+      // ── Legacy path (create mode – no course ID yet) ────────────────────────
+      // The file will be sent as multipart during form submission
+      handleLessonChange(sectionId, lessonId, "videoFile", uploadedFile);
+      handleLessonChange(sectionId, lessonId, "isUploading", false);
+    }
+  };
+
+  /**
+   * Cancel an in-progress chunked upload and reset the lesson's video state.
+   */
+  const handleCancelUpload = (sectionId, lessonId) => {
+    cancelUpload(lessonId);
+    if (blobUrlsRef.current[lessonId]) {
+      URL.revokeObjectURL(blobUrlsRef.current[lessonId]);
+      delete blobUrlsRef.current[lessonId];
+    }
+    handleLessonChange(sectionId, lessonId, "isUploading", false);
+    handleLessonChange(sectionId, lessonId, "video", "");
+    handleLessonChange(sectionId, lessonId, "blobUrl", null);
+    handleLessonChange(sectionId, lessonId, "videoFile", null);
+    handleLessonChange(sectionId, lessonId, "uploadedVideoUrl", null);
+    handleLessonChange(sectionId, lessonId, "uploadError", null);
+  };
+
+  const removeLesson = (sectionId, lessonId) => {
+    clearUpload(lessonId);
     updateCurriculum((curriculum) =>
       curriculum.map((section) => {
         if (section.id !== sectionId) return section;
@@ -123,6 +252,7 @@ export const useCourseFormLogic = () => {
         return { ...section, lessons: lessons.length ? lessons : [createLesson()] };
       }),
     );
+  };
 
   const addSection = () =>
     updateCurriculum((curriculum) => [...curriculum, createSection()]);
@@ -179,9 +309,12 @@ export const useCourseFormLogic = () => {
     handleSectionTitleChange,
     handleLessonChange,
     handleVideoUpload,
+    handleCancelUpload,
     removeLesson,
     addSection,
     removeSection,
+    // Chunked upload state (progress per lesson id)
+    chunkUploads,
     // Tab navigation
     tabOrder,
     currentTabIndex,

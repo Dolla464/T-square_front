@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Pagination } from "react-bootstrap";
 import AdminContentTable from "./AdminContentTable";
+import AdminPagination from "../AdminPagination";
 
 import AdminContentForm from "./AdminContentForm";
 import { showDeleteConfirm } from "../../../../../components/shared/ConfirmDialog/confirmDialog";
@@ -141,30 +141,13 @@ function AdminContentPage({ type, useDataHook }) {
               onDelete={handleDelete}
             />
 
-            {/* Pagination */}
-            {pagination && (
-              <div className="d-flex justify-content-center mt-5">
-                <Pagination className="custom-pagination">
-                  <Pagination.Prev
-                    disabled={pagination.currentPage === 1}
-                    onClick={() => handlePageChange(pagination.currentPage - 1)}
-                  />
-                  {[...Array(pagination.lastPage)].map((_, i) => (
-                    <Pagination.Item
-                      key={i + 1}
-                      active={i + 1 === pagination.currentPage}
-                      onClick={() => handlePageChange(i + 1)}
-                    >
-                      {i + 1}
-                    </Pagination.Item>
-                  ))}
-                  <Pagination.Next
-                    disabled={pagination.currentPage === pagination.lastPage}
-                    onClick={() => handlePageChange(pagination.currentPage + 1)}
-                  />
-                </Pagination>
-              </div>
-            )}
+            <AdminPagination
+              pagination={{
+                current_page: pagination.currentPage,
+                last_page: pagination.lastPage,
+              }}
+              onPageChange={handlePageChange}
+            />
           </div>
         </>
       ) : (

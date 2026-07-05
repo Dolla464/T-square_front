@@ -7,9 +7,19 @@
     "averageRating": "Average Rating",
     "pendingReview": "Pending Review",
     "rejected": "Rejected",
-    "thisMonth": "+64 this month",
-    "awaiting": "Awaiting moderation",
-    "allTime": "All time"
+    "allTime": "All Time",
+    "awaiting": "Awaiting moderation"
+  },
+
+  "filters": {
+    "allCourses": "All Courses",
+    "allGroups": "All Groups",
+    "selectCourseFirst": "Select a course first",
+    "notReviewed": "Not Reviewed"
+  },
+
+  "messages": {
+    "notReviewed": "Student has not reviewed"
   },
 
   "table": {

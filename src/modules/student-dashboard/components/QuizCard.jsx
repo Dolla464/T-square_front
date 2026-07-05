@@ -1,7 +1,7 @@
 import i18next from "i18next";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Modal } from "react-bootstrap";
+import DetailModal from "../../../components/shared/DetailModal/DetailModal";
 import { useExamResults } from "../hooks/useExamResults";
 
 /**
@@ -203,30 +203,13 @@ function QuizCard({ quiz, t }) {
       </div>
 
       {/* ── مودال تفاصيل النتائج والمحاولات ── */}
-      <Modal
+      <DetailModal
         show={showModal}
         onHide={handleCloseModal}
-        centered
-        size="md"
-        className="quiz-detail-modal"
+        title={t("quiz_results.title")}
+        dir={isArabic ? "rtl" : "ltr"}
+        bodyClassName="pt-0 px-4 pb-4"
       >
-        {/* رأس المودال */}
-        <div
-          className="d-flex align-items-center justify-content-between pt-3 px-4 pb-2"
-          dir={isArabic ? "rtl" : "ltr"}
-        >
-          <Modal.Title className="fs-5 fw-bold">{t("quiz_results.title")}</Modal.Title>
-          <button
-            type="button"
-            className="btn-close border-0 bg-transparent"
-            onClick={handleCloseModal}
-            aria-label="Close"
-          >
-          </button>
-        </div>
-
-        {/* جسم المودال */}
-        <Modal.Body className="pt-3 px-4 pb-4" dir={isArabic ? "rtl" : "ltr"}>
           {/* حالة التحميل */}
           {loading ? (
             <div className="text-center py-5">
@@ -387,8 +370,7 @@ function QuizCard({ quiz, t }) {
               </div>
             </div>
           )}
-        </Modal.Body>
-      </Modal>
+      </DetailModal>
     </div>
   );
 }

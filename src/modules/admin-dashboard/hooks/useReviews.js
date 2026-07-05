@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   toastSuccess,
@@ -19,9 +19,11 @@ export const useReviews = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
+  const lastParamsRef = useRef({});
 
   const getReviews = useCallback(
     async (params = {}) => {
+      lastParamsRef.current = params;
       setLoading(true);
       setError(null);
       try {
@@ -35,7 +37,7 @@ export const useReviews = () => {
             total: response.meta.total,
           }
           : null;
-        const statsData = response?.analytics || null;
+        const statsData = response?.analytics ?? response?.stats ?? null;
 
         setReviews(Array.isArray(data) ? data : []);
         setStats(statsData);
@@ -79,16 +81,13 @@ export const useReviews = () => {
     [t],
   );
 
-  // 🛠️ التعديل هنا: تم تصحيح الدالة لتعتمد على الخدمة الخارجية وتحديث الـ State فوراً
   const changeReviewStatus = useCallback(
     async (id, newStatus) => {
       setLoading(true);
       setError(null);
       try {
-        // 1. استدعاء الدالة المستوردة من الـ service (التي تستخدم axiosClient ومفتاح review_status)
         const response = await apiChangeReviewStatus(id, newStatus);
 
-        // 2. التحديث الفوري للـ State ليعكس الحالة الجديدة في الجدول والـ Badges
         if (response && response.status === "success") {
           setReviews((prevReviews) =>
             prevReviews.map((review) =>
@@ -97,6 +96,8 @@ export const useReviews = () => {
                 : review,
             ),
           );
+
+          await getReviews(lastParamsRef.current);
 
           toastSuccess(
             t("adminDashboard:success.updated", "Updated successfully"),
@@ -116,7 +117,7 @@ export const useReviews = () => {
         setLoading(false);
       }
     },
-    [t],
+    [getReviews, t],
   );
 
   const deleteReview = useCallback(
@@ -127,6 +128,7 @@ export const useReviews = () => {
         await apiDeleteReview(id);
 
         setReviews((prevReviews) => prevReviews.filter((r) => r.id !== id));
+        await getReviews(lastParamsRef.current);
 
         toastSuccess(
           t("adminDashboard:success.deleted", "Deleted successfully"),
@@ -144,7 +146,7 @@ export const useReviews = () => {
         setLoading(false);
       }
     },
-    [t],
+    [getReviews, t],
   );
 
   return {

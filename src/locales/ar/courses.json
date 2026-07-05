@@ -14,7 +14,8 @@
   "card": {
     "weeks": "أسابيع",
     "hours": "س",
-"priceUnit": "ج.م",
+    "priceUnit": "ج.م",
+    "free": "مجاني",
     "details": "تفاصيل الكورس",
     "online": "أونلاين",
     "offline": "أوفلاين",
