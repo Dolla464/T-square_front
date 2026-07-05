@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { getSessionRecords as defaultGetSessionRecords } from "../services/instructorAttendanceServices";
 
-const BASE_INTERVAL_MS = 10_000; // 5 ثواني (الأساس)
+const BASE_INTERVAL_MS = 5000; // 5 ثواني (الأساس)
 const MAX_INTERVAL_MS = 30_000; // 30 ثانية (الحد الأقصى)
 const BACKOFF_MULTIPLIER = 2; // نضاعف المدة ×2
 const CONSECUTIVE_EMPTY_BEFORE_BACKOFF = 2; // نبدأ backoff بعد كام poll فاضي
@@ -88,7 +88,7 @@ export const useAttendanceRealtime = (sessionId, onStudentScanned, getRecordsFn 
     }
 
     // Reset everything
-    lastCheckRef.current = null;
+    lastCheckRef.current = new Date().toISOString();
     seenIdsRef.current.clear();
     isFetchingRef.current = false;
     emptyPollsRef.current = 0;

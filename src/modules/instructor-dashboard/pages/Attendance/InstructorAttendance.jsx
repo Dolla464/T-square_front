@@ -68,8 +68,8 @@ const STATUS_CONFIG = {
 
 const SESSION_STATUS_CONFIG = {
   upcoming: { bg: "secondary", labelEn: "Upcoming", labelAr: "قادمة" },
-  active:   { bg: "success",   labelEn: "Active",   labelAr: "نشطة" },
-  completed:{ bg: "danger",    labelEn: "Completed", labelAr: "منتهية" },
+  active: { bg: "success", labelEn: "Active", labelAr: "نشطة" },
+  completed: { bg: "danger", labelEn: "Completed", labelAr: "منتهية" },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -117,25 +117,54 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
     applyScannedRecord,
     recentScans,
     setRecentScans,
+    updatingIds,
+    loadTodaySchedule,
   } = useAttendanceHook();
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const [showQrModal, setShowQrModal]   = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
   const [toastMessage, setToastMessage] = useState(null); // { name, status }
 
   // ── Real-time polling ──────────────────────────────────────────────────────
 
   const handleStudentScanned = useCallback((record) => {
-    applyScannedRecord(record);
+    // If the record was marked manually (by instructor or receptionist), just update list/stats silently without toasts or scans table updates.
+    if (record.marked_by && record.marked_by.includes("manual")) {
+      applyScannedRecord(record);
+      return;
+    }
 
-    setRecentScans((prev) => {
-      const filtered = prev.filter((s) => s.student_id !== record.student_id);
-      return [record, ...filtered].slice(0, RECENT_SCANS_LIMIT);
-    });
+    const student = students.find((s) => s.student_id === record.student_id);
+    if (!student) return;
 
-    setToastMessage({ name: record.student_name, status: record.status });
+    const isAlreadyMarked = ["present", "late"].includes(student.status);
+
+    if (isAlreadyMarked) {
+      // Show warning toast for duplicate scan
+      setToastMessage({
+        name: record.student_name,
+        status: record.status,
+        isDuplicate: true,
+      });
+    } else {
+      // Apply scan record
+      applyScannedRecord(record);
+
+      setRecentScans((prev) => {
+        const filtered = prev.filter((s) => s.student_id !== record.student_id);
+        return [record, ...filtered].slice(0, RECENT_SCANS_LIMIT);
+      });
+
+      // Show success toast
+      setToastMessage({
+        name: record.student_name,
+        status: record.status,
+        isDuplicate: false,
+      });
+    }
+
     setTimeout(() => setToastMessage(null), 3000);
-  }, [applyScannedRecord, setRecentScans]);
+  }, [students, applyScannedRecord, setRecentScans]);
 
   const { isPolling } = useAttendanceRealtime(
     activeSession?.session_id ?? null,
@@ -201,24 +230,36 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
         <Toast
           show={!!toastMessage}
           onClose={() => setToastMessage(null)}
-          bg={toastMessage?.status === "present" ? "success" : toastMessage?.status === "late" ? "warning" : "secondary"}
+          bg={
+            toastMessage?.isDuplicate
+              ? "warning"
+              : toastMessage?.status === "present"
+                ? "success"
+                : toastMessage?.status === "late"
+                  ? "warning"
+                  : "secondary"
+          }
           delay={3000}
           autohide
         >
           <Toast.Header>
             <i className="bi bi-qr-code-scan me-2"></i>
             <strong className="me-auto">
-              {isArabic ? "مسح جديد" : "New Scan"}
+              {toastMessage?.isDuplicate
+                ? (isArabic ? "مسح مكرر" : "Duplicate Scan")
+                : (isArabic ? "مسح جديد" : "New Scan")}
             </strong>
           </Toast.Header>
-          <Toast.Body className="text-white">
+          <Toast.Body className={toastMessage?.isDuplicate ? "text-dark" : "text-white"}>
             <strong>{toastMessage?.name}</strong>
             {" — "}
-            {toastMessage?.status === "present"
-              ? (isArabic ? "حاضر" : "Present")
-              : toastMessage?.status === "late"
-              ? (isArabic ? "متأخر" : "Late")
-              : (isArabic ? "غائب" : "Absent")}
+            {toastMessage?.isDuplicate
+              ? (isArabic ? "مسجل بالفعل حاضراً" : "Already marked present")
+              : toastMessage?.status === "present"
+                ? (isArabic ? "حاضر" : "Present")
+                : toastMessage?.status === "late"
+                  ? (isArabic ? "متأخر" : "Late")
+                  : (isArabic ? "غائب" : "Absent")}
           </Toast.Body>
         </Toast>
       </ToastContainer>
@@ -228,34 +269,52 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
         <div>
           <h2 className="ac-title d-flex align-items-center gap-2">
             {isArabic ? "الحضور والغياب" : "Attendance"}
-            {isPolling && (
-              <span title={isArabic ? "تحديث تلقائي كل 5 ثواني" : "Auto-updating every 5s"}>
-                <Spinner
+
+          </h2>
+          {isPolling && (
+            <small className=" text-muted  mt-1">
+              {isArabic ? "تحديث تلقائي كل 5 ثواني" : "Auto-updating every 5s"}
+              {/* <Spinner
                   animation="border"
                   variant="danger"
                   size="sm"
                   style={{ width: "0.75rem", height: "0.75rem", borderWidth: "2px" }}
-                />
-              </span>
-            )}
-          </h2>
+                /> */}
+            </small>
+          )}
           <p className="ac-subtitle text-muted mb-0">
             <i className="bi bi-calendar3 me-2"></i>
             {todayLabel}
           </p>
         </div>
 
-        {activeSession && (
+        <div className="d-flex align-items-center gap-2">
           <button
             type="button"
-            className="btn btn-danger ac-add-btn d-flex align-items-center gap-2"
-            onClick={handleShowQr}
-            disabled={activeSession.status !== "active"}
+            className="btn btn-outline-danger d-flex align-items-center gap-2"
+            onClick={() => loadTodaySchedule()}
+            disabled={loading}
           >
-            <i className="bi bi-qr-code"></i>
-            {isArabic ? "عرض رمز QR" : "Show QR Code"}
+            {loading ? (
+              <Spinner animation="border" size="sm" variant="danger" />
+            ) : (
+              <i className="bi bi-arrow-clockwise"></i>
+            )}
+            {isArabic ? "تحديث" : "Refresh"}
           </button>
-        )}
+
+          {activeSession && (
+            <button
+              type="button"
+              className="btn btn-danger ac-add-btn d-flex align-items-center gap-2"
+              onClick={handleShowQr}
+              disabled={activeSession.status !== "active"}
+            >
+              <i className="bi bi-qr-code"></i>
+              {isArabic ? "عرض رمز QR" : "Show QR Code"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── TODAY'S SESSION CARDS ── */}
@@ -476,9 +535,9 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                             <td className="py-3 pe-4 text-center text-muted small">
                               {scan.marked_at
                                 ? new Date(scan.marked_at).toLocaleTimeString(
-                                    isArabic ? "ar-EG" : "en-US",
-                                    { hour: "2-digit", minute: "2-digit", second: "2-digit" }
-                                  )
+                                  isArabic ? "ar-EG" : "en-US",
+                                  { hour: "2-digit", minute: "2-digit", second: "2-digit" }
+                                )
                                 : "—"}
                             </td>
                           </tr>
@@ -511,7 +570,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                   type="button"
                   className="btn btn-danger ac-add-btn"
                   onClick={markAllPresent}
-                  disabled={detailLoading || notMarkedCount === 0}
+                  disabled={detailLoading || notMarkedCount === 0 || activeSession.status !== "active"}
                 >
                   <i className="bi bi-check-all me-1"></i>
                   {isArabic ? "تحضير الكل" : "Mark All Present"}
@@ -605,9 +664,9 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                                 <td className="py-3 text-center text-muted small">
                                   {student.marked_at
                                     ? new Date(student.marked_at).toLocaleTimeString(
-                                        isArabic ? "ar-EG" : "en-US",
-                                        { hour: "2-digit", minute: "2-digit" }
-                                      )
+                                      isArabic ? "ar-EG" : "en-US",
+                                      { hour: "2-digit", minute: "2-digit" }
+                                    )
                                     : "—"}
                                 </td>
 
@@ -618,7 +677,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                                     <button
                                       className="btn btn-sm border-0 fw-medium"
                                       title={isArabic ? "تحضير" : "Mark Present"}
-                                      disabled={student.status === "present"}
+                                      disabled={student.status === "present" || updatingIds?.has(student.student_id)}
                                       style={{
                                         minHeight: "44px",
                                         minWidth: "44px",
@@ -628,14 +687,18 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                                       }}
                                       onClick={() => markAttendance(student.student_id, "present")}
                                     >
-                                      <i className="bi bi-check-lg fs-5"></i>
+                                      {updatingIds?.has(student.student_id) ? (
+                                        <Spinner animation="border" size="sm" variant="secondary" />
+                                      ) : (
+                                        <i className="bi bi-check-lg fs-5"></i>
+                                      )}
                                     </button>
 
                                     {/* Mark Late */}
                                     <button
                                       className="btn btn-sm border-0 fw-medium"
                                       title={isArabic ? "متأخر" : "Mark Late"}
-                                      disabled={student.status === "late"}
+                                      disabled={student.status === "late" || updatingIds?.has(student.student_id)}
                                       style={{
                                         minHeight: "44px",
                                         minWidth: "44px",
@@ -645,14 +708,18 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                                       }}
                                       onClick={() => markAttendance(student.student_id, "late")}
                                     >
-                                      <i className="bi bi-clock fs-5"></i>
+                                      {updatingIds?.has(student.student_id) ? (
+                                        <Spinner animation="border" size="sm" variant="secondary" />
+                                      ) : (
+                                        <i className="bi bi-clock fs-5"></i>
+                                      )}
                                     </button>
 
                                     {/* Mark Absent */}
                                     <button
                                       className="btn btn-sm border-0 fw-medium"
                                       title={isArabic ? "غائب" : "Mark Absent"}
-                                      disabled={student.status === "absent"}
+                                      disabled={student.status === "absent" || updatingIds?.has(student.student_id)}
                                       style={{
                                         minHeight: "44px",
                                         minWidth: "44px",
@@ -662,7 +729,11 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                                       }}
                                       onClick={() => markAttendance(student.student_id, "absent")}
                                     >
-                                      <i className="bi bi-x-lg fs-5"></i>
+                                      {updatingIds?.has(student.student_id) ? (
+                                        <Spinner animation="border" size="sm" variant="secondary" />
+                                      ) : (
+                                        <i className="bi bi-x-lg fs-5"></i>
+                                      )}
                                     </button>
                                   </div>
                                 </td>
@@ -700,46 +771,46 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
         }
         footerClassName="border-0 pt-0 justify-content-center"
       >
-          {qrLoading ? (
-            <div className="py-4">
-              <div className="spinner-border text-danger mb-2" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </div>
-              <p className="text-muted mt-2 mb-0 small">
-                {isArabic ? "جاري التحميل..." : "Loading QR code..."}
-              </p>
+        {qrLoading ? (
+          <div className="py-4">
+            <div className="spinner-border text-danger mb-2" role="status">
+              <span className="visually-hidden">Loading...</span>
             </div>
-          ) : qrCode ? (
-            <>
-              <div
-                className="d-inline-block p-3 rounded-3 mb-3"
-                style={{ background: "#fff", border: "2px solid #f0f0f0" }}
-              >
-                <QRCodeSVG value={qrCode} size={220} level="H" includeMargin />
-              </div>
-              <p className="text-muted small mb-0">
-                <i className="bi bi-info-circle me-1"></i>
-                {isArabic
-                  ? "اعرض هذا الرمز للطلاب ليسجلوا حضورهم"
-                  : "Show this code to students to scan and record attendance"}
-              </p>
-              <div
-                className="mt-3 p-2 rounded-3 text-break"
-                style={{ background: "#f8f9fc", fontSize: "0.7rem", color: "#6c757d" }}
-              >
-                {qrCode}
-              </div>
-            </>
-          ) : (
-            <div className="py-3">
-              <i className="bi bi-exclamation-triangle-fill fs-3 text-warning d-block mb-2"></i>
-              <p className="text-muted mb-0">
-                {isArabic
-                  ? "لا يتوفر رمز QR. تأكد أن الجلسة نشطة."
-                  : "QR code not available. Make sure the session is active."}
-              </p>
+            <p className="text-muted mt-2 mb-0 small">
+              {isArabic ? "جاري التحميل..." : "Loading QR code..."}
+            </p>
+          </div>
+        ) : qrCode ? (
+          <>
+            <div
+              className="d-inline-block p-3 rounded-3 mb-3"
+              style={{ background: "#fff", border: "2px solid #f0f0f0" }}
+            >
+              <QRCodeSVG value={qrCode} size={220} level="H" includeMargin />
             </div>
-          )}
+            <p className="text-muted small mb-0">
+              <i className="bi bi-info-circle me-1"></i>
+              {isArabic
+                ? "اعرض هذا الرمز للطلاب ليسجلوا حضورهم"
+                : "Show this code to students to scan and record attendance"}
+            </p>
+            <div
+              className="mt-3 p-2 rounded-3 text-break"
+              style={{ background: "#f8f9fc", fontSize: "0.7rem", color: "#6c757d" }}
+            >
+              {qrCode}
+            </div>
+          </>
+        ) : (
+          <div className="py-3">
+            <i className="bi bi-exclamation-triangle-fill fs-3 text-warning d-block mb-2"></i>
+            <p className="text-muted mb-0">
+              {isArabic
+                ? "لا يتوفر رمز QR. تأكد أن الجلسة نشطة."
+                : "QR code not available. Make sure the session is active."}
+            </p>
+          </div>
+        )}
       </DetailModal>
     </div>
   );

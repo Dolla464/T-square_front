@@ -40,7 +40,7 @@ export const useCourses = (type = "sub") => {
     const activeType = params.type || type;
     const activeCacheKey = `initial_courses_data_${activeType}`;
     const cached = cache.get(activeCacheKey);
-    const isStale = cache.isStale(activeCacheKey, 120000);
+    const isStale = cache.isStale(activeCacheKey, 10000); // 10 seconds TTL for quick updates
 
     // If cache exists and is not stale, skip the request entirely
     if (cached && !isStale) {

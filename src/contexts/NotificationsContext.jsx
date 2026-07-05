@@ -90,19 +90,24 @@ export function NotificationsProvider({ children }) {
 
   useEffect(() => {
     if (!token) {
-      setNotifications([]);
-      setUnreadCount(0);
-      setIsLoading(false);
-      setError(null);
+      setTimeout(() => {
+        setNotifications([]);
+        setUnreadCount(0);
+        setIsLoading(false);
+        setError(null);
+      }, 0);
       return;
     }
 
-    fetchNotifications({ silent: false, page: 1 });
+    setTimeout(() => {
+      fetchNotifications({ silent: false, page: 1 });
+    }, 0);
 
     let intervalId;
 
     const startPolling = () => {
-      const fetchFn = isDropdownOpenRef.current
+      const isNotificationsPage = window.location.pathname.endsWith("/notifications");
+      const fetchFn = (isDropdownOpenRef.current || isNotificationsPage)
         ? () =>
             fetchNotifications({
               silent: true,
@@ -110,7 +115,7 @@ export function NotificationsProvider({ children }) {
             })
         : () => fetchUnreadCountOnly();
 
-      intervalId = window.setInterval(fetchFn, 30000);
+      intervalId = window.setInterval(fetchFn, 4000);
     };
 
     const stopPolling = () => {
@@ -122,7 +127,8 @@ export function NotificationsProvider({ children }) {
         stopPolling();
       } else {
         startPolling();
-        if (isDropdownOpenRef.current) {
+        const isNotificationsPage = window.location.pathname.endsWith("/notifications");
+        if (isDropdownOpenRef.current || isNotificationsPage) {
           fetchNotifications({ silent: true, page: currentPageRef.current });
         } else {
           fetchUnreadCountOnly();
@@ -256,6 +262,7 @@ export function NotificationsProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useNotificationsContext() {
   const context = useContext(NotificationsContext);
 

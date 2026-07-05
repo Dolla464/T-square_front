@@ -294,58 +294,61 @@ function AdminOrders() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+              <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
 
-              <select
-                className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${statusFilter !== "all"
-                  ? "border-danger bg-danger-subtle text-danger-emphasis"
-                  : "border-light bg-light text-muted"
-                  }`}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                value={statusFilter}
-              >
-                <option value="all">{t("allPayments")}</option>
-                <option value="completed">{t("completed")}</option>
-                <option value="pending">{t("pending")}</option>
-                <option value="refunded">{t("refunded")}</option>
-                <option value="cancelled">{isArabic ? "ملغي" : "Cancelled"}</option>
-              </select>
+                <select
+                  className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${statusFilter !== "all"
+                    ? "border-danger bg-danger-subtle text-danger-emphasis"
+                    : "border-light bg-light text-muted"
+                    }`}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  value={statusFilter}
+                >
+                  <option value="all">{t("allPayments")}</option>
+                  <option value="completed">{t("completed")}</option>
+                  <option value="pending">{t("pending")}</option>
+                  <option value="refunded">{t("refunded")}</option>
+                  <option value="cancelled">{isArabic ? "ملغي" : "Cancelled"}</option>
+                </select>
+                <input
+                  type="date"
+                  className={`${dateInputClass(dateFrom)} ${isDateRangeInvalid ? "border-danger" : ""}`}
+                  style={{ width: "auto", minWidth: "11rem", flex: "0 0 auto" }}
+                  title={t("dateFrom")}
+                  aria-label={t("dateFrom")}
+                  value={dateFrom}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value && dateTo && value > dateTo) {
+                      toastError(t("invalidDateRange"));
+                      return;
+                    }
+                    setDateFrom(value);
+                  }}
+                />
+                <input
+                  type="date"
+                  className={`${dateInputClass(dateTo)} ${isDateRangeInvalid ? "border-danger" : ""}`}
+                  style={{ width: "auto", minWidth: "11rem", flex: "0 0 auto" }}
+                  title={t("dateTo")}
+                  aria-label={t("dateTo")}
+                  value={dateTo}
+                  min={dateFrom || undefined}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value && dateFrom && value < dateFrom) {
+                      toastError(t("invalidDateRange"));
+                      return;
+                    }
+                    setDateTo(value);
+                  }}
+                />
+              </div>
             </div>
 
-            <div className="d-flex flex-nowrap align-items-center gap-2 gap-md-3 orders-date-filters">
-              <input
-                type="date"
-                className={`${dateInputClass(dateFrom)} ${isDateRangeInvalid ? "border-danger" : ""}`}
-                style={{ width: "auto", minWidth: "11rem", flex: "0 0 auto" }}
-                title={t("dateFrom")}
-                aria-label={t("dateFrom")}
-                value={dateFrom}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value && dateTo && value > dateTo) {
-                    toastError(t("invalidDateRange"));
-                    return;
-                  }
-                  setDateFrom(value);
-                }}
-              />
-              <input
-                type="date"
-                className={`${dateInputClass(dateTo)} ${isDateRangeInvalid ? "border-danger" : ""}`}
-                style={{ width: "auto", minWidth: "11rem", flex: "0 0 auto" }}
-                title={t("dateTo")}
-                aria-label={t("dateTo")}
-                value={dateTo}
-                min={dateFrom || undefined}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value && dateFrom && value < dateFrom) {
-                    toastError(t("invalidDateRange"));
-                    return;
-                  }
-                  setDateTo(value);
-                }}
-              />
-            </div>
+            {/* <div className="d-flex flex-nowrap align-items-center gap-2 gap-md-3 orders-date-filters">
+              
+            </div> */}
           </div>
 
           <div className="table-responsive">
@@ -443,16 +446,16 @@ function AdminOrders() {
             </table>
           </div>
 
-          {pagination && (
-            <AdminPagination
-              pagination={pagination}
-              onPageChange={handlePageChange}
-              wrapperClassName="d-flex justify-content-center mt-5 pb-3"
-            />
-          )}
 
         </div>
       </div>
+      {pagination && (
+        <AdminPagination
+          pagination={pagination}
+          onPageChange={handlePageChange}
+          wrapperClassName="d-flex justify-content-center mt-5 pb-3"
+        />
+      )}
 
       <DetailModal
         show={showViewModal}
@@ -460,62 +463,62 @@ function AdminOrders() {
         title={isArabic ? "تفاصيل الطلب" : "Order Details"}
         dir={isArabic ? "rtl" : "ltr"}
       >
-          {selectedOrder && (
-            <div className="cert-modal-content">
-              <div className="cert-info-list p-3 bg-light rounded-3 mt-3">
-                <div className="info-item d-flex justify-content-between mb-2">
-                  <span className="text-muted">{isArabic ? "رقم الطلب:" : "Order ID:"}</span>
-                  <span className="fw-bold text-dark">#{selectedOrder.id}</span>
-                </div>
-                <div className="info-item d-flex justify-content-between mb-2">
-                  <span className="text-muted">{isArabic ? "اسم الطالب:" : "Student Name:"}</span>
-                  <span className="fw-medium">{selectedOrder["student.full_name"] || selectedOrder.billing_name}</span>
-                </div>
-                <div className="info-item d-flex justify-content-between mb-2">
-                  <span className="text-muted">{isArabic ? "البريد الإلكتروني:" : "Email:"}</span>
-                  <span className="fw-medium text-muted">{selectedOrder["student.user.email"] || "N/A"}</span>
-                </div>
-                <div className="info-item d-flex align-items-center justify-content-between mb-2">
-                  <span className="text-muted">{isArabic ? "الكورس:" : "Course:"}</span>
-                  <span className="fw-medium text-end ms-2" style={{ maxWidth: "200px" }}>{selectedOrder["enrollments.course.title"] || "N/A"}</span>
-                </div>
-                <div className="info-item d-flex justify-content-between mb-2">
-                  <span className="text-muted">{isArabic ? "المبلغ:" : "Amount:"}</span>
-                  {isFreeOrder(selectedOrder.total_amount) ? (
-                    <span className="badge bg-info-subtle text-info px-3 py-2">{t("freeOrder")}</span>
-                  ) : (
-                    <span className="fw-bold text-success">EGP {selectedOrder.total_amount || 0}</span>
-                  )}
-                </div>
-
-                <div className="info-item d-flex justify-content-between mb-2">
-                  <span className="text-muted">{t("createdAt")}</span>
-                  <span className="fw-medium">{formatOrderDate(selectedOrder.created_at)}</span>
-                </div>
-
-                <div className="info-item d-flex justify-content-between align-items-center mb-2">
-                  <span className="text-muted">{t("status")}</span>
-                  <div className="d-flex align-items-center gap-2">
-                    <span className={`badge rounded-pill ${getStatusBadge(selectedOrder.status || "pending")}`}>
-                      {getStatusText(selectedOrder.status || "pending")}
-                    </span>
-                    <small className="text-muted" title={t("statusChangedAt")}>
-                      {formatOrderDate(selectedOrder.status_changed_at)}
-                    </small>
-                  </div>
-                </div>
-
+        {selectedOrder && (
+          <div className="cert-modal-content">
+            <div className="cert-info-list p-3 bg-light rounded-3 mt-3">
+              <div className="info-item d-flex justify-content-between mb-2">
+                <span className="text-muted">{isArabic ? "رقم الطلب:" : "Order ID:"}</span>
+                <span className="fw-bold text-dark">#{selectedOrder.id}</span>
               </div>
-              <Button
-                variant="dark"
-                className="mt-3 w-100 rounded-3 py-2 fw-bold"
-                onClick={() => setShowViewModal(false)}
-                style={{ backgroundColor: "#1a1a1a" }}
-              >
-                {isArabic ? "إغلاق" : "Close"}
-              </Button>
+              <div className="info-item d-flex justify-content-between mb-2">
+                <span className="text-muted">{isArabic ? "اسم الطالب:" : "Student Name:"}</span>
+                <span className="fw-medium">{selectedOrder["student.full_name"] || selectedOrder.billing_name}</span>
+              </div>
+              <div className="info-item d-flex justify-content-between mb-2">
+                <span className="text-muted">{isArabic ? "البريد الإلكتروني:" : "Email:"}</span>
+                <span className="fw-medium text-muted">{selectedOrder["student.user.email"] || "N/A"}</span>
+              </div>
+              <div className="info-item d-flex align-items-center justify-content-between mb-2">
+                <span className="text-muted">{isArabic ? "الكورس:" : "Course:"}</span>
+                <span className="fw-medium text-end ms-2" style={{ maxWidth: "200px" }}>{selectedOrder["enrollments.course.title"] || "N/A"}</span>
+              </div>
+              <div className="info-item d-flex justify-content-between mb-2">
+                <span className="text-muted">{isArabic ? "المبلغ:" : "Amount:"}</span>
+                {isFreeOrder(selectedOrder.total_amount) ? (
+                  <span className="badge bg-info-subtle text-info px-3 py-2">{t("freeOrder")}</span>
+                ) : (
+                  <span className="fw-bold text-success">EGP {selectedOrder.total_amount || 0}</span>
+                )}
+              </div>
+
+              <div className="info-item d-flex justify-content-between mb-2">
+                <span className="text-muted">{t("createdAt")}</span>
+                <span className="fw-medium">{formatOrderDate(selectedOrder.created_at)}</span>
+              </div>
+
+              <div className="info-item d-flex justify-content-between align-items-center mb-2">
+                <span className="text-muted">{t("status")}</span>
+                <div className="d-flex align-items-center gap-2">
+                  <span className={`badge rounded-pill ${getStatusBadge(selectedOrder.status || "pending")}`}>
+                    {getStatusText(selectedOrder.status || "pending")}
+                  </span>
+                  <small className="text-muted" title={t("statusChangedAt")}>
+                    {formatOrderDate(selectedOrder.status_changed_at)}
+                  </small>
+                </div>
+              </div>
+
             </div>
-          )}
+            <Button
+              variant="dark"
+              className="mt-3 w-100 rounded-3 py-2 fw-bold"
+              onClick={() => setShowViewModal(false)}
+              style={{ backgroundColor: "#1a1a1a" }}
+            >
+              {isArabic ? "إغلاق" : "Close"}
+            </Button>
+          </div>
+        )}
       </DetailModal>
 
     </div>

@@ -16,7 +16,7 @@ function EditExam() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation(["adminDashboard"]);
+  const { i18n } = useTranslation(["adminDashboard"]);
   const isArabic = i18n.language?.startsWith("ar");
   const { getQuestionById, getQuizById, createQuestion, updateQuestion, loading } = useQuizzes();
 
@@ -72,7 +72,7 @@ function EditExam() {
       }
     };
     loadData();
-  }, [id, examId, isAdd]);
+  }, [id, examId, isAdd, getQuestionById, getQuizById]);
 
   // --- Handlers ---
 
@@ -282,7 +282,7 @@ function EditExam() {
 
       {/* Quiz Exam Editor */}
       <div className="quiz-exam-page">
-        <div className="quiz-exam-container">
+        <div className="quiz-exam-container" style={{ maxWidth: "1050px" }}>
 
           {/* Header Role Indicator */}
           {!isEdit && (
@@ -405,27 +405,57 @@ function EditExam() {
           {/* Footer Actions */}
           <div className="d-flex justify-content-end align-items-center gap-2 mt-4">
             {isAdd ? (
-              <button
-                className="btn btn-danger ac-add-btn"
-                onClick={handleNext}
-                disabled={saving}
-                style={{
-                  fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px"
-                }}
-              >
-                {saving ? (
-                  <span className="spinner-border spinner-border-sm" role="status"></span>
-                ) : (
-                  <i className={`bi ${isArabic ? "bi-arrow-left" : "bi-arrow-right"}`}></i>
-                )}
-                <span>
-                  {isArabic ? "حفظ وإضافة سؤال جديد" : "Save and add new question"}
-                </span>
-              </button>
+              <div className="d-flex flex-wrap gap-2 w-100 justify-content-between">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary px-4 py-2 rounded-3 fw-bold"
+                  onClick={handleBack}
+                  style={{ fontSize: "0.9rem" }}
+                >
+                  <i className="bi bi-x-circle me-1"></i>
+                  {isArabic ? "خروج دون حفظ" : "Exit without saving"}
+                </button>
+
+                <div className="d-flex gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-success px-4 py-2 rounded-3 fw-bold text-white d-flex align-items-center gap-2"
+                    onClick={handleSave}
+                    disabled={saving}
+                    style={{ fontSize: "0.9rem" }}
+                  >
+                    {saving ? (
+                      <span className="spinner-border spinner-border-sm" role="status"></span>
+                    ) : (
+                      <i className="bi bi-check2-circle"></i>
+                    )}
+                    {isArabic ? "حفظ وإنهاء" : "Save and Exit"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-danger ac-add-btn m-0"
+                    onClick={handleNext}
+                    disabled={saving}
+                    style={{
+                      fontWeight: 600,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px"
+                    }}
+                  >
+                    {saving ? (
+                      <span className="spinner-border spinner-border-sm" role="status"></span>
+                    ) : (
+                      <i className={`bi ${isArabic ? "bi-arrow-left" : "bi-arrow-right"}`}></i>
+                    )}
+                    <span>
+                      {isArabic ? "حفظ وإضافة سؤال آخر" : "Save and add another question"}
+                    </span>
+                  </button>
+                </div>
+              </div>
             ) : (
               <button
                 className="btn btn-danger ac-add-btn"

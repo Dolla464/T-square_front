@@ -26,9 +26,8 @@ function ResultStatusBadge({ student, t }) {
   const passed = student.is_passed;
   return (
     <span
-      className={`badge rounded-pill px-2 py-1 ${
-        passed ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"
-      }`}
+      className={`badge rounded-pill px-2 py-1 ${passed ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"
+        }`}
     >
       <i
         className={`bi ${passed ? "bi-check-circle-fill" : "bi-x-circle-fill"} me-1`}

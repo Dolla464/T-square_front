@@ -1,30 +1,41 @@
-.student-attendance-page .student-attendance-tabs .nav-link {
-  color: #6c757d;
-  cursor: pointer;
-  border: none;
-  border-bottom: 2px solid transparent;
+/* ================================================================
+   Student Attendance — Styles (Aligned with Student Dashboard)
+   ================================================================ */
+
+.student-attendance-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
 }
 
-.student-attendance-page .student-attendance-tabs .nav-link.active {
-  color: #be1522;
-  border-bottom-color: #be1522;
-  background: transparent;
+.student-attendance-page .card {
+  border-radius: 14px;
+  background: #fff;
+  border: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
 }
 
 .student-session-card {
   width: 100%;
-  border: 1px solid #e9ecef;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
   background: #fff;
-  padding: 1rem;
+  padding: 1.2rem;
   text-align: inherit;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
-.student-session-card:hover,
+.student-session-card:hover {
+  transform: translateY(-1px);
+  border-color: #be1522;
+  box-shadow: 0 4px 12px rgba(190, 21, 34, 0.05);
+}
+
 .student-session-card.active {
   border-color: #be1522;
-  box-shadow: 0 0 0 1px rgba(190, 21, 34, 0.08);
+  background-color: #fff9f9;
+  box-shadow: 0 4px 12px rgba(190, 21, 34, 0.08);
 }
 
 .student-qr-wrap {
@@ -32,7 +43,32 @@
   flex-direction: column;
   align-items: center;
   padding: 1.5rem;
-  border: 1px dashed #dee2e6;
+  border: 2px dashed #e5e7eb;
   border-radius: 16px;
-  background: #fafafa;
+  background: #f9fafb;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/* ── Table Styling ── */
+.student-attendance-page .table th {
+  font-weight: 600;
+  color: #4b5563;
+  background-color: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+  padding: 12px 16px;
+}
+
+.student-attendance-page .table td {
+  padding: 14px 16px;
+  color: #1f2937;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* ── Badges ── */
+.student-attendance-page .badge {
+  font-weight: 600;
+  padding: 5px 12px;
+  font-size: 0.75rem;
 }
