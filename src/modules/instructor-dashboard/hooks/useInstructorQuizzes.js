@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toastSuccess, toastError } from "../../../components/shared/Toaster/toaster";
+import { getApiErrorMessage } from "../../../utils/apiErrors";
 import {
   getQuizzes as apiGetQuizzes,
   getQuizById as apiGetQuizById,
@@ -305,7 +306,7 @@ export const useInstructorQuizzes = () => {
       toastSuccess(t("success.created", "Created successfully"));
       return response.data || true;
     } catch (err) {
-      const errorMsg = t("errors.create_failed", "Failed to create");
+      const errorMsg = getApiErrorMessage(err, t("errors.create_failed", "Failed to create"));
       setError(errorMsg);
       toastError(errorMsg);
       return false;
@@ -322,7 +323,7 @@ export const useInstructorQuizzes = () => {
       toastSuccess(t("success.updated", "Updated successfully"));
       return true;
     } catch (err) {
-      const errorMsg = t("errors.update_failed", "Failed to update");
+      const errorMsg = getApiErrorMessage(err, t("errors.update_failed", "Failed to update"));
       setError(errorMsg);
       toastError(errorMsg);
       return false;

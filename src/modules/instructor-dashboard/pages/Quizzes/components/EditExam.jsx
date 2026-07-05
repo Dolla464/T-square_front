@@ -107,6 +107,15 @@ function EditExam() {
       return false;
     }
 
+    if (!marks || isNaN(marks) || marks < 0.5) {
+      toastError(
+        isArabic
+          ? "من فضلك أدخل درجة صحيحة (0.5 على الأقل)"
+          : "Please enter a valid mark (minimum 0.5)"
+      );
+      return false;
+    }
+
     const hasCorrect = choices.some((c) => c.is_correct);
     if (!hasCorrect) {
       toastError(
