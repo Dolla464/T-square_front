@@ -63,6 +63,7 @@ export const useAdminSettingsState = () => {
 
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [processingMedia, setProcessingMedia] = useState(false);
   const [error, setError] = useState(null);
 
   // معالجة الأخطاء الموحدة وإطلاق التنبيهات مع الترجمات
@@ -368,6 +369,28 @@ export const useAdminSettingsState = () => {
   // ================= رفع الميديا =================
   const DISCOVERY_BATCH_SIZE = 6;
 
+  /**
+   * Poll fetchMediaSettings up to `maxAttempts` times with `delayMs` between each
+   * attempt, stopping early when the image count for `countKey` exceeds `prevCount`.
+   * This is needed because image processing now runs in a background queue job.
+   */
+  const pollUntilMediaGrows = useCallback(
+    async (countKey, prevCount, maxAttempts = 4, delayMs = 2000) => {
+      setProcessingMedia(true);
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        await new Promise((r) => setTimeout(r, delayMs));
+        await fetchMediaSettings(true);
+
+        // Read the freshest value from the module-level cache
+        const fresh = settingsCache?.[countKey];
+        const freshCount = Array.isArray(fresh) ? fresh.length : (fresh ? 1 : 0);
+        if (freshCount > prevCount) break;
+      }
+      setProcessingMedia(false);
+    },
+    [fetchMediaSettings],
+  );
+
   const chunkFiles = (files, batchSize) => {
     const batches = [];
     for (let i = 0; i < files.length; i += batchSize) {
@@ -394,6 +417,7 @@ export const useAdminSettingsState = () => {
     setUploading(true);
     const totalFiles = files.length;
     const batches = chunkFiles(Array.from(files), DISCOVERY_BATCH_SIZE);
+    const prevCount = Array.isArray(discoveryMedia) ? discoveryMedia.length : 0;
     let toastId = toastLoading(
       isArabic
         ? `جاري رفع 0/${totalFiles}...`
@@ -422,8 +446,15 @@ export const useAdminSettingsState = () => {
 
       clearHeroAndAboutCache();
       toastDismiss(toastId);
-      toastSuccess(t("success.created", "تم الرفع بنجاح"));
-      await fetchMediaSettings(true);
+      toastSuccess(
+        isArabic
+          ? "تم الرفع بنجاح – جاري معالجة الصور..."
+          : "Uploaded – processing images in background...",
+      );
+      setUploading(false);
+
+      // Poll for processed images since the job runs asynchronously
+      pollUntilMediaGrows("discoveryMedia", prevCount);
       return true;
     } catch (err) {
       toastDismiss(toastId);
@@ -442,6 +473,12 @@ export const useAdminSettingsState = () => {
       isArabic ? "جاري رفع الصور..." : "Uploading images",
     );
 
+    // Snapshot the current count so we know when new images arrive
+    const cacheKey = key === "about_media" ? "aboutImages" : key === "hero_image" ? "heroImage" : "discoveryMedia";
+    const prevCount = key === "hero_image"
+      ? (settingsCache?.heroImage ? 1 : 0)
+      : (Array.isArray(settingsCache?.[cacheKey]) ? settingsCache[cacheKey].length : 0);
+
     try {
       const formData = new FormData();
       formData.append("key", key);
@@ -455,9 +492,15 @@ export const useAdminSettingsState = () => {
       clearHeroAndAboutCache();
 
       toastDismiss(toastId);
-      toastSuccess(t("success.created", "تم الرفع بنجاح"));
+      toastSuccess(
+        isArabic
+          ? "تم الرفع بنجاح – جاري معالجة الصور..."
+          : "Uploaded – processing images in background...",
+      );
+      setUploading(false);
 
-      await fetchMediaSettings(true);
+      // Poll for processed images since the job runs asynchronously
+      pollUntilMediaGrows(cacheKey, prevCount);
       return res;
     } catch (err) {
       toastDismiss(toastId);
@@ -506,6 +549,7 @@ export const useAdminSettingsState = () => {
     generalSettings,
     loading,
     uploading,
+    processingMedia,
     error,
     fetchMediaSettings,
     saveSetting,

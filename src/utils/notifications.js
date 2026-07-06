@@ -101,7 +101,7 @@ export const getNotificationTarget = (notification, userRole) => {
         return "/admin/quizzes";
       case "enrollment":
       case "admin_enrollment":
-        return "/admin/courses";
+        return "/admin/orders";
       case "group_assigned":
         return "/admin/groups";
       default:

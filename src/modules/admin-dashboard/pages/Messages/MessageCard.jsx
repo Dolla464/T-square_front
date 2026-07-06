@@ -1,4 +1,3 @@
-import React from "react";
 import { useTranslation } from "react-i18next";
 
 function MessageCard({ message, onView, onWhatsapp }) {
@@ -16,7 +15,7 @@ function MessageCard({ message, onView, onWhatsapp }) {
       }}
       dir={isArabic ? "rtl" : "ltr"}
     >
-      <div className="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
         <div className="d-flex flex-column flex-grow-1">
           <div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
             <span className="badge bg-danger-subtle text-danger rounded-pill px-3 py-1.5 fw-bold small">
