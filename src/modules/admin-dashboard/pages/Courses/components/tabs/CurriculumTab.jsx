@@ -464,7 +464,7 @@ function CurriculumTab({
                                     )}
 
                                     {/* Update button */}
-                                    {!isReadOnly && (
+                                    {!isReadOnly && !isUploading && (
                                       <label
                                         htmlFor={`video-input-${lesson.id}`}
                                         className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0 mb-0"
@@ -580,13 +580,14 @@ function CurriculumTab({
                             </div>
                           )}
 
-                          {/* Hidden file uploader input */}
-                          {!isReadOnly && !isUploading && (
+                          {/* Hidden file uploader input — keep mounted so label[for] stays valid */}
+                          {!isReadOnly && (
                             <input
                               type="file"
                               accept="video/*"
                               id={`video-input-${lesson.id}`}
                               hidden
+                              disabled={isUploading}
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (!file) return;
