@@ -74,7 +74,7 @@ function formatCurrency(amount, isArabic) {
   const value = Number(amount ?? 0);
   return new Intl.NumberFormat(isArabic ? "ar-EG" : "en-US", {
     style: "currency",
-    currency: "USD",
+    currency: "EGP",
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(value);
@@ -248,7 +248,7 @@ function AdminOverview() {
           ))
         ) : (
           <>
-            <div className="col-lg-3 col-6">
+            <div className="col-lg-3 col-12">
               <div className="state p-3 d-flex flex-column justify-content-between" style={{ minHeight: "140px" }}>
                 <div className="d-flex justify-content-between align-items-center mb-2">
                   <div
@@ -267,7 +267,7 @@ function AdminOverview() {
               </div>
             </div>
 
-            <div className="col-lg-3 col-6">
+            <div className="col-lg-3 col-12">
               <div className="state p-3 d-flex flex-column justify-content-between" style={{ minHeight: "140px" }}>
                 <div className="d-flex justify-content-between align-items-center mb-2">
                   <div
@@ -330,7 +330,7 @@ function AdminOverview() {
       <div className="row g-4 mb-4">
         <div className="col-lg-6 col-12">
           <div className="card border-0 shadow-sm p-4 rounded-4 bg-white">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4">
               <h4 className="fw-bold mb-0 text-dark" style={{ fontSize: "1.1rem" }}>{t("revenueOverTime")}</h4>
               <div className="d-flex gap-2">
                 {["week", "month", "year"].map((tf) => (
@@ -359,7 +359,7 @@ function AdminOverview() {
 
         <div className="col-lg-6 col-12">
           <div className="card border-0 shadow-sm p-4 rounded-4 bg-white">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4">
               <h4 className="fw-bold mb-0 text-dark" style={{ fontSize: "1.1rem" }}>{t("courseSales")}</h4>
               <div className="d-flex gap-2">
                 {["week", "month", "year"].map((tf) => (

@@ -187,28 +187,28 @@ function InstructorSchedule() {
         <div className="ac-table-container">
           <div className="ac-rounded-table p-3 p-md-0">
             <div className="ac-filters-bar d-flex flex-column gap-3 mb-3">
-              <div className="d-flex flex-column flex-md-row align-items-end justify-content-between gap-3 flex-wrap w-100">
-                <div className="d-flex align-items-end gap-3 flex-wrap">
+              <section className="d-flex flex-column flex-md-row align-items-end justify-content-between gap-3 flex-wrap w-100">
+                <div className="d-flex align-items-end gap-3 flex-wrap w-100 w-md-auto">
                   {/* Select Date */}
-                  <div>
+                  <div className="w-100 w-md-auto">
                     <label className="fw-semibold small text-muted mb-1 d-block">
                       <i className="bi bi-calendar-date me-1"></i>
                       {t("schedule.selectDate", "Select Date")}
                     </label>
                     <input
                       type="date"
-                      className={dateInputClass(!!selectedDate)}
+                      className={`w-100 w-md-auto ${dateInputClass(!!selectedDate)}`}
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      style={{ minWidth: 200 }}
+                      style={{ minWidth: "11rem", flex: "0 0 auto" }}
                     />
                   </div>
                 </div>
 
-                <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap align-items-end">
+                <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap align-items-end w-100 w-md-auto">
                   <button
                     type="button"
-                    className={viewModeBtnClass(selectedDate === today)}
+                    className={`w-100 w-md-auto ${viewModeBtnClass(selectedDate === today)}`}
                     onClick={() => setSelectedDate(today)}
                   >
                     <i className="bi bi-calendar-check me-1"></i>
@@ -217,7 +217,7 @@ function InstructorSchedule() {
                   {selectedDate && (
                     <button
                       type="button"
-                      className="btn btn-outline-dark border-2 rounded-3 shadow-sm fw-semibold transition-all px-3 py-2"
+                      className="btn btn-outline-dark border-2 rounded-3 shadow-sm fw-semibold transition-all px-3 py-2 w-100 w-md-auto"
                       onClick={handleClearDate}
                       style={{ fontSize: "0.9rem" }}
                     >
@@ -226,7 +226,7 @@ function InstructorSchedule() {
                     </button>
                   )}
                 </div>
-              </div>
+              </section>
             </div>
 
             {/* ── Content ─────────────────────────────────────────────── */}

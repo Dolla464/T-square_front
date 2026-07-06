@@ -70,7 +70,7 @@ function CourseForm({
   return (
     <div className="ac-form-container">
       {/* Header: back button + save/publish actions */}
-      <div className="ac-form-header d-flex justify-content-between align-items-center mb-4">
+      <div className="ac-form-header d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
         <button className="ac-back-btn" onClick={handleBack}>
           <i
             className={`bi text-secondary ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
@@ -85,7 +85,7 @@ function CourseForm({
         </button>
 
         {!viewingItem && (
-          <div className="ac-form-actions d-flex gap-2">
+          <div className="ac-form-actions d-flex gap-2 w-100 w-sm-auto justify-content-sm-end">
             {editingItem ? (
               <button
                 className="btn btn-danger px-4 ac-publish-btn"
@@ -216,13 +216,15 @@ function CourseForm({
         <div className="ac-form-footer d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
           <button
             type="button"
-            className={`btn ac-draft-btn border rounded-3 px-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === 0 ? "invisible" : ""}`}
+            className={`btn ac-draft-btn border rounded-3 px-2 px-sm-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === 0 ? "invisible" : ""}`}
             onClick={goToPrevTab}
           >
             <i
               className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
             ></i>
-            {isArabic ? "السابق" : "Previous"}
+            <span className="d-none d-sm-inline">
+              {isArabic ? "السابق" : "Previous"}
+            </span>
           </button>
 
           <div className="ac-tab-indicator d-flex gap-2">
@@ -238,10 +240,12 @@ function CourseForm({
 
           <button
             type="button"
-            className={`btn ac-publish-btn text-white rounded-3 px-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === tabOrder.length - 1 ? "invisible" : ""}`}
+            className={`btn ac-publish-btn text-white rounded-3 px-2 px-sm-4 py-2 d-flex align-items-center gap-2 ${currentTabIndex === tabOrder.length - 1 ? "invisible" : ""}`}
             onClick={goToNextTab}
           >
-            {isArabic ? "التالي" : "Next"}
+            <span className="d-none d-sm-inline">
+              {isArabic ? "التالي" : "Next"}
+            </span>
             <i
               className={`bi ${isArabic ? "bi-arrow-left" : "bi-arrow-right"}`}
             ></i>

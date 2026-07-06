@@ -426,10 +426,10 @@ function InstructorQuizzes() {
                     />
                   </div>
 
-                  <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
+                  <section className="d-flex flex-column flex-md-row gap-2 gap-md-3 w-100 w-md-auto">
                     {/* Status Filter */}
                     <select
-                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all w-100 w-md-auto ${
                         selectedStatus !== "all"
                           ? "border-danger bg-danger-subtle text-danger-emphasis"
                           : "border-light bg-light text-muted"
@@ -450,7 +450,7 @@ function InstructorQuizzes() {
 
                     {/* Date-Range Filter */}
                     <select
-                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all w-100 w-md-auto ${
                         selectedPeriod !== "all"
                           ? "border-danger bg-danger-subtle text-danger-emphasis"
                           : "border-light bg-light text-muted"
@@ -469,7 +469,7 @@ function InstructorQuizzes() {
                         {t("quizzes_page.last_year")}
                       </option>
                     </select>
-                  </div>
+                  </section>
                 </div>
 
                 {/* Quizzes Table */}

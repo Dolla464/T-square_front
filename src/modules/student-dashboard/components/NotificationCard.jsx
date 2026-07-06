@@ -35,6 +35,16 @@ function NotificationCard({ notification }) {
     }
   };
 
+  const handleNavigateClick = async (e) => {
+    e.stopPropagation();
+    if (!is_read) {
+      await markAsRead(id);
+    }
+    if (target) {
+      navigate(target);
+    }
+  };
+
   return (
     <div
       className={`notification-card ${is_read ? "" : "notification-unread"} ${target ? "notification-clickable" : ""}`}
@@ -53,6 +63,17 @@ function NotificationCard({ notification }) {
         <div className="notification-time">
           <span>{formattedDate}</span>
         </div>
+        {target && (
+          <button
+            type="button"
+            className="btn btn-danger d-flex align-items-center gap-2 rounded-3 px-3 py-1.5 fw-semibold text-white shadow-sm border-0 mt-2 btn-sm"
+            onClick={handleNavigateClick}
+            style={{ fontSize: "0.78rem" }}
+          >
+            {isArabic ? "ذهاب" : "Go"}
+            <i className="bi bi-send"></i>
+          </button>
+        )}
       </div>
     </div>
   );
