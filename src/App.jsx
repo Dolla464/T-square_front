@@ -119,6 +119,9 @@ const AdminGroups = lazy(
 const AdminCategories = lazy(
   () => import("./modules/admin-dashboard/pages/Categories/AdminCategories"),
 );
+const AdminTags = lazy(
+  () => import("./modules/admin-dashboard/pages/Tags/AdminTags"),
+);
 const AdminQuizzes = lazy(
   () => import("./modules/admin-dashboard/pages/Quizzes/AdminQuizzes"),
 );
@@ -386,6 +389,7 @@ function AppContent() {
                     <Route index element={<AdminOverview />} />
                     <Route path="courses" element={<AdminCourses />} />
                     <Route path="categories" element={<AdminCategories />} />
+                    <Route path="tags" element={<AdminTags />} />
                     <Route path="quizzes" element={<AdminQuizzes />} />
                     <Route
                       path="quizzes/view-exam/:id"
