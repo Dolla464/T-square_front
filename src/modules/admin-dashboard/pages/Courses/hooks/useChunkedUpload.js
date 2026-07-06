@@ -1,9 +1,9 @@
 import { useState, useRef } from "react";
 import { uploadChunk, finalizeChunkedUpload } from "../../../services/coursesServices";
 
-const DEFAULT_CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB — matches backend max:5120
+const DEFAULT_CHUNK_SIZE = 1 * 1024 * 1024; // 1 MB — lighter per request on slow networks
 const MAX_RETRIES = 3;
-const CONCURRENCY = 4; // number of chunks to upload in parallel
+const CONCURRENCY = 2; // fewer parallel uploads = less connection pressure
 
 /**
  * Manages concurrent chunked video uploads.
@@ -57,13 +57,19 @@ export const useChunkedUpload = ({ chunkSize = DEFAULT_CHUNK_SIZE } = {}) => {
 
     const totalChunks = Math.ceil(file.size / chunkSize);
 
-    // Track how many chunks have fully transferred (for progress)
+    // Track uploaded bytes per chunk for smooth progress (onUploadProgress + completion)
+    const chunkLoadedBytes = new Array(totalChunks).fill(0);
+    const chunkSizes = Array.from({ length: totalChunks }, (_, i) => {
+      const start = i * chunkSize;
+      return Math.min(chunkSize, file.size - start);
+    });
     const completedChunks = new Array(totalChunks).fill(false);
 
     const updateProgress = () => {
-      const done = completedChunks.filter(Boolean).length;
-      // Cap at 99 until finalize completes
-      const pct = Math.min(Math.round((done / totalChunks) * 100), 99);
+      const loaded = chunkLoadedBytes.reduce((sum, n) => sum + n, 0);
+      const pct = file.size > 0
+        ? Math.min(Math.round((loaded / file.size) * 100), 99)
+        : 0;
       patch(lessonKey, { progress: pct, status: "uploading" });
     };
 
@@ -89,8 +95,13 @@ export const useChunkedUpload = ({ chunkSize = DEFAULT_CHUNK_SIZE } = {}) => {
           throw Object.assign(new Error("Upload cancelled"), { cancelled: true });
         }
         try {
-          await uploadChunk(courseId, fd, controller.signal);
+          await uploadChunk(courseId, fd, controller.signal, (event) => {
+            if (!event.total) return;
+            chunkLoadedBytes[i] = event.loaded;
+            updateProgress();
+          });
           completedChunks[i] = true;
+          chunkLoadedBytes[i] = chunkSizes[i];
           updateProgress();
           return;
         } catch (err) {
