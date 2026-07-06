@@ -25,6 +25,7 @@ axiosClient.interceptors.request.use((config) => {
   // فقط هذا التعديل - للتعامل مع FormData
   if (config.data instanceof FormData) {
     delete config.headers["Content-Type"];
+    config.timeout = 0;
   } else if (config.data && typeof config.data === "object") {
     config.headers["Content-Type"] = "application/json";
   }

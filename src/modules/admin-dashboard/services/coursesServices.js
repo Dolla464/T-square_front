@@ -31,6 +31,7 @@ export const createCourse = async (data) => {
     if (data instanceof FormData) {
         const response = await axiosClient.post("/admin/courses", data, {
             headers: { "Content-Type": "multipart/form-data" },
+            timeout: 0,
         });
         return response.data;
     }
@@ -47,6 +48,7 @@ export const updateCourse = async (id, data) => {
         data.append("_method", "PUT");
         const response = await axiosClient.post(`/admin/courses/${id}`, data, {
             headers: { "Content-Type": "multipart/form-data" },
+            timeout: 0,
         });
         
         return response.data;
