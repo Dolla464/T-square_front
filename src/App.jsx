@@ -99,6 +99,9 @@ const AdminInstructors = lazy(
 const AdminOrders = lazy(
   () => import("./modules/admin-dashboard/pages/Orders/AdminOrders"),
 );
+const AdminCreateOrder = lazy(
+  () => import("./modules/admin-dashboard/pages/Orders/AdminCreateOrder"),
+);
 
 const AdminCertificates = lazy(
   () =>
@@ -406,6 +409,7 @@ function AppContent() {
                     <Route path="students" element={<AdminStudents />} />
                     <Route path="instructors" element={<AdminInstructors />} />
                     <Route path="orders" element={<AdminOrders />} />
+                    <Route path="orders/create" element={<AdminCreateOrder />} />
                     <Route
                       path="certificates"
                       element={<AdminCertificates />}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { Button } from "react-bootstrap";
 import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
@@ -15,6 +16,7 @@ import "../Reviews/review.css";
 function AdminOrders() {
   const { t, i18n } = useTranslation("orderPayments");
   const isArabic = i18n.language?.startsWith("ar");
+  const navigate = useNavigate();
 
   const {
     orders,
@@ -169,7 +171,17 @@ function AdminOrders() {
           <h2 className="ac-title">{t("orders")}</h2>
           <p className="ac-subtitle text-muted mb-0">{t("track")}</p>
         </div>
-        <ExportBar onExport={onExport} loading={exportLoading} />
+        <div className="d-flex gap-2 flex-wrap align-items-center">
+          <Button
+            variant="danger"
+            className="rounded-3 fw-bold px-4"
+            onClick={() => navigate("/admin/orders/create")}
+          >
+            <i className="bi bi-plus-lg me-2"></i>
+            {t("createOrder")}
+          </Button>
+          <ExportBar onExport={onExport} loading={exportLoading} />
+        </div>
       </div>
 
       <div className="row g-3 mb-4">

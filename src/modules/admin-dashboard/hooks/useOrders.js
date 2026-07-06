@@ -6,6 +6,7 @@ import {
   updatePaymentOrdersById,
   deleteReview,
   exportPayments,
+  createOrder as createOrderService,
 } from "../services/ordersServices";
 
 export const useOrders = () => {
@@ -68,6 +69,23 @@ export const useOrders = () => {
     }
   };
 
+  const createOrder = async (payload) => {
+    try {
+      const res = await createOrderService(payload);
+      toastSuccess("Order created successfully.");
+      return res?.data || res;
+    } catch (err) {
+      const errors = err?.response?.data?.errors;
+      if (errors) {
+        const firstMessage = Object.values(errors).flat()[0];
+        toastError(firstMessage || "Failed to create order.");
+      } else {
+        toastError(err?.response?.data?.message || "Failed to create order.");
+      }
+      throw err;
+    }
+  };
+
   const handleExport = useCallback(async (filters, format) => {
     setExportLoading(true);
     try {
@@ -91,5 +109,6 @@ export const useOrders = () => {
     updateOrderStatus,
     deleteOrder,
     handleExport,
+    createOrder,
   };
 };

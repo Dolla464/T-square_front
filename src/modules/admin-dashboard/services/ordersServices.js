@@ -32,6 +32,14 @@ export const deleteReview = async (id) => {
 };
 
 // ----------------------------------------------------------------------------
+// إنشاء طلب جديد يدوياً من قبل الأدمن
+// ----------------------------------------------------------------------------
+export const createOrder = async (payload) => {
+    const response = await axiosClient.post("/admin/payments", payload);
+    return response.data;
+};
+
+// ----------------------------------------------------------------------------
 // Export payments as PDF or CSV/Excel
 // ----------------------------------------------------------------------------
 export const exportPayments = async (filters = {}, format = "pdf") => {
