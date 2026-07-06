@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import AdminPagination from "../../components/shared/AdminPagination";
 import { useCategories } from "../../hooks/useCategories";
-import { showConfirmCustom, showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastError } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
@@ -13,13 +13,22 @@ const defaultFormData = {
   status: "active",
 };
 
-// Simple dialog confirm fallback if showPaymentStatusConfirm isn't perfectly worded for categories, 
-// but user instructed to use it as reference. We'll use window.confirm if needed, or import standard.
-// Actually, I'll write a custom confirm handler inline or use the existing one if it fits.
-import Swal from "sweetalert2";
-
-
-
+function StatusBadge({ status, onClick, isArabic }) {
+  return (
+    <span
+      className={`badge rounded-pill ${status === "active" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"}`}
+      style={{ cursor: "pointer", padding: "8px 16px" }}
+      onClick={onClick}
+    >
+      <i
+        className={`bi ${status === "hidden" ? "bi-shield-exclamation" : "bi-patch-check-fill"} me-1`}
+      ></i>
+      {status === "hidden"
+        ? isArabic ? "غير نشط" : "Hidden"
+        : isArabic ? "نشط" : "Active"}
+    </span>
+  );
+}
 
 function AdminCategories() {
   const {
@@ -27,6 +36,7 @@ function AdminCategories() {
     treeCategories,
     pagination: apiPagination,
     loading,
+    treeLoading,
     getCategories,
     getCategoriesTree,
     getCategoryById,
@@ -34,19 +44,17 @@ function AdminCategories() {
     updateCategory,
   } = useCategories();
 
-  const { t, i18n } = useTranslation("adminDashboard");
+  const { i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
 
-  // --- States ---
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [parentFilter, setParentFilter] = useState("all");
+  const [selectedParent, setSelectedParent] = useState(null);
   const [formData, setFormData] = useState(defaultFormData);
   const [currentPage, setCurrentPage] = useState(1);
   const [isMainCategory, setIsMainCategory] = useState(true);
-
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
 
   useEffect(() => {
@@ -58,9 +66,9 @@ function AdminCategories() {
     getCategories({
       page: currentPage,
       search: debouncedSearch,
-      parent_id: parentFilter === "all" ? "" : parentFilter,
+      parent_id: selectedParent ?? "",
     });
-  }, [getCategories, currentPage, debouncedSearch, parentFilter]);
+  }, [getCategories, currentPage, debouncedSearch, selectedParent]);
 
   useEffect(() => {
     getCategoriesTree();
@@ -68,10 +76,22 @@ function AdminCategories() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, parentFilter]);
+  }, [debouncedSearch, selectedParent]);
+
+  const refreshChildren = () => {
+    getCategories({
+      page: currentPage,
+      search: debouncedSearch,
+      parent_id: selectedParent ?? "",
+    });
+  };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  const handleParentSelect = (parentId) => {
+    setSelectedParent((prev) => (prev === parentId ? null : parentId));
   };
 
   const handleAddNew = () => {
@@ -140,10 +160,8 @@ function AdminCategories() {
       if (!isMainCategory && formData.parent_id) {
         payload.parent_id = formData.parent_id;
       } else {
-        payload.parent_id = null; // explicit null for parent categories
+        payload.parent_id = null;
       }
-      // Status is handled independently or with edit, but backend accepts status.
-      // We will include status in edit.
       if (editingItem) {
         payload.status = formData.status;
       }
@@ -154,60 +172,71 @@ function AdminCategories() {
         await createCategory(payload);
       }
 
-      getCategories({
-        page: currentPage,
-        search: debouncedSearch,
-        parent_id: parentFilter === "all" ? "" : parentFilter,
-      });
+      refreshChildren();
+      getCategoriesTree();
       handleBack();
-    } catch (err) { }
+    } catch (err) {
+      // Error handled in hook
+    }
   };
 
-
-
-
-
-
-
-  const handleStatusChange = async (id, currentStatus) => {
+  const handleStatusChange = async (id, currentStatus, isParent = false) => {
     const updatedStatus = currentStatus === "active" ? "hidden" : "active";
 
-    const newStatus = await showConfirmCustom({
+    const confirmed = await showConfirmCustom({
       title: isArabic ? "تغيير الحالة" : "Change Category Status",
       message: isArabic
-        ? `هل أنت متأكد من تغيير حالة التصنيف إلى "${updatedStatus}"`
-        : `Are you sure you want to change status to "${updatedStatus}"`,
+        ? isParent
+          ? `هل أنت متأكد من تغيير حالة القسم الرئيسي إلى "${updatedStatus}"؟ سيتم تطبيق نفس الحالة على جميع الأقسام الفرعية.`
+          : `هل أنت متأكد من تغيير حالة التصنيف إلى "${updatedStatus}"`
+        : isParent
+          ? `Are you sure you want to change the parent category status to "${updatedStatus}"? All sub-categories will be updated too.`
+          : `Are you sure you want to change status to "${updatedStatus}"`,
       confirmText: isArabic ? "نعم" : "Yes",
       cancelText: isArabic ? "لا" : "No",
     });
-    if (newStatus) {
+
+    if (confirmed) {
       try {
         await updateCategory(id, { status: updatedStatus });
-        getCategories({
-          page: currentPage,
-          search: debouncedSearch,
-          parent_id: parentFilter === "all" ? "" : parentFilter,
-        });
+        refreshChildren();
+        if (isParent) {
+          getCategoriesTree();
+        }
       } catch (error) {
         // Error handled in hook
       }
     }
   };
 
-  // Flatten the tree for the dropdown
-  const flattenTree = (nodes, prefix = "") => {
-    let result = [];
-    if (!nodes) return result;
-    for (const node of nodes) {
-      result.push({ id: node.id, name: prefix + node.name });
-      if (node.children && node.children.length > 0) {
-        result = result.concat(flattenTree(node.children, prefix + "-- "));
-      }
-    }
-    return result;
-  };
+  const selectedParentName = selectedParent
+    ? treeCategories.find((cat) => cat.id === selectedParent)?.name
+    : null;
 
-  const flatTreeCategories = flattenTree(treeCategories);
+  const renderActions = (id) => (
+    <div className="d-flex justify-content-center gap-2">
+      <button
+        className="btn btn-sm ac-btn-view border-0"
+        title="View"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleView(id);
+        }}
+      >
+        <i className="bi bi-eye fs-6"></i>
+      </button>
+      <button
+        className="btn btn-sm ac-btn-edit border-0"
+        title="Edit"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleEdit(id);
+        }}
+      >
+        <i className="bi bi-pencil-square fs-6"></i>
+      </button>
+    </div>
+  );
 
   return (
     <div className="admin-content-page">
@@ -235,11 +264,108 @@ function AdminCategories() {
             </button>
           </div>
 
+          {/* Parent Categories Table */}
+          <div className="ac-table-card mb-4">
+            <div className="ac-table-container">
+              <div className="ac-rounded-table p-3 p-md-0">
+                <h6 className="ac-subtitle fw-semibold mb-3 px-3 pt-3">
+                  {isArabic ? "الأقسام الرئيسية" : "Parent Categories"}
+                </h6>
+                <div className="table-responsive">
+                  <table className="table ac-table mb-0 align-middle" dir="ltr">
+                    <thead>
+                      <tr>
+                        <th style={{ width: "60px" }}>#</th>
+                        <th>{isArabic ? "اسم التصنيف" : "Category Name"}</th>
+                        <th className="text-center">
+                          {isArabic ? "عدد الأبناء" : "Children"}
+                        </th>
+                        <th className="text-center">
+                          {isArabic ? "الحالة" : "Status"}
+                        </th>
+                        <th className="text-center">
+                          {isArabic ? "تاريخ الإنشاء" : "Created At"}
+                        </th>
+                        <th className="text-center">
+                          {isArabic ? "الإجراءات" : "Actions"}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {treeLoading ? (
+                        <tr>
+                          <td colSpan={6} className="text-center py-5">
+                            <div className="spinner-border text-danger" role="status">
+                              <span className="visually-hidden">Loading...</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : treeCategories && treeCategories.length > 0 ? (
+                        treeCategories.map((item, index) => (
+                          <tr
+                            key={item.id}
+                            className={`ac-parent-row ${selectedParent === item.id ? "table-danger" : ""}`}
+                            style={{
+                              cursor: "pointer",
+                              borderLeft: selectedParent === item.id ? "3px solid #d32f2f" : "3px solid transparent",
+                              transition: "all 0.2s ease",
+                            }}
+                            onClick={() => handleParentSelect(item.id)}
+                          >
+                            <td className="text-secondary">{index + 1}</td>
+                            <td className="fw-medium text-dark">{item.name}</td>
+                            <td className="text-center">
+                              <span className="badge bg-light text-dark border rounded-pill px-3 py-2">
+                                {item.children_count ?? 0}
+                              </span>
+                            </td>
+                            <td className="text-center">
+                              <StatusBadge
+                                status={item.status || "active"}
+                                isArabic={isArabic}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStatusChange(item.id, item.status || "active", true);
+                                }}
+                              />
+                            </td>
+                            <td className="text-center text-secondary">
+                              {item.created_at || "-"}
+                            </td>
+                            <td className="text-center">
+                              {renderActions(item.id)}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={6} className="text-center py-4 text-muted">
+                            {isArabic ? "لا يوجد أقسام رئيسية" : "No parent categories found"}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Children Categories Table */}
           <div className="ac-table-card">
             <div className="ac-table-container">
               <div className="ac-rounded-table p-3 p-md-0">
-                <div className="ac-filters-bar d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-5 ">
-                  <div className="ac-search-input-wrapper position-relative ">
+                <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3 px-3 pt-3">
+                  <h6 className="ac-subtitle fw-semibold mb-0">
+                    {selectedParentName
+                      ? isArabic
+                        ? `الأقسام الفرعية: ${selectedParentName}`
+                        : `Sub-Categories: ${selectedParentName}`
+                      : isArabic
+                        ? "كل الأقسام الفرعية"
+                        : "All Sub-Categories"}
+                  </h6>
+                  <div className="ac-search-input-wrapper position-relative" style={{ width: "100%", maxWidth: "320px" }}>
                     <i
                       className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"}`}
                       style={{ zIndex: 3 }}
@@ -257,36 +383,16 @@ function AdminCategories() {
                       style={{ zIndex: 1, position: "relative" }}
                     />
                   </div>
-
-                  <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
-                    <select
-                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium  transition-all ${parentFilter !== "all" ? "border-danger bg-danger-subtle text-danger-emphasis" : "border-light bg-light  text-muted"}`}
-                      value={parentFilter}
-                      onChange={(e) => setParentFilter(e.target.value)}
-
-                    >
-                      <option value="all">
-                        {isArabic ? "كل التصنيفات (الآباء)" : "All Categories (Parents)"}
-                      </option>
-                      {treeCategories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
 
                 <div className="table-responsive">
                   <table className="table ac-table mb-0 align-middle" dir="ltr">
                     <thead>
                       <tr>
+                        <th style={{ width: "60px" }}>#</th>
                         <th>{isArabic ? "اسم التصنيف" : "Category Name"}</th>
                         <th className="text-center">
                           {isArabic ? "التصنيف الأب" : "Parent"}
-                        </th>
-                        <th className="text-center">
-                          {isArabic ? "الوصف" : "Description"}
                         </th>
                         <th className="text-center">
                           {isArabic ? "الحالة" : "Status"}
@@ -303,83 +409,37 @@ function AdminCategories() {
                       {loading ? (
                         <tr>
                           <td colSpan={6} className="text-center py-5">
-                            <div
-                              className="spinner-border text-danger"
-                              role="status"
-                            >
-                              <span className="visually-hidden">
-                                Loading...
-                              </span>
+                            <div className="spinner-border text-danger" role="status">
+                              <span className="visually-hidden">Loading...</span>
                             </div>
                           </td>
                         </tr>
                       ) : categories && categories.length > 0 ? (
-                        categories.map((item) => (
+                        categories.map((item, index) => (
                           <tr key={item.id}>
-                            <td className="fw-medium text-dark">
-                              {item.name}
-                            </td>
+                            <td className="text-secondary">{index + 1}</td>
+                            <td className="fw-medium text-dark">{item.name}</td>
                             <td className="text-center text-secondary">
                               {item.parent?.name || "-"}
                             </td>
-                            <td className="text-center text-secondary">
-                              <span className="d-inline-block text-truncate" style={{ maxWidth: '150px' }}>
-                                {item.description || "-"}
-                              </span>
-                            </td>
-
-
                             <td className="text-center">
-
-
-                              <span
-                                className={`badge rounded-pill cp ${item.status === "active" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"}`}
-                                style={{
-                                  cursor: "pointer",
-                                  padding: "8px 16px",
-                                }}
+                              <StatusBadge
+                                status={item.status || "active"}
+                                isArabic={isArabic}
                                 onClick={() => handleStatusChange(item.id, item.status || "hidden")}
-                              >
-                                <i
-                                  className={`bi ${item.status === "hidden" ? "bi-shield-exclamation" : "bi-patch-check-fill"} me-1`}
-                                ></i>
-                                {item.status === "hidden"
-                                  ? isArabic ? "غير نشط" : "Hidden"
-                                  : isArabic ? "نشط" : "Active"}
-                              </span>
-
+                              />
                             </td>
-
-
                             <td className="text-center text-secondary">
                               {item.created_at}
                             </td>
                             <td className="text-center">
-                              <div className="d-flex justify-content-center gap-2">
-                                <button
-                                  className="btn btn-sm ac-btn-view border-0"
-                                  title="View"
-                                  onClick={() => handleView(item.id)}
-                                >
-                                  <i className="bi bi-eye fs-6"></i>
-                                </button>
-                                <button
-                                  className="btn btn-sm ac-btn-edit border-0"
-                                  title="Edit"
-                                  onClick={() => handleEdit(item.id)}
-                                >
-                                  <i className="bi bi-pencil-square fs-6"></i>
-                                </button>
-                              </div>
+                              {renderActions(item.id)}
                             </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td
-                            colSpan={6}
-                            className="text-center py-4 text-muted"
-                          >
+                          <td colSpan={6} className="text-center py-4 text-muted">
                             {isArabic ? "لا يوجد تصنيفات" : "No categories found"}
                           </td>
                         </tr>
@@ -420,7 +480,6 @@ function AdminCategories() {
 
           <form onSubmit={handleSubmitWrapper} className="ac-form-body p-4 bg-white border rounded-4 shadow-sm">
             <div className="ac-tab-content basic-info">
-
               <div className="mb-4">
                 <label className="form-label fw-bold text-dark">
                   {isArabic ? "اسم التصنيف" : "Category Name"}
@@ -439,8 +498,8 @@ function AdminCategories() {
                 />
               </div>
 
-              <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center" >
-                <div >
+              <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
+                <div>
                   <label
                     htmlFor="isMainCategorySwitch"
                     className="d-block mb-0 cp"

@@ -99,6 +99,9 @@ const AdminInstructors = lazy(
 const AdminOrders = lazy(
   () => import("./modules/admin-dashboard/pages/Orders/AdminOrders"),
 );
+const AdminCreateOrder = lazy(
+  () => import("./modules/admin-dashboard/pages/Orders/AdminCreateOrder"),
+);
 
 const AdminCertificates = lazy(
   () =>
@@ -115,6 +118,9 @@ const AdminGroups = lazy(
 );
 const AdminCategories = lazy(
   () => import("./modules/admin-dashboard/pages/Categories/AdminCategories"),
+);
+const AdminTags = lazy(
+  () => import("./modules/admin-dashboard/pages/Tags/AdminTags"),
 );
 const AdminQuizzes = lazy(
   () => import("./modules/admin-dashboard/pages/Quizzes/AdminQuizzes"),
@@ -383,6 +389,7 @@ function AppContent() {
                     <Route index element={<AdminOverview />} />
                     <Route path="courses" element={<AdminCourses />} />
                     <Route path="categories" element={<AdminCategories />} />
+                    <Route path="tags" element={<AdminTags />} />
                     <Route path="quizzes" element={<AdminQuizzes />} />
                     <Route
                       path="quizzes/view-exam/:id"
@@ -406,6 +413,7 @@ function AppContent() {
                     <Route path="students" element={<AdminStudents />} />
                     <Route path="instructors" element={<AdminInstructors />} />
                     <Route path="orders" element={<AdminOrders />} />
+                    <Route path="orders/create" element={<AdminCreateOrder />} />
                     <Route
                       path="certificates"
                       element={<AdminCertificates />}

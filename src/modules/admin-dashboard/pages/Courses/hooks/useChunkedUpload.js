@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
-import { uploadChunk } from "../../../services/coursesServices";
+import { uploadChunk, finalizeChunkedUpload } from "../../../services/coursesServices";
 
-const DEFAULT_CHUNK_SIZE = 2 * 1024 * 1024; // 2 MB
+const DEFAULT_CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB — matches backend max:5120
 const MAX_RETRIES = 3;
+const CONCURRENCY = 4; // number of chunks to upload in parallel
 
 /**
  * Manages concurrent chunked video uploads.
@@ -27,7 +28,7 @@ export const useChunkedUpload = ({ chunkSize = DEFAULT_CHUNK_SIZE } = {}) => {
     }));
 
   /**
-   * Begin uploading `file` in chunks.
+   * Begin uploading `file` in chunks using a parallel concurrency pool.
    *
    * @param {string}   lessonKey    Unique identifier for this lesson (used as Map key)
    * @param {File}     file         The video File selected by the user
@@ -56,74 +57,88 @@ export const useChunkedUpload = ({ chunkSize = DEFAULT_CHUNK_SIZE } = {}) => {
 
     const totalChunks = Math.ceil(file.size / chunkSize);
 
-    try {
-      for (let i = 0; i < totalChunks; i++) {
+    // Track how many chunks have fully transferred (for progress)
+    const completedChunks = new Array(totalChunks).fill(false);
+
+    const updateProgress = () => {
+      const done = completedChunks.filter(Boolean).length;
+      // Cap at 99 until finalize completes
+      const pct = Math.min(Math.round((done / totalChunks) * 100), 99);
+      patch(lessonKey, { progress: pct, status: "uploading" });
+    };
+
+    /**
+     * Upload a single chunk with retry logic.
+     * @param {number} i  chunk index
+     */
+    const uploadOne = async (i) => {
+      const start = i * chunkSize;
+      const chunk = file.slice(start, start + chunkSize);
+
+      const fd = new FormData();
+      fd.append("chunk", chunk);
+      fd.append("chunk_index", String(i));
+      fd.append("total_chunks", String(totalChunks));
+      fd.append("filename", file.name);
+      fd.append("preview_index", String(previewIndex));
+
+      let lastError;
+
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         if (controller.signal.aborted) {
           throw Object.assign(new Error("Upload cancelled"), { cancelled: true });
         }
-
-        const start = i * chunkSize;
-        const chunk = file.slice(start, start + chunkSize);
-
-        const fd = new FormData();
-        fd.append("chunk", chunk);
-        fd.append("chunk_index", String(i));
-        fd.append("total_chunks", String(totalChunks));
-        fd.append("filename", file.name);
-        fd.append("preview_index", String(previewIndex));
-
-        // Track real transfer progress within this chunk
-        const handleChunkProgress = (progressEvent) => {
-          if (!progressEvent.total) return;
-          const chunkFraction = progressEvent.loaded / progressEvent.total;
-          const rawProgress = ((i + chunkFraction) / totalChunks) * 100;
-          // Cap at 99 on the last chunk — server assembly happens after transfer
-          const progress =
-            i === totalChunks - 1
-              ? Math.min(Math.round(rawProgress), 99)
-              : Math.round(rawProgress);
-          patch(lessonKey, { progress, status: "uploading" });
-        };
-
-        // Retry each individual chunk up to MAX_RETRIES times
-        let lastError;
-        let chunkResponse;
-
-        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-          try {
-            chunkResponse = await uploadChunk(
-              courseId,
-              fd,
-              controller.signal,
-              handleChunkProgress,
-            );
-            lastError = null;
-            break;
-          } catch (err) {
-            if (controller.signal.aborted || err?.cancelled) {
-              throw Object.assign(new Error("Upload cancelled"), {
-                cancelled: true,
-              });
-            }
-            lastError = err;
-            if (attempt < MAX_RETRIES - 1) {
-              await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
-            }
+        try {
+          await uploadChunk(courseId, fd, controller.signal);
+          completedChunks[i] = true;
+          updateProgress();
+          return;
+        } catch (err) {
+          if (controller.signal.aborted || err?.cancelled) {
+            throw Object.assign(new Error("Upload cancelled"), { cancelled: true });
+          }
+          lastError = err;
+          if (attempt < MAX_RETRIES - 1) {
+            await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
           }
         }
-
-        if (lastError) throw lastError;
-
-        // Final chunk → server returns { status: 'complete', video_url, … }
-        if (i === totalChunks - 1) {
-          patch(lessonKey, { progress: 100, status: "complete", error: null });
-          onComplete?.(chunkResponse);
-          return;
-        }
-
-        const progress = Math.round(((i + 1) / totalChunks) * 100);
-        patch(lessonKey, { progress, status: "uploading" });
       }
+
+      throw lastError;
+    };
+
+    try {
+      // ── Concurrency pool ─────────────────────────────────────────────────────
+      // Workers share a shared `nextIndex` counter so we don't need complex
+      // bookkeeping: each worker picks the next unchosen index until all are done.
+      let nextIndex = 0;
+
+      const worker = async () => {
+        while (true) {
+          if (controller.signal.aborted) {
+            throw Object.assign(new Error("Upload cancelled"), { cancelled: true });
+          }
+          const i = nextIndex++;
+          if (i >= totalChunks) break;
+          await uploadOne(i);
+        }
+      };
+
+      await Promise.all(Array.from({ length: Math.min(CONCURRENCY, totalChunks) }, worker));
+
+      // ── All chunks received by the server – ask it to assemble ──────────────
+      if (controller.signal.aborted) {
+        throw Object.assign(new Error("Upload cancelled"), { cancelled: true });
+      }
+
+      const serverResponse = await finalizeChunkedUpload(
+        courseId,
+        { filename: file.name, total_chunks: totalChunks, preview_index: previewIndex },
+        controller.signal,
+      );
+
+      patch(lessonKey, { progress: 100, status: "complete", error: null });
+      onComplete?.(serverResponse);
     } catch (err) {
       if (err?.cancelled || controller.signal.aborted) {
         patch(lessonKey, { progress: 0, status: "cancelled", error: null });

@@ -139,19 +139,19 @@ function InstructorStudentResults() {
       <div className="ac-table-card">
         <div className="ac-rounded-table p-3 p-md-0">
           <div className="ac-filters-bar d-flex flex-column gap-3 mb-3">
-            <div className="d-flex flex-column flex-md-row align-items-end gap-3 flex-wrap">
+            <section className="d-flex flex-column flex-md-row align-items-end gap-3 flex-wrap w-100">
               {/* Select Group */}
-              <div>
+              <div className="w-100 w-md-auto">
                 <label className="fw-semibold small text-muted mb-1 d-block">
                   <i className="bi bi-people me-1"></i>
                   {t("studentResults.selectGroup", "Select Group")}
                 </label>
                 <select
-                  className={selectClass(!!selectedGroupId)}
+                  className={`w-100 w-md-auto ${selectClass(!!selectedGroupId)}`}
                   value={selectedGroupId}
                   onChange={handleGroupChange}
                   disabled={loadingGroups}
-                  style={{ minWidth: 220 }}
+                  style={{ minWidth: "11rem", flex: "0 0 auto" }}
                 >
                   <option value="">
                     {t("studentResults.chooseGroup", "Choose a group…")}
@@ -165,17 +165,17 @@ function InstructorStudentResults() {
               </div>
 
               {/* Select Exam */}
-              <div>
+              <div className="w-100 w-md-auto">
                 <label className="fw-semibold small text-muted mb-1 d-block">
                   <i className="bi bi-journal-text me-1"></i>
                   {t("studentResults.selectExam", "Select Exam")}
                 </label>
                 <select
-                  className={selectClass(!!selectedExamId)}
+                  className={`w-100 w-md-auto ${selectClass(!!selectedExamId)}`}
                   value={selectedExamId}
                   onChange={handleExamChange}
                   disabled={!selectedGroupId || loadingExams}
-                  style={{ minWidth: 220 }}
+                  style={{ minWidth: "11rem", flex: "0 0 auto" }}
                 >
                   <option value="">
                     {selectedGroupId
@@ -189,7 +189,7 @@ function InstructorStudentResults() {
                   ))}
                 </select>
               </div>
-            </div>
+            </section>
           </div>
 
           {!selectedGroupId && (

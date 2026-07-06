@@ -19,6 +19,7 @@ export const useCategories = () => {
   const [category, setCategory] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [treeLoading, setTreeLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // جلب الكل للجدول مع الفلترة والترقيم
@@ -50,7 +51,7 @@ export const useCategories = () => {
 
   // جلب شجرة التصنيفات للمنسدلة
   const getCategoriesTree = useCallback(async () => {
-    setLoading(true);
+    setTreeLoading(true);
     try {
       const res = await apiGetCategoriesTree();
       const data = res?.data || [];
@@ -59,7 +60,7 @@ export const useCategories = () => {
     } catch (err) {
       console.error("Error fetching categories tree:", err);
     } finally {
-      setLoading(false);
+      setTreeLoading(false);
     }
   }, []);
 
@@ -130,6 +131,7 @@ export const useCategories = () => {
     category,
     pagination,
     loading,
+    treeLoading,
     error,
     getCategories,
     getCategoriesTree,

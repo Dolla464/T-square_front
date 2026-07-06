@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { Button } from "react-bootstrap";
 import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
@@ -15,6 +16,7 @@ import "../Reviews/review.css";
 function AdminOrders() {
   const { t, i18n } = useTranslation("orderPayments");
   const isArabic = i18n.language?.startsWith("ar");
+  const navigate = useNavigate();
 
   const {
     orders,
@@ -169,12 +171,22 @@ function AdminOrders() {
           <h2 className="ac-title">{t("orders")}</h2>
           <p className="ac-subtitle text-muted mb-0">{t("track")}</p>
         </div>
-        <ExportBar onExport={onExport} loading={exportLoading} />
+        <div className="d-flex gap-2 flex-wrap align-items-center">
+          <Button
+            variant="danger"
+            className="rounded-3 fw-bold px-4"
+            onClick={() => navigate("/admin/orders/create")}
+          >
+            <i className="bi bi-plus-lg me-2"></i>
+            {t("createOrder")}
+          </Button>
+          <ExportBar onExport={onExport} loading={exportLoading} />
+        </div>
       </div>
 
       <div className="row g-3 mb-4">
         {/* Card 1: Total Revenue */}
-        <div className="col-lg-3 col-6">
+        <div className="col-lg-3 h-100 col-12">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div
@@ -199,7 +211,7 @@ function AdminOrders() {
         </div>
 
         {/* Card 2: Total Orders */}
-        <div className="col-lg-3 col-6">
+        <div className="col-lg-3 h-100 col-12">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div
@@ -224,7 +236,7 @@ function AdminOrders() {
         </div>
 
         {/* Card 3: Pending Orders */}
-        <div className="col-lg-3 col-6">
+        <div className="col-lg-3 h-100 col-6">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div
@@ -249,7 +261,7 @@ function AdminOrders() {
         </div>
 
         {/* Card 4: Refunded Orders */}
-        <div className="col-lg-3 col-6 ">
+        <div className="col-lg-3 h-100 col-6 ">
           <div className="state p-3 d-flex flex-column justify-content-between" style={{ height: "auto", minHeight: "140px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div
@@ -274,27 +286,26 @@ function AdminOrders() {
         </div>
       </div>
 
-      <div className="ac-rounded-table p-3 p-md-0">
-        <div className="review-table-container ">
-          <div className="ac-filters-bar d-flex flex-column gap-2 mb-3">
-            <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
-              <div className="ac-search-input-wrapper position-relative flex-grow-1">
+      <div className="ac-table-card">
+        <div className="ac-table-container">
+          <div className="ac-rounded-table p-3 p-md-0">
+            <div className="ac-filters-bar d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-5 ">
+              <div className="ac-search-input-wrapper position-relative ">
                 <i
-                  className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"
-                    }`}
+                  className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"}`}
                   style={{ zIndex: 3 }}
                 ></i>
                 <input
                   type="text"
-                  className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm
-                    ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
-                    : "border-light bg-light text-muted"}`}
+                  className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium" : "border-light bg-light text-muted"}`}
+
                   placeholder={t("search")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
+
+              <section className="d-flex flex-column flex-md-row gap-2 gap-md-3 w-100">
 
                 <select
                   className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${statusFilter !== "all"
@@ -310,10 +321,11 @@ function AdminOrders() {
                   <option value="refunded">{t("refunded")}</option>
                   <option value="cancelled">{isArabic ? "ملغي" : "Cancelled"}</option>
                 </select>
+                
                 <input
                   type="date"
-                  className={`${dateInputClass(dateFrom)} ${isDateRangeInvalid ? "border-danger" : ""}`}
-                  style={{ width: "auto", minWidth: "11rem", flex: "0 0 auto" }}
+                  className={`w-100 w-md-auto ${dateInputClass(dateFrom)} ${isDateRangeInvalid ? "border-danger" : ""}`}
+                  style={{ minWidth: "11rem", flex: "0 0 auto" }}
                   title={t("dateFrom")}
                   aria-label={t("dateFrom")}
                   value={dateFrom}
@@ -328,8 +340,8 @@ function AdminOrders() {
                 />
                 <input
                   type="date"
-                  className={`${dateInputClass(dateTo)} ${isDateRangeInvalid ? "border-danger" : ""}`}
-                  style={{ width: "auto", minWidth: "11rem", flex: "0 0 auto" }}
+                  className={`w-100 w-md-auto ${dateInputClass(dateTo)} ${isDateRangeInvalid ? "border-danger" : ""}`}
+                  style={{ minWidth: "11rem", flex: "0 0 auto" }}
                   title={t("dateTo")}
                   aria-label={t("dateTo")}
                   value={dateTo}
@@ -343,7 +355,7 @@ function AdminOrders() {
                     setDateTo(value);
                   }}
                 />
-              </div>
+              </section>
             </div>
 
             {/* <div className="d-flex flex-nowrap align-items-center gap-2 gap-md-3 orders-date-filters">

@@ -9,6 +9,7 @@ import { useUnreadCount } from "../../../hooks/useNotifications";
 
 const ADMIN_NAV = [
   { key: "dashboard", path: "/admin", icon: "bi-grid-1x2", end: true },
+  { key: "tags", path: "/admin/tags", icon: "bi-tags" },
   { key: "schedule", path: "/admin/schedule", icon: "bi-calendar-week" },
   { key: "studentAttendance", path: "/admin/student-attendance", icon: "bi-clipboard-check" },
   { key: "studentResults", path: "/admin/student-results", icon: "bi-bar-chart-line" },
@@ -93,6 +94,8 @@ function AdminLayout() {
         return HomePageTitle;
       case "/admin/categories":
         return isArabic ? "التصنيفات" : "Categories";
+      case "/admin/tags":
+        return isArabic ? "التاجات" : "Site Tags";
       case "/admin/quizzes":
         return isArabic ? "الاختبارات" : "Quizzes";
       case "/admin/schedule":

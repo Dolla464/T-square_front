@@ -106,6 +106,22 @@ export const uploadChunk = async (courseId, formData, signal = null, onUploadPro
 };
 
 // ----------------------------------------------------------------------------
+// إتمام التجميع بعد رفع كل القطع (Finalize)
+// يستدعى مرة واحدة بعد اكتمال جميع الـ chunks ليقوم السيرفر بالتجميع والتحقق.
+// ----------------------------------------------------------------------------
+export const finalizeChunkedUpload = async (courseId, { filename, total_chunks, preview_index }, signal = null) => {
+    const response = await axiosClient.post(
+        `/admin/courses/${courseId}/previews/finalize-upload`,
+        { filename, total_chunks, preview_index },
+        {
+            ...(signal ? { signal } : {}),
+            timeout: 0,
+        },
+    );
+    return response.data;
+};
+
+// ----------------------------------------------------------------------------
 // جلب الكاتيجوريز للـ dropdown
 // ----------------------------------------------------------------------------
 // export const getCategories = async () => {

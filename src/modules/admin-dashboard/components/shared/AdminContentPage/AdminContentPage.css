@@ -182,6 +182,14 @@
   border-bottom: none;
 }
 
+.ac-parent-row:hover {
+  background-color: #fff1f2;
+}
+
+.ac-parent-row.table-danger {
+  background-color: #fff1f2;
+}
+
 .ac-truncate-text {
   max-width: 200px;
   white-space: nowrap;
@@ -542,6 +550,25 @@
   .ac-table th,
   .ac-table td {
     white-space: nowrap;
+  }
+
+  /* Tab Menu Responsiveness */
+  .ac-tabs-menu {
+    display: flex !important;
+    width: 100% !important;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .ac-tabs-menu::-webkit-scrollbar {
+    display: none;
+  }
+  .ac-tab-btn {
+    flex: 1 0 auto;
+    text-align: center;
+    padding: 6px 10px !important;
+    font-size: 0.8rem !important;
   }
 }
 
