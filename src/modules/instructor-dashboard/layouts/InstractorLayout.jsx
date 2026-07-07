@@ -29,6 +29,7 @@ const INSTRUCTOR_NAV = [
     path: "/instructor/notifications",
     icon: "bi-bell-fill",
   },
+  { key: "profile", path: "/instructor/profile", icon: "bi-person-fill" },
 ];
 
 function InstructorLayout() {
@@ -57,6 +58,8 @@ function InstructorLayout() {
         return isArabic ? "الاختبارات" : "Quizzes";
       case "/instructor/notifications":
         return isArabic ? "الإشعارات" : "Notifications";
+      case "/instructor/profile":
+        return isArabic ? "الملف الشخصي" : "Profile & Settings";
       default:
         return "";
     }
