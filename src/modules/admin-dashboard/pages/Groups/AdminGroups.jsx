@@ -71,9 +71,68 @@ const defaultFormData = {
   course_id: "",
   instructor_id: "",
   start_date: "",
+  is_historical: false,
   status: "active",
   schedules: [],
   students: [],
+};
+
+const getTodayDateStr = () => new Date().toISOString().split("T")[0];
+
+const isDerivedHistoricalGroup = (group) => {
+  if (!group?.start_date) return false;
+  return group.start_date < getTodayDateStr();
+};
+
+const formatGroupSyncToast = (sync, isArabic, t) => {
+  if (!sync) return null;
+
+  const parts = [];
+
+  if (sync.historical_backfill) {
+    const bf = sync.historical_backfill;
+    parts.push(
+      t("groups_page.backfill_summary", {
+        completed: bf.past_sessions_completed ?? 0,
+        today: bf.today_upcoming ?? 0,
+        future: bf.future_upcoming ?? 0,
+      }),
+    );
+  }
+
+  if (sync.enrollments_completed > 0) {
+    parts.push(
+      isArabic
+        ? `${sync.enrollments_completed} طالب مكتمل`
+        : `${sync.enrollments_completed} student(s) marked completed`,
+    );
+  }
+
+  if (sync.enrollments_reopened > 0) {
+    parts.push(
+      isArabic
+        ? `${sync.enrollments_reopened} طالب قيد الدراسة`
+        : `${sync.enrollments_reopened} student(s) marked in progress`,
+    );
+  }
+
+  if (sync.notifications_sent > 0) {
+    parts.push(
+      isArabic
+        ? `${sync.notifications_sent} إشعار`
+        : `${sync.notifications_sent} notification(s) sent`,
+    );
+  }
+
+  if (sync.skipped_student_ids?.length > 0) {
+    parts.push(
+      isArabic
+        ? `${sync.skipped_student_ids.length} طالب غير مشترك في الكورس`
+        : `${sync.skipped_student_ids.length} student(s) skipped (not enrolled in course)`,
+    );
+  }
+
+  return parts.length > 0 ? parts.join(" · ") : null;
 };
 
 const GROUP_STATUS_CONFIG = {
@@ -649,8 +708,21 @@ function AdminGroups() {
     }
 
     if (!formData.start_date) {
-      toastError(isArabic ? "تاريخ البدء مطلوب" : "Start date is required");
+      toastError(t("groups_page.errors.start_required"));
       return;
+    }
+
+    const todayStr = getTodayDateStr();
+
+    if (!editingItem) {
+      if (formData.is_historical && formData.start_date > todayStr) {
+        toastError(t("groups_page.errors.historical_start_must_be_past"));
+        return;
+      }
+      if (!formData.is_historical && formData.start_date < todayStr) {
+        toastError(t("groups_page.errors.start_must_be_today_or_future"));
+        return;
+      }
     }
 
     if (!formData.schedules || formData.schedules.length === 0) {
@@ -732,42 +804,21 @@ function AdminGroups() {
         }
 
         const response = await updateGroup(editingItem, payload);
-        const sync = response?.data?.sync;
-        if (sync) {
-          const parts = [];
-          if (sync.enrollments_completed > 0) {
-            parts.push(
-              isArabic
-                ? `${sync.enrollments_completed} طالب مكتمل`
-                : `${sync.enrollments_completed} student(s) marked completed`,
-            );
-          }
-          if (sync.enrollments_reopened > 0) {
-            parts.push(
-              isArabic
-                ? `${sync.enrollments_reopened} طالب قيد الدراسة`
-                : `${sync.enrollments_reopened} student(s) marked in progress`,
-            );
-          }
-          if (sync.notifications_sent > 0) {
-            parts.push(
-              isArabic
-                ? `${sync.notifications_sent} إشعار`
-                : `${sync.notifications_sent} notification(s) sent`,
-            );
-          }
-          if (sync.skipped_student_ids?.length > 0) {
-            parts.push(
-              isArabic
-                ? `${sync.skipped_student_ids.length} طالب غير مشترك في الكورس`
-                : `${sync.skipped_student_ids.length} student(s) skipped (not enrolled in course)`,
-            );
-          }
-          if (parts.length > 0) {
-            toastSuccess(parts.join(isArabic ? " · " : " · "));
-          }
+        const syncMessage = formatGroupSyncToast(response?.data?.sync, isArabic, t);
+        if (syncMessage) {
+          toastSuccess(syncMessage);
         }
       } else {
+        if (formData.is_historical) {
+          const ok = await showConfirmCustom({
+            title: t("groups_page.confirm_historical_title"),
+            message: t("groups_page.confirm_historical_message"),
+            icon: "warning",
+            confirmText: t("groups_page.confirm"),
+          });
+          if (!ok) return;
+        }
+
         const payload = {
           group_name: formData.group_name,
           course_id: Number(formData.course_id),
@@ -775,6 +826,7 @@ function AdminGroups() {
           start_date: formData.start_date,
           status: nextStatus,
           schedules: formData.schedules,
+          is_historical: !!formData.is_historical,
         };
 
         if (nextStatus === "completed") {
@@ -789,7 +841,11 @@ function AdminGroups() {
           if (!ok) return;
         }
 
-        await createGroup(payload);
+        const response = await createGroup(payload);
+        const syncMessage = formatGroupSyncToast(response?.data?.sync, isArabic, t);
+        if (syncMessage) {
+          toastSuccess(syncMessage);
+        }
       }
 
       getGroups({ page: currentPage });
@@ -797,8 +853,13 @@ function AdminGroups() {
     } catch (err) {}
   };
 
-  // ── Today's date (min for date input) ────────────────────────────────────
-  const todayStr = new Date().toISOString().split("T")[0];
+  // ── Today's date for date input constraints ─────────────────────────────
+  const todayStr = getTodayDateStr();
+  const isCreateMode = !editingItem && !viewingItem;
+  const startDateMin =
+    isCreateMode && !formData.is_historical ? todayStr : undefined;
+  const startDateMax =
+    isCreateMode && formData.is_historical ? todayStr : undefined;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -953,6 +1014,11 @@ function AdminGroups() {
                             <tr key={group.id}>
                               <td className="fw-medium text-dark">
                                 {group.group_name}
+                                {isDerivedHistoricalGroup(group) && (
+                                  <span className="badge bg-secondary-subtle text-secondary-emphasis ms-2">
+                                    {t("groups_page.historical_badge")}
+                                  </span>
+                                )}
                               </td>
                               <td className="text-center text-secondary">
                                 {group.course_title}
@@ -1180,6 +1246,40 @@ function AdminGroups() {
                 </div>
               </div>
 
+              {/* ── Historical toggle (create only) ── */}
+              {isCreateMode && (
+                <div className="mb-4">
+                  <div className="form-check">
+                    <input
+                      className="form-check-input border-danger"
+                      type="checkbox"
+                      id="is_historical"
+                      name="is_historical"
+                      checked={!!formData.is_historical}
+                      onChange={(e) => {
+                        handleChange(e);
+                        if (
+                          !e.target.checked &&
+                          formData.start_date &&
+                          formData.start_date < todayStr
+                        ) {
+                          setFormData((prev) => ({ ...prev, start_date: "" }));
+                        }
+                      }}
+                    />
+                    <label
+                      className="form-check-label ms-2 fw-medium"
+                      htmlFor="is_historical"
+                    >
+                      {t("groups_page.is_historical")}
+                    </label>
+                  </div>
+                  <small className="text-muted d-block mt-1">
+                    {t("groups_page.is_historical_hint")}
+                  </small>
+                </div>
+              )}
+
               {/* ── Start Date / End Date ── */}
               <div className="mb-4">
                 {viewingItem ? (
@@ -1188,6 +1288,11 @@ function AdminGroups() {
                       <label className="form-label fw-bold text-dark">
                         <i className="bi bi-calendar-date me-2 text-danger"></i>
                         {isArabic ? "تاريخ بدء المجموعة" : "Group Start Date"}
+                        {isDerivedHistoricalGroup(formData) && (
+                          <span className="badge bg-secondary-subtle text-secondary-emphasis ms-2">
+                            {t("groups_page.historical_badge")}
+                          </span>
+                        )}
                       </label>
                       <p className="form-control-plaintext fw-medium ps-1 mb-0">
                         {formData.start_date || "—"}
@@ -1214,7 +1319,8 @@ function AdminGroups() {
                       name="start_date"
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
                       value={formData.start_date || ""}
-                      min={todayStr}
+                      min={startDateMin}
+                      max={startDateMax}
                       onChange={handleChange}
                     />
                     <small className="text-muted">

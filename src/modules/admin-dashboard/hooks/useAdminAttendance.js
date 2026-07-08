@@ -4,6 +4,7 @@ import {
   toastSuccess,
   toastError,
 } from "../../../components/shared/Toaster/toaster";
+import { parseApiDateOnly } from "../../../utils/formatDateTime";
 import {
   getLearningGroupsSelection,
   getLearningGroupSessions,
@@ -12,7 +13,32 @@ import {
   getStudentCourseAttendance,
   exportSessionAttendance,
   exportStudentCourseAttendance,
+  markSessionAttendance,
 } from "../services/learningGroupServices";
+
+const APP_TIMEZONE = "Africa/Cairo";
+
+export const isSessionMarkable = (session) => {
+  if (!session) return false;
+  if (session.status === "cancelled") return false;
+  if (session.status === "completed") return true;
+
+  const dateRaw = session.override_date || session.session_date;
+  const effectiveDate = parseApiDateOnly(dateRaw);
+  if (!effectiveDate) return false;
+
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: APP_TIMEZONE });
+  return effectiveDate < today;
+};
+
+const recalcAttendanceStats = (students) => {
+  const present = students.filter((s) => ["present", "late"].includes(s.status)).length;
+  return {
+    total: students.length,
+    present,
+    absent: students.length - present,
+  };
+};
 
 export const useAdminAttendance = () => {
   const { t } = useTranslation(["common", "adminDashboard"]);
@@ -26,6 +52,7 @@ export const useAdminAttendance = () => {
   const [loadingAttendance, setLoadingAttendance] = useState(false);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [updatingIds, setUpdatingIds] = useState(() => new Set());
   const [error, setError] = useState(null);
   const sessionsRequestRef = useRef(0);
   const attendanceRequestRef = useRef(0);
@@ -242,7 +269,80 @@ export const useAdminAttendance = () => {
     setSessionAttendance(null);
     setLoadingSessions(false);
     setLoadingAttendance(false);
+    setUpdatingIds(new Set());
   }, []);
+
+  const markAttendance = useCallback(
+    async (groupId, sessionId, studentId, status, sessionMeta = null) => {
+      if (!groupId || !sessionId) return;
+      if (!isSessionMarkable(sessionMeta ?? sessionAttendance)) return;
+      if (updatingIds.has(studentId)) return;
+
+      const students = sessionAttendance?.students ?? [];
+      const student = students.find((s) => s.student_id === studentId);
+      const previousStatus = student ? student.status : "not_marked";
+
+      if (previousStatus === status) return;
+
+      setUpdatingIds((prev) => {
+        const next = new Set(prev);
+        next.add(studentId);
+        return next;
+      });
+
+      setSessionAttendance((prev) => {
+        if (!prev) return prev;
+
+        const updatedStudents = prev.students.map((s) =>
+          s.student_id === studentId
+            ? {
+                ...s,
+                status,
+                marked_at: new Date().toISOString(),
+                marked_by: "admin_manual",
+              }
+            : s
+        );
+
+        return {
+          ...prev,
+          students: updatedStudents,
+          attendance: recalcAttendanceStats(updatedStudents),
+        };
+      });
+
+      try {
+        await markSessionAttendance(groupId, sessionId, studentId, status);
+        toastSuccess(t("adminDashboard:studentAttendance.attendanceUpdated"));
+      } catch (err) {
+        setSessionAttendance((prev) => {
+          if (!prev) return prev;
+
+          const rolledBackStudents = prev.students.map((s) =>
+            s.student_id === studentId ? { ...s, status: previousStatus } : s
+          );
+
+          return {
+            ...prev,
+            students: rolledBackStudents,
+            attendance: recalcAttendanceStats(rolledBackStudents),
+          };
+        });
+
+        const errorMsg =
+          err.response?.data?.message ||
+          t("adminDashboard:studentAttendance.attendanceUpdateFailed");
+        toastError(errorMsg);
+      } finally {
+        setUpdatingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(studentId);
+          return next;
+        });
+      }
+    },
+    [sessionAttendance, t, updatingIds]
+  );
 
   return {
     selectionGroups,
@@ -255,6 +355,7 @@ export const useAdminAttendance = () => {
     loadingAttendance,
     loadingSummary,
     exportLoading,
+    updatingIds,
     error,
     loadGroups,
     loadSessions,
@@ -263,6 +364,7 @@ export const useAdminAttendance = () => {
     loadStudentCourseAttendance,
     handleExportSession,
     handleExportStudent,
+    markAttendance,
     resetSessionData,
   };
 };

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Spinner } from "react-bootstrap";
 
-import { useAdminAttendance } from "../../hooks/useAdminAttendance";
+import { useAdminAttendance, isSessionMarkable } from "../../hooks/useAdminAttendance";
 import ExportBar from "../../components/shared/ExportBar";
 import { selectClass } from "../../components/shared/adminUiStyles";
 import StudentCourseAttendanceModal from "./StudentCourseAttendanceModal";
@@ -72,10 +73,12 @@ function AdminStudentAttendance() {
     loadingSessions,
     loadingAttendance,
     exportLoading,
+    updatingIds,
     loadGroups,
     loadSessions,
     loadSessionAttendance,
     handleExportSession,
+    markAttendance,
     resetSessionData,
   } = useAdminAttendance();
 
@@ -120,6 +123,16 @@ function AdminStudentAttendance() {
 
   const students = sessionAttendance?.students ?? [];
   const canExport = Boolean(selectedGroupId && selectedSessionId && students.length);
+
+  const selectedSession = useMemo(
+    () => sessions.find((session) => String(session.id) === String(selectedSessionId)),
+    [sessions, selectedSessionId]
+  );
+
+  const canMarkAttendance = useMemo(
+    () => isSessionMarkable(selectedSession ?? sessionAttendance),
+    [selectedSession, sessionAttendance]
+  );
 
   const handleGroupChange = (e) => {
     setSelectedGroupId(e.target.value);
@@ -280,6 +293,17 @@ function AdminStudentAttendance() {
                     {sessionAttendance.session_date} | {sessionAttendance.start_time}-
                     {sessionAttendance.end_time}
                   </div>
+                  <div className="d-flex flex-wrap align-items-center gap-2 mt-1">
+                    <span className="badge bg-secondary-subtle text-secondary text-capitalize">
+                      {sessionAttendance.status}
+                    </span>
+                    {canMarkAttendance && (
+                      <span className="badge bg-info-subtle text-info">
+                        <i className="bi bi-pencil-square me-1"></i>
+                        {t("studentAttendance.historicalSessionHint", "Historical session — editable")}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <ExportBar
                   onExport={(format) =>
@@ -306,6 +330,11 @@ function AdminStudentAttendance() {
                         <th style={{ width: 60 }}>#</th>
                         <th>{t("studentAttendance.studentName", "Student Name")}</th>
                         <th>{t("studentAttendance.attendanceStatus", "Attendance Status")}</th>
+                        {canMarkAttendance && (
+                          <th className="text-center" style={{ minWidth: 180 }}>
+                            {t("studentAttendance.actions", "Actions")}
+                          </th>
+                        )}
                       </tr>
                     </thead>
                     <tbody>
@@ -331,6 +360,111 @@ function AdminStudentAttendance() {
                               isArabic={isArabic}
                             />
                           </td>
+                          {canMarkAttendance && (
+                            <td className="text-center">
+                              <div className="d-flex justify-content-center gap-1 flex-wrap">
+                                <button
+                                  type="button"
+                                  className="btn btn-sm border-0 fw-medium"
+                                  title={t("studentAttendance.markPresent", "Mark Present")}
+                                  disabled={
+                                    student.status === "present" ||
+                                    updatingIds?.has(student.student_id)
+                                  }
+                                  style={{
+                                    minHeight: "40px",
+                                    minWidth: "40px",
+                                    background:
+                                      student.status === "present" ? "#d1e7dd" : "#f8f9fa",
+                                    color:
+                                      student.status === "present" ? "#0f5132" : "#495057",
+                                    borderRadius: "10px",
+                                  }}
+                                  onClick={() =>
+                                    markAttendance(
+                                      selectedGroupId,
+                                      selectedSessionId,
+                                      student.student_id,
+                                      "present",
+                                      selectedSession ?? sessionAttendance
+                                    )
+                                  }
+                                >
+                                  {updatingIds?.has(student.student_id) ? (
+                                    <Spinner animation="border" size="sm" variant="secondary" />
+                                  ) : (
+                                    <i className="bi bi-check-lg fs-5"></i>
+                                  )}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm border-0 fw-medium"
+                                  title={t("studentAttendance.markLate", "Mark Late")}
+                                  disabled={
+                                    student.status === "late" ||
+                                    updatingIds?.has(student.student_id)
+                                  }
+                                  style={{
+                                    minHeight: "40px",
+                                    minWidth: "40px",
+                                    background:
+                                      student.status === "late" ? "#fff3cd" : "#f8f9fa",
+                                    color:
+                                      student.status === "late" ? "#664d03" : "#495057",
+                                    borderRadius: "10px",
+                                  }}
+                                  onClick={() =>
+                                    markAttendance(
+                                      selectedGroupId,
+                                      selectedSessionId,
+                                      student.student_id,
+                                      "late",
+                                      selectedSession ?? sessionAttendance
+                                    )
+                                  }
+                                >
+                                  {updatingIds?.has(student.student_id) ? (
+                                    <Spinner animation="border" size="sm" variant="secondary" />
+                                  ) : (
+                                    <i className="bi bi-clock fs-5"></i>
+                                  )}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm border-0 fw-medium"
+                                  title={t("studentAttendance.markAbsent", "Mark Absent")}
+                                  disabled={
+                                    student.status === "absent" ||
+                                    updatingIds?.has(student.student_id)
+                                  }
+                                  style={{
+                                    minHeight: "40px",
+                                    minWidth: "40px",
+                                    background:
+                                      student.status === "absent" ? "#f8d7da" : "#f8f9fa",
+                                    color:
+                                      student.status === "absent" ? "#842029" : "#495057",
+                                    borderRadius: "10px",
+                                  }}
+                                  onClick={() =>
+                                    markAttendance(
+                                      selectedGroupId,
+                                      selectedSessionId,
+                                      student.student_id,
+                                      "absent",
+                                      selectedSession ?? sessionAttendance
+                                    )
+                                  }
+                                >
+                                  {updatingIds?.has(student.student_id) ? (
+                                    <Spinner animation="border" size="sm" variant="secondary" />
+                                  ) : (
+                                    <i className="bi bi-x-lg fs-5"></i>
+                                  )}
+                                </button>
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>

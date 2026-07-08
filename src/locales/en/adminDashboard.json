@@ -383,7 +383,14 @@
     "studentNotFound": "Student data not found.",
     "close": "Close",
     "exportSuccess": "Export downloaded successfully",
-    "exportFailed": "Export failed"
+    "exportFailed": "Export failed",
+    "actions": "Actions",
+    "markPresent": "Mark Present",
+    "markLate": "Mark Late",
+    "markAbsent": "Mark Absent",
+    "historicalSessionHint": "Historical session — editable",
+    "attendanceUpdated": "Attendance updated successfully",
+    "attendanceUpdateFailed": "Failed to update attendance"
   },
   "studentResults": {
     "title": "Students Results",
@@ -413,6 +420,20 @@
     "close": "Close",
     "exportSuccess": "Export downloaded successfully",
     "exportFailed": "Export failed"
+  },
+  "groups_page": {
+    "is_historical": "Historical group",
+    "is_historical_hint": "Enable to set a start date in the past for groups that already ran. Past sessions will be marked completed; register attendance manually.",
+    "historical_badge": "Historical",
+    "confirm_historical_title": "Create Historical Group",
+    "confirm_historical_message": "Past sessions will be marked as completed without attendance records. You can register attendance manually later.",
+    "confirm": "Confirm",
+    "backfill_summary": "{{completed}} past session(s) marked completed · {{today}} today · {{future}} upcoming",
+    "errors": {
+      "start_required": "Start date is required",
+      "historical_start_must_be_past": "Historical groups must have a start date on or before today",
+      "start_must_be_today_or_future": "Start date must be today or a future date"
+    }
   },
   "errors": {
     "fetch_failed": "Failed to fetch data",
