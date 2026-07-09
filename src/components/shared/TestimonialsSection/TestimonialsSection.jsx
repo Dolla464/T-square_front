@@ -80,10 +80,16 @@ function TestimonialCarousel({ items, containerRef, onScroll, prevLabel, nextLab
 /**
  * مكون التقييمات المشترك — TestimonialsSection
  */
-function TestimonialsSection({ className = "" }) {
+function TestimonialsSection({ className = "", items = null }) {
   const { t } = useTranslation("testimonials");
   const carouselRef = useRef(null);
-  const { testimonials, loading, error } = useTestimonials();
+  const useProvidedItems = items !== null;
+  const hookResult = useTestimonials({ enabled: !useProvidedItems });
+  const { testimonials: hookTestimonials, loading: hookLoading, error: hookError } = hookResult;
+
+  const testimonials = useProvidedItems ? items : hookTestimonials;
+  const loading = useProvidedItems ? false : hookLoading;
+  const error = useProvidedItems ? null : hookError;
 
   const handleScroll = (containerRef, direction) => {
     if (!containerRef.current) return;

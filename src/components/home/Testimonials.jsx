@@ -1,11 +1,7 @@
 import TestimonialsSection from "../shared/TestimonialsSection/TestimonialsSection";
 
-/**
- * مكون التقييمات الخاص بالصفحة الرئيسية
- * يستخدم المكون المشترك TestimonialsSection مباشرة
- */
-function Testimonials() {
-  return <TestimonialsSection />;
+function Testimonials({ items = [] }) {
+  return <TestimonialsSection items={items} />;
 }
 
 export default Testimonials;

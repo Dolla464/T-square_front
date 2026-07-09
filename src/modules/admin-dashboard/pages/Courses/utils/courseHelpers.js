@@ -7,7 +7,7 @@ export const createLesson = () => ({
   duration: "",
   video: "",
   sort_order: "",
-  provider: "",
+  provider: "upload",
 });
 
 export const createSection = () => ({

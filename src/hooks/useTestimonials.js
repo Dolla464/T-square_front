@@ -18,16 +18,22 @@ const clearLegacyCache = () => {
   LEGACY_CACHE_KEYS.forEach((key) => cache.clear(key));
 };
 
-export const useTestimonials = () => {
+export const useTestimonials = ({ enabled = true } = {}) => {
   const [testimonials, setTestimonials] = useState(() => {
+    if (!enabled) return [];
     clearLegacyCache();
     const cached = cache.get(CACHE_KEY);
     return cached ? toReviewList(cached) : [];
   });
-  const [loading, setLoading] = useState(() => !cache.get(CACHE_KEY));
+  const [loading, setLoading] = useState(() => enabled && !cache.get(CACHE_KEY));
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
+
     clearLegacyCache();
 
     const cached = cache.get(CACHE_KEY);
@@ -54,7 +60,7 @@ export const useTestimonials = () => {
     };
 
     fetchFromAPI();
-  }, []);
+  }, [enabled]);
 
   return { testimonials, loading, error };
 };

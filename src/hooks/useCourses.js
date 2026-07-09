@@ -33,6 +33,17 @@ export const useCourses = (type = "sub") => {
     };
   }, []);
 
+  const setInitialData = useCallback(({ courses: initialCourses, categories: initialCategories, pagination: initialPagination }) => {
+    setCourses(initialCourses ?? []);
+    setCategories(initialCategories ?? []);
+    setPagination(initialPagination ?? {
+      currentPage: 1,
+      lastPage: 1,
+      total: 0,
+    });
+    setLoading(false);
+  }, []);
+
   // فانكشن تجيب الداتا لأول مرة (كورسات وأقسام)
   const loadInitialData = useCallback(async (
     params = { per_page: 6, type },
@@ -114,5 +125,5 @@ export const useCourses = (type = "sub") => {
     }
   }, []);
 
-  return { courses, categories, loading, pagination, loadInitialData, filterCourses };
+  return { courses, categories, loading, pagination, loadInitialData, filterCourses, setInitialData };
 };

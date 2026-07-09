@@ -7,13 +7,12 @@ import Features from "../components/home/Features";
 import Courses from "../components/home/Courses";
 import Testimonials from "../components/home/Testimonials";
 import FAQ from "../components/home/FAQ";
-import { useHeroAndAboutData } from "../hooks/useDiscovery";
-import LoadingSpiner from "../LoadingSpiner";
+import { useHomePage } from "../hooks/useHomePage";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 
 const Home = () => {
-  const { heroImage, aboutImages, heroSettings, loading } = useHeroAndAboutData();
+  const { hero, about, discovery, courses, testimonials } = useHomePage();
   const { i18n } = useTranslation("common");
   const isArabic = i18n.language === "ar";
 
@@ -34,17 +33,16 @@ const Home = () => {
         <meta property="og:url" content={window.location.origin} />
         <meta property="og:type" content="website" />
       </Helmet>
-      <Hero heroImage={heroImage} heroSettings={heroSettings} />
+      <Hero heroImage={hero.image} heroSettings={hero.settings} />
       <CourseTicker />
-      <About aboutImages={aboutImages} />
+      <About aboutImages={about.images} />
       <Features />
-      <Courses />
-      <Discovery />
-      <Testimonials />
+      <Courses initialData={courses} />
+      <Discovery images={discovery.images} />
+      <Testimonials items={testimonials} />
       <FAQ />
     </>
   );
 };
 
 export default Home;
-
