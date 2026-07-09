@@ -27,23 +27,25 @@ const emptyState = {
   testimonials: [],
 };
 
+const toList = (value) => (Array.isArray(value) ? value : []);
+
 const normalizeHomeData = (data) => ({
   hero: {
     image: data?.hero?.image ?? null,
     settings: { ...emptyState.hero.settings, ...(data?.hero?.settings ?? {}) },
   },
-  about: { images: data?.about?.images ?? [] },
-  discovery: { images: data?.discovery?.images ?? [] },
+  about: { images: toList(data?.about?.images) },
+  discovery: { images: toList(data?.discovery?.images) },
   courses: {
-    categories: data?.courses?.categories ?? [],
-    items: data?.courses?.items ?? [],
+    categories: toList(data?.courses?.categories),
+    items: toList(data?.courses?.items),
     meta: {
       current_page: data?.courses?.meta?.current_page ?? 1,
       last_page: data?.courses?.meta?.last_page ?? 1,
       total: data?.courses?.meta?.total ?? 0,
     },
   },
-  testimonials: data?.testimonials ?? [],
+  testimonials: toList(data?.testimonials),
 });
 
 export const useHomePage = () => {
