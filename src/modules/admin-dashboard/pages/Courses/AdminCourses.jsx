@@ -316,16 +316,12 @@ function AdminCourses() {
           //   Link providers  → send URL string only
           let videoValue = null;
           if (isUploadProvider) {
-            // Upload: prefer server-returned path, then raw File (create mode)
             if (lesson.uploadedVideoUrl) {
               videoValue = lesson.uploadedVideoUrl;
-            } else if (lesson.videoFile instanceof File) {
-              videoValue = lesson.videoFile;
             } else if (
               lesson.video &&
               typeof lesson.video === "string" &&
               lesson.video.trim() &&
-              // Only include if it looks like a storage path (not a youtube/external URL)
               !lesson.video.includes("youtu") &&
               !lesson.video.includes("drive.google")
             ) {
@@ -353,7 +349,6 @@ function AdminCourses() {
       .filter(
         (preview) =>
           preview.title !== "" ||
-          preview.video_url instanceof File ||
           (typeof preview.video_url === "string" && preview.video_url !== ""),
       );
 
@@ -567,6 +562,10 @@ function AdminCourses() {
           handlePlayVideo={handlePlayVideo}
           isArabic={isArabic}
           t={t}
+          onDraftCreated={(draft) => {
+            const course = draft?.data ?? draft;
+            if (course?.id) setEditingItem(course);
+          }}
         />
       )}
 

@@ -25,12 +25,12 @@
   padding: 0.2em 0.35em;
 }
 
-.notifications-nav-dropdown-menu {
+.notifications-nav-dropdown .dropdown-menu {
   min-width: 320px;
   max-width: 360px;
 }
 
-.notifications-nav-dropdown-menu .dropdown-item:focus,
-.notifications-nav-dropdown-menu .dropdown-item:hover {
+.notifications-nav-dropdown .dropdown-menu .dropdown-item:focus,
+.notifications-nav-dropdown .dropdown-menu .dropdown-item:hover {
   background-color: rgba(197, 28, 36, 0.05);
 }

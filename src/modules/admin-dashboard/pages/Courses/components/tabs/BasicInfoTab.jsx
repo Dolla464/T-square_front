@@ -48,15 +48,27 @@ function BasicInfoTab({
         <label className="form-label fw-bold text-dark">
           {t("content.form.fields.course_title")}
         </label>
-        <input
-          type="text"
-          name="title"
-          className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-          placeholder={t("content.form.fields.title_placeholder")}
-          value={formData.title || ""}
-          onChange={handleChange}
-          disabled={isReadOnly}
-        />
+        {isReadOnly ? (
+          <p
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3 fw-bold text-dark mb-0 text-truncate"
+            title={formData.title || ""}
+          >
+            {formData.title || (
+              <span className="text-muted">
+                {isArabic ? "بدون عنوان" : "No title"}
+              </span>
+            )}
+          </p>
+        ) : (
+          <input
+            type="text"
+            name="title"
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+            placeholder={t("content.form.fields.title_placeholder")}
+            value={formData.title || ""}
+            onChange={handleChange}
+          />
+        )}
       </div>
 
       {/* Short description */}

@@ -5,19 +5,19 @@ import {
   toastSuccess,
   toastError,
 } from "../../../../components/shared/Toaster/toaster";
-import "./DashboardProfile.css";
+import "../../../student-dashboard/pages/DashboardProfile/DashboardProfile.css";
 import { showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import {
-  getStudentProfile,
-  updateStudentProfile,
-  updateStudentPassword,
-} from "../../services/dashboardService";
+  getInstructorProfile,
+  updateInstructorProfile,
+  updateInstructorPassword,
+} from "../../services/instructorProfileService";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import ProfilePasswordField from "../../../../components/shared/ProfilePasswordField/ProfilePasswordField";
 
-function DashboardProfile() {
-  const { t, i18n } = useTranslation("studentDashboard");
+function InstructorProfile() {
+  const { t, i18n } = useTranslation("adminDashboard");
   const { user, updateUser } = useAuth();
   const isArabic = i18n.language === "ar";
 
@@ -25,6 +25,11 @@ function DashboardProfile() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [gender, setGender] = useState("");
+  const [field, setField] = useState("");
+  const [bio, setBio] = useState("");
+  const [instaUrl, setInstaUrl] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [facebookUrl, setFacebookUrl] = useState("");
 
   const [currentPwd, setCurrentPwd] = useState("");
   const [newPwd, setNewPwd] = useState("");
@@ -34,56 +39,59 @@ function DashboardProfile() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
   const [pwdLoading, setPwdLoading] = useState(false);
-  const [profileError, setProfileError] = useState(null);
   const [imageError, setImageError] = useState(false);
 
-  // States for Lightbox functionality
   const [lightboxSlides, setLightboxSlides] = useState([]);
   const [lightboxIndex, setLightboxIndex] = useState(-1);
+
+  const markUpdated = () => setIsInfoUpdated(true);
 
   useEffect(() => {
     const loadProfile = async () => {
       setProfileLoading(true);
       try {
-        const res = await getStudentProfile();
+        const res = await getInstructorProfile();
         const profileData = res?.data?.data || res?.data;
 
         if (profileData) {
-          setFullName(profileData.student?.full_name || profileData.name || "");
+          const instructor = profileData.instructor || {};
+          setFullName(instructor.full_name || profileData.name || "");
           setEmail(profileData.email || "");
-          setPhone(profileData.student?.phone || "");
-          setGender(profileData.student?.gender || "");
+          setPhone(instructor.phone || "");
+          setGender(instructor.gender === "not_set" ? "" : instructor.gender || "");
+          setField(instructor.field || "");
+          setBio(instructor.bio || "");
+          setInstaUrl(instructor.insta_url || "");
+          setLinkedinUrl(instructor.linkedin_url || "");
+          setFacebookUrl(instructor.facebook_url || "");
 
           if (updateUser) {
             updateUser(profileData);
           }
         }
       } catch (err) {
-        setProfileError(err);
+        console.error("Failed to load instructor profile:", err);
       } finally {
         setProfileLoading(false);
       }
     };
     loadProfile();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // بناء الـ FormData يدوياً لضمان الـ Binary
     const formData = new FormData();
     formData.append("avatar", file);
 
     setSaveLoading(true);
     try {
-      // نرجع نستخدم الـ Service اللي معاه الـ Interceptors والـ Token جاهز
-      const res = await updateStudentProfile(formData);
+      const res = await updateInstructorProfile(formData);
       const updatedData = res?.data?.data || res?.data;
 
       setImageError(false);
-
       toastSuccess(
         isArabic ? "تم تحديث الصورة بنجاح" : "Photo updated successfully",
       );
@@ -93,7 +101,6 @@ function DashboardProfile() {
       }
     } catch (error) {
       console.error("Upload Error:", error);
-      // لو لسه 401، تأكد إن اليوزر عامل Login والتوكن سليم
       toastError(isArabic ? "فشل رفع الصورة" : "Failed to upload photo");
     } finally {
       setSaveLoading(false);
@@ -101,15 +108,20 @@ function DashboardProfile() {
     }
   };
 
-  const initials = (typeof fullName === "string" && fullName.trim())
-    ? fullName
-        .split(" ")
-        .filter(Boolean) // تجاهل المسافات الزائدة
-        .map((w) => w[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "ST";
+  const initials =
+    typeof fullName === "string" && fullName.trim()
+      ? fullName
+          .split(" ")
+          .filter(Boolean)
+          .map((w) => w[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
+      : "IN";
+
+  const avatarUrl = user?.instructor?.avatar;
+  const hasAvatar =
+    avatarUrl && !avatarUrl.includes("default-instructor.png") && !imageError;
 
   const handleUpdateInformation = async () => {
     const ok = await showConfirmCustom({
@@ -123,10 +135,15 @@ function DashboardProfile() {
 
     setSaveLoading(true);
     try {
-      const res = await updateStudentProfile({
+      const res = await updateInstructorProfile({
         name: fullName,
         full_name: fullName,
         gender,
+        field,
+        bio,
+        insta_url: instaUrl,
+        linkedin_url: linkedinUrl,
+        facebook_url: facebookUrl,
       });
       const updatedData = res?.data?.data || res?.data;
       toastSuccess(isArabic ? "تم التحديث بنجاح" : "Updated successfully");
@@ -143,7 +160,7 @@ function DashboardProfile() {
     e.preventDefault();
     setPwdLoading(true);
     try {
-      await updateStudentPassword({
+      await updateInstructorPassword({
         current_password: currentPwd,
         password: newPwd,
         password_confirmation: confirmPwd,
@@ -167,8 +184,6 @@ function DashboardProfile() {
     );
   }
 
-  // console.log("Full User Object:", user);
-  // console.log("Is Verified Type:", typeof user?.is_verified);
   return (
     <div className="dash-profile">
       <input
@@ -189,11 +204,11 @@ function DashboardProfile() {
               <div
                 className="profile-avatar position-relative overflow-hidden"
                 style={{
-                  cursor: user?.student?.avatar && !imageError ? "pointer" : "default",
+                  cursor: hasAvatar ? "pointer" : "default",
                 }}
                 onClick={() => {
-                  if (user?.student?.avatar && !imageError) {
-                    setLightboxSlides([{ src: user.student.avatar }]);
+                  if (hasAvatar) {
+                    setLightboxSlides([{ src: avatarUrl }]);
                     setLightboxIndex(0);
                   }
                 }}
@@ -215,18 +230,13 @@ function DashboardProfile() {
                   </div>
                 )}
 
-                {/* 
-    المنطق الجديد: 
-    لو مفيش avatar أو لو الصورة حاولت تحمل وفشلت (imageError)، اعرض الـ initials 
-  */}
-                {user?.student?.avatar && !imageError ? (
+                {hasAvatar ? (
                   <>
                     <img
-                      src={user.student.avatar}
+                      src={avatarUrl}
                       alt="avatar"
-                      onError={() => setImageError(true)} // لو الصورة مكسورة، اقلب على الـ initials
+                      onError={() => setImageError(true)}
                     />
-                    {/* Hover Overlay */}
                     <div
                       className="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
                       style={{
@@ -238,7 +248,10 @@ function DashboardProfile() {
                       onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
                       onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
                     >
-                      <i className="bi bi-eye-fill text-white" style={{ fontSize: "1.1rem" }}></i>
+                      <i
+                        className="bi bi-eye-fill text-white"
+                        style={{ fontSize: "1.1rem" }}
+                      ></i>
                     </div>
                   </>
                 ) : (
@@ -247,7 +260,7 @@ function DashboardProfile() {
               </div>
               <div>
                 <div className="profile-name">
-                  {user?.student?.full_name || user?.name}
+                  {user?.instructor?.full_name || user?.name}
                 </div>
                 <div className="profile-email-sub">{user?.email}</div>
               </div>
@@ -267,7 +280,7 @@ function DashboardProfile() {
                   value={fullName}
                   onChange={(e) => {
                     setFullName(e.target.value);
-                    setIsInfoUpdated(true);
+                    markUpdated();
                   }}
                   className="profile-input"
                 />
@@ -295,13 +308,75 @@ function DashboardProfile() {
                   value={gender || ""}
                   onChange={(e) => {
                     setGender(e.target.value);
-                    setIsInfoUpdated(true);
+                    markUpdated();
                   }}
                 >
                   <option value="">{t("profile_page.select_gender")}</option>
                   <option value="male">{t("profile_page.male")}</option>
                   <option value="female">{t("profile_page.female")}</option>
                 </select>
+              </div>
+              <div className="profile-field">
+                <label>{t("profile_page.field")}</label>
+                <input
+                  value={field}
+                  onChange={(e) => {
+                    setField(e.target.value);
+                    markUpdated();
+                  }}
+                  className="profile-input"
+                />
+              </div>
+              <div className="profile-field">
+                <label>{t("profile_page.bio")}</label>
+                <textarea
+                  value={bio}
+                  onChange={(e) => {
+                    setBio(e.target.value);
+                    markUpdated();
+                  }}
+                  className="profile-input"
+                  rows={4}
+                />
+              </div>
+              <div className="profile-field">
+                <label>{t("profile_page.insta_url")}</label>
+                <input
+                  type="url"
+                  value={instaUrl}
+                  onChange={(e) => {
+                    setInstaUrl(e.target.value);
+                    markUpdated();
+                  }}
+                  className="profile-input"
+                  placeholder="https://instagram.com/..."
+                />
+              </div>
+              <div className="profile-field">
+                <label>{t("profile_page.linkedin_url")}</label>
+                <input
+                  type="url"
+                  value={linkedinUrl}
+                  onChange={(e) => {
+                    setLinkedinUrl(e.target.value);
+                    markUpdated();
+                  }}
+                  className="profile-input"
+                  placeholder="https://linkedin.com/in/..."
+                />
+              </div>
+              <div className="profile-field">
+                <label>{t("profile_page.facebook_url")}</label>
+                <input
+                  type="url"
+                  value={facebookUrl}
+                  onChange={(e) => {
+                    setFacebookUrl(e.target.value);
+                    markUpdated();
+                  }}
+                  className="profile-input"
+                  placeholder="https://facebook.com/..."
+                />
               </div>
               {isInfoUpdated && (
                 <div className="profile-field-actions">
@@ -375,7 +450,6 @@ function DashboardProfile() {
         </div>
       </div>
 
-      {/* ── سلايد شو عارض الصور التفاعلي (Lightbox Component) ── */}
       <Lightbox
         open={lightboxIndex >= 0}
         index={lightboxIndex}
@@ -387,4 +461,4 @@ function DashboardProfile() {
   );
 }
 
-export default DashboardProfile;
+export default InstructorProfile;

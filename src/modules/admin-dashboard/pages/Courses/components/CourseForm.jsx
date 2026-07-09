@@ -29,12 +29,17 @@ function CourseForm({
   handleFileChange,
   handleSectionTitleChange,
   handleLessonChange,
-  handleVideoUpload,
+  handleVideoFileReady,
+  handleVideoUploadComplete,
+  handleVideoUploadError,
+  handleVideoUploadStateChange,
   handleCancelUpload,
   removeLesson,
   addSection,
   removeSection,
   chunkUploads,
+  ensureCourseDraft,
+  getAbortController,
   // Tab navigation
   activeTab,
   setActiveTab,
@@ -51,6 +56,7 @@ function CourseForm({
   // i18n
   isArabic,
   t,
+  onDraftCreated,
 }) {
   // 3. استدعاء الـ Hook محلياً للطوارئ في حال لم يرسل الأب البيانات
   const { treeCategories: hookTreeCategories, getCategoriesTree } =
@@ -66,16 +72,15 @@ function CourseForm({
     }
   }, [propsTreeCategories, getCategoriesTree]);
 
-
   return (
     <div className="ac-form-container">
       {/* Header: back button + save/publish actions */}
-      <div className="ac-form-header d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
-        <button className="ac-back-btn" onClick={handleBack}>
+      <div className="ac-form-header d-flex justify-content-between align-items-center flex-nowrap gap-3 mb-4">
+        <button className="ac-back-btn flex-shrink-0" onClick={handleBack}>
           <i
-            className={`bi text-secondary ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
+            className={`bi text-secondary flex-shrink-0 ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
           ></i>
-          <span className="ms-2 me-2 fs-5 fw-bold text-dark">
+          <span className="ms-2 me-2 fs-5 fw-bold text-dark text-nowrap">
             {isReadOnly
               ? t("content.view_course")
               : editingItem
@@ -85,7 +90,7 @@ function CourseForm({
         </button>
 
         {!viewingItem && (
-          <div className="ac-form-actions d-flex gap-2 w-100 w-sm-auto justify-content-sm-end">
+          <div className="ac-form-actions d-flex gap-2 flex-shrink-0 ms-right-3">
             {editingItem ? (
               <button
                 className="btn btn-danger px-4 ac-publish-btn"
@@ -96,16 +101,26 @@ function CourseForm({
             ) : (
               <>
                 <button
-                  className="btn ac-draft-btn border px-4"
-                  onClick={(e) => handleSubmitWrapper(e, "draft")}
-                >
-                  {isArabic ? "حفظ كمسودة" : "Save as Draft"}
-                </button>
-                <button
-                  className="btn btn-danger px-4 ac-publish-btn"
+                  className="btn btn-danger px-2 px-sm-4 py-2 ac-publish-btn text-nowrap"
                   onClick={(e) => handleSubmitWrapper(e, "published")}
                 >
-                  {isArabic ? "نشر الكورس" : "Publish Course"}
+                  <span className="d-none d-sm-inline">
+                    {isArabic ? "نشر الكورس" : "Publish Course"}
+                  </span>
+                  <span className="d-sm-none">
+                    {isArabic ? "نشر" : "Publish"}
+                  </span>
+                </button>
+                <button
+                  className="btn ac-draft-btn border px-2 px-sm-4 py-2 text-nowrap"
+                  onClick={(e) => handleSubmitWrapper(e, "draft")}
+                >
+                  <span className="d-none d-sm-inline">
+                    {isArabic ? "حفظ كمسودة" : "Save as Draft"}
+                  </span>
+                  <span className="d-sm-none">
+                    {isArabic ? "مسودة" : "Draft"}
+                  </span>
                 </button>
               </>
             )}
@@ -178,7 +193,10 @@ function CourseForm({
             curriculum={formData.curriculum}
             handleSectionTitleChange={handleSectionTitleChange}
             handleLessonChange={handleLessonChange}
-            handleVideoUpload={handleVideoUpload}
+            handleVideoFileReady={handleVideoFileReady}
+            handleVideoUploadComplete={handleVideoUploadComplete}
+            handleVideoUploadError={handleVideoUploadError}
+            handleVideoUploadStateChange={handleVideoUploadStateChange}
             handleCancelUpload={handleCancelUpload}
             removeLesson={removeLesson}
             addSection={addSection}
@@ -186,6 +204,10 @@ function CourseForm({
             handlePlayVideo={handlePlayVideo}
             chunkUploads={chunkUploads}
             courseId={editingItem?.id ?? null}
+            formData={formData}
+            ensureCourseDraft={ensureCourseDraft}
+            getAbortController={getAbortController}
+            onDraftCreated={onDraftCreated}
             isReadOnly={isReadOnly}
             isArabic={isArabic}
             t={t}

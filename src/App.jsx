@@ -180,6 +180,10 @@ const InstructorStudentResults = lazy(
   () =>
     import("./modules/instructor-dashboard/pages/StudentResults/InstructorStudentResults"),
 );
+const InstructorProfile = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/Profile/InstructorProfile"),
+);
 const ReceptionistLayout = lazy(
   () =>
     import("./modules/receptionist-dashboard/layouts/ReceptionistLayout"),
@@ -459,6 +463,7 @@ function AppContent() {
                       path="notifications"
                       element={<NotificationsPage />}
                     />
+                    <Route path="profile" element={<InstructorProfile />} />
                   </Route>
                 </Route>
 

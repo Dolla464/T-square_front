@@ -1,15 +1,24 @@
+import VideoUppyUploader from "../VideoUppyUploader";
+
 function CurriculumTab({
   curriculum,
   handleSectionTitleChange,
   handleLessonChange,
-  handleVideoUpload,
+  handleVideoFileReady,
+  handleVideoUploadComplete,
+  handleVideoUploadError,
+  handleVideoUploadStateChange,
   handleCancelUpload,
   removeLesson,
   addSection,
   removeSection,
   handlePlayVideo,
-  chunkUploads,   // { [lessonId]: { progress, status, error } }
-  courseId,       // null when creating a new course
+  chunkUploads,
+  courseId,
+  formData,
+  ensureCourseDraft,
+  getAbortController,
+  onDraftCreated,
   isReadOnly,
   isArabic,
   t,
@@ -33,6 +42,15 @@ function CurriculumTab({
     }
     return index;
   };
+
+  const isPersistedUploadVideo = (lesson) =>
+    !!lesson.uploadedVideoUrl ||
+    (typeof lesson.video === "string" &&
+      lesson.video.trim() !== "" &&
+      (lesson.video.startsWith("http") ||
+        lesson.video.startsWith("/") ||
+        lesson.video.includes("courses/") ||
+        lesson.video.includes("storage/")));
 
   const getYoutubeId = (url) => {
     if (!url || typeof url !== "string") return null;
@@ -109,12 +127,14 @@ function CurriculumTab({
           justify-content: center;
           gap: 12px;
           opacity: 0;
+          pointer-events: none;
           transition: opacity 0.3s ease;
           cursor: pointer;
           z-index: 5;
         }
         .video-preview-card:hover .video-preview-overlay {
           opacity: 1;
+          pointer-events: auto;
         }
       `}</style>
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -162,19 +182,23 @@ function CurriculumTab({
               {section.lessons.map((lesson) => {
                 const uploadState = chunkUploads?.[lesson.id] ?? {};
                 const isUploading =
-                  lesson.isUploading || uploadState.status === "uploading";
-                const uploadProgress =
-                  uploadState.progress ?? 0;
-                const uploadError =
-                  lesson.uploadError || uploadState.error;
+                  lesson.isUploading ||
+                  uploadState.status === "uploading" ||
+                  uploadState.status === "hashing";
+                const uploadProgress = uploadState.progress ?? 0;
+                const uploadError = lesson.uploadError || uploadState.error;
                 const isComplete =
                   uploadState.status === "complete" || !!lesson.uploadedVideoUrl;
+                const previewIndex = getPreviewIndex(section.id, lesson.id);
 
                 const isYoutube = lesson.provider?.toLowerCase() === "youtube";
                 const isVimeo = lesson.provider?.toLowerCase() === "vimeo";
                 const isExternal = lesson.provider?.toLowerCase() === "external";
                 const isUpload = lesson.provider?.toLowerCase() === "upload" || lesson.provider?.toLowerCase() === "html5" || (!lesson.provider);
                 const isLinkProvider = isYoutube || isVimeo || isExternal;
+                const hasPersistedVideo = isUpload
+                  ? isPersistedUploadVideo(lesson)
+                  : !!lesson.video;
 
                 return (
                   <div
@@ -339,88 +363,73 @@ function CurriculumTab({
                       {/* Right – video preview card */}
                       <div className="col-lg-4">
                         <div className="d-flex flex-column gap-2 h-100 justify-content-center">
-                          <div className="video-preview-card">
-                            {/* 1. UPLOADING PROGRESS OVERLAY */}
-                            {!isReadOnly && isUploading && (
-                              <div
-                                className="position-absolute d-flex flex-column align-items-center justify-content-center px-4"
-                                style={{
-                                  top: 0,
-                                  left: 0,
-                                  width: "100%",
-                                  height: "100%",
-                                  zIndex: 6,
-                                  background: "rgba(15, 23, 42, 0.9)",
-                                  backdropFilter: "blur(4px)",
-                                  borderRadius: "10px"
-                                }}
-                              >
-                                <div className="d-flex align-items-center gap-2 mb-3">
-                                  <div
-                                    className="spinner-border text-danger spinner-border-sm"
-                                    role="status"
-                                    style={{ width: "16px", height: "16px", borderWidth: "2px" }}
-                                  />
-                                  <span className="small fw-bold text-white tracking-wider">
-                                    {isArabic ? "جاري الرفع للستوريج..." : "Uploading to Storage..."}
-                                  </span>
-                                </div>
-                                <div className="progress w-100 mb-2" style={{ height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "3px" }}>
-                                  <div
-                                    className="progress-bar bg-danger progress-bar-striped progress-bar-animated"
-                                    role="progressbar"
-                                    style={{ width: `${uploadProgress}%`, borderRadius: "3px" }}
-                                    aria-valuenow={uploadProgress}
-                                    aria-valuemin="0"
-                                    aria-valuemax="100"
-                                  />
-                                </div>
-                                <div className="d-flex align-items-center justify-content-between w-100">
-                                  <span className="small text-white-50 fw-medium" style={{ fontSize: "0.75rem" }}>
-                                    {uploadProgress}%
-                                  </span>
-                                  <button
-                                    type="button"
-                                    className="btn btn-link text-white-50 p-0 border-0 text-decoration-none d-flex align-items-center gap-1"
-                                    style={{ fontSize: "0.75rem" }}
-                                    onClick={() => handleCancelUpload(section.id, lesson.id)}
-                                  >
-                                    <i className="bi bi-x-circle-fill fs-6 text-white-50"></i>
-                                    {isArabic ? "إلغاء" : "Cancel"}
-                                  </button>
-                                </div>
+                          <div className="video-preview-card position-relative">
+                            {/* Hashing overlay (before Uppy progress bar dominates) */}
+                            {!isReadOnly && uploadState.status === "hashing" && (
+                              <div className="video-uppy-overlay d-flex flex-column align-items-center justify-content-center px-4">
+                                <div className="spinner-border text-danger spinner-border-sm mb-2" role="status" />
+                                <span className="small fw-bold text-white">
+                                  {isArabic ? "جاري حساب التحقق..." : "Computing checksum..."}
+                                </span>
+                                <span className="small text-white-50">{uploadProgress}%</span>
                               </div>
                             )}
 
-                            {/* 2. PREVIEW CONTENT */}
-                            {(() => {
-                              const hasVideo = isUpload
-                                ? (!!lesson.uploadedVideoUrl || !!lesson.blobUrl || !!lesson.video)
-                                : (!!lesson.video);
+                            {/* Retry notice */}
+                            {!isReadOnly && uploadState.retryMessage && (
+                              <div
+                                className="position-absolute top-0 start-0 w-100 px-2 py-1 small text-warning text-center"
+                                style={{ zIndex: 7, background: "rgba(0,0,0,0.6)", fontSize: "0.7rem" }}
+                              >
+                                {uploadState.retryMessage}
+                              </div>
+                            )}
 
-                              if (!hasVideo) {
-                                // EMPTY STATE / DROPZONE
+                            {/* PREVIEW / UPLOADER CONTENT */}
+                            {(() => {
+                              const showUppyUploader =
+                                isUpload && !isReadOnly && !hasPersistedVideo;
+
+                              if (showUppyUploader) {
                                 return (
-                                  <label
-                                    htmlFor={`video-input-${lesson.id}`}
-                                    className="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center px-3 mb-0"
+                                  <VideoUppyUploader
+                                    key={`uppy-${lesson.id}`}
+                                    lessonKey={lesson.id}
+                                    courseId={courseId}
+                                    previewIndex={previewIndex}
+                                    formData={formData}
+                                    isArabic={isArabic}
+                                    ensureCourseDraft={ensureCourseDraft}
+                                    onDraftCreated={onDraftCreated}
+                                    getAbortController={getAbortController}
+                                    onFileReady={(data) =>
+                                      handleVideoFileReady(section.id, lesson.id, data)
+                                    }
+                                    onUploadComplete={(response) =>
+                                      handleVideoUploadComplete(section.id, lesson.id, response)
+                                    }
+                                    onUploadError={(msg) =>
+                                      handleVideoUploadError(section.id, lesson.id, msg)
+                                    }
+                                    onUploadStateChange={(state) =>
+                                      handleVideoUploadStateChange(lesson.id, state)
+                                    }
+                                  />
+                                );
+                              }
+
+                              if (!hasPersistedVideo) {
+                                return (
+                                  <div
+                                    className="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center px-3"
                                     style={{
-                                      cursor: !isReadOnly ? "pointer" : "default",
-                                      background: "linear-gradient(135deg, #1e293b, #0f172a)"
+                                      background: "linear-gradient(135deg, #1e293b, #0f172a)",
                                     }}
                                   >
-                                    <div className="rounded-circle d-flex align-items-center justify-content-center mb-2" style={{ width: 48, height: 48, background: "rgba(255,255,255,0.06)" }}>
-                                      <i className="bi bi-cloud-arrow-up fs-4 text-white-50"></i>
-                                    </div>
-                                    <span className="small fw-medium text-white" style={{ fontSize: "0.82rem" }}>
-                                      {isArabic ? "رفع ملف فيديو" : "Upload Video File"}
+                                    <span className="small text-white-50">
+                                      {isArabic ? "لا يوجد فيديو" : "No video"}
                                     </span>
-                                    {!isReadOnly && (
-                                      <span className="text-white-50 mt-1" style={{ fontSize: "0.68rem" }}>
-                                        {isArabic ? "اضغط للاختيار" : "Click to browse"}
-                                      </span>
-                                    )}
-                                  </label>
+                                  </div>
                                 );
                               }
 
@@ -431,14 +440,30 @@ function CurriculumTab({
 
                               // Only allow play/preview if uploaded successfully, local blobUrl is ready, or external link is valid, or previously saved
                               const canPlay = isUpload
-                                ? ((!!lesson.uploadedVideoUrl || !!lesson.blobUrl || !!lesson.video) && !isUploading)
+                                ? (hasPersistedVideo && !isUploading)
                                 : isLinkProvider
                                   ? (typeof lesson.video === "string" && lesson.video.startsWith("http"))
                                   : false;
 
                               return (
                                 <div className="w-100 h-100 position-relative d-flex align-items-center justify-content-center">
-                                  {/* Red Hover Overlay (Matches settings page image overlays 100%) */}
+                                  {/* Always-visible change video button (edit mode) */}
+                                  {!isReadOnly && !isUploading && (
+                                    <button
+                                      type="button"
+                                      className="video-change-btn"
+                                      title={isArabic ? "تغيير الفيديو" : "Change video"}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleCancelUpload(section.id, lesson.id);
+                                      }}
+                                    >
+                                      <i className="bi bi-cloud-arrow-up-fill" />
+                                      {isArabic ? "تغيير" : "Change"}
+                                    </button>
+                                  )}
+
+                                  {/* Red Hover Overlay (play + delete) */}
                                   <div className="video-preview-overlay">
                                     {/* Play preview button */}
                                     {canPlay && (
@@ -461,20 +486,6 @@ function CurriculumTab({
                                       >
                                         <i className="bi bi-eye-fill text-dark fs-5"></i>
                                       </button>
-                                    )}
-
-                                    {/* Update button */}
-                                    {!isReadOnly && !isUploading && (
-                                      <label
-                                        htmlFor={`video-input-${lesson.id}`}
-                                        className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0 mb-0"
-                                        style={{ width: "42px", height: "42px", transition: "transform 0.2s ease", cursor: "pointer" }}
-                                        title={isArabic ? "تغيير الفيديو" : "Change Video"}
-                                        onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.15)"}
-                                        onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
-                                      >
-                                        <i className="bi bi-pencil-fill text-dark fs-5"></i>
-                                      </label>
                                     )}
 
                                     {/* Delete/clear/remove button */}
@@ -567,7 +578,7 @@ function CurriculumTab({
                           </div>
 
                           {/* Metadata row below the video card */}
-                          {((isUpload ? (!!lesson.uploadedVideoUrl || !!lesson.video) : !!lesson.video) && !isUploading) && (
+                          {(hasPersistedVideo && !isUploading) && (
                             <div className="d-flex align-items-center justify-content-between mt-1 px-1 text-muted" style={{ fontSize: "0.75rem" }}>
                               <span className="fw-semibold text-secondary">
                                 {isYoutube ? (isArabic ? "يوتيوب" : "YouTube") : isVimeo ? "Vimeo" : isExternal ? (isArabic ? "رابط خارجي" : "External") : (isArabic ? "مرفوع" : "Uploaded")}
@@ -580,47 +591,11 @@ function CurriculumTab({
                             </div>
                           )}
 
-                          {/* Hidden file uploader input — keep mounted so label[for] stays valid */}
-                          {!isReadOnly && (
-                            <input
-                              type="file"
-                              accept="video/*"
-                              id={`video-input-${lesson.id}`}
-                              hidden
-                              disabled={isUploading}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (!file) return;
-                                const previewIndex = getPreviewIndex(
-                                  section.id,
-                                  lesson.id,
-                                );
-                                handleVideoUpload(
-                                  section.id,
-                                  lesson.id,
-                                  file,
-                                  courseId ?? null,
-                                  previewIndex,
-                                );
-                                e.target.value = "";
-                              }}
-                            />
-                          )}
-
                           {/* Upload error notice */}
                           {!isReadOnly && uploadError && (
                             <div className="alert alert-danger py-1 px-2 mb-0 small rounded-3">
                               <i className="bi bi-exclamation-triangle me-1"></i>
                               {uploadError}
-                            </div>
-                          )}
-
-                          {/* Hint for create mode (no courseId) */}
-                          {!isReadOnly && !courseId && lesson.video && !isComplete && (
-                            <div className="small text-muted px-1 text-center" style={{ fontSize: "0.75rem" }}>
-                              {isArabic
-                                ? "سيتم رفع الفيديو عند حفظ الكورس"
-                                : "Video will upload on course save"}
                             </div>
                           )}
                         </div>

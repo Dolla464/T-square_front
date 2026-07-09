@@ -39,7 +39,8 @@ export const getAvailableStudents = (id) =>
 // إنشاء مجموعة دراسية جديدة
 // Required payload fields: group_name, course_id, instructor_id,
 //   start_date (YYYY-MM-DD), schedules[]
-// Optional payload fields: status, student_ids[], student_statuses{}
+// Optional payload fields: status, is_historical (create only),
+//   student_ids[], student_statuses{}
 // ----------------------------------------------------------------------------
 export const createLearningGroup = (payload) =>
   axiosClient
@@ -108,6 +109,18 @@ export const getAttendanceReport = (id, sessionId = null) => {
 export const getSessionAttendance = (groupId, sessionId) =>
   axiosClient
     .get(`/admin/learning-groups/${groupId}/sessions/${sessionId}/attendance`)
+    .then((res) => res.data);
+
+// ----------------------------------------------------------------------------
+// Mark attendance for a student on a historical session (admin only)
+// ----------------------------------------------------------------------------
+export const markSessionAttendance = (groupId, sessionId, studentId, status, notes = null) =>
+  axiosClient
+    .post(`/admin/learning-groups/${groupId}/sessions/${sessionId}/attendance/mark`, {
+      student_id: studentId,
+      status,
+      ...(notes ? { notes } : {}),
+    })
     .then((res) => res.data);
 
 // ----------------------------------------------------------------------------

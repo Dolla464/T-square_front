@@ -20,7 +20,33 @@
     "attendance": "الحضور",
     "schedule": "جدول المواعيد",
     "studentAttendance": "حضور الطلاب",
-    "studentResults": "نتائج الطلاب"
+    "studentResults": "نتائج الطلاب",
+    "profile": "الملف الشخصي"
+  },
+  "profile_page": {
+    "title": "الملف الشخصي والإعدادات",
+    "personal_info": "المعلومات الشخصية",
+    "edit_photo": "تعديل الصورة",
+    "full_name": "الاسم الكامل",
+    "email_address": "البريد الإلكتروني",
+    "phone_number": "رقم الهاتف",
+    "change_password": "تغيير كلمة المرور",
+    "current_password": "كلمة المرور الحالية",
+    "new_password": "كلمة المرور الجديدة",
+    "confirm_new_password": "تأكيد كلمة المرور الجديدة",
+    "update_password": "تحديث كلمة المرور",
+    "account_settings": "إعدادات الحساب",
+    "language": "اللغة",
+    "gender": "الجنس",
+    "select_gender": "اختر الجنس",
+    "male": "ذكر",
+    "female": "أنثى",
+    "update_data": "تحديث البيانات",
+    "field": "التخصص / المجال",
+    "bio": "نبذة تعريفية",
+    "insta_url": "رابط Instagram",
+    "linkedin_url": "رابط LinkedIn",
+    "facebook_url": "رابط Facebook"
   },
   "topbar": {
     "search_placeholder": "ابحث عن كورسات، طلاب، طلبات...",
@@ -357,7 +383,14 @@
     "studentNotFound": "لم يتم العثور على بيانات الطالب.",
     "close": "إغلاق",
     "exportSuccess": "تم تنزيل الملف بنجاح",
-    "exportFailed": "فشل التصدير"
+    "exportFailed": "فشل التصدير",
+    "actions": "إجراءات",
+    "markPresent": "تحضير",
+    "markLate": "متأخر",
+    "markAbsent": "غائب",
+    "historicalSessionHint": "جلسة سابقة — قابلة للتعديل",
+    "attendanceUpdated": "تم تحديث الحضور بنجاح",
+    "attendanceUpdateFailed": "فشل تحديث الحضور"
   },
   "studentResults": {
     "title": "نتائج الطلاب",
@@ -387,6 +420,20 @@
     "close": "إغلاق",
     "exportSuccess": "تم تنزيل الملف بنجاح",
     "exportFailed": "فشل التصدير"
+  },
+  "groups_page": {
+    "is_historical": "مجموعة تاريخية",
+    "is_historical_hint": "فعّل هذا الخيار لتعيين تاريخ بداية في الماضي لمجموعة انتهت أو بدأت سابقاً. سيُعلَّم الحضور للجلسات القديمة كمكتمل — سجّل الحضور يدوياً لاحقاً.",
+    "historical_badge": "تاريخية",
+    "confirm_historical_title": "إنشاء مجموعة تاريخية",
+    "confirm_historical_message": "ستُعلَّم الجلسات القديمة كمكتملة بدون سجلات حضور. يمكنك تسجيل الحضور يدوياً لاحقاً.",
+    "confirm": "تأكيد",
+    "backfill_summary": "{{completed}} جلسة قديمة مكتملة · {{today}} اليوم · {{future}} قادمة",
+    "errors": {
+      "start_required": "تاريخ البدء مطلوب",
+      "historical_start_must_be_past": "المجموعة التاريخية يجب أن يكون تاريخ بدئها اليوم أو قبله",
+      "start_must_be_today_or_future": "تاريخ البدء يجب أن يكون اليوم أو تاريخاً لاحقاً"
+    }
   },
   "errors": {
     "fetch_failed": "فشل جلب البيانات",

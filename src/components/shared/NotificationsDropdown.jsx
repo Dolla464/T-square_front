@@ -72,7 +72,6 @@ function NotificationsDropdown({ Tbtn = "" }) {
       onToggle={handleToggle}
       className={`fw-bold notifications-nav-dropdown ${Tbtn}`}
       menuVariant="light"
-      menuClassName="notifications-nav-dropdown-menu"
     >
         <div className="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
           <strong>{t("notifications.title")}</strong>

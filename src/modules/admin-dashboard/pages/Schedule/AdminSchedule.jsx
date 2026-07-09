@@ -119,62 +119,59 @@ function ScheduleFilters({
           )}
         </div>
 
-        {/* Instructor */}
-        <div className="w-100 w-md-auto">
-          <label className="fw-semibold small text-muted mb-1 d-block">
-            <i className="bi bi-person-badge me-1"></i>Instructor
-          </label>
-          <select
-            className={`w-100 w-md-auto ${selectClass(!!filters.instructor_id)}`}
-            value={filters.instructor_id}
-            onChange={(e) => updateFilter("instructor_id", e.target.value)}
-            disabled={instructorsLoading}
-            style={{ minWidth: "11rem", flex: "0 0 auto" }}
-          >
-            <option value="">All Instructors</option>
-            {instructors.map((inst) => (
-              <option key={inst.id} value={inst.id}>
-                {inst.full_name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Instructor / Status / Per Page */}
+        <div className="schedule-select-filters w-100 w-lg-auto">
+          <div className="schedule-filter-field schedule-filter-field--instructor">
+            <label className="schedule-filter-label fw-semibold small text-muted mb-1 d-block">
+              <i className="bi bi-person-badge me-1"></i>Instructor
+            </label>
+            <select
+              className={`schedule-filter-control w-100 ${selectClass(!!filters.instructor_id)}`}
+              value={filters.instructor_id}
+              onChange={(e) => updateFilter("instructor_id", e.target.value)}
+              disabled={instructorsLoading}
+            >
+              <option value="">All Instructors</option>
+              {instructors.map((inst) => (
+                <option key={inst.id} value={inst.id}>
+                  {inst.full_name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {/* Status */}
-        <div className="w-100 w-md-auto">
-          <label className="fw-semibold small text-muted mb-1 d-block">
-            <i className="bi bi-funnel me-1"></i>Status
-          </label>
-          <select
-            className={`w-100 w-md-auto ${selectClass(!!filters.status)}`}
-            value={filters.status}
-            onChange={(e) => updateFilter("status", e.target.value)}
-            style={{ minWidth: "11rem", flex: "0 0 auto" }}
-          >
-            <option value="">All Statuses</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
+          <div className="schedule-filter-field schedule-filter-field--status">
+            <label className="schedule-filter-label fw-semibold small text-muted mb-1 d-block">
+              <i className="bi bi-funnel me-1"></i>Status
+            </label>
+            <select
+              className={`schedule-filter-control w-100 ${selectClass(!!filters.status)}`}
+              value={filters.status}
+              onChange={(e) => updateFilter("status", e.target.value)}
+            >
+              <option value="">All Statuses</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
 
-        {/* Per page */}
-        <div className="w-100 w-md-auto">
-          <label className="fw-semibold small text-muted mb-1 d-block">
-            <i className="bi bi-list-ol me-1"></i>Per Page
-          </label>
-          <select
-            className={`w-100 w-md-auto ${selectClass(filters.per_page !== 15)}`}
-            value={filters.per_page}
-            onChange={(e) => updateFilter("per_page", Number(e.target.value))}
-            style={{ minWidth: "11rem", flex: "0 0 auto" }}
-          >
-            <option value={10}>10</option>
-            <option value={15}>15</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-          </select>
+          <div className="schedule-filter-field schedule-filter-field--per-page">
+            <label className="schedule-filter-label fw-semibold small text-muted mb-1 d-block">
+              <i className="bi bi-list-ol me-1"></i>Per Page
+            </label>
+            <select
+              className={`schedule-filter-control w-100 ${selectClass(filters.per_page !== 15)}`}
+              value={filters.per_page}
+              onChange={(e) => updateFilter("per_page", Number(e.target.value))}
+            >
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
         </div>
 
         {/* Reset */}

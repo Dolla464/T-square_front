@@ -238,7 +238,7 @@ function DashboardSharedLayout({
             {/* أيقونة المستخدم */}
             <button
               className={`topbar-user-btn ${
-                userRoleName === "Student" ? "clickable" : ""
+                ["student", "instructor"].includes(user?.role) ? "clickable" : ""
               }`}
               onClick={() => {
                 if (userRoleName === "Student" || user?.role === "student") {
