@@ -12,6 +12,8 @@ const CourseCard = ({ course }) => {
   };
   const { t } = useTranslation("courses");
 
+  const tags = Array.isArray(course?.tags) ? course.tags : [];
+
   return (
     <div className="course-card">
       <div className="course-img-wrapper">
@@ -50,7 +52,7 @@ const CourseCard = ({ course }) => {
         </p>
 
         <div className="course-tags" dir="ltr">
-          {course?.tags?.map((tag) => (
+          {tags.map((tag) => (
             <span key={tag.id} className="tag">
               {tag.name}
             </span>

@@ -34,8 +34,8 @@ export const useCourses = (type = "sub") => {
   }, []);
 
   const setInitialData = useCallback(({ courses: initialCourses, categories: initialCategories, pagination: initialPagination }) => {
-    setCourses(initialCourses ?? []);
-    setCategories(initialCategories ?? []);
+    setCourses(Array.isArray(initialCourses) ? initialCourses : []);
+    setCategories(Array.isArray(initialCategories) ? initialCategories : []);
     setPagination(initialPagination ?? {
       currentPage: 1,
       lastPage: 1,
@@ -71,8 +71,8 @@ export const useCourses = (type = "sub") => {
         fetchUserCategories({ type: params.type || activeType }),
         fetchUserCourses(params),
       ]);
-      const fetchedCategories = catRes.data.data;
-      const fetchedCourses = courseRes.data.data;
+      const fetchedCategories = Array.isArray(catRes.data.data) ? catRes.data.data : [];
+      const fetchedCourses = Array.isArray(courseRes.data.data) ? courseRes.data.data : [];
       const meta = courseRes.data.meta;
       const fetchedPagination = {
         currentPage: meta.current_page,

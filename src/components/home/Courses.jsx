@@ -11,9 +11,15 @@ function Courses({ initialData = null }) {
   const { courses, categories, loading, loadInitialData, filterCourses, setInitialData } =
     useCourses();
   const [activeCategory, setActiveCategory] = useState(null);
+  const categoryList = Array.isArray(categories) ? categories : [];
+
+  const hasBundledData =
+    initialData &&
+    ((Array.isArray(initialData.items) && initialData.items.length > 0) ||
+      (Array.isArray(initialData.categories) && initialData.categories.length > 0));
 
   useEffect(() => {
-    if (initialData) {
+    if (hasBundledData) {
       setInitialData({
         courses: initialData.items ?? [],
         categories: initialData.categories ?? [],
@@ -30,7 +36,7 @@ function Courses({ initialData = null }) {
       per_page: 6,
       type: "sub",
     });
-  }, [initialData, loadInitialData, setInitialData]);
+  }, [hasBundledData, initialData, loadInitialData, setInitialData]);
 
   const handleFilter = (categoryId) => {
     setActiveCategory(categoryId);
@@ -62,7 +68,7 @@ function Courses({ initialData = null }) {
             {t("all")}
           </button>
 
-          {categories?.slice(0, 8).map((cat) => (
+          {categoryList.slice(0, 8).map((cat) => (
             <button
               key={cat.id}
               className={`filter-btn ${activeCategory === cat.id ? "active" : ""}`}
