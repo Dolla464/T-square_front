@@ -124,6 +124,15 @@ function InstructorProfile() {
     avatarUrl && !avatarUrl.includes("default-instructor.png") && !imageError;
 
   const handleUpdateInformation = async () => {
+    if (phone && phone.replace(/\D/g, "").length < 10) {
+      toastError(
+        isArabic
+          ? "رقم الهاتف يجب أن يكون 10 أرقام على الأقل"
+          : "Phone number must be at least 10 digits",
+      );
+      return;
+    }
+
     const ok = await showConfirmCustom({
       title: isArabic ? "تحديث البيانات" : "Update Information",
       message: isArabic ? "هل أنت متأكد؟" : "Are you sure?",
@@ -139,6 +148,7 @@ function InstructorProfile() {
         name: fullName,
         full_name: fullName,
         gender,
+        phone,
         field,
         bio,
         insta_url: instaUrl,
@@ -296,9 +306,13 @@ function InstructorProfile() {
               <div className="profile-field">
                 <label>{t("profile_page.phone_number")}</label>
                 <input
+                  type="tel"
                   value={phone}
-                  readOnly
-                  className="profile-input profile-input-readonly"
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    markUpdated();
+                  }}
+                  className="profile-input"
                 />
               </div>
               <div className="profile-field">

@@ -104,8 +104,8 @@ export const updateStudentProfile = (profileData) => {
 
   // 2. إذا كانت بيانات نصية صافية عادية
   return axiosClient.post("/profile", {
-    full_name: profileData.name || profileData.full_name,
     gender: profileData.gender,
+    phone: profileData.phone,
   });
 };
 

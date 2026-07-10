@@ -12,6 +12,7 @@ export const updateInstructorProfile = (profileData) => {
   return axiosClient.post("/profile", {
     full_name: profileData.name || profileData.full_name,
     gender: profileData.gender,
+    phone: profileData.phone,
     field: profileData.field,
     bio: profileData.bio,
     insta_url: profileData.insta_url,
