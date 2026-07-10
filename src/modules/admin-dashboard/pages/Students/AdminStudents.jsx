@@ -9,6 +9,7 @@ import {
 } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastError } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
+import "./AdminStudents.css";
 import { useGroups } from "../../hooks/useGroups";
 import { useStudents } from "../../hooks/useStudents";
 
@@ -550,7 +551,7 @@ function AdminStudents() {
                     )}
                   </div>
 
-                  <div className="d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
+                  <div className="ac-students-filters d-flex gap-2 gap-md-3 flex-wrap flex-md-nowrap">
                     {/* 2. فلتر الحالات (Statuses) */}
                     <select
                       // التعديل: لو مش على وضع "all" بياخد خلفية حمراء باهتة وبوردر واضح
@@ -641,38 +642,38 @@ function AdminStudents() {
                 </div>
 
                 {/* جدول عرض الطلاب */}
-                <div className="table-responsive">
-                  <table className="table ac-table mb-0 align-middle" dir="ltr">
+                <div className="ac-students-table-wrap">
+                  <table
+                    className="table ac-table ac-students-table mb-0 align-middle"
+                    dir="ltr"
+                  >
                     <thead>
                       <tr>
-                        <th className="text-center">
+                        <th className="text-center col-enrollment">
                           {t("students_page.table_enrollment")}
                         </th>
-                        <th className="text-center">
+                        <th className="text-center col-avatar">
                           {isArabic ? "الصورة" : "Image"}
                         </th>
-                        <th className="text-center">
+                        <th className="text-center col-name">
                           {t("students_page.table_name")}
                         </th>
-                        <th className="text-center">
+                        <th className="text-center col-email">
                           {t("students_page.table_email")}
                         </th>
-                        <th className="text-center">
-                          {t("students_page.table_phone")}
-                        </th>
-                        <th className="text-center">
+                        <th className="text-center col-group">
                           {isArabic ? "المجموعة" : "Group"}
                         </th>
-                        <th className="text-center">
+                        <th className="text-center col-created-by">
                           {t("students_page.table_created_by")}
                         </th>
-                        <th className="text-center">
+                        <th className="text-center col-status">
                           {t("students_page.table_status")}
                         </th>
-                        <th className="text-center">
+                        <th className="text-center col-verified">
                           {t("students_page.table_verified")}
                         </th>
-                        <th className="text-center">
+                        <th className="text-center col-actions">
                           {t("students_page.table_actions")}
                         </th>
                       </tr>
@@ -680,7 +681,7 @@ function AdminStudents() {
                     <tbody>
                       {loading ? (
                         <tr>
-                          <td colSpan={12} className="text-center py-5">
+                          <td colSpan={9} className="text-center py-5">
                             <div
                               className="spinner-border text-danger"
                               role="status"
@@ -768,29 +769,33 @@ function AdminStudents() {
                                 </div>
                               </div>
                             </td>
-                            <td className="text-center fw-medium text-dark">
+                            <td className="text-center fw-medium text-dark col-name">
                               <div className="d-flex align-items-center justify-content-center gap-2">
-                                <span>{student.full_name}</span>
+                                <span className="ac-truncate-text">
+                                  {student.full_name}
+                                </span>
                               </div>
                             </td>
-                            <td className="text-center text-secondary">
-                              {student.email}
-                            </td>
-
-                            <td className="text-center text-secondary">
-                              {student.phone || "-"}
-                            </td>
-                            <td className="text-center text-secondary">
-                              {student.learning_group}
-                            </td>
-                            <td className="text-center">
+                            <td className="text-center text-secondary col-email">
                               <span
-                                className={`badge rounded-pill ${
+                                className="ac-truncate-text"
+                                title={student.email}
+                              >
+                                {student.email}
+                              </span>
+                            </td>
+                            <td className="text-center text-secondary col-group">
+                              <span className="ac-truncate-text">
+                                {student.learning_group}
+                              </span>
+                            </td>
+                            <td className="text-center col-created-by">
+                              <span
+                                className={`badge rounded-pill student-badge ${
                                   student.created_by === "site"
                                     ? "bg-info-subtle text-info"
                                     : "bg-secondary-subtle text-secondary"
                                 }`}
-                                style={{ padding: "8px 16px" }}
                               >
                                 <i
                                   className={`bi ${
@@ -804,13 +809,10 @@ function AdminStudents() {
                                   : t("students_page.created_by_admin")}
                               </span>
                             </td>
-                            <td className="text-center">
+                            <td className="text-center col-status">
                               <span
-                                className={`badge rounded-pill cp ${student.status === "active" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"}`}
-                                style={{
-                                  cursor: "pointer",
-                                  padding: "8px 16px",
-                                }}
+                                className={`badge rounded-pill cp student-badge ${student.status === "active" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"}`}
+                                style={{ cursor: "pointer" }}
                                 onClick={() =>
                                   handleStatusUpdate(
                                     student.id,
@@ -828,13 +830,10 @@ function AdminStudents() {
                                   : t("students_page.inactive_status")}
                               </span>
                             </td>
-                            <td className="text-center">
+                            <td className="text-center col-verified">
                               <span
-                                className={`badge rounded-pill cp ${student.is_verified ? "bg-primary-subtle text-primary" : "bg-warning-subtle text-warning"}`}
-                                style={{
-                                  cursor: "pointer",
-                                  padding: "8px 16px",
-                                }}
+                                className={`badge rounded-pill cp student-badge ${student.is_verified ? "bg-primary-subtle text-primary" : "bg-warning-subtle text-warning"}`}
+                                style={{ cursor: "pointer" }}
                                 onClick={() =>
                                   handleVerifyUpdate(
                                     student.id,
@@ -850,7 +849,7 @@ function AdminStudents() {
                                   : t("students_page.verified_no")}
                               </span>
                             </td>
-                            <td className="text-center">
+                            <td className="text-center col-actions">
                               <div className="d-flex justify-content-center gap-2">
                                 <button
                                   className="btn btn-sm ac-btn-view border-0"
@@ -887,7 +886,7 @@ function AdminStudents() {
                       ) : (
                         <tr>
                           <td
-                            colSpan={12}
+                            colSpan={9}
                             className="text-center py-4 text-muted"
                           >
                             {t("students_page.no_students")}

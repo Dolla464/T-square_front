@@ -1,0 +1,110 @@
+.ac-students-table-wrap {
+  overflow-x: visible;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .ac-filters-bar .ac-students-filters {
+    flex: 1;
+    min-width: 0;
+    gap: 0.75rem !important;
+    margin-inline-start: 1rem;
+  }
+
+  .ac-filters-bar .ac-students-filters .ac-form-select {
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+}
+
+.ac-students-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.ac-students-table th,
+.ac-students-table td {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.ac-students-table .col-enrollment {
+  width: 7%;
+}
+
+.ac-students-table .col-avatar {
+  width: 6%;
+}
+
+.ac-students-table .col-name {
+  width: 13%;
+}
+
+.ac-students-table .col-email {
+  width: 18%;
+}
+
+.ac-students-table .col-group {
+  width: 10%;
+}
+
+.ac-students-table .col-created-by {
+  width: 11%;
+}
+
+.ac-students-table .col-status {
+  width: 9%;
+}
+
+.ac-students-table .col-verified {
+  width: 9%;
+}
+
+.ac-students-table .col-actions {
+  width: 17%;
+}
+
+.ac-students-table .col-email .ac-truncate-text {
+  display: block;
+  max-width: 100%;
+}
+
+.ac-students-table .student-badge {
+  padding: 6px 10px !important;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.ac-students-table .col-actions .btn {
+  padding: 0.25rem 0.35rem;
+}
+
+.ac-students-table .col-actions .d-flex {
+  gap: 0.25rem !important;
+}
+
+@media (min-width: 992px) {
+  .ac-students-table th,
+  .ac-students-table td {
+    padding: 12px 8px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .ac-students-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ac-students-table {
+    table-layout: auto;
+    min-width: 720px;
+  }
+
+  .ac-students-table th,
+  .ac-students-table td {
+    white-space: nowrap;
+  }
+}
