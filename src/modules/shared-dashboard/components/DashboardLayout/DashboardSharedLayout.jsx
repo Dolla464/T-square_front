@@ -17,6 +17,12 @@ import { resendVerificationNotification } from "../../../../services/register";
 import toast from "react-hot-toast";
 import { Alert, Spinner } from "react-bootstrap";
 import { useUnreadCount } from "../../../../hooks/useNotifications";
+import {
+  getNameInitials,
+  getProfileAvatarUrl,
+  getProfileDisplayName,
+  isDefaultAvatarUrl,
+} from "../../../../utils/avatar";
 
 function DashboardSharedLayout({
   navItems,
@@ -45,21 +51,10 @@ function DashboardSharedLayout({
   const isLeaveReviewPage = location.pathname.includes("/student/review/");
   const { unreadCount } = useUnreadCount();
 
-  const initials = user?.name
-    ? user.name
-        .split(" ")
-        .map((w) => w[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : user?.student?.full_name
-      ? user?.student?.full_name
-          .split(" ")
-          .map((w) => w[0])
-          .join("")
-          .slice(0, 2)
-          .toUpperCase()
-      : "US";
+  const displayName = getProfileDisplayName(user, userProfile);
+  const avatarUrl = getProfileAvatarUrl(user, userProfile);
+  const initials = getNameInitials(displayName);
+  const showInitials = isDefaultAvatarUrl(avatarUrl);
 
   const handleNotificationsClick = () => {
     if (isAdmin) {
@@ -266,23 +261,15 @@ function DashboardSharedLayout({
               }
             >
               <div className="topbar-avatar">
-                {userProfile?.student?.avatar?.includes(
-                  "default-student.png",
-                ) ? (
+                {showInitials ? (
                   initials
-                ) : userProfile?.student?.avatar ||
-                  userProfile?.instructor?.avatar ? (
+                ) : (
                   <img
-                    src={
-                      userProfile?.student?.avatar ||
-                      userProfile?.instructor?.avatar
-                    }
-                    alt={user?.name}
+                    src={avatarUrl}
+                    alt={displayName || user?.name}
                     className="w-100 h-100 rounded-circle"
                     style={{ objectFit: "cover" }}
                   />
-                ) : (
-                  initials
                 )}
               </div>
               <div className="topbar-user-info">
