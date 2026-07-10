@@ -49,3 +49,10 @@ export const exportExamResults = async (groupId, examId, format = "pdf") => {
   );
   downloadExportBlob(response);
 };
+
+export const toggleGroupExamActivation = (groupId, examId, isActivated) =>
+  axiosClient
+    .patch(`/instructor/learning-groups/${groupId}/exams/${examId}/toggle-activation`, {
+      is_activated: isActivated,
+    })
+    .then((res) => res.data);

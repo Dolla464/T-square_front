@@ -21,6 +21,7 @@
     "schedule": "جدول المواعيد",
     "studentAttendance": "حضور الطلاب",
     "studentResults": "نتائج الطلاب",
+    "examActivation": "تفعيل الامتحانات",
     "profile": "الملف الشخصي"
   },
   "profile_page": {
@@ -424,6 +425,23 @@
     "close": "إغلاق",
     "exportSuccess": "تم تنزيل الملف بنجاح",
     "exportFailed": "فشل التصدير"
+  },
+  "examActivation": {
+    "title": "تفعيل الامتحانات",
+    "subtitle": "تفعيل الامتحانات لمجموعة تعليمية محددة",
+    "selectGroup": "اختر المجموعة",
+    "chooseGroup": "اختر مجموعة…",
+    "selectGroupHint": "اختر مجموعة لإدارة تفعيل الامتحانات",
+    "noExams": "لا توجد امتحانات لهذا الكورس.",
+    "examTitle": "الامتحان",
+    "globalStatus": "الحالة العامة",
+    "groupActivation": "مفعّل للمجموعة",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "enableGlobalFirst": "فعّل الامتحان أولاً من صفحة الاختبارات",
+    "activatedSuccess": "تم تفعيل الامتحان لهذه المجموعة",
+    "deactivatedSuccess": "تم إلغاء تفعيل الامتحان لهذه المجموعة",
+    "toggleFailed": "فشل تحديث تفعيل الامتحان"
   },
   "groups_page": {
     "is_historical": "مجموعة تاريخية",

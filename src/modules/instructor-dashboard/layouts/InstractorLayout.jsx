@@ -23,6 +23,11 @@ const INSTRUCTOR_NAV = [
     path: "/instructor/student-results",
     icon: "bi-bar-chart-line",
   },
+  {
+    key: "examActivation",
+    path: "/instructor/exam-activation",
+    icon: "bi-toggle-on",
+  },
   { key: "quizzes", path: "/instructor/quizzes", icon: "bi-chat-right-quote" },
   {
     key: "Notification",
@@ -54,6 +59,8 @@ function InstructorLayout() {
         return isArabic ? "الجدول الزمني" : "My Schedule";
       case "/instructor/student-results":
         return isArabic ? "نتائج الطلاب" : "Students Results";
+      case "/instructor/exam-activation":
+        return isArabic ? "تفعيل الامتحانات" : "Exam Activation";
       case "/instructor/quizzes":
         return isArabic ? "الاختبارات" : "Quizzes";
       case "/instructor/notifications":
