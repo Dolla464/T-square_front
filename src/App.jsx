@@ -180,6 +180,10 @@ const InstructorStudentResults = lazy(
   () =>
     import("./modules/instructor-dashboard/pages/StudentResults/InstructorStudentResults"),
 );
+const InstructorExamActivation = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/ExamActivation/InstructorExamActivation"),
+);
 const InstructorProfile = lazy(
   () =>
     import("./modules/instructor-dashboard/pages/Profile/InstructorProfile"),
@@ -458,6 +462,10 @@ function AppContent() {
                     <Route
                       path="student-results"
                       element={<InstructorStudentResults />}
+                    />
+                    <Route
+                      path="exam-activation"
+                      element={<InstructorExamActivation />}
                     />
                     <Route
                       path="notifications"

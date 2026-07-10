@@ -21,6 +21,7 @@
     "schedule": "Schedule",
     "studentAttendance": "Students Attendance",
     "studentResults": "Students Results",
+    "examActivation": "Exam Activation",
     "profile": "Profile"
   },
   "profile_page": {
@@ -195,6 +196,9 @@
     "active_status": "Active",
     "inactive_status": "Inactive",
     "all_groups": "All Groups",
+    "all_created_by": "All sources",
+    "created_by_admin": "Admin",
+    "created_by_site": "Site",
     "group_id": "Group ID",
     "select_group": "Select Group",
     "table_enrollment": "Enrollment Number",
@@ -206,6 +210,7 @@
     "table_phone": "Phone",
     "table_status": "Status",
     "table_gender": "Gender",
+    "table_created_by": "Created By",
     "table_verified": "Verified",
     "table_actions": "Actions",
     "name": "Student Name",
@@ -420,6 +425,23 @@
     "close": "Close",
     "exportSuccess": "Export downloaded successfully",
     "exportFailed": "Export failed"
+  },
+  "examActivation": {
+    "title": "Exam Activation",
+    "subtitle": "Enable exams for a specific learning group",
+    "selectGroup": "Select Group",
+    "chooseGroup": "Choose a group…",
+    "selectGroupHint": "Select a group to manage exam activation",
+    "noExams": "No exams found for this course.",
+    "examTitle": "Exam",
+    "globalStatus": "Global Status",
+    "groupActivation": "Activated for Group",
+    "active": "Active",
+    "inactive": "Inactive",
+    "enableGlobalFirst": "Enable the exam globally first from the Quizzes page",
+    "activatedSuccess": "Exam activated for this group",
+    "deactivatedSuccess": "Exam deactivated for this group",
+    "toggleFailed": "Failed to update exam activation"
   },
   "groups_page": {
     "is_historical": "Historical group",

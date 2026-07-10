@@ -21,6 +21,7 @@
     "schedule": "جدول المواعيد",
     "studentAttendance": "حضور الطلاب",
     "studentResults": "نتائج الطلاب",
+    "examActivation": "تفعيل الامتحانات",
     "profile": "الملف الشخصي"
   },
   "profile_page": {
@@ -195,6 +196,9 @@
     "active_status": "نشط",
     "inactive_status": "غير نشط",
     "all_groups": "كل المجموعات",
+    "all_created_by": "كل المصادر",
+    "created_by_admin": "أدمن",
+    "created_by_site": "موقع",
     "group_id": "رقم المجموعه",
     "select_group": "اختر المجموعة",
     "table_enrollment": "رقم التسجيل",
@@ -206,6 +210,7 @@
     "table_phone": "التليفون",
     "table_status": "الحالة",
     "table_gender": "الجنس",
+    "table_created_by": "مصدر الإنشاء",
     "table_verified": "مفعل",
     "table_actions": "الإجراءات",
     "name": "اسم الطالب",
@@ -420,6 +425,23 @@
     "close": "إغلاق",
     "exportSuccess": "تم تنزيل الملف بنجاح",
     "exportFailed": "فشل التصدير"
+  },
+  "examActivation": {
+    "title": "تفعيل الامتحانات",
+    "subtitle": "تفعيل الامتحانات لمجموعة تعليمية محددة",
+    "selectGroup": "اختر المجموعة",
+    "chooseGroup": "اختر مجموعة…",
+    "selectGroupHint": "اختر مجموعة لإدارة تفعيل الامتحانات",
+    "noExams": "لا توجد امتحانات لهذا الكورس.",
+    "examTitle": "الامتحان",
+    "globalStatus": "الحالة العامة",
+    "groupActivation": "مفعّل للمجموعة",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "enableGlobalFirst": "فعّل الامتحان أولاً من صفحة الاختبارات",
+    "activatedSuccess": "تم تفعيل الامتحان لهذه المجموعة",
+    "deactivatedSuccess": "تم إلغاء تفعيل الامتحان لهذه المجموعة",
+    "toggleFailed": "فشل تحديث تفعيل الامتحان"
   },
   "groups_page": {
     "is_historical": "مجموعة تاريخية",

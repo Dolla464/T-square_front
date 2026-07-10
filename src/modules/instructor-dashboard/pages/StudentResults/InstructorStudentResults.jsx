@@ -88,6 +88,7 @@ function InstructorStudentResults() {
   }, [selectedGroupId, selectedExamId, loadExamResults]);
 
   const students = examResults?.students ?? [];
+  const activatedExams = exams.filter((exam) => exam.is_activated_for_group);
   const canExport = Boolean(
     selectedGroupId && selectedExamId && students.length
   );
@@ -182,7 +183,7 @@ function InstructorStudentResults() {
                       ? t("studentResults.chooseExam", "Choose an exam…")
                       : t("studentResults.selectGroupFirst", "Select a group first")}
                   </option>
-                  {exams.map((exam) => (
+                  {activatedExams.map((exam) => (
                     <option key={exam.id} value={exam.id}>
                       {exam.title}
                     </option>

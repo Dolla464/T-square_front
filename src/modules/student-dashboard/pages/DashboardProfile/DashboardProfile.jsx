@@ -112,6 +112,15 @@ function DashboardProfile() {
     : "ST";
 
   const handleUpdateInformation = async () => {
+    if (phone && phone.replace(/\D/g, "").length < 10) {
+      toastError(
+        isArabic
+          ? "رقم الهاتف يجب أن يكون 10 أرقام على الأقل"
+          : "Phone number must be at least 10 digits",
+      );
+      return;
+    }
+
     const ok = await showConfirmCustom({
       title: isArabic ? "تحديث البيانات" : "Update Information",
       message: isArabic ? "هل أنت متأكد؟" : "Are you sure?",
@@ -124,9 +133,8 @@ function DashboardProfile() {
     setSaveLoading(true);
     try {
       const res = await updateStudentProfile({
-        name: fullName,
-        full_name: fullName,
         gender,
+        phone,
       });
       const updatedData = res?.data?.data || res?.data;
       toastSuccess(isArabic ? "تم التحديث بنجاح" : "Updated successfully");
@@ -265,11 +273,8 @@ function DashboardProfile() {
                 <label>{t("profile_page.full_name")}</label>
                 <input
                   value={fullName}
-                  onChange={(e) => {
-                    setFullName(e.target.value);
-                    setIsInfoUpdated(true);
-                  }}
-                  className="profile-input"
+                  readOnly
+                  className="profile-input profile-input-readonly"
                 />
               </div>
               <div className="profile-field">
@@ -283,9 +288,13 @@ function DashboardProfile() {
               <div className="profile-field">
                 <label>{t("profile_page.phone_number")}</label>
                 <input
+                  type="tel"
                   value={phone}
-                  readOnly
-                  className="profile-input profile-input-readonly"
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    setIsInfoUpdated(true);
+                  }}
+                  className="profile-input"
                 />
               </div>
               <div className="profile-field">
