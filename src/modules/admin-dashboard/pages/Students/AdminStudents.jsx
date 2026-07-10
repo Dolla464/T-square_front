@@ -81,6 +81,7 @@ function AdminStudents() {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedGender, setSelectedGender] = useState("all");
   const [selectedGroup, setSelectedGroup] = useState("all");
+  const [selectedCreatedBy, setSelectedCreatedBy] = useState("all");
   const [formData, setFormData] = useState(defaultFormData);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -113,6 +114,7 @@ function AdminStudents() {
       status: selectedStatus === "all" ? "" : selectedStatus,
       gender: selectedGender === "all" ? "" : selectedGender,
       group_id: selectedGroup === "all" ? "" : selectedGroup,
+      created_by: selectedCreatedBy === "all" ? "" : selectedCreatedBy,
     });
   }, [
     getStudents,
@@ -121,6 +123,7 @@ function AdminStudents() {
     selectedStatus,
     selectedGender,
     selectedGroup,
+    selectedCreatedBy,
   ]);
 
   // Refetch groups for selection in form
@@ -133,7 +136,7 @@ function AdminStudents() {
    */
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedStatus, selectedGender, selectedGroup]);
+  }, [debouncedSearchTerm, selectedStatus, selectedGender, selectedGroup, selectedCreatedBy]);
 
   /**
    * Handle WhatsApp communication by formatting the student's phone number correctly and opening a pre-filled message in WhatsApp Web for welcoming the student and providing their account details
@@ -280,7 +283,9 @@ function AdminStudents() {
         page: currentPage,
         search: debouncedSearchTerm,
         status: selectedStatus === "all" ? "" : selectedStatus,
+        gender: selectedGender === "all" ? "" : selectedGender,
         group_id: selectedGroup === "all" ? "" : selectedGroup,
+        created_by: selectedCreatedBy === "all" ? "" : selectedCreatedBy,
       });
     }
   };
@@ -326,6 +331,7 @@ function AdminStudents() {
           status: selectedStatus === "all" ? "" : selectedStatus,
           gender: selectedGender === "all" ? "" : selectedGender,
           group_id: selectedGroup === "all" ? "" : selectedGroup,
+          created_by: selectedCreatedBy === "all" ? "" : selectedCreatedBy,
         });
         handleBack();
       } catch {
@@ -347,6 +353,7 @@ function AdminStudents() {
         status: selectedStatus === "all" ? "" : selectedStatus,
         gender: selectedGender === "all" ? "" : selectedGender,
         group_id: selectedGroup === "all" ? "" : selectedGroup,
+        created_by: selectedCreatedBy === "all" ? "" : selectedCreatedBy,
       });
       handleBack();
     }
@@ -609,6 +616,27 @@ function AdminStudents() {
                         {t("students_page.female_option")}
                       </option>
                     </select>
+
+                    {/* 5. فلتر مصدر الإنشاء (Created By) */}
+                    <select
+                      className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${
+                        selectedCreatedBy !== "all"
+                          ? "border-danger bg-danger-subtle text-danger-emphasis"
+                          : "border-light bg-light text-muted"
+                      }`}
+                      value={selectedCreatedBy}
+                      onChange={(e) => setSelectedCreatedBy(e.target.value)}
+                    >
+                      <option value="all">
+                        {t("students_page.all_created_by")}
+                      </option>
+                      <option value="admin">
+                        {t("students_page.created_by_admin")}
+                      </option>
+                      <option value="site">
+                        {t("students_page.created_by_site")}
+                      </option>
+                    </select>
                   </div>
                 </div>
 
@@ -636,6 +664,9 @@ function AdminStudents() {
                           {isArabic ? "المجموعة" : "Group"}
                         </th>
                         <th className="text-center">
+                          {t("students_page.table_created_by")}
+                        </th>
+                        <th className="text-center">
                           {t("students_page.table_status")}
                         </th>
                         <th className="text-center">
@@ -649,7 +680,7 @@ function AdminStudents() {
                     <tbody>
                       {loading ? (
                         <tr>
-                          <td colSpan={11} className="text-center py-5">
+                          <td colSpan={12} className="text-center py-5">
                             <div
                               className="spinner-border text-danger"
                               role="status"
@@ -754,6 +785,27 @@ function AdminStudents() {
                             </td>
                             <td className="text-center">
                               <span
+                                className={`badge rounded-pill ${
+                                  student.created_by === "site"
+                                    ? "bg-info-subtle text-info"
+                                    : "bg-secondary-subtle text-secondary"
+                                }`}
+                                style={{ padding: "8px 16px" }}
+                              >
+                                <i
+                                  className={`bi ${
+                                    student.created_by === "site"
+                                      ? "bi-globe"
+                                      : "bi-shield-lock"
+                                  } me-1`}
+                                ></i>
+                                {student.created_by === "site"
+                                  ? t("students_page.created_by_site")
+                                  : t("students_page.created_by_admin")}
+                              </span>
+                            </td>
+                            <td className="text-center">
+                              <span
                                 className={`badge rounded-pill cp ${student.status === "active" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"}`}
                                 style={{
                                   cursor: "pointer",
@@ -835,7 +887,7 @@ function AdminStudents() {
                       ) : (
                         <tr>
                           <td
-                            colSpan={10}
+                            colSpan={12}
                             className="text-center py-4 text-muted"
                           >
                             {t("students_page.no_students")}
