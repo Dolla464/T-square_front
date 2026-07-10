@@ -13,49 +13,36 @@ import logoDark from "../../assets/logo-dark.webp";
 import { isArabic } from "../../i18n";
 import SearchDropdown from "../search/SearchDropdown";
 import NotificationsDropdown from "../shared/NotificationsDropdown";
+import {
+  getNameInitials,
+  getProfileAvatarUrl,
+  getProfileDisplayName,
+  isDefaultAvatarUrl,
+} from "../../utils/avatar";
 
 function UserAvatar({ user, userProfile, size = 35 }) {
-  const getAvatarData = () => {
-    switch (user?.role) {
-      case "student":
-        return {
-          avatar: userProfile?.student?.avatar,
-          name: userProfile?.student?.full_name || user?.name,
-          defaultImage: "default-student.png",
-        };
-      case "instructor":
-        return {
-          avatar: userProfile?.instructor?.avatar,
-          name: userProfile?.instructor?.full_name || user?.name,
-          defaultImage: "default-instructor.png",
-        };
-      default:
-        return {
-          avatar: null,
-          name: user?.name,
-          defaultImage: null,
-        };
-    }
-  };
+  const [imageError, setImageError] = useState(false);
 
-  const { avatar, name, defaultImage } = getAvatarData();
-  const isDefault = !avatar || (defaultImage && avatar.includes(defaultImage));
-  const initial = (name || "U").charAt(0).toUpperCase();
+  const displayName = getProfileDisplayName(user, userProfile);
+  const avatarUrl = getProfileAvatarUrl(user, userProfile);
+  const initials = getNameInitials(displayName, "U");
+  const showInitials = isDefaultAvatarUrl(avatarUrl) || imageError;
 
   return (
     <div
       className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden"
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, fontSize: size <= 35 ? "0.75rem" : "0.9rem" }}
     >
-      {!isDefault ? (
+      {!showInitials ? (
         <img
-          src={avatar}
-          alt={name}
+          src={avatarUrl}
+          alt={displayName}
           className="w-100 h-100"
           style={{ objectFit: "cover" }}
+          onError={() => setImageError(true)}
         />
       ) : (
-        initial
+        initials
       )}
     </div>
   );
