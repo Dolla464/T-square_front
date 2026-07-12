@@ -127,6 +127,12 @@ export const getExamResults = (examId) =>
   axiosClient.get("/exams/my-results", { params: { exam_id: examId } });
 
 /**
+ * جلب مراجعة إجابات محاولة منتهية
+ */
+export const getAttemptReview = (attemptId) =>
+  axiosClient.get(`/exams/attempts/${attemptId}/review`);
+
+/**
  * Check review eligibility for a course
  */
 export const getReviewEligibility = (courseId) =>

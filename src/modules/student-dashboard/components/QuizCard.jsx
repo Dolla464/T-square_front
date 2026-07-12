@@ -2,7 +2,10 @@ import i18next from "i18next";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DetailModal from "../../../components/shared/DetailModal/DetailModal";
+import AttemptReviewPanel from "../../shared-dashboard/components/AttemptAnswerReview/AttemptReviewPanel";
+import { formatExamScore, formatExamScorePair } from "../../shared-dashboard/utils/formatExamScore";
 import { useExamResults } from "../hooks/useExamResults";
+import "../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
 
 /**
  * كومبوننت كارت الكويز
@@ -15,18 +18,21 @@ function QuizCard({ quiz, t }) {
 
   // ── حالة المودال ──────────────────────────────────────────────────
   const [showModal, setShowModal] = useState(false);
-  const [selectedAttempt, setSelectedAttempt] = useState(null); // المحاولة المعروضة في الـ Gauge
+  const [selectedAttempt, setSelectedAttempt] = useState(null);
+  const [showAnswers, setShowAnswers] = useState(false);
   const { results, loading, error, fetchResults } = useExamResults(quiz.id);
 
   const handleShowResults = () => {
     setShowModal(true);
-    setSelectedAttempt(null); // إعادة ضبط عند الفتح
+    setSelectedAttempt(null);
+    setShowAnswers(false);
     fetchResults();
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedAttempt(null);
+    setShowAnswers(false);
   };
 
   // ── بيانات الكويز ──────────────────────────────────────────────────
@@ -63,6 +69,7 @@ function QuizCard({ quiz, t }) {
 
   // ── حساب الـ Gauge للمحاولة المعروضة (selected أو highest) ──────────
   const gaugeAttempt = selectedAttempt ?? highestAttempt;
+  const reviewAttemptId = gaugeAttempt?.attempt_id ?? null;
 
   const getAttemptPercentage = (attempt) => {
     if (!attempt) return 0;
@@ -89,11 +96,8 @@ function QuizCard({ quiz, t }) {
   const isShowingBest = selectedAttempt === null;
 
   // ── دالة مساعدة: عرض الدرجة / المجموع (أو N/A) ───────────────────
-  const formatScore = (attempt) => {
-    const score = Number(attempt.score);
-    const total = attempt.total_marks != null ? Number(attempt.total_marks) : null;
-    return total != null ? `${score} / ${total}` : `${score} / N/A`;
-  };
+  const formatScore = (attempt) =>
+    formatExamScorePair(attempt.score, attempt.total_marks);
 
   // ── تحديد حالة المحاولة ───────────────────────────────────────────
   const isAttemptFailed = (attempt) =>
@@ -208,6 +212,9 @@ function QuizCard({ quiz, t }) {
         onHide={handleCloseModal}
         title={t("quiz_results.title")}
         dir={isArabic ? "rtl" : "ltr"}
+        size="xl"
+        scrollable
+        className="quiz-results-review-modal"
         bodyClassName="pt-0 px-4 pb-4"
       >
           {/* حالة التحميل */}
@@ -263,11 +270,11 @@ function QuizCard({ quiz, t }) {
                         />
                         {/* نص الدرجة */}
                         <text x="100" y="82" textAnchor="middle" fontSize="32" fontWeight="800" fill="#1a1a1a">
-                          {Number(gaugeAttempt.score)}
+                          {formatExamScore(gaugeAttempt.score)}
                         </text>
                         {/* نص المجموع */}
                         <text x="100" y="100" textAnchor="middle" fontSize="13" fontWeight="500" fill="#999">
-                          / {gaugeAttempt.total_marks != null ? gaugeAttempt.total_marks : "N/A"}
+                          / {gaugeAttempt.total_marks != null ? formatExamScore(gaugeAttempt.total_marks) : "N/A"}
                         </text>
                       </svg>
                     </div>
@@ -325,11 +332,11 @@ function QuizCard({ quiz, t }) {
                             isActive ? "quiz-attempt-row--active" : ""
                           }`}
                           key={attempt.attempt_id || idx}
-                          onClick={() =>
-                            setSelectedAttempt(
-                              isActive ? null : attempt
-                            )
-                          }
+                          onClick={() => {
+                            const next = isActive ? null : attempt;
+                            setSelectedAttempt(next);
+                            setShowAnswers(!!next);
+                          }}
                           style={{ cursor: "pointer" }}
                           title={isArabic ? "اضغط لعرضها أعلاه" : "Click to preview above"}
                         >
@@ -368,6 +375,36 @@ function QuizCard({ quiz, t }) {
                   </p>
                 )}
               </div>
+
+              {gaugeAttempt ? (
+                <div className="quiz-modal-review-section mt-3">
+                  <div className="d-flex align-items-center justify-content-between mb-2">
+                    <span className="fw-semibold">
+                      {t("attempt_review.view_answers")}
+                    </span>
+                    {!showAnswers ? (
+                      <button
+                        type="button"
+                        className="btn btn-review-action btn-sm"
+                        onClick={() => setShowAnswers(true)}
+                      >
+                        <i className="bi bi-list-check me-1" />
+                        {t("attempt_review.view_answers")}
+                      </button>
+                    ) : null}
+                  </div>
+
+                  {showAnswers ? (
+                    <AttemptReviewPanel
+                      role="student"
+                      attemptId={reviewAttemptId}
+                      quizId={quiz.id}
+                      enabled={!!reviewAttemptId}
+                      fullPageTo={`/student/quizzes/${quiz.id}/attempts/${reviewAttemptId}/review`}
+                    />
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           )}
       </DetailModal>

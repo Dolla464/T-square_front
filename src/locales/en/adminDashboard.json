@@ -424,7 +424,11 @@
     "attemptsCount": "{{count}} attempt(s)",
     "close": "Close",
     "exportSuccess": "Export downloaded successfully",
-    "exportFailed": "Export failed"
+    "exportFailed": "Export failed",
+    "viewAnswers": "View Answers",
+    "openFullPage": "Open Full Page",
+    "reviewLoading": "Loading answer review...",
+    "reviewError": "Unable to load answer review."
   },
   "examActivation": {
     "title": "Exam Activation",

@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import {
   Alert,
   Col,
@@ -12,6 +13,8 @@ import { useAdminExamResults } from "../../hooks/useAdminExamResults";
 import ExportBar from "../../components/shared/ExportBar";
 import { selectClass } from "../../components/shared/adminUiStyles";
 import StudentExamResultsModal from "./StudentExamResultsModal";
+import { formatExamScore, formatExamScorePair } from "../../../shared-dashboard/utils/formatExamScore";
+import { readStudentResultsFilters } from "../../../shared-dashboard/utils/studentResultsUrlState";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
 function ResultStatusBadge({ student, t }) {
@@ -41,6 +44,9 @@ function ResultStatusBadge({ student, t }) {
 
 function AdminStudentResults() {
   const { t } = useTranslation("adminDashboard");
+  const [searchParams] = useSearchParams();
+  const restoredFromUrl = useRef(false);
+  const pendingStudentId = useRef("");
 
   const {
     selectionGroups,
@@ -66,21 +72,46 @@ function AdminStudentResults() {
   }, [loadGroups]);
 
   useEffect(() => {
-    if (!selectedGroupId) {
-      resetExamData();
-      setSelectedExamId("");
-      return;
-    }
+    if (restoredFromUrl.current) return;
 
-    setSelectedExamId("");
-    setModalStudent(null);
-    loadExams(selectedGroupId);
-  }, [selectedGroupId, loadExams, resetExamData]);
+    const filters = readStudentResultsFilters(searchParams);
+    if (!filters.groupId) return;
+
+    restoredFromUrl.current = true;
+    pendingStudentId.current = filters.studentId;
+    setSelectedGroupId(filters.groupId);
+    setSelectedExamId(filters.examId);
+    loadExams(filters.groupId);
+  }, [searchParams, loadExams]);
 
   useEffect(() => {
     if (!selectedGroupId || !selectedExamId) return;
     loadExamResults(selectedGroupId, selectedExamId);
   }, [selectedGroupId, selectedExamId, loadExamResults]);
+
+  useEffect(() => {
+    const studentId = pendingStudentId.current;
+    if (
+      !studentId ||
+      !selectedExamId ||
+      !examResults?.students?.length ||
+      modalStudent
+    ) {
+      return;
+    }
+
+    const student = examResults.students.find(
+      (s) => String(s.student_id) === String(studentId),
+    );
+    if (student) {
+      setModalStudent({
+        studentId: student.student_id,
+        studentName: student.full_name,
+        email: student.email,
+      });
+    }
+    pendingStudentId.current = "";
+  }, [examResults, selectedExamId, modalStudent]);
 
   const students = examResults?.students ?? [];
   const canExport = Boolean(
@@ -88,9 +119,17 @@ function AdminStudentResults() {
   );
 
   const handleGroupChange = (e) => {
-    setSelectedGroupId(e.target.value);
+    const value = e.target.value;
+    setSelectedGroupId(value);
     setSelectedExamId("");
     setModalStudent(null);
+    pendingStudentId.current = "";
+
+    if (!value) {
+      resetExamData();
+      return;
+    }
+    loadExams(value);
   };
 
   const handleExamChange = (e) => {
@@ -110,8 +149,8 @@ function AdminStudentResults() {
     if (!student.has_attempts || student.highest_score == null) return "—";
     const total = examResults?.total_marks;
     return total != null
-      ? `${student.highest_score} / ${total}`
-      : String(student.highest_score);
+      ? formatExamScorePair(student.highest_score, total)
+      : formatExamScore(student.highest_score);
   };
 
   return (
@@ -332,7 +371,7 @@ function AdminStudentResults() {
       </div>
 
       <StudentExamResultsModal
-        show={Boolean(modalStudent)}
+        show={Boolean(modalStudent && selectedGroupId && selectedExamId)}
         groupId={selectedGroupId}
         examId={selectedExamId}
         studentId={modalStudent?.studentId}
