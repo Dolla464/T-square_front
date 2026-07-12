@@ -1,0 +1,189 @@
+.attempt-review {
+  margin-top: 1rem;
+}
+
+.attempt-review .quiz-options,
+.attempt-review .quiz-option {
+  pointer-events: none;
+  cursor: default;
+}
+
+.attempt-review-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.attempt-review-summary-item {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+}
+
+.attempt-review-summary-item--correct {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.attempt-review-summary-item--incorrect {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.attempt-review-summary-item--unanswered {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.attempt-review-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.attempt-review-question-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.attempt-review-status {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.attempt-review-status--correct {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.attempt-review-status--incorrect {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.attempt-review-status--unanswered {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.attempt-review .quiz-option--correct,
+.attempt-review .quiz-option--correct_selected {
+  border-color: #22c55e;
+  background: #ecfdf5;
+}
+
+.attempt-review .quiz-option--wrong_selected {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.attempt-review .quiz-option--neutral {
+  border-color: #e5e7eb;
+  background: #fff;
+}
+
+.attempt-review .quiz-option--correct .option-text,
+.attempt-review .quiz-option--correct_selected .option-text {
+  color: #065f46;
+}
+
+.attempt-review .quiz-option--wrong_selected .option-text {
+  color: #991b1b;
+}
+
+.attempt-review-icon {
+  margin-inline-start: auto;
+  font-size: 1.1rem;
+}
+
+.attempt-review-icon--correct {
+  color: #22c55e;
+}
+
+.attempt-review-icon--wrong {
+  color: #ef4444;
+}
+
+.attempt-review-marks {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.attempt-review--compact .attempt-review-questions {
+  max-height: 55vh;
+  min-height: 280px;
+  overflow-y: auto;
+}
+
+.btn-review-action {
+  border: 2px solid #be1522 !important;
+  color: #be1522 !important;
+  background: transparent !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-review-action:hover,
+.btn-review-action:focus {
+  background: #be1522 !important;
+  color: #fff !important;
+  border-color: #be1522 !important;
+}
+
+.quiz-results-review-modal .modal-dialog {
+  max-width: min(920px, 96vw);
+}
+
+.quiz-results-review-modal .modal-body {
+  max-height: 82vh;
+  overflow-y: auto;
+}
+
+.attempt-review-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+}
+
+.attempt-review-page-header {
+  margin-bottom: 1.25rem;
+}
+
+.attempt-review-page-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+}
+
+.attempt-review-page-meta {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.attempt-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.attempt-review-loading,
+.attempt-review-error {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.attempt-review-error {
+  color: #dc2626;
+}

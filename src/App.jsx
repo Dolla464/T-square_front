@@ -75,6 +75,9 @@ const NotificationsPage = lazy(
   () => import("./modules/shared-dashboard/Notifications/NotificationsPage"),
 );
 import QuizExamPage from "./modules/student-dashboard/pages/QuizExam/QuizExamPage";
+const AttemptReviewPage = lazy(
+  () => import("./modules/student-dashboard/pages/AttemptReview/AttemptReviewPage"),
+);
 
 // ── وحدة داشبورد الأدمن ──
 import { AdminSettingsProvider } from "./modules/admin-dashboard/hooks/useAdminSettings";
@@ -416,6 +419,10 @@ function AppContent() {
                       path="student-results"
                       element={<AdminStudentResults />}
                     />
+                    <Route
+                      path="student-results/:groupId/:studentId/exams/:examId/attempts/:attemptId/review"
+                      element={<AttemptReviewPage role="admin" />}
+                    />
                     <Route path="groups" element={<AdminGroups />} />
                     <Route path="solutions" element={<AdminSolutions />} />
                     <Route path="students" element={<AdminStudents />} />
@@ -462,6 +469,10 @@ function AppContent() {
                     <Route
                       path="student-results"
                       element={<InstructorStudentResults />}
+                    />
+                    <Route
+                      path="student-results/:groupId/:studentId/exams/:examId/attempts/:attemptId/review"
+                      element={<AttemptReviewPage role="instructor" />}
                     />
                     <Route
                       path="exam-activation"
@@ -526,6 +537,10 @@ function AppContent() {
                       element={<DashboardCertificates />}
                     />
                     <Route path="quizzes" element={<DashboardQuizzes />} />
+                    <Route
+                      path="quizzes/:quizId/attempts/:attemptId/review"
+                      element={<AttemptReviewPage role="student" />}
+                    />
                     <Route path="quizzes/:quizId" element={<QuizExamPage />} />
                     <Route path="profile" element={<DashboardProfile />} />
                     <Route path="attendance" element={<StudentAttendance />} />

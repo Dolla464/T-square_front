@@ -424,7 +424,11 @@
     "attemptsCount": "{{count}} محاولة",
     "close": "إغلاق",
     "exportSuccess": "تم تنزيل الملف بنجاح",
-    "exportFailed": "فشل التصدير"
+    "exportFailed": "فشل التصدير",
+    "viewAnswers": "عرض الإجابات",
+    "openFullPage": "فتح في صفحة كاملة",
+    "reviewLoading": "جاري تحميل مراجعة الإجابات...",
+    "reviewError": "تعذر تحميل مراجعة الإجابات."
   },
   "examActivation": {
     "title": "تفعيل الامتحانات",

@@ -605,6 +605,15 @@
   animation: scaleIn 0.4s ease;
 }
 
+.quiz-result-content--expanded {
+  max-width: min(920px, 96vw);
+  width: 96%;
+  max-height: 90vh;
+  overflow-y: auto;
+  text-align: start;
+  padding: 32px 40px;
+}
+
 @keyframes scaleIn {
   from {
     transform: scale(0.9);

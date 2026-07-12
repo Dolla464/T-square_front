@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
+import AttemptReviewPanel from "../../../shared-dashboard/components/AttemptAnswerReview/AttemptReviewPanel";
+import { formatExamScore, formatExamScorePair } from "../../../shared-dashboard/utils/formatExamScore";
 import { useAdminExamResults } from "../../hooks/useAdminExamResults";
 import "../../../student-dashboard/styles/dashboardShared.css";
+import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
 
 function StudentExamResultsModal({
   show,
@@ -13,6 +16,7 @@ function StudentExamResultsModal({
   examTitle,
   totalMarks,
   onHide,
+  role = "admin",
 }) {
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
@@ -21,10 +25,12 @@ function StudentExamResultsModal({
     useAdminExamResults();
 
   const [selectedAttempt, setSelectedAttempt] = useState(null);
+  const [showAnswers, setShowAnswers] = useState(false);
 
   useEffect(() => {
     if (show && groupId && studentId && examId) {
       setSelectedAttempt(null);
+      setShowAnswers(false);
       loadStudentExamAttempts(groupId, studentId, examId);
     }
   }, [show, groupId, studentId, examId, loadStudentExamAttempts]);
@@ -46,6 +52,7 @@ function StudentExamResultsModal({
   }, [studentExamAttempts]);
 
   const gaugeAttempt = selectedAttempt ?? highestAttempt;
+  const reviewAttemptId = gaugeAttempt?.attempt_id ?? null;
 
   const getAttemptPercentage = (attempt) => {
     if (!attempt) return 0;
@@ -70,16 +77,11 @@ function StudentExamResultsModal({
   const strokeColor = isGaugeFailed ? "#ef4444" : "#22c55e";
   const isShowingBest = selectedAttempt === null;
 
-  const formatScore = (attempt) => {
-    const score = Number(attempt.score);
-    const total =
-      attempt.total_marks != null
-        ? Number(attempt.total_marks)
-        : totalMarks != null
-          ? Number(totalMarks)
-          : null;
-    return total != null ? `${score} / ${total}` : `${score} / N/A`;
-  };
+  const formatScore = (attempt) =>
+    formatExamScorePair(
+      attempt.score,
+      attempt.total_marks != null ? attempt.total_marks : totalMarks,
+    );
 
   const isAttemptFailed = (attempt) =>
     attempt.status === "failed" || attempt.is_passed === false;
@@ -89,6 +91,8 @@ function StudentExamResultsModal({
       show={show}
       onHide={onHide}
       scrollable
+      size="xl"
+      className="quiz-results-review-modal"
       dir={isArabic ? "rtl" : "ltr"}
       title={
         loadingStudentAttempts
@@ -154,7 +158,7 @@ function StudentExamResultsModal({
                         fontWeight="800"
                         fill="#1a1a1a"
                       >
-                        {Number(gaugeAttempt.score)}
+                        {formatExamScore(gaugeAttempt.score)}
                       </text>
                       <text
                         x="100"
@@ -166,8 +170,10 @@ function StudentExamResultsModal({
                       >
                         /{" "}
                         {gaugeAttempt.total_marks != null
-                          ? gaugeAttempt.total_marks
-                          : totalMarks ?? "N/A"}
+                          ? formatExamScore(gaugeAttempt.total_marks)
+                          : totalMarks != null
+                            ? formatExamScore(totalMarks)
+                            : "N/A"}
                       </text>
                     </svg>
                   </div>
@@ -232,9 +238,11 @@ function StudentExamResultsModal({
                           isActive ? "quiz-attempt-row--active" : ""
                         }`}
                         key={attempt.attempt_id || idx}
-                        onClick={() =>
-                          setSelectedAttempt(isActive ? null : attempt)
-                        }
+                        onClick={() => {
+                          const next = isActive ? null : attempt;
+                          setSelectedAttempt(next);
+                          setShowAnswers(!!next);
+                        }}
                         style={{ cursor: "pointer" }}
                         title={
                           isArabic
@@ -246,6 +254,7 @@ function StudentExamResultsModal({
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             setSelectedAttempt(isActive ? null : attempt);
+                            setShowAnswers(!isActive);
                           }
                         }}
                       >
@@ -285,6 +294,37 @@ function StudentExamResultsModal({
                 </p>
               )}
             </div>
+
+            {gaugeAttempt ? (
+              <div className="quiz-modal-review-section mt-3">
+                <div className="d-flex align-items-center justify-content-between mb-2">
+                  <span className="fw-semibold">
+                    {t("studentResults.viewAnswers", "View Answers")}
+                  </span>
+                  {!showAnswers ? (
+                    <button
+                      type="button"
+                      className="btn btn-review-action btn-sm"
+                      onClick={() => setShowAnswers(true)}
+                    >
+                      <i className="bi bi-list-check me-1" />
+                      {t("studentResults.viewAnswers", "View Answers")}
+                    </button>
+                  ) : null}
+                </div>
+
+                {showAnswers ? (
+                  <AttemptReviewPanel
+                    role={role}
+                    attemptId={reviewAttemptId}
+                    groupId={groupId}
+                    studentId={studentId}
+                    enabled={!!reviewAttemptId}
+                    fullPageTo={`/${role}/student-results/${groupId}/${studentId}/exams/${examId}/attempts/${reviewAttemptId}/review`}
+                  />
+                ) : null}
+              </div>
+            ) : null}
           </div>
         )}
     </DetailModal>

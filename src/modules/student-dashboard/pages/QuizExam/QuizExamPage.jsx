@@ -4,6 +4,10 @@ import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import { toastCustom } from "../../../../components/shared/Toaster/toaster";
 import { useExam } from "../../hooks/useExam";
+import AttemptReviewPanel from "../../../shared-dashboard/components/AttemptAnswerReview/AttemptReviewPanel";
+import { invalidateAttemptReview } from "../../../shared-dashboard/hooks/attemptReviewCache";
+import { formatExamScore } from "../../../shared-dashboard/utils/formatExamScore";
+import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
 import "../../styles/dashboardShared.css";
 
 const QuizTimer = React.memo(({ durationMins, attemptId, quizId, isArabic, onTimeout }) => {
@@ -78,7 +82,7 @@ function QuizExamPage() {
   const { quizId } = useParams();
   const navigate = useNavigate();
   const hasStarted = useRef(false);
-  const { i18n } = useTranslation("studentDashboard");
+  const { i18n, t } = useTranslation("studentDashboard");
   const isArabic = i18n.language === "ar";
 
   const {
@@ -152,6 +156,8 @@ function QuizExamPage() {
   }, [currentIndex, answers, exam, quizId]);
   const [showResult, setShowResult] = useState(false);
   const [scoreResult, setScoreResult] = useState(null);
+  const [submittedAttemptId, setSubmittedAttemptId] = useState(null);
+  const [showAnswerReview, setShowAnswerReview] = useState(false);
 
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
@@ -182,10 +188,12 @@ function QuizExamPage() {
 
       const result = await submitExam(exam.attempt_id);
 
-      // Clean storage
       localStorage.removeItem(`quiz_state_${quizId}`);
       localStorage.removeItem(`quiz_timer_${quizId}_${exam.attempt_id}`);
 
+      invalidateAttemptReview(exam.attempt_id);
+      setSubmittedAttemptId(exam.attempt_id);
+      setShowAnswerReview(false);
       setScoreResult(result.results);
       setShowResult(true);
 
@@ -302,10 +310,12 @@ function QuizExamPage() {
       try {
         const result = await submitExam(exam.attempt_id);
 
-        // مسح الحالة من الـ localStorage فور النجاح لتنظيف المتصفح
         localStorage.removeItem(`quiz_state_${quizId}`);
         localStorage.removeItem(`quiz_timer_${quizId}_${exam.attempt_id}`);
 
+        invalidateAttemptReview(exam.attempt_id);
+        setSubmittedAttemptId(exam.attempt_id);
+        setShowAnswerReview(false);
         setScoreResult(result.results);
         setShowResult(true);
       } catch (err) {
@@ -445,7 +455,11 @@ function QuizExamPage() {
 
     return (
       <div className="quiz-result-overlay">
-        <div className="quiz-result-content">
+        <div
+          className={`quiz-result-content ${
+            showAnswerReview ? "quiz-result-content--expanded" : ""
+          }`}
+        >
           <h4 className="result-title">
             {isArabic ? "نتيجتك" : "Your Result"}
           </h4>
@@ -490,7 +504,7 @@ function QuizExamPage() {
                 fontWeight="800"
                 fill="#1a1a1a"
               >
-                {scoreResult?.score ?? 0}
+                {formatExamScore(scoreResult?.score ?? 0)}
               </text>
               <text
                 x="100"
@@ -500,7 +514,7 @@ function QuizExamPage() {
                 fontWeight="500"
                 fill="#999"
               >
-                / {scoreResult?.total_marks}
+                / {formatExamScore(scoreResult?.total_marks)}
               </text>
             </svg>
           </div>
@@ -532,19 +546,44 @@ function QuizExamPage() {
                 : "Passed — Above passing mark"}
           </p>
 
-          <button
-            className="btn-continue btn-exit mt-2"
-            onClick={handleFinishWithToast}
-          >
-            <i className={`bi ${scoreResult?.requires_review ? "bi-star-fill" : "bi-arrow-left"} me-2`}></i>
-            {!isFailed && scoreResult?.requires_review
-              ? isArabic
-                ? "اترك تقييم للحصول على الشهادة"
-                : "Leave Review to Get Certificate"
-              : isArabic
-                ? "خروج"
-                : "Exit"}
-          </button>
+          <div className="d-flex flex-wrap gap-2 justify-content-center mt-2">
+            {!showAnswerReview ? (
+              <button
+                type="button"
+                className="btn btn-review-action"
+                onClick={() => setShowAnswerReview(true)}
+              >
+                <i className="bi bi-list-check me-2" />
+                {t("attempt_review.view_answers")}
+              </button>
+            ) : null}
+
+            <button
+              className="btn-continue btn-exit"
+              onClick={handleFinishWithToast}
+            >
+              <i className={`bi ${scoreResult?.requires_review ? "bi-star-fill" : "bi-arrow-left"} me-2`}></i>
+              {!isFailed && scoreResult?.requires_review
+                ? isArabic
+                  ? "اترك تقييم للحصول على الشهادة"
+                  : "Leave Review to Get Certificate"
+                : isArabic
+                  ? "خروج"
+                  : "Exit"}
+            </button>
+          </div>
+
+          {showAnswerReview && submittedAttemptId ? (
+            <div className="mt-3 text-start">
+              <AttemptReviewPanel
+                role="student"
+                attemptId={submittedAttemptId}
+                enabled={!!submittedAttemptId}
+                compact
+                fullPageTo={`/student/quizzes/${quizId}/attempts/${submittedAttemptId}/review`}
+              />
+            </div>
+          ) : null}
         </div>
       </div>
     );

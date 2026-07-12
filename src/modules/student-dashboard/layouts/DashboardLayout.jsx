@@ -52,6 +52,9 @@ function DashboardLayout() {
           : `Welcome Back ${user.name}`;
 
   const getPageTitle = (path) => {
+    if (path.includes("/attempts/") && path.endsWith("/review")) {
+      return isArabic ? "مراجعة الإجابات" : "Answer Review";
+    }
     if (path.startsWith("/student/quizzes/")) {
       return isArabic ? "اختبار الكويز" : "Quiz Exam";
     }

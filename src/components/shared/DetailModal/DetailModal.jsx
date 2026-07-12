@@ -13,6 +13,7 @@ function DetailModal({
   children,
   footer,
   footerClassName = "border-0 pt-0",
+  className = "",
 }) {
   return (
     <Modal
@@ -21,7 +22,7 @@ function DetailModal({
       centered
       size={size}
       scrollable={scrollable}
-      className="cert-detail-modal"
+      className={`cert-detail-modal ${className}`.trim()}
       dir={dir}
     >
       <div

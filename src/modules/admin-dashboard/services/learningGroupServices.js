@@ -218,6 +218,13 @@ export const getStudentExamResults = (groupId, studentId, examId) =>
     })
     .then((res) => res.data);
 
+export const getStudentAttemptReview = (groupId, studentId, attemptId) =>
+  axiosClient
+    .get(
+      `/admin/learning-groups/${groupId}/students/${studentId}/exam-attempts/${attemptId}/review`,
+    )
+    .then((res) => res.data);
+
 export const exportExamResults = async (groupId, examId, format = "pdf") => {
   const response = await axiosClient.get(
     `/admin/learning-groups/${groupId}/exams/${examId}/results/export`,

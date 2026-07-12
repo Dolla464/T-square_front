@@ -20,6 +20,13 @@ export const getStudentExamResults = (groupId, studentId, examId) =>
     })
     .then((res) => res.data);
 
+export const getStudentAttemptReview = (groupId, studentId, attemptId) =>
+  axiosClient
+    .get(
+      `/instructor/learning-groups/${groupId}/students/${studentId}/exam-attempts/${attemptId}/review`,
+    )
+    .then((res) => res.data);
+
 const downloadExportBlob = (response) => {
   const { content, filename, mime } = response.data?.data ?? {};
 
