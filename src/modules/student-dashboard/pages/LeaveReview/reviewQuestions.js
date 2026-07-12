@@ -100,6 +100,22 @@ export const REVIEW_GROUPS = [
   },
 ];
 
+export const INSTRUCTOR_REVIEW_GROUP = REVIEW_GROUPS.find(
+  (group) => group.key === "instructor"
+);
+
+export const INSTRUCTOR_QUESTION_IDS = INSTRUCTOR_REVIEW_GROUP.questions.map(
+  (question) => question.id
+);
+
+export const SHARED_REVIEW_GROUPS = REVIEW_GROUPS.filter(
+  (group) => group.key !== "instructor"
+);
+
 export const ALL_QUESTION_IDS = REVIEW_GROUPS.flatMap((group) =>
   group.questions.map((q) => q.id)
+);
+
+export const SHARED_QUESTION_IDS = SHARED_REVIEW_GROUPS.flatMap((group) =>
+  group.questions.map((question) => question.id)
 );

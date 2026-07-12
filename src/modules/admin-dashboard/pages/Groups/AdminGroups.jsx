@@ -11,6 +11,7 @@ import { toastError, toastSuccess } from "../../../../components/shared/Toaster/
 import { getLearningGroupSessions, exportGroupStudents } from "../../services/learningGroupServices";
 import { exportSchedule } from "../../services/adminScheduleService";
 import { parseApiDateOnly } from "../../../../utils/formatDateTime";
+import { getCourseInstructors } from "../../../../utils/courseInstructors";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
 const DAY_NAMES_EN = [
@@ -69,13 +70,16 @@ const schedulesAreEqual = (current, original) =>
 const defaultFormData = {
   group_name: "",
   course_id: "",
-  instructor_id: "",
+  course_instructor_id: "",
   start_date: "",
   is_historical: false,
   status: "active",
   schedules: [],
   students: [],
 };
+
+const getCourseInstructorOptionId = (entry) =>
+  entry?.course_instructor_id ?? entry?.id ?? "";
 
 const getTodayDateStr = () => new Date().toISOString().split("T")[0];
 
@@ -305,7 +309,7 @@ function AdminGroups() {
     deleteGroup,
     getAvailableStudents,
   } = useGroups();
-  const { courses, getCourses } = useAdminCourses();
+  const { courses, getCourses, getCourseById } = useAdminCourses();
   const { instructors, getInstructors } = useInstructors();
 
   const { t, i18n } = useTranslation("adminDashboard");
@@ -331,6 +335,7 @@ function AdminGroups() {
   const [scheduleModalLoading, setScheduleModalLoading] = useState(false);
   const [scheduleExportLoading, setScheduleExportLoading] = useState(false);
   const [studentsExportLoading, setStudentsExportLoading] = useState(false);
+  const [courseInstructorOptions, setCourseInstructorOptions] = useState([]);
 
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
 
@@ -360,6 +365,36 @@ function AdminGroups() {
     getCourses({ per_page: 100 });
     getInstructors({ per_page: 100 });
   }, [getCourses, getInstructors]);
+
+  useEffect(() => {
+    if (!formData.course_id) {
+      setCourseInstructorOptions([]);
+      return;
+    }
+
+    const course = courses?.find(
+      (item) => Number(item.id) === Number(formData.course_id),
+    );
+    const fromList = getCourseInstructors(course);
+
+    if (fromList.length) {
+      setCourseInstructorOptions(fromList);
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      const data = await getCourseById(formData.course_id);
+      if (!cancelled && data) {
+        setCourseInstructorOptions(getCourseInstructors(data));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.course_id, courses, getCourseById]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -421,8 +456,8 @@ function AdminGroups() {
       group_name: groupData.group_name || "",
       course_id: groupData.course_id ? Number(groupData.course_id) : "",
       course_title: groupData.course_title || "",
-      instructor_id: groupData.instructor_id
-        ? Number(groupData.instructor_id)
+      course_instructor_id: groupData.course_instructor_id
+        ? Number(groupData.course_instructor_id)
         : "",
       instructor_name: groupData.instructor_name || "",
       start_date: groupData.start_date || "",
@@ -467,7 +502,9 @@ function AdminGroups() {
       group_name: group.group_name || "",
       course_id: group.course_id ? Number(group.course_id) : "",
       course_title: group.course_title || "",
-      instructor_id: group.instructor_id ? Number(group.instructor_id) : "",
+      course_instructor_id: group.course_instructor_id
+        ? Number(group.course_instructor_id)
+        : "",
       instructor_name: group.instructor_name || "",
       start_date: group.start_date || "",
       end_date: group.end_date || "",
@@ -563,15 +600,25 @@ function AdminGroups() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]:
-        type === "checkbox"
-          ? checked
-          : name === "course_id" || name === "instructor_id"
-            ? Number(value)
-            : value,
-    }));
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        [name]:
+          type === "checkbox"
+            ? checked
+            : name === "course_id" || name === "course_instructor_id"
+              ? value === ""
+                ? ""
+                : Number(value)
+              : value,
+      };
+
+      if (name === "course_id") {
+        next.course_instructor_id = "";
+      }
+
+      return next;
+    });
   };
 
   // ── Schedule management ──────────────────────────────────────────────────
@@ -707,6 +754,16 @@ function AdminGroups() {
       return;
     }
 
+    if (!formData.course_id) {
+      toastError(isArabic ? "يجب اختيار الدورة" : "Course is required");
+      return;
+    }
+
+    if (!formData.course_instructor_id) {
+      toastError(isArabic ? "يجب اختيار المحاضر" : "Instructor is required");
+      return;
+    }
+
     if (!formData.start_date) {
       toastError(t("groups_page.errors.start_required"));
       return;
@@ -792,7 +849,7 @@ function AdminGroups() {
         const payload = {
           group_name: formData.group_name,
           course_id: Number(formData.course_id),
-          instructor_id: Number(formData.instructor_id),
+          course_instructor_id: Number(formData.course_instructor_id),
           start_date: formData.start_date,
           status: nextStatus,
           student_ids,
@@ -822,7 +879,7 @@ function AdminGroups() {
         const payload = {
           group_name: formData.group_name,
           course_id: Number(formData.course_id),
-          instructor_id: Number(formData.instructor_id),
+          course_instructor_id: Number(formData.course_instructor_id),
           start_date: formData.start_date,
           status: nextStatus,
           schedules: formData.schedules,
@@ -1227,22 +1284,37 @@ function AdminGroups() {
                   <label className="form-label fw-bold text-dark">
                     {isArabic ? "المحاضر" : "Instructor"}
                   </label>
-                  <select
-                    name="instructor_id"
-                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    value={formData.instructor_id || ""}
-                    onChange={handleChange}
-                    disabled={!!viewingItem}
-                  >
-                    <option value="">
-                      {isArabic ? "اختر محاضر" : "Select instructor"}
-                    </option>
-                    {instructors?.map((instructor) => (
-                      <option key={instructor.id} value={instructor.id}>
-                        {instructor.full_name}
+                  {viewingItem ? (
+                    <p className="form-control-plaintext fw-medium ps-1 mb-0">
+                      {formData.instructor_name || "—"}
+                    </p>
+                  ) : (
+                    <select
+                      name="course_instructor_id"
+                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                      value={formData.course_instructor_id || ""}
+                      onChange={handleChange}
+                      disabled={!formData.course_id}
+                    >
+                      <option value="">
+                        {formData.course_id
+                          ? isArabic
+                            ? "اختر محاضر الدورة"
+                            : "Select course instructor"
+                          : isArabic
+                            ? "اختر الدورة أولاً"
+                            : "Select a course first"}
                       </option>
-                    ))}
-                  </select>
+                      {courseInstructorOptions.map((instructor) => {
+                        const optionId = getCourseInstructorOptionId(instructor);
+                        return (
+                          <option key={optionId} value={optionId}>
+                            {instructor.full_name || instructor.name}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  )}
                 </div>
               </div>
 

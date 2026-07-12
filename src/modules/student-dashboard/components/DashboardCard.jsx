@@ -2,6 +2,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { formatInstructorNames, getCourseInstructors } from "../../../utils/courseInstructors";
 
 /**
  * مكون كارد مشترك للكورسات والكويزات في الداشبورد
@@ -119,7 +120,7 @@ function DashboardCard({ item, type, t }) {
 
         {isCourse ? (
           <p className="course-card-meta mb-2">
-            <span>{item.instructor.full_name}</span>
+            <span>{formatInstructorNames(getCourseInstructors(item))}</span>
           </p>
         ) : (
           <p className="quiz-card-meta">

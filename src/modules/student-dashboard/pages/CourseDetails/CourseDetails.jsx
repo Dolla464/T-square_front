@@ -6,6 +6,7 @@ import i18next from "i18next";
 import { useState, useEffect, useCallback, useRef } from "react";
 import "./CourseDetails.css";
 import { useCourseDetails } from "../../hooks/useCousrsesDetails";
+import { getCourseInstructors } from "../../../../utils/courseInstructors";
 import { Spinner } from "react-bootstrap";
 
 /* ── دوال مساعدة ──────────────────────────────────────── */
@@ -134,6 +135,8 @@ function CourseDetails() {
     enrollment,
     google_drive_link,
   } = courseData;
+
+  const instructors = getCourseInstructors(courseData);
 
   const statusInfo = getStatusLabel(enrollment?.status, isArabic);
   const langFlag = language === "ar" ? "ar" : language === "en" ? "en" : "🌐";
@@ -402,84 +405,93 @@ function CourseDetails() {
           </section>
         )}
 
-        {/* ── المدرب ── */}
-        {instructor && (
-          <section className="cd-card cd-instructor">
+        {/* ── المدربون ── */}
+        {instructors.length > 0 && (
+          <section className="cd-instructors-section">
             <h2 className="cd-section-title">
               <i className="bi bi-person-badge-fill"></i>
-              {isArabic ? "عن المدرب" : "About the Instructor"}
+              {isArabic
+                ? instructors.length > 1
+                  ? "عن المدربين"
+                  : "عن المدرب"
+                : instructors.length > 1
+                  ? "About the Instructors"
+                  : "About the Instructor"}
             </h2>
 
-            <div className="cd-instructor-row">
-              {/* Avatar */}
-              <div className="cd-avatar-wrap">
-                {instructor.avatar &&
-                !instructor.avatar.includes("default_avatar") ? (
-                  <img
-                    src={instructor.avatar}
-                    alt={instructor.full_name}
-                    className="cd-avatar-img"
-                  />
-                ) : (
-                  <div className="cd-avatar-placeholder">
-                    {getInitials(instructor.full_name)}
+            <div className="cd-instructors-grid">
+              {instructors.map((instructorItem) => (
+                <article
+                  className="cd-card cd-instructor-card"
+                  key={instructorItem.course_instructor_id || instructorItem.id}
+                >
+                  <div className="cd-instructor-row">
+                    <div className="cd-avatar-wrap">
+                      {instructorItem.avatar &&
+                      !instructorItem.avatar.includes("default_avatar") ? (
+                        <img
+                          src={instructorItem.avatar}
+                          alt={instructorItem.full_name}
+                          className="cd-avatar-img"
+                        />
+                      ) : (
+                        <div className="cd-avatar-placeholder">
+                          {getInitials(instructorItem.full_name)}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="cd-instructor-info">
+                      <h3 className="cd-instructor-name">
+                        <i className="bi bi-person-fill cd-instructor-key-icon"></i>
+                        {instructorItem.full_name}
+                      </h3>
+
+                      {instructorItem.field && (
+                        <p className="cd-instructor-meta-item">
+                          <i className="bi bi-briefcase-fill cd-instructor-key-icon"></i>
+                          {instructorItem.field}
+                        </p>
+                      )}
+
+                      {instructorItem.phone && (
+                        <>
+                          <p className="cd-instructor-meta-item">
+                            <i className="bi bi-telephone-fill cd-instructor-key-icon"></i>
+                            <a
+                              href={`tel:${instructorItem.phone}`}
+                              className="cd-instructor-phone"
+                            >
+                              {instructorItem.phone}
+                            </a>
+                          </p>
+                          <p className="cd-instructor-meta-item">
+                            <i className="bi bi-whatsapp cd-instructor-key-icon cd-instructor-whatsapp-icon"></i>
+                            <a
+                              href={`https://wa.me/${instructorItem.phone.replace(/[^\d]/g, "")}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="cd-instructor-whatsapp"
+                            >
+                              {isArabic ? "تواصل عبر واتساب" : "Chat on WhatsApp"}
+                            </a>
+                          </p>
+                        </>
+                      )}
+
+                      {instructorItem.bio && (
+                        <div className="cd-instructor-bio-wrap">
+                          <p className="cd-instructor-bio-label">
+                            <i className="bi bi-file-person-fill cd-instructor-key-icon"></i>
+                            {isArabic ? "نبذة تعريفية" : "Bio"}
+                          </p>
+                          <p className="cd-instructor-bio">{instructorItem.bio}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-
-              {/* Info */}
-              <div className="cd-instructor-info">
-                {/* الاسم */}
-                <h3 className="cd-instructor-name">
-                  <i className="bi bi-person-fill cd-instructor-key-icon"></i>
-                  {instructor.full_name}
-                </h3>
-
-                {/* التخصص */}
-                {instructor.field && (
-                  <p className="cd-instructor-meta-item">
-                    <i className="bi bi-briefcase-fill cd-instructor-key-icon"></i>
-                    {instructor.field}
-                  </p>
-                )}
-
-                {/* رقم الهاتف */}
-                {instructor.phone && (
-                  <>
-                    <p className="cd-instructor-meta-item">
-                      <i className="bi bi-telephone-fill cd-instructor-key-icon"></i>
-                      <a
-                        href={`tel:${instructor.phone}`}
-                        className="cd-instructor-phone"
-                      >
-                        {instructor.phone}
-                      </a>
-                    </p>
-                    <p className="cd-instructor-meta-item">
-                      <i className="bi bi-whatsapp cd-instructor-key-icon cd-instructor-whatsapp-icon"></i>
-                      <a
-                        href={`https://wa.me/${instructor.phone.replace(/[^\d]/g, "")}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="cd-instructor-whatsapp"
-                      >
-                        {isArabic ? "تواصل عبر واتساب" : "Chat on WhatsApp"}
-                      </a>
-                    </p>
-                  </>
-                )}
-
-                {/* السيرة الذاتية */}
-                {instructor.bio && (
-                  <div className="cd-instructor-bio-wrap">
-                    <p className="cd-instructor-bio-label">
-                      <i className="bi bi-file-person-fill cd-instructor-key-icon"></i>
-                      {isArabic ? "نبذة تعريفية" : "Bio"}
-                    </p>
-                    <p className="cd-instructor-bio">{instructor.bio}</p>
-                  </div>
-                )}
-              </div>
+                </article>
+              ))}
             </div>
           </section>
         )}

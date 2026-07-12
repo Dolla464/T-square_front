@@ -56,18 +56,24 @@ export const useLeaveReview = (courseId) => {
   }, [loading, eligibility, navigate, courseId]);
 
   const submitReview = useCallback(
-    async ({ ratings, overallComment }) => {
+    async ({ ratings, overallComment, instructor_ratings }) => {
       if (!courseId) return false;
 
       try {
         setSubmitting(true);
         setError(null);
 
-        const res = await submitCourseReview({
+        const payload = {
           course_id: Number(courseId),
           overall_comment: overallComment,
           ratings,
-        });
+        };
+
+        if (instructor_ratings?.length) {
+          payload.instructor_ratings = instructor_ratings;
+        }
+
+        const res = await submitCourseReview(payload);
 
         const message =
           res.data?.message ||

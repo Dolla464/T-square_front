@@ -10,6 +10,7 @@ import { showConfirmCustom } from "../shared/ConfirmDialog/confirmDialog";
 import { toastSuccess, toastError } from "../shared/Toaster/toaster";
 import usePayment from "../../hooks/usePayment";
 import { formatCoursePrice } from "../../utils/coursePrice";
+import { formatInstructorNames, getCourseInstructors } from "../../utils/courseInstructors";
 import LoadingSpiner from "../../LoadingSpiner";
 
 function AllPayment() {
@@ -414,9 +415,9 @@ function AllPayment() {
                     <div className="order-summary-meta-item">
                       <i className="bi bi-person"></i>
                       <span>
-                        Course instructor :
+                        {isArabic ? "مدربو الكورس:" : "Course instructors:"}
                         <span className="fw-bold">
-                          {course?.instructor?.name}
+                          {formatInstructorNames(getCourseInstructors(course))}
                         </span>
                       </span>
                     </div>

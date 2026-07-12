@@ -1,4 +1,5 @@
 import AdminPagination from "../../../components/shared/AdminPagination";
+import { formatInstructorNames, getCourseInstructors } from "../../../../../utils/courseInstructors";
 
 function CourseTable({
   filteredCourses,
@@ -55,7 +56,7 @@ function CourseTable({
                     {item.name || item.title || "Untitled"}
                   </td>
                   <td className="text-secondary">
-                    {item.instructor?.full_name || item.instructor?.name || "N/A"}
+                    {formatInstructorNames(getCourseInstructors(item)) || "N/A"}
                   </td>
                   <td className="text-secondary text-center">
                     {item.total_revenue || item.revenue || "0.00"}

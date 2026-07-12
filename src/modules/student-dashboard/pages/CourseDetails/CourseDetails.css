@@ -459,7 +459,28 @@
   opacity: 0.6;
 }
 
-/* ── المدرب ── */
+/* ── المدربون ── */
+.cd-instructors-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.cd-instructors-section > .cd-section-title {
+  margin-bottom: 20px;
+}
+
+.cd-instructors-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.cd-instructor-card {
+  padding: 24px 28px;
+  height: 100%;
+}
+
 .cd-instructor-row {
   display: flex;
   gap: 24px;
@@ -771,6 +792,26 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
+  }
+
+  .cd-instructors-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cd-instructor-card {
+    padding: 20px;
+  }
+
+  .cd-instructor-meta-item {
+    justify-content: center;
+  }
+
+  .cd-instructor-name {
+    justify-content: center;
+  }
+
+  .cd-instructor-bio-label {
+    justify-content: center;
   }
 
   .cd-hero-actions {

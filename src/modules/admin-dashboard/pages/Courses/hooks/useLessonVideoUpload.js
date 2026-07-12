@@ -61,7 +61,7 @@ export const useLessonVideoUpload = () => {
         ? "يرجى اختيار التصنيف في البيانات الأساسية أولاً"
         : "Please select a category in Basic Info first";
     }
-    if (!formData.instructor_id) {
+    if (!formData.instructor_ids?.length) {
       return isArabic
         ? "يرجى اختيار المدرب في البيانات الأساسية أولاً"
         : "Please select an instructor in Basic Info first";
@@ -72,7 +72,7 @@ export const useLessonVideoUpload = () => {
   const buildDraftPayload = useCallback((formData) => ({
     title: formData.title?.trim(),
     category_id: formData.category_id,
-    instructor_id: formData.instructor_id,
+    instructor_ids: formData.instructor_ids || [],
     status: "draft",
     slug: formData.slug || undefined,
     short_description: formData.short_description || undefined,
