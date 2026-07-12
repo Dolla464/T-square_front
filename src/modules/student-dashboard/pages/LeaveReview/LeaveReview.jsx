@@ -4,7 +4,11 @@ import { Helmet } from "react-helmet-async";
 import i18next from "i18next";
 import { Spinner } from "react-bootstrap";
 import { useLeaveReview } from "../../hooks/useLeaveReview";
-import { ALL_QUESTION_IDS, REVIEW_GROUPS } from "./reviewQuestions";
+import {
+  INSTRUCTOR_REVIEW_GROUP,
+  SHARED_REVIEW_GROUPS,
+  SHARED_QUESTION_IDS,
+} from "./reviewQuestions";
 import "./LeaveReview.css";
 
 const RATING_SCALE = [
@@ -19,15 +23,37 @@ function LeaveReview() {
   const { courseId } = useParams();
   const isArabic = i18next.language === "ar";
 
-  const { loading, submitting, error, submitReview } = useLeaveReview(courseId);
+  const { eligibility, loading, submitting, error, submitReview } =
+    useLeaveReview(courseId);
 
   const [ratings, setRatings] = useState({});
+  const [instructorRatings, setInstructorRatings] = useState({});
   const [overallComment, setOverallComment] = useState("");
 
-  const allQuestionsRated = useMemo(
-    () => ALL_QUESTION_IDS.every((id) => ratings[id] > 0),
-    [ratings]
-  );
+  const instructors = eligibility?.instructors ?? [];
+  const instructorQuestions = INSTRUCTOR_REVIEW_GROUP.questions;
+
+  const allQuestionsRated = useMemo(() => {
+    const sharedComplete = SHARED_QUESTION_IDS.every((id) => ratings[id] > 0);
+
+    if (!instructors.length) {
+      return (
+        sharedComplete &&
+        instructorQuestions.every((question) => ratings[question.id] > 0)
+      );
+    }
+
+    const instructorsComplete = instructors.every((instructor) => {
+      const currentRatings =
+        instructorRatings[instructor.course_instructor_id] || {};
+
+      return instructorQuestions.every(
+        (question) => currentRatings[question.id] > 0
+      );
+    });
+
+    return sharedComplete && instructorsComplete;
+  }, [ratings, instructorRatings, instructors, instructorQuestions]);
 
   const handleBack = useCallback(() => {
     window.history.back();
@@ -37,12 +63,37 @@ function LeaveReview() {
     setRatings((prev) => ({ ...prev, [questionId]: value }));
   }, []);
 
+  const handleInstructorRatingChange = useCallback(
+    (courseInstructorId, questionId, value) => {
+      setInstructorRatings((prev) => ({
+        ...prev,
+        [courseInstructorId]: {
+          ...(prev[courseInstructorId] || {}),
+          [questionId]: value,
+        },
+      }));
+    },
+    []
+  );
+
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      await submitReview({ ratings, overallComment });
+
+      const instructor_ratings = instructors.length
+        ? instructors.map((instructor) => ({
+            course_instructor_id: instructor.course_instructor_id,
+            ratings: instructorRatings[instructor.course_instructor_id] || {},
+          }))
+        : undefined;
+
+      await submitReview({
+        ratings,
+        overallComment,
+        instructor_ratings,
+      });
     },
-    [submitReview, ratings, overallComment]
+    [submitReview, ratings, overallComment, instructorRatings, instructors]
   );
 
   const getRatingLabel = useCallback(
@@ -54,25 +105,31 @@ function LeaveReview() {
     [isArabic]
   );
 
-  const renderStars = (questionId, currentRating, onRatingChange) => (
+  const renderStars = (questionId, currentRating, onRatingChange, namePrefix = "") => {
+    const fieldId = `${namePrefix}${questionId}`;
+
+    return (
     <div className="lr-stars">
       {[5, 4, 3, 2, 1].map((star) => (
         <React.Fragment key={star}>
           <input
             type="radio"
-            id={`${questionId}-star-${star}`}
-            name={`${questionId}-rating`}
+            id={`${fieldId}-star-${star}`}
+            name={`${fieldId}-rating`}
             value={star}
             checked={currentRating === star}
             onChange={() => onRatingChange(star)}
           />
-          <label htmlFor={`${questionId}-star-${star}`} title={`${star} stars`}>
-            <i className={`bi ${currentRating >= star ? "bi-star-fill" : "bi-star"}`}></i>
+          <label htmlFor={`${fieldId}-star-${star}`} title={`${star} stars`}>
+            <i
+              className={`bi ${currentRating >= star ? "bi-star-fill" : "bi-star"}`}
+            ></i>
           </label>
         </React.Fragment>
       ))}
     </div>
-  );
+    );
+  };
 
   const renderScaleLegend = () => (
     <div className="lr-scale-hint">
@@ -89,28 +146,27 @@ function LeaveReview() {
     </div>
   );
 
-  const renderQuestion = (question) => {
-    const currentRating = ratings[question.id] || 0;
-
-    return (
-      <div key={question.id} className="lr-question-item">
-        <p className="lr-question-en">{question.en}</p>
-        <p className="lr-question-ar" dir="rtl">
-          {question.ar}
-        </p>
-        <div className="lr-rating-group">
-          {renderStars(question.id, currentRating, (value) =>
-            handleRatingChange(question.id, value)
-          )}
-          {currentRating > 0 && (
-            <span className="lr-rating-selected-label">
-              {getRatingLabel(currentRating)}
-            </span>
-          )}
-        </div>
+  const renderQuestion = (
+    question,
+    currentRating,
+    onRatingChange,
+    namePrefix = ""
+  ) => (
+    <div key={`${namePrefix}${question.id}`} className="lr-question-item">
+      <p className="lr-question-en">{question.en}</p>
+      <p className="lr-question-ar" dir="rtl">
+        {question.ar}
+      </p>
+      <div className="lr-rating-group">
+        {renderStars(question.id, currentRating, onRatingChange, namePrefix)}
+        {currentRating > 0 && (
+          <span className="lr-rating-selected-label">
+            {getRatingLabel(currentRating)}
+          </span>
+        )}
       </div>
-    );
-  };
+    </div>
+  );
 
   const renderQuestionGroup = (group) => (
     <div key={group.key} className="lr-card">
@@ -120,14 +176,73 @@ function LeaveReview() {
       </h2>
       {renderScaleLegend()}
       <div className="lr-questions-list">
-        {group.questions.map(renderQuestion)}
+        {group.questions.map((question) =>
+          renderQuestion(question, ratings[question.id] || 0, (value) =>
+            handleRatingChange(question.id, value)
+          )
+        )}
       </div>
     </div>
   );
 
+  const renderInstructorReviewSection = () => {
+    if (!instructors.length) {
+      return renderQuestionGroup(INSTRUCTOR_REVIEW_GROUP);
+    }
+
+    return (
+      <div className="lr-card lr-instructor-review-card">
+        <h2 className="lr-section-title">
+          <i className={`bi ${INSTRUCTOR_REVIEW_GROUP.icon}`}></i>
+          {isArabic
+            ? instructors.length > 1
+              ? "المجموعة 3: المحاضرون"
+              : INSTRUCTOR_REVIEW_GROUP.titleAr
+            : instructors.length > 1
+              ? "Group 3: Instructors"
+              : INSTRUCTOR_REVIEW_GROUP.titleEn}
+        </h2>
+        {renderScaleLegend()}
+
+        {instructors.map((instructor) => (
+          <div
+            key={instructor.course_instructor_id || instructor.id}
+            className="lr-instructor-block"
+          >
+            <h3 className="lr-instructor-block-title">
+              <i className="bi bi-person-badge"></i>
+              {isArabic ? "تقييم المحاضر:" : "Rate instructor:"}{" "}
+              <span>{instructor.full_name || instructor.name}</span>
+            </h3>
+            <div className="lr-questions-list">
+              {instructorQuestions.map((question) =>
+                renderQuestion(
+                  question,
+                  instructorRatings[instructor.course_instructor_id]?.[
+                    question.id
+                  ] || 0,
+                  (value) =>
+                    handleInstructorRatingChange(
+                      instructor.course_instructor_id,
+                      question.id,
+                      value
+                    ),
+                  `ci-${instructor.course_instructor_id}-`
+                )
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
-      <div className="lr-page d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
+      <div
+        className="lr-page d-flex justify-content-center align-items-center"
+        style={{ minHeight: "50vh" }}
+      >
         <Spinner animation="border" variant="danger" />
       </div>
     );
@@ -146,11 +261,15 @@ function LeaveReview() {
         <div className="lr-hero-overlay" />
         <div className="lr-hero-body">
           <button onClick={handleBack} className="lr-breadcrumb-btn">
-            <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}></i>
+            <i
+              className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
+            ></i>
             {isArabic ? "العودة للكورس" : "Back to Course"}
           </button>
           <h1 className="lr-hero-title">
-            {isArabic ? "تقييم الكورس والمحاضر والسنتر" : "Course, Instructor & Center Review"}
+            {isArabic
+              ? "تقييم الكورس والمحاضرين والسنتر"
+              : "Course, Instructors & Center Review"}
           </h1>
           <p className="lr-hero-sub">
             {isArabic
@@ -169,7 +288,8 @@ function LeaveReview() {
 
         <form onSubmit={handleSubmit} className="lr-body">
           <div className="lr-columns-grid">
-            {REVIEW_GROUPS.map(renderQuestionGroup)}
+            {SHARED_REVIEW_GROUPS.map(renderQuestionGroup)}
+            {renderInstructorReviewSection()}
           </div>
 
           <div className="lr-card lr-overall-comment">
@@ -208,7 +328,12 @@ function LeaveReview() {
                   ? "إرسال التقييمات"
                   : "Submit Reviews"}
             </button>
-            <button type="button" onClick={handleBack} className="lr-btn-cancel" disabled={submitting}>
+            <button
+              type="button"
+              onClick={handleBack}
+              className="lr-btn-cancel"
+              disabled={submitting}
+            >
               {isArabic ? "إلغاء" : "Cancel"}
             </button>
           </div>

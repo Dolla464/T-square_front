@@ -422,3 +422,33 @@
     font-size: 0.62rem;
   }
 }
+
+.lr-instructor-review-card {
+  grid-column: 1 / -1;
+}
+
+.lr-instructor-block {
+  padding-top: 18px;
+  margin-top: 18px;
+  border-top: 1px dashed var(--cd-border);
+}
+
+.lr-instructor-block:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.lr-instructor-block-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cd-text);
+  margin-bottom: 16px;
+}
+
+.lr-instructor-block-title span {
+  color: var(--cd-red);
+}

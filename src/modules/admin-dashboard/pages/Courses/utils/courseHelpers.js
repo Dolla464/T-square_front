@@ -214,7 +214,15 @@ export const mapItemToFormData = (item) => ({
   short_description: item.short_description || "",
   description: item.description || "",
   category_id: item.category_id || item.category?.id || "",
-  instructor_id: item.instructor_id || item.instructor?.id || "",
+  instructor_ids: item.instructors?.length
+    ? [...item.instructors]
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+        .map((instructor) => instructor.id)
+    : item.instructor_ids?.length
+      ? item.instructor_ids
+      : item.instructor_id || item.instructor?.id
+        ? [item.instructor_id || item.instructor?.id]
+        : [],
   level: item.level || "beginner",
   language: item.language || "Arabic",
   attendance_type: item.attendance_type || "online",
@@ -248,7 +256,7 @@ export const defaultFormData = {
   short_description: "",
   description: "",
   category_id: "",
-  instructor_id: "",
+  instructor_ids: [],
   level: "beginner",
   language: "Arabic",
   attendance_type: "online",

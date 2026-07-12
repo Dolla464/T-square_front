@@ -10,6 +10,7 @@ import {
   showDeleteConfirm,
 } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import VideoPreviewModal from "../../../../components/layout/VideoPreviewModal";
+import { getCourseInstructors, formatInstructorNames } from "../../../../utils/courseInstructors";
 import { useCourseFormLogic } from "./hooks/useCourseFormLogic";
 import {
   mapItemToFormData,
@@ -157,8 +158,9 @@ function AdminCourses() {
         !debouncedSearch ||
         course.title?.toLowerCase().includes(searchLower) ||
         course.short_description?.toLowerCase().includes(searchLower) ||
-        course.instructor?.full_name?.toLowerCase().includes(searchLower) ||
-        course.instructor?.name?.toLowerCase().includes(searchLower);
+        formatInstructorNames(getCourseInstructors(course))
+          .toLowerCase()
+          .includes(searchLower);
 
       const matchesStatus =
         selectedStatus === "all" || course.status === selectedStatus;
@@ -361,7 +363,7 @@ function AdminCourses() {
       short_description: formData.short_description,
       description: formData.description,
       category_id: formData.category_id,
-      instructor_id: formData.instructor_id,
+      instructor_ids: formData.instructor_ids || [],
       level: formData.level,
       language: formData.language,
       price: formData.price,

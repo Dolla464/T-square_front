@@ -1,4 +1,3 @@
-import React from "react";
 
 function BasicInfoTab({
   formData,
@@ -20,6 +19,41 @@ function BasicInfoTab({
   isArabic,
   t,
 }) {
+  const selectedInstructorIds = formData.instructor_ids || [];
+
+  const toggleInstructor = (instructorId) => {
+    const id = Number(instructorId);
+    const exists = selectedInstructorIds.includes(id);
+    const nextIds = exists
+      ? selectedInstructorIds.filter((value) => value !== id)
+      : [...selectedInstructorIds, id];
+
+    setFormData((prev) => ({ ...prev, instructor_ids: nextIds }));
+  };
+
+  const moveInstructor = (index, direction) => {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= selectedInstructorIds.length) return;
+
+    const nextIds = [...selectedInstructorIds];
+    [nextIds[index], nextIds[nextIndex]] = [nextIds[nextIndex], nextIds[index]];
+    setFormData((prev) => ({ ...prev, instructor_ids: nextIds }));
+  };
+
+  const getInstructorLabel = (id) => {
+    const match = instructors?.find((inst) => Number(inst.id) === Number(id));
+    return match?.full_name || match?.name || `#${id}`;
+  };
+
+  const readOnlyInstructors = viewingItem?.instructors?.length
+    ? [...viewingItem.instructors].sort(
+        (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+      )
+    : selectedInstructorIds.map((id) => ({
+        id,
+        full_name: getInstructorLabel(id),
+      }));
+
   return (
     <div className="ac-tab-content basic-info">
       {/* Cover image preview in read-only mode */}
@@ -165,33 +199,8 @@ function BasicInfoTab({
         </div>
       </div>
 
-      {/* Instructor + Attendance Type */}
+      {/* Attendance Type */}
       <div className="row mb-4">
-        <div className="col-md-6 mb-3 mb-md-0">
-          <label className="form-label fw-bold text-dark">
-            {t("content.form.fields.instructor")}
-          </label>
-          <select
-            name="instructor_id"
-            className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
-            value={formData.instructor_id || ""}
-            onChange={handleChange}
-            disabled={isReadOnly}
-          >
-            <option value="">
-              {t("content.form.fields.instructor_placeholder")}
-            </option>
-            {instructors && instructors.length > 0 ? (
-              instructors.map((inst) => (
-                <option key={inst.id} value={inst.id}>
-                  {inst.full_name || inst.name}
-                </option>
-              ))
-            ) : (
-              <option value="1">Ahmed Hatem</option>
-            )}
-          </select>
-        </div>
         <div className="col-md-6 mb-3">
           <label className="form-label fw-bold text-dark">
             {isArabic ? "نوع الحضور" : "Attendance Type"}
@@ -210,6 +219,109 @@ function BasicInfoTab({
             </option>
           </select>
         </div>
+      </div>
+
+      {/* Instructors */}
+      <div className="mb-4">
+        <label className="form-label fw-bold text-dark">
+          {isArabic ? "المدربون" : "Instructors"}
+        </label>
+
+        {isReadOnly ? (
+          <div className="d-flex flex-wrap gap-2 pt-2">
+            {readOnlyInstructors.length > 0 ? (
+              readOnlyInstructors.map((instructor) => (
+                <span
+                  key={instructor.id}
+                  className="badge bg-danger text-white px-3 py-2 rounded-pill fw-medium"
+                >
+                  {instructor.full_name || instructor.name}
+                </span>
+              ))
+            ) : (
+              <span className="text-muted small">
+                {isArabic ? "بدون مدربين" : "No instructors assigned"}
+              </span>
+            )}
+          </div>
+        ) : (
+          <>
+            <div
+              className="ac-tags-selection-box p-3 bg-light border rounded-3"
+              style={{ maxHeight: "200px", overflowY: "auto" }}
+            >
+              <div className="row g-2">
+                {(instructors || []).map((inst) => {
+                  const instId = Number(inst.id);
+                  const isChecked = selectedInstructorIds.includes(instId);
+
+                  return (
+                    <div key={instId} className="col-md-4 col-6">
+                      <div
+                        className={`ac-tag-option p-2 rounded-3 border bg-white cursor-pointer d-flex align-items-center gap-2 ${isChecked ? "checked" : ""}`}
+                        onClick={() => toggleInstructor(instId)}
+                      >
+                        <input
+                          type="checkbox"
+                          className="form-check-input mt-0 cursor-pointer"
+                          checked={isChecked}
+                          onChange={() => {}}
+                        />
+                        <span
+                          className={`small fw-medium ${isChecked ? "text-light" : "text-dark"}`}
+                        >
+                          {inst.full_name || inst.name}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {selectedInstructorIds.length > 1 && (
+              <div className="mt-3">
+                <small className="text-muted d-block mb-2">
+                  {isArabic ? "ترتيب العرض" : "Display order"}
+                </small>
+                <div className="d-flex flex-wrap gap-2 align-items-center">
+                  {selectedInstructorIds.map((id, index) => (
+                    <div
+                      key={id}
+                      className="d-flex align-items-center gap-1"
+                    >
+                      <span className="badge bg-danger text-white px-3 py-2 rounded-pill fw-medium">
+                        {getInstructorLabel(id)}
+                      </span>
+                      <div className="btn-group btn-group-sm">
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() => moveInstructor(index, -1)}
+                          disabled={index === 0}
+                          title={isArabic ? "تحريك لأعلى" : "Move up"}
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() => moveInstructor(index, 1)}
+                          disabled={
+                            index === selectedInstructorIds.length - 1
+                          }
+                          title={isArabic ? "تحريك لأسفل" : "Move down"}
+                        >
+                          ↓
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Tags */}
