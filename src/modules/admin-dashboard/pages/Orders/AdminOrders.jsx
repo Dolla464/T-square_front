@@ -5,7 +5,7 @@ import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { Button } from "react-bootstrap";
 import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
 import AdminPagination from "../../components/shared/AdminPagination";
-import { showDeleteConfirm, showPaymentStatusConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { showPaymentStatusConfirm, showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastError } from "../../../../components/shared/Toaster/toaster";
 import { useOrders } from "../../hooks/useOrders";
 import ExportBar from "../../components/shared/ExportBar";
@@ -105,9 +105,14 @@ function AdminOrders() {
 
   const handleDelete = async (id) => {
     const order = orders.find((r) => r.id === id);
-    const confirmed = await showDeleteConfirm(
-      order?.["student.full_name"] || order?.billing_name || (isArabic ? "هذا الطلب" : "this order"),
-    );
+    const orderName = order?.["student.full_name"] || order?.billing_name || (isArabic ? "هذا الطلب" : "this order");
+    const confirmed = await showConfirmCustom({
+      title: t("deleteOrderTitle"),
+      message: t("deleteOrderMessage", { name: orderName }),
+      confirmText: t("deleteOrderConfirm"),
+      icon: "error",
+      variant: "danger",
+    });
 
     if (confirmed) {
       await deleteOrder(id);
