@@ -13,7 +13,12 @@ import { dateInputClass } from "../../components/shared/adminUiStyles";
 
 import "../Reviews/review.css";
 
-function AdminOrders() {
+function AdminOrders({
+  useOrdersHook = useOrders,
+  basePath = "/admin",
+  canExport = true,
+  canDelete = true,
+}) {
   const { t, i18n } = useTranslation("orderPayments");
   const isArabic = i18n.language?.startsWith("ar");
   const navigate = useNavigate();
@@ -29,7 +34,7 @@ function AdminOrders() {
     updateOrderStatus,
     deleteOrder,
     handleExport,
-  } = useOrders();
+  } = useOrdersHook();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -180,12 +185,14 @@ function AdminOrders() {
           <Button
             variant="danger"
             className="rounded-3 fw-bold px-4"
-            onClick={() => navigate("/admin/orders/create")}
+            onClick={() => navigate(`${basePath}/orders/create`)}
           >
             <i className="bi bi-plus-lg me-2"></i>
             {t("createOrder")}
           </Button>
-          <ExportBar onExport={onExport} loading={exportLoading} />
+          {canExport && handleExport && (
+            <ExportBar onExport={onExport} loading={exportLoading} />
+          )}
         </div>
       </div>
 
@@ -438,6 +445,7 @@ function AdminOrders() {
                           >
                             <i className="bi bi-eye fs-6"></i>
                           </button>
+                          {canDelete && deleteOrder && (
                           <button
                             className="btn btn-sm ac-btn-deleteTable border-0"
                             title={isArabic ? "حذف" : "Delete"}
@@ -445,6 +453,7 @@ function AdminOrders() {
                           >
                             <i className="bi bi-trash fs-6"></i>
                           </button>
+                          )}
                         </div>
                       </td>
                     </tr>

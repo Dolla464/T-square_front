@@ -1,7 +1,11 @@
 {
   "sidebar": {
     "dashboard": "Dashboard",
-    "attendance": "Attendance"
+    "attendance": "Attendance",
+    "groups": "Groups",
+    "learningGroups": "Learning Groups",
+    "students": "Students",
+    "orders": "Orders & Payment"
   },
   "topbar": {
     "role": "Receptionist"

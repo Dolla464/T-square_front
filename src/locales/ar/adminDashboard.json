@@ -22,7 +22,11 @@
     "studentAttendance": "حضور الطلاب",
     "studentResults": "نتائج الطلاب",
     "examActivation": "تفعيل الامتحانات",
-    "profile": "الملف الشخصي"
+    "profile": "الملف الشخصي",
+    "studentsInfo": "معلومات الطلاب",
+    "learningGroups": "المجموعات الدراسية",
+    "classManagement": "إدارة الفصول",
+    "exams": "الاختبارات"
   },
   "profile_page": {
     "title": "الملف الشخصي والإعدادات",

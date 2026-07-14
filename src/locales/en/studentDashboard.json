@@ -6,7 +6,8 @@
     "certificates": "Certificates",
     "attendance": "Attendance",
     "notifications": "Notifications",
-    "profile": "Profile"
+    "profile": "Profile",
+    "myLearning": "My Learning"
   },
   "stats": {
     "all_courses": "All Courses",

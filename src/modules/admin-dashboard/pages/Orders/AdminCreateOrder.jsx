@@ -2,16 +2,21 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useOrders } from "../../hooks/useOrders";
-import { getStudents } from "../../services/studentsServices";
-import { getCourses } from "../../services/coursesServices";
+import { getStudents as defaultGetStudents } from "../../services/studentsServices";
+import { getCourses as defaultGetCourses } from "../../services/coursesServices";
 import { selectClass, dateInputClass } from "../../components/shared/adminUiStyles";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
-function AdminCreateOrder() {
+function AdminCreateOrder({
+  useOrdersHook = useOrders,
+  getStudentsFn = defaultGetStudents,
+  getCoursesFn = defaultGetCourses,
+  basePath = "/admin",
+}) {
   const { t, i18n } = useTranslation("orderPayments");
   const isArabic = i18n.language?.startsWith("ar");
   const navigate = useNavigate();
-  const { createOrder } = useOrders();
+  const { createOrder } = useOrdersHook();
 
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -37,7 +42,7 @@ function AdminCreateOrder() {
 
   useEffect(() => {
     setLoadingStudents(true);
-    getStudents({ per_page: 200, status: "active" })
+    getStudentsFn({ per_page: 200, status: "active" })
       .then((res) => {
         const list = res?.data?.students || res?.data || [];
         setStudents(Array.isArray(list) ? list : []);
@@ -46,7 +51,7 @@ function AdminCreateOrder() {
       .finally(() => setLoadingStudents(false));
 
     setLoadingCourses(true);
-    getCourses({ per_page: 200, status: "published" })
+    getCoursesFn({ per_page: 200, status: "published" })
       .then((res) => {
         const list = res?.data?.courses || res?.data || [];
         setCourses(Array.isArray(list) ? list : []);
@@ -111,7 +116,7 @@ function AdminCreateOrder() {
         billing_phone: formData.billing_phone || undefined,
         notes: formData.notes || undefined,
       });
-      navigate("/admin/orders");
+      navigate(`${basePath}/orders`);
     } catch {
       // Error toast shown inside createOrder hook
     } finally {
@@ -132,7 +137,7 @@ function AdminCreateOrder() {
           <button
             className="ac-back-btn"
             type="button"
-            onClick={() => navigate("/admin/orders")}
+            onClick={() => navigate(`${basePath}/orders`)}
           >
             <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}></i>
             <span className="ms-2 me-2 fs-5 fw-bold text-dark">

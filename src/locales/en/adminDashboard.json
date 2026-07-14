@@ -22,7 +22,11 @@
     "studentAttendance": "Students Attendance",
     "studentResults": "Students Results",
     "examActivation": "Exam Activation",
-    "profile": "Profile"
+    "profile": "Profile",
+    "studentsInfo": "Students Info",
+    "learningGroups": "Learning Groups",
+    "classManagement": "Class Management",
+    "exams": "Exams"
   },
   "profile_page": {
     "title": "Profile & Settings",

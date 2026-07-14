@@ -174,7 +174,7 @@ function QuizCard({ quiz, t }) {
             <button
               type="button"
               onClick={handleShowResults}
-              className="btn-continue btn-review bg-light text-dark border flex-grow-1 text-center py-2 rounded"
+              className="btn-continue btn-review flex-grow-1 text-center py-2 rounded"
             >
               <i className="bi bi-eye me-1"></i>
               {t("active_courses.review")}

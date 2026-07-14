@@ -125,8 +125,8 @@
 }
 
 .btn-view-cert {
-  background: #f0f0f0;
-  color: #1a1a1a;
+  background: #fff1f2;
+  color: #be1522;
   border: none;
   border-radius: 8px;
   width: 38px;
@@ -139,7 +139,8 @@
 }
 
 .btn-view-cert:hover {
-  background: #e0e0e0;
+  background: #fecdd3;
+  color: #9a111b;
 }
 
 /* ── Counter ── */

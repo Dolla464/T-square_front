@@ -7,8 +7,17 @@ import { useUnreadCount } from "../../../hooks/useNotifications";
 import DashboardSharedLayout from "../../shared-dashboard/components/DashboardLayout/DashboardSharedLayout";
 
 const RECEPTIONIST_NAV = [
-  { key: "dashboard",  path: "/receptionist",            icon: "bi-grid-1x2",         end: true },
-  { key: "attendance", path: "/receptionist/attendance", icon: "bi-person-check-fill" },
+  { key: "dashboard", path: "/receptionist", icon: "bi-grid-1x2", end: true },
+  {
+    key: "groups",
+    icon: "bi-collection",
+    children: [
+      { key: "learningGroups", path: "/receptionist/groups", icon: "bi-people" },
+      { key: "attendance", path: "/receptionist/attendance", icon: "bi-person-check-fill" },
+    ],
+  },
+  { key: "students", path: "/receptionist/students", icon: "bi-people" },
+  { key: "orders", path: "/receptionist/orders", icon: "bi-cart3" },
 ];
 
 function ReceptionistLayout() {
@@ -29,6 +38,14 @@ function ReceptionistLayout() {
         return HomePageTitle;
       case "/receptionist/attendance":
         return isArabic ? "الحضور والغياب" : "Attendance";
+      case "/receptionist/groups":
+        return isArabic ? "المجموعات الدراسية" : "Learning Groups";
+      case "/receptionist/students":
+        return isArabic ? "الطلاب" : "Students";
+      case "/receptionist/orders":
+        return isArabic ? "الطلبات والدفع" : "Orders & Payment";
+      case "/receptionist/orders/create":
+        return isArabic ? "إنشاء طلب" : "Create Order";
       default:
         return "";
     }

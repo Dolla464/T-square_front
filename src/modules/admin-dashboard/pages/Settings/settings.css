@@ -517,6 +517,10 @@
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease !important;
 }
 
+.about-image-overlay .btn-light i.bi-eye-fill {
+  color: #be1522 !important;
+}
+
 .about-image-overlay .btn-light:hover {
   transform: scale(1.15) !important;
   background-color: #f3f4f6 !important;
