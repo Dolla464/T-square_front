@@ -259,7 +259,7 @@ function InstructorProfile() {
                       onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
                     >
                       <i
-                        className="bi bi-eye-fill text-white"
+                        className="bi bi-eye-fill text-danger"
                         style={{ fontSize: "1.1rem" }}
                       ></i>
                     </div>

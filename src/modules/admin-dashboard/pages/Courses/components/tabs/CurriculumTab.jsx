@@ -484,7 +484,7 @@ function CurriculumTab({
                                         onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.15)"}
                                         onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
                                       >
-                                        <i className="bi bi-eye-fill text-dark fs-5"></i>
+                                        <i className="bi bi-eye-fill text-danger fs-5"></i>
                                       </button>
                                     )}
 

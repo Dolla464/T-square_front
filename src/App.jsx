@@ -203,6 +203,22 @@ const ReceptionistAttendance = lazy(
   () =>
     import("./modules/receptionist-dashboard/pages/Attendance/ReceptionistAttendance"),
 );
+const ReceptionistStudents = lazy(
+  () =>
+    import("./modules/receptionist-dashboard/pages/Students/ReceptionistStudents"),
+);
+const ReceptionistOrders = lazy(
+  () =>
+    import("./modules/receptionist-dashboard/pages/Orders/ReceptionistOrders"),
+);
+const ReceptionistCreateOrder = lazy(
+  () =>
+    import("./modules/receptionist-dashboard/pages/Orders/ReceptionistCreateOrder"),
+);
+const ReceptionistGroups = lazy(
+  () =>
+    import("./modules/receptionist-dashboard/pages/Groups/ReceptionistGroups"),
+);
 
 // مكون فرعي للتحكم في عرض الـ Layout والتوجيه
 function AppContent() {
@@ -495,6 +511,13 @@ function AppContent() {
                     <Route
                       path="attendance"
                       element={<ReceptionistAttendance />}
+                    />
+                    <Route path="groups" element={<ReceptionistGroups />} />
+                    <Route path="students" element={<ReceptionistStudents />} />
+                    <Route path="orders" element={<ReceptionistOrders />} />
+                    <Route
+                      path="orders/create"
+                      element={<ReceptionistCreateOrder />}
                     />
                   </Route>
                 </Route>

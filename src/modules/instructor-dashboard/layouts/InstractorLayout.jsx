@@ -9,26 +9,38 @@ import { useUnreadCount } from "../../../hooks/useNotifications";
 const INSTRUCTOR_NAV = [
   { key: "dashboard", path: "/instructor", icon: "bi-grid-1x2", end: true },
   {
-    key: "attendance",
-    path: "/instructor/attendance",
-    icon: "bi-person-check-fill",
-  },
-  {
     key: "schedule",
     path: "/instructor/schedule",
     icon: "bi-calendar-week",
   },
   {
-    key: "studentResults",
-    path: "/instructor/student-results",
-    icon: "bi-bar-chart-line",
+    key: "classManagement",
+    icon: "bi-easel",
+    children: [
+      {
+        key: "attendance",
+        path: "/instructor/attendance",
+        icon: "bi-person-check-fill",
+      },
+      {
+        key: "studentResults",
+        path: "/instructor/student-results",
+        icon: "bi-bar-chart-line",
+      },
+    ],
   },
   {
-    key: "examActivation",
-    path: "/instructor/exam-activation",
-    icon: "bi-toggle-on",
+    key: "exams",
+    icon: "bi-journal-check",
+    children: [
+      {
+        key: "examActivation",
+        path: "/instructor/exam-activation",
+        icon: "bi-toggle-on",
+      },
+      { key: "quizzes", path: "/instructor/quizzes", icon: "bi-chat-right-quote" },
+    ],
   },
-  { key: "quizzes", path: "/instructor/quizzes", icon: "bi-chat-right-quote" },
   {
     key: "Notification",
     path: "/instructor/notifications",

@@ -55,8 +55,11 @@ const getAvatarSrc = (path) => {
   return `${cleanBase}${cleanPath}`;
 };
 
-function AdminStudents() {
-  const { selectionGroups, getGroupsSelection } = useGroups();
+function AdminStudents({
+  useStudentsHook = useStudents,
+  useGroupsHook = useGroups,
+}) {
+  const { selectionGroups, getGroupsSelection } = useGroupsHook();
 
   const {
     students,
@@ -71,7 +74,7 @@ function AdminStudents() {
     toggleStudentVerify,
     updateStudentCourseGroup,
     updateStudentCourseStatus,
-  } = useStudents();
+  } = useStudentsHook();
 
   // State variables for managing form visibility, current editing/viewing item, search and filter criteria, form data, and pagination
   const [showForm, setShowForm] = useState(false);

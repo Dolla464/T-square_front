@@ -57,5 +57,9 @@
   "noStudentsFound": "No students found",
   "noCoursesFound": "No courses found",
   "submit": "Create Order",
-  "backToOrders": "Back to Orders"
+  "backToOrders": "Back to Orders",
+
+  "deleteOrderTitle": "Confirm Order Deletion",
+  "deleteOrderMessage": "Are you sure you want to delete order \"{{name}}\"? The student will be unenrolled from the course and removed from their group. Existing certificates and exam results will remain saved. This cannot be undone.",
+  "deleteOrderConfirm": "Yes, Delete Order"
 }

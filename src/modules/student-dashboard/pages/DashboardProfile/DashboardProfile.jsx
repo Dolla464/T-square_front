@@ -246,7 +246,7 @@ function DashboardProfile() {
                       onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
                       onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
                     >
-                      <i className="bi bi-eye-fill text-white" style={{ fontSize: "1.1rem" }}></i>
+                      <i className="bi bi-eye-fill text-danger" style={{ fontSize: "1.1rem" }}></i>
                     </div>
                   </>
                 ) : (

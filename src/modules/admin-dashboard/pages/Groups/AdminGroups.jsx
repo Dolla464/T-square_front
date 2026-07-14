@@ -8,8 +8,11 @@ import { useGroups } from "../../hooks/useGroups";
 import { showDeleteConfirm, showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { useAdminCourses } from "../../hooks/useAdminCourses";
 import { toastError, toastSuccess } from "../../../../components/shared/Toaster/toaster";
-import { getLearningGroupSessions, exportGroupStudents } from "../../services/learningGroupServices";
-import { exportSchedule } from "../../services/adminScheduleService";
+import {
+  getLearningGroupSessions as defaultGetLearningGroupSessions,
+  exportGroupStudents as defaultExportGroupStudents,
+} from "../../services/learningGroupServices";
+import { exportSchedule as defaultExportSchedule } from "../../services/adminScheduleService";
 import { parseApiDateOnly } from "../../../../utils/formatDateTime";
 import { getCourseInstructors } from "../../../../utils/courseInstructors";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
@@ -296,7 +299,14 @@ function SessionStatusBadge({ status, isArabic }) {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-function AdminGroups() {
+function AdminGroups({
+  useGroupsHook = useGroups,
+  useCoursesHook = useAdminCourses,
+  useInstructorsHook = useInstructors,
+  getLearningGroupSessionsFn = defaultGetLearningGroupSessions,
+  exportGroupStudentsFn = defaultExportGroupStudents,
+  exportScheduleFn = defaultExportSchedule,
+}) {
   const {
     groups,
     pagination: apiPagination,
@@ -308,9 +318,9 @@ function AdminGroups() {
     updateGroup,
     deleteGroup,
     getAvailableStudents,
-  } = useGroups();
-  const { courses, getCourses, getCourseById } = useAdminCourses();
-  const { instructors, getInstructors } = useInstructors();
+  } = useGroupsHook();
+  const { courses, getCourses, getCourseById } = useCoursesHook();
+  const { instructors, getInstructors } = useInstructorsHook();
 
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
@@ -545,7 +555,7 @@ function AdminGroups() {
     setShowScheduleModal(true);
     setScheduleModalLoading(true);
     try {
-      const res = await getLearningGroupSessions(viewingItem);
+      const res = await getLearningGroupSessionsFn(viewingItem);
       setGroupSessions(Array.isArray(res?.data) ? res.data : []);
     } catch (err) {
       toastError(
@@ -562,7 +572,7 @@ function AdminGroups() {
     if (!viewingItem) return;
     setScheduleExportLoading(true);
     try {
-      await exportSchedule({ group_id: viewingItem }, "pdf");
+      await exportScheduleFn({ group_id: viewingItem }, "pdf");
     } catch (err) {
       toastError(
         err?.response?.data?.message ||
@@ -578,7 +588,7 @@ function AdminGroups() {
     if (!groupId) return;
     setStudentsExportLoading(true);
     try {
-      await exportGroupStudents(groupId, format);
+      await exportGroupStudentsFn(groupId, format);
     } catch (err) {
       toastError(
         err?.response?.data?.message ||

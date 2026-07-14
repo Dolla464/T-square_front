@@ -48,12 +48,11 @@ function MessageCard({ message, onView, onWhatsapp }) {
               width: "36px",
               height: "36px",
               borderRadius: "8px",
-              backgroundColor: "#f8f9fc",
             }}
             title={isArabic ? "عرض التفاصيل" : "View Details"}
             onClick={() => onView(message.id)}
           >
-            <i className="bi bi-eye fs-6 text-dark"></i>
+            <i className="bi bi-eye fs-6"></i>
           </button>
 
           <button

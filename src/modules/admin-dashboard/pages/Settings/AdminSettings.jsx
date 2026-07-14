@@ -1056,7 +1056,7 @@ function AdminSettings() {
                           }}
                           title={isArabic ? "عرض كبر" : "Zoom View"}
                         >
-                          <i className="bi bi-eye-fill text-dark fs-5"></i>
+                          <i className="bi bi-eye-fill text-danger fs-5"></i>
                         </button>
                         {/* <button
                           type="button"
@@ -1234,7 +1234,7 @@ function AdminSettings() {
                               }}
                               title={isArabic ? "عرض كبر" : "Zoom View"}
                             >
-                              <i className="bi bi-eye-fill text-dark fs-5"></i>
+                              <i className="bi bi-eye-fill text-danger fs-5"></i>
                             </button>
                             <button
                               type="button"

@@ -29,26 +29,70 @@ body.dashboard-active {
   padding: 0;
   flex-shrink: 0;
   z-index: 100;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  /* تنعيم الحركة بشكل فيزيائي مريح */
-  will-change: transform;
-  /* إجبار كارت الشاشة على تسريع حركة السايد بار في الموبايل */
+  transition:
+    width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, width, opacity;
   box-sizing: border-box;
   background-color: rgb(26, 26, 26);
   overflow: hidden;
-  /* منع السايد بار بالكامل من عمل سكرول */
+}
+
+/* Desktop collapsed — content takes full width */
+@media (min-width: 992px) {
+  .shared-dashboard-wrapper.sidebar-collapsed .shared-dashboard-sidebar {
+    width: 0;
+    min-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+/* Sidebar header with logo + collapse button */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-inline-end: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.sidebar-collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #9ca3af;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.sidebar-collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
 }
 
 /* اللوجو (الهيدر - ثابت في الأعلى) */
 .sidebar-logo {
   display: block;
   text-decoration: none;
-  padding: 24px 24px 20px;
+  padding: 24px 12px 20px 24px;
   padding-top: calc(24px + env(safe-area-inset-top, 0px));
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  margin-bottom: 8px;
   flex-shrink: 0;
-  /* منع اللوجو من الانضغاط */
+  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .sidebar-logo img {
@@ -121,10 +165,12 @@ body.dashboard-active {
   padding: 11px 14px;
   border-radius: 10px;
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   font-weight: 500;
   color: #9ca3af;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
   white-space: nowrap;
 }
 
@@ -133,10 +179,15 @@ body.dashboard-active {
   color: #fff;
 }
 
-.sidebar-link-active {
+.sidebar-link-active,
+.sidebar-link.sidebar-link-active {
   background-color: #be1522 !important;
   color: #fff !important;
-  font-size: 1.5rem !important;
+  font-size: 1.2rem !important;
+}
+
+.sidebar-link.sidebar-link-active .sidebar-link-icon {
+  color: #fff;
 }
 
 .sidebar-link-icon {
@@ -144,6 +195,11 @@ body.dashboard-active {
   width: 20px;
   flex-shrink: 0;
   text-align: center;
+}
+
+.sidebar-link-label,
+.sidebar-sublink-label {
+  font-size: inherit;
 }
 
 .sidebar-logout-btn {
@@ -159,13 +215,126 @@ body.dashboard-active {
   font-weight: 500;
   cursor: pointer;
   border-radius: 10px;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
   text-align: start;
 }
 
 .sidebar-logout-btn:hover {
   background: rgba(190, 21, 34, 0.12);
   color: #be1522;
+}
+
+/* ══════════════ Sidebar Groups (Accordion) ══════════════ */
+.sidebar-group {
+  margin-bottom: 2px;
+}
+
+.sidebar-group-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 14px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #9ca3af;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+  text-align: start;
+}
+
+.sidebar-group-toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.sidebar-group-toggle.sidebar-link-active,
+.sidebar-group-has-active .sidebar-group-toggle {
+  background-color: #be1522 !important;
+  color: #fff !important;
+  font-size: 1.2rem !important;
+}
+
+.sidebar-group-toggle.sidebar-link-active .sidebar-link-icon,
+.sidebar-group-toggle.sidebar-link-active .sidebar-group-chevron,
+.sidebar-group-has-active .sidebar-group-toggle .sidebar-link-icon,
+.sidebar-group-has-active .sidebar-group-toggle .sidebar-group-chevron {
+  color: #fff;
+  opacity: 1;
+}
+
+.sidebar-group-toggle.sidebar-link-active:hover,
+.sidebar-group-has-active .sidebar-group-toggle:hover {
+  background-color: #be1522 !important;
+  color: #fff !important;
+}
+
+.sidebar-group-chevron {
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+  opacity: 0.7;
+}
+
+.sidebar-group-chevron-open {
+  transform: rotate(180deg);
+}
+
+.sidebar-subnav {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 8px 4px 14px;
+  margin-top: 2px;
+  margin-bottom: 4px;
+  margin-inline-start: 14px;
+  border-inline-start: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background-color: rgb(48, 48, 48);
+}
+
+.sidebar-sublink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px 9px 14px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #9ca3af;
+  transition:
+    background 0.2s,
+    color 0.2s;
+  white-space: nowrap;
+}
+
+.sidebar-sublink:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.sidebar-sublink-active {
+  background-color: #be1522 !important;
+  color: #fff !important;
+  font-size: 1rem !important;
+  font-weight: 600;
+}
+
+.sidebar-sublink-active:hover {
+  background-color: #be1522 !important;
+  color: #fff !important;
+}
+
+.sidebar-sublink-label {
+  padding-inline-start: 4px;
 }
 
 /* ══════════════ Main Area ══════════════ */
@@ -177,6 +346,7 @@ body.dashboard-active {
   overflow: hidden;
   height: 100vh;
   height: 100dvh;
+  transition: flex 0.3s ease;
 }
 
 /* ══════════════ Topbar ══════════════ */
@@ -201,20 +371,50 @@ body.dashboard-active {
   box-sizing: border-box;
 }
 
+.topbar-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.topbar-title-divider {
+  width: 1px;
+  height: 28px;
+  background-color: #ddd;
+  margin-inline: 14px;
+  flex-shrink: 0;
+}
+
+.topbar-page-title {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .sidebar-toggle-btn {
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #333;
+  color: #be1522;
   padding: 4px 6px;
   border-radius: 6px;
-  transition: background 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
+  flex-shrink: 0;
 }
 
 .sidebar-toggle-btn:hover {
-  background: #f4f5f7;
+  background: #fff5f5;
+  color: #be1522;
 }
 
 /* Center Wrap (e.g. search) */
@@ -382,6 +582,7 @@ body.dashboard-active {
 
 .topbar-back-btn i {
   font-size: 0.9rem;
+  color: #be1522;
 }
 
 /* ══════════════ Content Area ══════════════ */
@@ -407,10 +608,16 @@ body.dashboard-active {
   transition: opacity 0.25s ease;
 }
 
-/* يظهر الـ Overlay فقط عندما تقوم بإضافة هذا الكلاس برمجياً عبر الـ JS عند فتح القائمة */
+/* يظهر الـ Overlay فقط على الموبايل عند فتح القائمة */
 .shared-dashboard-overlay.overlay-open {
   display: block;
   opacity: 1;
+}
+
+@media (min-width: 992px) {
+  .shared-dashboard-overlay {
+    display: none !important;
+  }
 }
 
 /* ══════════════ Responsive ══════════════ */
@@ -429,10 +636,6 @@ body.dashboard-active {
 
   .shared-dashboard-sidebar.sidebar-open {
     transform: translateX(0) !important;
-  }
-
-  .sidebar-toggle-btn {
-    display: flex;
   }
 
   .shared-dashboard-content {

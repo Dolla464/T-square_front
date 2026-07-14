@@ -1,7 +1,11 @@
 {
   "sidebar": {
     "dashboard": "لوحة التحكم",
-    "attendance": "الحضور"
+    "attendance": "الحضور",
+    "groups": "المجموعات",
+    "learningGroups": "المجموعات الدراسية",
+    "students": "الطلاب",
+    "orders": "الطلبات والدفع"
   },
   "topbar": {
     "role": "موظف استقبال"

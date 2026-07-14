@@ -1,4 +1,4 @@
-import { useState, Suspense, useEffect } from "react";
+import { useState, Suspense, useEffect, useCallback } from "react";
 import {
   Link,
   NavLink,
@@ -24,6 +24,8 @@ import {
   isDefaultAvatarUrl,
 } from "../../../../utils/avatar";
 
+const SIDEBAR_STORAGE_KEY = "dashboard-sidebar-expanded";
+
 function DashboardSharedLayout({
   navItems,
   translationNs,
@@ -36,8 +38,48 @@ function DashboardSharedLayout({
   const isAdmin = user?.role === "admin" || userRoleName === "Admin";
   const navigate = useNavigate();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(() => {
+    const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+    return saved === null ? true : saved === "true";
+  });
+  const [expandedGroups, setExpandedGroups] = useState(() => new Set());
   const isArabic = i18n.language?.startsWith("ar");
+
+  const setSidebarExpandedPersisted = useCallback((next) => {
+    setSidebarExpanded((prev) => {
+      const value = typeof next === "function" ? next(prev) : next;
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, String(value));
+      return value;
+    });
+  }, []);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarExpandedPersisted((prev) => !prev);
+  }, [setSidebarExpandedPersisted]);
+
+  const collapseSidebar = useCallback(() => {
+    setSidebarExpandedPersisted(false);
+  }, [setSidebarExpandedPersisted]);
+
+  const closeSidebarOnMobile = useCallback(() => {
+    if (window.matchMedia("(max-width: 991px)").matches) {
+      collapseSidebar();
+    }
+  }, [collapseSidebar]);
+
+  const isChildPathActive = useCallback(
+    (childPath) => {
+      if (!childPath) return false;
+      if (location.pathname === childPath) return true;
+      return location.pathname.startsWith(`${childPath}/`);
+    },
+    [location.pathname],
+  );
+
+  const isGroupChildActive = useCallback(
+    (children) => children?.some((child) => isChildPathActive(child.path)),
+    [isChildPathActive],
+  );
 
   useEffect(() => {
     document.body.classList.add("dashboard-active");
@@ -45,6 +87,38 @@ function DashboardSharedLayout({
       document.body.classList.remove("dashboard-active");
     };
   }, []);
+
+  useEffect(() => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      let changed = false;
+      navItems.forEach((item) => {
+        if (
+          item.children?.length &&
+          isGroupChildActive(item.children) &&
+          !next.has(item.key)
+        ) {
+          next.add(item.key);
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+    // navItems structure is stable per role layout
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, isGroupChildActive]);
+
+  const toggleGroup = (key) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
 
   const isCourseDetailsPage = location.pathname.includes("/student/course/");
   const isExmam = location.pathname.includes("/student/quizzes/");
@@ -102,15 +176,17 @@ function DashboardSharedLayout({
   };
 
   return (
-    <div className="shared-dashboard-wrapper">
+    <div
+      className={`shared-dashboard-wrapper ${!sidebarExpanded ? "sidebar-collapsed" : ""}`}
+    >
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       {/* Overlay للموبايل */}
-      {sidebarOpen && (
+      {sidebarExpanded && (
         <div
           className="shared-dashboard-overlay overlay-open"
-          onClick={() => setSidebarOpen(false)}
+          onClick={collapseSidebar}
         />
       )}
 
@@ -118,39 +194,108 @@ function DashboardSharedLayout({
       {!isCourseDetailsPage && !isLeaveReviewPage && (
         <aside
           className={`shared-dashboard-sidebar ${
-            sidebarOpen ? "sidebar-open" : ""
+            sidebarExpanded ? "sidebar-open" : ""
           }`}
         >
           {/* اللوجو */}
-          <Link to="/" className="sidebar-logo text-decoration-none">
-            <img src={logoDark} alt="T-Square" height="50" />
-          </Link>
+          <div className="sidebar-header">
+            <Link to="/" className="sidebar-logo text-decoration-none">
+              <img src={logoDark} alt="T-Square" height="50" />
+            </Link>
+            <button
+              type="button"
+              className="sidebar-collapse-btn"
+              onClick={collapseSidebar}
+              aria-label={isArabic ? "إغلاق القائمة" : "Collapse sidebar"}
+            >
+              <i
+                className={`bi ${isArabic ? "bi-chevron-right" : "bi-chevron-left"}`}
+              ></i>
+            </button>
+          </div>
 
           {/* روابط التنقل */}
           <nav className="sidebar-nav">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.key}
-                to={item.path}
-                end={item.end}
-                className={({ isActive }) =>
-                  `sidebar-link text-decoration-none d-flex align-items-center justify-content-between ${isActive ? "sidebar-link-active" : ""}`
-                }
-                onClick={() => setSidebarOpen(false)}
-              >
-                <div className="d-flex align-items-center">
-                  <i className={`bi ${item.icon} sidebar-link-icon`}></i>
-                  <span className="px-3 fs-6">
-                    {t(`${translationNs}:sidebar.${item.key}`)}
-                  </span>
-                </div>
-                {item.badge && (
-                  <span className="badge bg-danger rounded-pill ms-2">
-                    {item.badge}
-                  </span>
-                )}
-              </NavLink>
-            ))}
+            {navItems.map((item) => {
+              if (item.children?.length) {
+                const isExpanded = expandedGroups.has(item.key);
+                const hasActiveChild = isGroupChildActive(item.children);
+
+                return (
+                  <div
+                    key={item.key}
+                    className={`sidebar-group ${hasActiveChild ? "sidebar-group-has-active" : ""}`}
+                  >
+                    <button
+                      type="button"
+                      className={`sidebar-group-toggle ${isExpanded ? "sidebar-group-expanded" : ""} ${hasActiveChild ? "sidebar-link-active" : ""}`}
+                      onClick={() => toggleGroup(item.key)}
+                      aria-expanded={isExpanded}
+                    >
+                      <div className="d-flex align-items-center">
+                        <i
+                          className={`bi ${item.icon} sidebar-link-icon`}
+                        ></i>
+                        <span className="px-3 sidebar-link-label">
+                          {t(`${translationNs}:sidebar.${item.key}`)}
+                        </span>
+                      </div>
+                      <i
+                        className={`bi bi-chevron-down sidebar-group-chevron ${isExpanded ? "sidebar-group-chevron-open" : ""}`}
+                      ></i>
+                    </button>
+                    {isExpanded && (
+                      <div className="sidebar-subnav">
+                        {item.children.map((child) => (
+                          <NavLink
+                            key={child.key}
+                            to={child.path}
+                            end={child.end}
+                            className={({ isActive }) =>
+                              `sidebar-sublink text-decoration-none d-flex align-items-center justify-content-between ${isActive || isChildPathActive(child.path) ? "sidebar-sublink-active" : ""}`
+                            }
+                            onClick={closeSidebarOnMobile}
+                          >
+                            <span className="sidebar-sublink-label">
+                              {t(`${translationNs}:sidebar.${child.key}`)}
+                            </span>
+                            {child.badge && (
+                              <span className="badge bg-danger rounded-pill ms-2">
+                                {child.badge}
+                              </span>
+                            )}
+                          </NavLink>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              return (
+                <NavLink
+                  key={item.key}
+                  to={item.path}
+                  end={item.end}
+                  className={({ isActive }) =>
+                    `sidebar-link text-decoration-none d-flex align-items-center justify-content-between ${isActive ? "sidebar-link-active" : ""}`
+                  }
+                  onClick={closeSidebarOnMobile}
+                >
+                  <div className="d-flex align-items-center">
+                    <i className={`bi ${item.icon} sidebar-link-icon`}></i>
+                    <span className="px-3 sidebar-link-label">
+                      {t(`${translationNs}:sidebar.${item.key}`)}
+                    </span>
+                  </div>
+                  {item.badge && (
+                    <span className="badge bg-danger rounded-pill ms-2">
+                      {item.badge}
+                    </span>
+                  )}
+                </NavLink>
+              );
+            })}
           </nav>
 
           {/* زر الخروج */}
@@ -180,20 +325,37 @@ function DashboardSharedLayout({
                 {t(`${translationNs}:course.back_to_courses`)}
               </button>
             ) : (
-              <button
-                className="sidebar-toggle-btn"
-                onClick={() => setSidebarOpen(true)}
-                aria-label="Open menu"
-              >
-                <i className="bi bi-list"></i>
-              </button>
-            )}
-
-            {/* Page Title */}
-            {pageTitle && (
-              <div className="topbar-page-title d-md-block d-none dash-page-title">
-                {pageTitle}
-              </div>
+              <>
+                <button
+                  className="sidebar-toggle-btn"
+                  onClick={toggleSidebar}
+                  aria-label={
+                    sidebarExpanded
+                      ? isArabic
+                        ? "إغلاق القائمة"
+                        : "Collapse sidebar"
+                      : isArabic
+                        ? "فتح القائمة"
+                        : "Open sidebar"
+                  }
+                  aria-expanded={sidebarExpanded}
+                >
+                  <i
+                    className={`bi ${sidebarExpanded ? "bi-layout-sidebar-inset" : "bi-list"}`}
+                  ></i>
+                </button>
+                {pageTitle && (
+                  <>
+                    <span
+                      className="topbar-title-divider"
+                      aria-hidden="true"
+                    ></span>
+                    <div className="topbar-page-title dash-page-title">
+                      {pageTitle}
+                    </div>
+                  </>
+                )}
+              </>
             )}
           </div>
 

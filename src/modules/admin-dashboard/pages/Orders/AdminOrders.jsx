@@ -5,7 +5,7 @@ import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { Button } from "react-bootstrap";
 import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
 import AdminPagination from "../../components/shared/AdminPagination";
-import { showDeleteConfirm, showPaymentStatusConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { showPaymentStatusConfirm, showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastError } from "../../../../components/shared/Toaster/toaster";
 import { useOrders } from "../../hooks/useOrders";
 import ExportBar from "../../components/shared/ExportBar";
@@ -13,7 +13,12 @@ import { dateInputClass } from "../../components/shared/adminUiStyles";
 
 import "../Reviews/review.css";
 
-function AdminOrders() {
+function AdminOrders({
+  useOrdersHook = useOrders,
+  basePath = "/admin",
+  canExport = true,
+  canDelete = true,
+}) {
   const { t, i18n } = useTranslation("orderPayments");
   const isArabic = i18n.language?.startsWith("ar");
   const navigate = useNavigate();
@@ -29,7 +34,7 @@ function AdminOrders() {
     updateOrderStatus,
     deleteOrder,
     handleExport,
-  } = useOrders();
+  } = useOrdersHook();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -105,9 +110,14 @@ function AdminOrders() {
 
   const handleDelete = async (id) => {
     const order = orders.find((r) => r.id === id);
-    const confirmed = await showDeleteConfirm(
-      order?.["student.full_name"] || order?.billing_name || (isArabic ? "هذا الطلب" : "this order"),
-    );
+    const orderName = order?.["student.full_name"] || order?.billing_name || (isArabic ? "هذا الطلب" : "this order");
+    const confirmed = await showConfirmCustom({
+      title: t("deleteOrderTitle"),
+      message: t("deleteOrderMessage", { name: orderName }),
+      confirmText: t("deleteOrderConfirm"),
+      icon: "error",
+      variant: "danger",
+    });
 
     if (confirmed) {
       await deleteOrder(id);
@@ -175,12 +185,14 @@ function AdminOrders() {
           <Button
             variant="danger"
             className="rounded-3 fw-bold px-4"
-            onClick={() => navigate("/admin/orders/create")}
+            onClick={() => navigate(`${basePath}/orders/create`)}
           >
             <i className="bi bi-plus-lg me-2"></i>
             {t("createOrder")}
           </Button>
-          <ExportBar onExport={onExport} loading={exportLoading} />
+          {canExport && handleExport && (
+            <ExportBar onExport={onExport} loading={exportLoading} />
+          )}
         </div>
       </div>
 
@@ -433,6 +445,7 @@ function AdminOrders() {
                           >
                             <i className="bi bi-eye fs-6"></i>
                           </button>
+                          {canDelete && deleteOrder && (
                           <button
                             className="btn btn-sm ac-btn-deleteTable border-0"
                             title={isArabic ? "حذف" : "Delete"}
@@ -440,6 +453,7 @@ function AdminOrders() {
                           >
                             <i className="bi bi-trash fs-6"></i>
                           </button>
+                          )}
                         </div>
                       </td>
                     </tr>

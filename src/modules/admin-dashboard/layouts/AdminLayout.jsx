@@ -9,55 +9,47 @@ import { useUnreadCount } from "../../../hooks/useNotifications";
 
 const ADMIN_NAV = [
   { key: "dashboard", path: "/admin", icon: "bi-grid-1x2", end: true },
-  { key: "tags", path: "/admin/tags", icon: "bi-tags" },
   { key: "schedule", path: "/admin/schedule", icon: "bi-calendar-week" },
-  { key: "studentAttendance", path: "/admin/student-attendance", icon: "bi-clipboard-check" },
-  { key: "studentResults", path: "/admin/student-results", icon: "bi-bar-chart-line" },
   { key: "categories", path: "/admin/categories", icon: "bi-list" },
   { key: "courses", path: "/admin/courses", icon: "bi-mortarboard" },
-  { key: "quizzes", path: "/admin/quizzes", icon: "bi-chat-right-quote" },
-  { key: "groups", path: "/admin/groups", icon: "bi-people" },
-  { key: "students", path: "/admin/students", icon: "bi-people" },
   {
     key: "instructors",
     path: "/admin/instructors",
     icon: "bi-person-lines-fill",
   },
   {
-    key: "orders",
-    path: "/admin/orders",
-    icon: "bi-cart3",
+    key: "studentsInfo",
+    icon: "bi-person-vcard",
+    children: [
+      { key: "students", path: "/admin/students", icon: "bi-people" },
+      { key: "certificates", path: "/admin/certificates", icon: "bi-award" },
+      { key: "reviews", path: "/admin/reviews", icon: "bi-chat-square-text" },
+    ],
   },
   {
-    key: "solutions",
-    path: "/admin/solutions",
-    icon: "bi-laptop",
+    key: "groups",
+    icon: "bi-collection",
+    children: [
+      { key: "learningGroups", path: "/admin/groups", icon: "bi-people" },
+      {
+        key: "studentAttendance",
+        path: "/admin/student-attendance",
+        icon: "bi-clipboard-check",
+      },
+      {
+        key: "studentResults",
+        path: "/admin/student-results",
+        icon: "bi-bar-chart-line",
+      },
+    ],
   },
-  {
-    key: "messages",
-    path: "/admin/messages",
-    icon: "bi-chat-left-text",
-  },
-  {
-    key: "certificates",
-    path: "/admin/certificates",
-    icon: "bi-award",
-  },
-  {
-    key: "reviews",
-    path: "/admin/reviews",
-    icon: "bi-chat-square-text",
-  },
-  {
-    key: "Notification",
-    path: "/admin/notifications",
-    icon: "bi-bell-fill",
-  },
-  {
-    key: "settings",
-    path: "/admin/settings",
-    icon: "bi-gear",
-  },
+  { key: "quizzes", path: "/admin/quizzes", icon: "bi-chat-right-quote" },
+  { key: "orders", path: "/admin/orders", icon: "bi-cart3" },
+  { key: "messages", path: "/admin/messages", icon: "bi-chat-left-text" },
+  { key: "tags", path: "/admin/tags", icon: "bi-tags" },
+  { key: "solutions", path: "/admin/solutions", icon: "bi-laptop" },
+  { key: "Notification", path: "/admin/notifications", icon: "bi-bell-fill" },
+  { key: "settings", path: "/admin/settings", icon: "bi-gear" },
 ];
 
 function AdminLayout() {
