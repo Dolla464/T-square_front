@@ -278,7 +278,7 @@ function AdminCategories() {
                         <th style={{ width: "60px" }}>#</th>
                         <th>{isArabic ? "اسم التصنيف" : "Category Name"}</th>
                         <th className="text-center">
-                          {isArabic ? "عدد الأبناء" : "Children"}
+                          {isArabic ? "عدد الأبناء" : "Sub-Categories"}
                         </th>
                         <th className="text-center">
                           {isArabic ? "الحالة" : "Status"}
