@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 import AdminPagination from "../../components/shared/AdminPagination";
 import { useInstructors } from "../../hooks/useInstractor";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
@@ -23,7 +25,31 @@ const defaultFormData = {
   avatar: null,
 };
 
-const defaultAvatar = "/images/default-avatar.png";
+const defaultAvatar = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+
+const getAvatarSrc = (path) => {
+  if (!path) return defaultAvatar;
+
+  if (
+    path.startsWith("http://") ||
+    path.startsWith("https://") ||
+    path.startsWith("data:") ||
+    path.startsWith("blob:")
+  ) {
+    return path;
+  }
+
+  let apiURL = import.meta.env.VITE_API_URL || "";
+  apiURL = apiURL.replace(/\/api\/?$/, "");
+  const cleanBase = apiURL.endsWith("/") ? apiURL.slice(0, -1) : apiURL;
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (!cleanPath.startsWith("/storage") && !cleanPath.startsWith("/public")) {
+    return `${cleanBase}/storage${cleanPath}`;
+  }
+
+  return `${cleanBase}${cleanPath}`;
+};
 
 function AdminInstructors() {
   const {
@@ -46,6 +72,8 @@ function AdminInstructors() {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [formData, setFormData] = useState(defaultFormData);
   const [currentPage, setCurrentPage] = useState(1);
+  const [lightboxSlides, setLightboxSlides] = useState([]);
+  const [lightboxIndex, setLightboxIndex] = useState(-1);
   const itemsPerPage = 6;
 
   // استخدام debounced search لتقليل طلبات الـ API
@@ -97,6 +125,8 @@ function AdminInstructors() {
 
     setFormData({
       full_name: insData.full_name || instructor.name || "",
+      email: instructor.email || insData.email || "",
+      phone: insData.phone || instructor.phone || "",
       field: insData.field || "",
       bio: insData.bio || "",
       gender: insData.gender || "male",
@@ -139,6 +169,7 @@ function AdminInstructors() {
       reviews_count: insData.reviews_count || 0,
       status: insData.status || "active",
       joinDate: instructor.created_at || insData.created_at || "",
+      created_at: instructor.created_at || insData.created_at || "",
       avatar: avatarValue,
     });
     setShowForm(true);
@@ -397,6 +428,9 @@ function AdminInstructors() {
                   <table className="table ac-table mb-0 align-middle" dir="ltr">
                     <thead>
                       <tr>
+                        <th className="text-center">
+                          {isArabic ? "الصورة" : "Image"}
+                        </th>
                         <th>{t("instructors_page.table_name")}</th>
                         <th className="text-center">
                           {isArabic ? "التخصص" : "Field"}
@@ -404,7 +438,6 @@ function AdminInstructors() {
                         <th className="text-center">
                           {t("instructors_page.table_email")}
                         </th>
-
                         <th className="text-center">
                           {t("instructors_page.table_actions")}
                         </th>
@@ -413,7 +446,7 @@ function AdminInstructors() {
                     <tbody>
                       {loading ? (
                         <tr>
-                          <td colSpan={11} className="text-center py-5">
+                          <td colSpan={5} className="text-center py-5">
                             <div
                               className="spinner-border text-danger"
                               role="status"
@@ -425,12 +458,83 @@ function AdminInstructors() {
                           </td>
                         </tr>
                       ) : instructors.length > 0 ? (
-                        instructors.map((instructor, index) => {
+                        instructors.map((instructor) => {
                           const insData = instructor.instructor || instructor;
+                          const instructorName =
+                            insData.full_name || instructor.name;
                           return (
                             <tr key={instructor.id}>
+                              <td className="text-center">
+                                <div
+                                  className="position-relative d-inline-block rounded-circle shadow-sm mb-2"
+                                  style={{
+                                    background:
+                                      "linear-gradient(135deg, #dc3545 0%, #f1a80a 100%)",
+                                    padding: "2px",
+                                  }}
+                                >
+                                  <div
+                                    className="bg-white rounded-circle position-relative overflow-hidden"
+                                    style={{ width: "55px", height: "55px" }}
+                                  >
+                                    <img
+                                      src={getAvatarSrc(insData.avatar)}
+                                      alt={instructorName}
+                                      className="rounded-circle w-100 h-100"
+                                      style={{ objectFit: "cover" }}
+                                    />
+                                    <div
+                                      className="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
+                                      style={{
+                                        backgroundColor:
+                                          "rgba(190, 21, 34, 0.85)",
+                                        opacity: 0,
+                                        transition: "opacity 0.3s ease",
+                                        cursor: "pointer",
+                                        zIndex: 3,
+                                      }}
+                                      onMouseEnter={(e) =>
+                                        (e.currentTarget.style.opacity = 1)
+                                      }
+                                      onMouseLeave={(e) =>
+                                        (e.currentTarget.style.opacity = 0)
+                                      }
+                                      onClick={() => {
+                                        setLightboxSlides([
+                                          {
+                                            src: getAvatarSrc(insData.avatar),
+                                          },
+                                        ]);
+                                        setLightboxIndex(0);
+                                      }}
+                                    >
+                                      <button
+                                        type="button"
+                                        className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
+                                        style={{
+                                          width: "38px",
+                                          height: "38px",
+                                          transition: "transform 0.2s ease",
+                                          border: "none",
+                                          backgroundColor: "#ffffff",
+                                        }}
+                                        onMouseEnter={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(0.9)")
+                                        }
+                                        onMouseLeave={(e) =>
+                                          (e.currentTarget.style.transform =
+                                            "scale(0.8)")
+                                        }
+                                      >
+                                        <i className="bi bi-eye-fill text-danger fs-4"></i>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
                               <td className="fw-medium text-dark">
-                                {insData.full_name || instructor.name}
+                                {instructorName}
                               </td>
                               <td className="text-center text-secondary">
                                 {insData.field || "-"}
@@ -483,7 +587,7 @@ function AdminInstructors() {
                       ) : (
                         <tr>
                           <td
-                            colSpan={11}
+                            colSpan={5}
                             className="text-center py-4 text-muted"
                           >
                             {t("instructors_page.no_instructors")}
@@ -521,35 +625,117 @@ function AdminInstructors() {
 
           <div className="ac-form-body p-4 bg-white border rounded-4 shadow-sm">
             <div className="ac-tab-content basic-info">
-              {/* صورة المحاضر */}
-              <div className="mb-4 text-center">
-                <div
-                  className="ac-thumbnail-view border rounded-4 overflow-hidden shadow-sm d-inline-block"
-                  style={{ maxWidth: "100%", width: "600px" }}
-                >
-                  {formData.avatar ? (
-                    <img
-                      src={
-                        formData.avatar instanceof File
-                          ? URL.createObjectURL(formData.avatar)
-                          : formData.avatar
-                      }
-                      alt={formData.full_name}
-                      className="img-fluid w-100"
-                      style={{ height: "300px", objectFit: "cover" }}
-                    />
-                  ) : (
-                    <img
-                      src={defaultAvatar}
-                      alt="Default Avatar"
-                      className="img-fluid w-100"
-                      style={{ height: "300px", objectFit: "cover" }}
-                    />
-                  )}
+              {/* صورة المحاضر في وضع العرض */}
+              {viewingItem && (
+                <div className="mb-4 text-center">
+                  <div
+                    className="position-relative d-inline-block rounded-circle p-1 shadow-sm mb-2"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #dc3545 0%, #f1a80a 100%)",
+                    }}
+                  >
+                    <div
+                      className="bg-white rounded-circle p-1 position-relative overflow-hidden"
+                      style={{ width: "200px", height: "200px" }}
+                    >
+                      <img
+                        src={getAvatarSrc(formData.avatar)}
+                        alt={formData.full_name}
+                        className="rounded-circle w-100 h-100"
+                        style={{
+                          objectFit: "cover",
+                          border: "3px solid #f8f9fa",
+                        }}
+                      />
+                      <div
+                        className="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
+                        style={{
+                          backgroundColor: "rgba(190, 21, 34, 0.85)",
+                          opacity: 0,
+                          transition: "opacity 0.3s ease",
+                          cursor: "pointer",
+                          zIndex: 3,
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.opacity = 1)
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.opacity = 0)
+                        }
+                        onClick={() => {
+                          setLightboxSlides([
+                            { src: getAvatarSrc(formData.avatar) },
+                          ]);
+                          setLightboxIndex(0);
+                        }}
+                      >
+                        <button
+                          type="button"
+                          className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
+                          style={{
+                            width: "48px",
+                            height: "48px",
+                            transition: "transform 0.2s ease",
+                            border: "none",
+                            backgroundColor: "#ffffff",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.transform = "scale(1.15)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.transform = "scale(1)")
+                          }
+                        >
+                          <i className="bi bi-eye-fill text-danger fs-4"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <h4 className="fw-bold mt-2 text-dark mb-1">
+                    {formData.full_name}
+                  </h4>
+                  <p className="text-muted small mb-0">
+                    {isArabic
+                      ? `التخصص: ${formData.field || "-"}`
+                      : `Field: ${formData.field || "-"}`}
+                  </p>
                 </div>
-                {!viewingItem && (
+              )}
+
+              {/* صورة المحاضر عند الإضافة أو التعديل */}
+              {!viewingItem && (
+                <div className="mb-4 text-center">
+                  <div
+                    className="position-relative d-inline-block rounded-circle p-1 shadow-sm mb-2"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #dc3545 0%, #f1a80a 100%)",
+                    }}
+                  >
+                    <div
+                      className="bg-white rounded-circle p-1 position-relative overflow-hidden"
+                      style={{ width: "200px", height: "200px" }}
+                    >
+                      <img
+                        src={
+                          formData.avatar
+                            ? formData.avatar instanceof File
+                              ? URL.createObjectURL(formData.avatar)
+                              : getAvatarSrc(formData.avatar)
+                            : defaultAvatar
+                        }
+                        alt={formData.full_name || "Instructor Avatar"}
+                        className="rounded-circle w-100 h-100"
+                        style={{
+                          objectFit: "cover",
+                          border: "3px solid #f8f9fa",
+                        }}
+                      />
+                    </div>
+                  </div>
                   <div className="mt-2">
-                    <label className="btn btn-sm ac-btn-edit border-0">
+                    <label className="btn btn-sm btn-danger ac-add-btn border-0">
                       {isArabic
                         ? formData.avatar
                           ? "تغيير صورة"
@@ -562,12 +748,12 @@ function AdminInstructors() {
                         name="avatar"
                         className="d-none"
                         onChange={handleChange}
-                        accept="image/*"
+                        accept="image/jpeg,image/png,image/jpg,image/webp"
                       />
                     </label>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* الاسم الكامل */}
               <div className="mb-4">
@@ -590,27 +776,26 @@ function AdminInstructors() {
                 )}
               </div>
 
-              {/* الإيميل (فقط عند الإضافة) */}
-              {!editingItem && !viewingItem && (
-                <div className="mb-4">
-                  <label className="form-label fw-bold text-dark">
-                    {t("instructors_page.email")}
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    placeholder={t("instructors_page.email_placeholder")}
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                </div>
-              )}
+              {/* الإيميل */}
+              <div className="mb-4">
+                <label className="form-label fw-bold text-dark">
+                  {t("instructors_page.email")}
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                  placeholder={t("instructors_page.email_placeholder")}
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={!!viewingItem || !!editingItem}
+                />
+              </div>
 
               {/* التخصص والجنس */}
               <div className="row mb-4 ">
                 <div
-                  className={`mb-3 mb-md-0 ${editingItem ? "col-12" : "col-md-6"}`}
+                  className={`mb-3 mb-md-0 ${editingItem && !viewingItem ? "col-12" : "col-md-6"}`}
                 >
                   <label className="form-label fw-bold text-dark">
                     {isArabic ? "التخصص" : "Field/Specialty"}
@@ -627,13 +812,15 @@ function AdminInstructors() {
                     disabled={!!viewingItem}
                   />
                 </div>
-                <div className={`col-md-6 ${editingItem && "d-none"}`}>
+                <div
+                  className={`col-md-6 ${editingItem && !viewingItem ? "d-none" : ""}`}
+                >
                   <label className="form-label fw-bold text-dark">
                     {isArabic ? "الجنس" : "Gender"}
                   </label>
                   <select
                     name="gender"
-                    className={`form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted `}
+                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
                     value={formData.gender}
                     onChange={handleChange}
                     disabled={!!viewingItem}
@@ -646,23 +833,28 @@ function AdminInstructors() {
                 </div>
               </div>
 
-              {/* الهاتف وكلمة المرور (فقط عند الإضافة) */}
+              {/* الهاتف */}
+              <div className="row mb-4">
+                <div className="col-12">
+                  <label className="form-label fw-bold text-dark">
+                    {t("instructors_page.phone")}
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                    placeholder={t("instructors_page.phone_placeholder")}
+                    value={formData.phone}
+                    onChange={handleChange}
+                    disabled={!!viewingItem || !!editingItem}
+                  />
+                </div>
+              </div>
+
+              {/* كلمة المرور (فقط عند الإضافة) */}
               {!editingItem && !viewingItem && (
                 <div className="row mb-4">
-                  <div className="col-md-6 mb-3 mb-md-0">
-                    <label className="form-label fw-bold text-dark">
-                      {t("instructors_page.phone")}
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                      placeholder={t("instructors_page.phone_placeholder")}
-                      value={formData.phone}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="col-md-6">
+                  <div className="col-md-12">
                     <label className="form-label fw-bold text-dark">
                       {t("instructors_page.password")}
                     </label>
@@ -677,6 +869,23 @@ function AdminInstructors() {
                     <small className="text-muted">
                       {isArabic ? "الأدنى 8 أحرف" : "Min 8 characters"}
                     </small>
+                  </div>
+                </div>
+              )}
+
+              {/* تاريخ الانضمام (عرض فقط) */}
+              {viewingItem && (
+                <div className="row mb-4">
+                  <div className="col-md-12">
+                    <label className="form-label fw-bold text-dark">
+                      {isArabic ? "تاريخ الانضمام" : "Joined At"}
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                      value={formData.created_at || formData.joinDate || ""}
+                      disabled
+                    />
                   </div>
                 </div>
               )}
@@ -791,6 +1000,14 @@ function AdminInstructors() {
           </div>
         </div>
       )}
+
+      <Lightbox
+        open={lightboxIndex >= 0}
+        index={lightboxIndex}
+        close={() => setLightboxIndex(-1)}
+        slides={lightboxSlides}
+        carousel={{ finite: true }}
+      />
     </div>
   );
 }
