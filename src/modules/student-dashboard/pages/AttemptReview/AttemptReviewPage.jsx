@@ -2,6 +2,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import AttemptAnswerReview from "../../../shared-dashboard/components/AttemptAnswerReview/AttemptAnswerReview";
+import ForbiddenAccess from "../../../../components/shared/ForbiddenAccess";
 import { useAttemptReview } from "../../../shared-dashboard/hooks/useAttemptReview";
 import { formatExamScore } from "../../../shared-dashboard/utils/formatExamScore";
 import { buildStudentResultsBackUrl } from "../../../shared-dashboard/utils/studentResultsUrlState";
@@ -14,7 +15,7 @@ function AttemptReviewPage({ role = "student" }) {
   const { t, i18n } = useTranslation("studentDashboard");
   const isArabic = i18n.language?.startsWith("ar");
 
-  const { data: review, loading, error } = useAttemptReview({
+  const { data: review, loading, error, forbidden, notFound } = useAttemptReview({
     role,
     attemptId: attemptId ? Number(attemptId) : null,
     groupId: groupId ? Number(groupId) : undefined,
@@ -66,10 +67,23 @@ function AttemptReviewPage({ role = "student" }) {
           <div className="spinner-border text-danger" role="status" />
           <p className="mt-2 text-muted">{t("attempt_review.review_loading")}</p>
         </div>
+      ) : forbidden ? (
+        <ForbiddenAccess
+          backTo={role === "student" ? "/student/quizzes" : undefined}
+          backLabel={
+            role === "student" ? t("attempt_review.back_to_quizzes") : undefined
+          }
+        />
       ) : error ? (
         <div className="attempt-review-error">
           <i className="bi bi-exclamation-triangle-fill fs-2 mb-2 d-block" />
-          <p className="mb-0">{t("attempt_review.review_error")}</p>
+          <p className="mb-0">
+            {notFound
+              ? t("attempt_review.review_not_found", {
+                  defaultValue: "Attempt not found.",
+                })
+              : t("attempt_review.review_error")}
+          </p>
         </div>
       ) : review ? (
         <AttemptAnswerReview review={review} />

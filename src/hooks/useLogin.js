@@ -4,6 +4,7 @@ import { loginService } from '../services/login';
 import { useAuth } from '../contexts/AuthContext';
 import { toastWelcome } from '../components/shared/Toaster/toaster';
 import { getRouteByRole } from '../config/routes';
+import { safeReturnUrl } from '../utils/safeReturnUrl';
 
 export const useLogin = () => {
   const [loading, setLoading] = useState(false);
@@ -13,7 +14,9 @@ export const useLogin = () => {
   const location = useLocation();
 
   // ✅ وحد الاسم مع اللي بيجي من ProtectedRoute
-  const returnUrl = location.state?.from || location.state?.returnUrl;
+  const returnUrl = safeReturnUrl(
+    location.state?.from || location.state?.returnUrl,
+  );
 
   const executeLogin = async (credentials, rememberMe = false) => {
     setLoading(true);

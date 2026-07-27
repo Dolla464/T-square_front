@@ -1,36 +1,28 @@
-import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import React from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { getRouteByRole } from "../../config/routes";
+import LoadingSpiner from "../../LoadingSpiner";
 
 const ProtectedRoute = ({ allowedRoles }) => {
-  const { user, token } = useAuth();
+  const { user, token, userSynced } = useAuth();
 
-  // Not logged in
-  if (!token || !user) {
+  if (!token) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (!userSynced || !user?.role) {
+    return <LoadingSpiner />;
   }
 
   if (window.location.pathname === "/") {
     return <Outlet />;
   }
 
-  // Logged in but not the right role
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Redirect based on role if they try to access wrong route
-    if (user.role === 'admin') {
-      return <Navigate to="/admin" replace />;
-    } else if (user.role === 'student') {
-      return <Navigate to="/student" replace />;
-    } else if (user.role === 'instructor') {
-      return <Navigate to="/instructor" replace />;
-    } else if (user.role === 'receptionist') {
-      return <Navigate to="/receptionist" replace />;
-    }
-    // Fallback
-    return <Navigate to="/" replace />;
+    return <Navigate to={getRouteByRole(user.role)} replace />;
   }
 
-  // Allowed
   return <Outlet />;
 };
 

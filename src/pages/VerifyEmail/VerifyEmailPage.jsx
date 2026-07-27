@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+﻿import React, { useEffect, useState, useRef } from "react";
 import { useParams, useSearchParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { verifyEmail, resendVerificationNotification } from "../../services/register";
 import { useTranslation } from "react-i18next";
 import { Container, Card, Button, Spinner } from "react-bootstrap";
 import toast from "react-hot-toast";
+import { safeReturnUrl } from "../../utils/safeReturnUrl";
 import tsquareLogo from "../../assets/logo-dark.webp"; 
 import "../Login/Login.css"; // Reuse login wrapper styling
 import "./VerifyEmailPage.css";
@@ -34,8 +35,8 @@ const VerifyEmailPage = () => {
 
     // If not logged in, redirect to login with returnUrl
     if (!user) {
-      toast.error(isArabic ? "الرجاء تسجيل الدخول أولاً لتفعيل حسابك" : "Please login first to verify your account");
-      navigate("/login", { state: { returnUrl: location.pathname + location.search } });
+      toast.error(isArabic ? "Ø§Ù„Ø±Ø¬Ø§Ø¡ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø£ÙˆÙ„Ø§Ù‹ Ù„ØªÙØ¹ÙŠÙ„ Ø­Ø³Ø§Ø¨Ùƒ" : "Please login first to verify your account");
+      navigate("/login", { state: { returnUrl: safeReturnUrl(location.pathname + location.search) } });
       return;
     }
 
@@ -57,7 +58,7 @@ const VerifyEmailPage = () => {
         updateUser({ ...user, is_verified: true });
         
         setStatus("success");
-        toast.success(isArabic ? "تم تفعيل حسابك بنجاح!" : "Account verified successfully!");
+        toast.success(isArabic ? "ØªÙ… ØªÙØ¹ÙŠÙ„ Ø­Ø³Ø§Ø¨Ùƒ Ø¨Ù†Ø¬Ø§Ø­!" : "Account verified successfully!");
         
         // Redirect to dashboard after a short delay
         setTimeout(() => {
@@ -70,7 +71,7 @@ const VerifyEmailPage = () => {
         setStatus("error");
         setErrorMessage(
           error.response?.data?.message || 
-          (isArabic ? "فشل تفعيل الحساب. قد يكون الرابط منتهياً." : "Verification failed. The link might be expired.")
+          (isArabic ? "ÙØ´Ù„ ØªÙØ¹ÙŠÙ„ Ø§Ù„Ø­Ø³Ø§Ø¨. Ù‚Ø¯ ÙŠÙƒÙˆÙ† Ø§Ù„Ø±Ø§Ø¨Ø· Ù…Ù†ØªÙ‡ÙŠØ§Ù‹." : "Verification failed. The link might be expired.")
         );
       }
     };
@@ -79,7 +80,7 @@ const VerifyEmailPage = () => {
       performVerification();
     } else {
       setStatus("error");
-      setErrorMessage(isArabic ? "رابط التفعيل غير صالح أو غير مكتمل." : "Invalid or incomplete verification link.");
+      setErrorMessage(isArabic ? "Ø±Ø§Ø¨Ø· Ø§Ù„ØªÙØ¹ÙŠÙ„ ØºÙŠØ± ØµØ§Ù„Ø­ Ø£Ùˆ ØºÙŠØ± Ù…ÙƒØªÙ…Ù„." : "Invalid or incomplete verification link.");
     }
   }, [user, authLoading, id, hash, expires, signature, navigate, location, isArabic, updateUser]);
 
@@ -87,11 +88,11 @@ const VerifyEmailPage = () => {
     try {
       setIsResending(true);
       await resendVerificationNotification();
-      toast.success(isArabic ? "تم إرسال رابط تفعيل جديد إلى بريدك الإلكتروني." : "A new verification link has been sent to your email.");
+      toast.success(isArabic ? "ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø±Ø§Ø¨Ø· ØªÙØ¹ÙŠÙ„ Ø¬Ø¯ÙŠØ¯ Ø¥Ù„Ù‰ Ø¨Ø±ÙŠØ¯Ùƒ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ." : "A new verification link has been sent to your email.");
     } catch (error) {
       toast.error(
         error.response?.data?.message || 
-        (isArabic ? "حدث خطأ أثناء محاولة إرسال الرابط. يرجى المحاولة لاحقاً." : "An error occurred while resending the link. Please try again later.")
+        (isArabic ? "Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ù…Ø­Ø§ÙˆÙ„Ø© Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø±Ø§Ø¨Ø·. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù„Ø§Ø­Ù‚Ø§Ù‹." : "An error occurred while resending the link. Please try again later.")
       );
     } finally {
       setIsResending(false);
@@ -113,35 +114,35 @@ const VerifyEmailPage = () => {
       <Container className="d-flex justify-content-center align-items-center h-100">
         <Card className="login-card shadow border-0 p-4">
           <Card.Body className="text-center p-0">
-            {/* اللوجو */}
+            {/* Ø§Ù„Ù„ÙˆØ¬Ùˆ */}
             <Link to="/">
               <img
                 src={tsquareLogo}
                 alt="T-Square Logo"
                 className="login-logo mb-4"
-                title={isArabic ? "العودة للرئيسية" : "Back to Home"}
+                title={isArabic ? "Ø§Ù„Ø¹ÙˆØ¯Ø© Ù„Ù„Ø±Ø¦ÙŠØ³ÙŠØ©" : "Back to Home"}
               />
             </Link>
 
             {status === "loading" && (
               <div className="py-4">
                 <Spinner animation="border" variant="danger" className="mb-3" style={{ width: "3rem", height: "3rem" }} />
-                <h4 className="fw-bold text-dark">{isArabic ? "جاري تفعيل حسابك..." : "Verifying your account..."}</h4>
-                <p className="text-muted">{isArabic ? "يرجى الانتظار لحظات، يتم الآن تأكيد حسابك." : "Please wait a moment while we verify your account."}</p>
+                <h4 className="fw-bold text-dark">{isArabic ? "Ø¬Ø§Ø±ÙŠ ØªÙØ¹ÙŠÙ„ Ø­Ø³Ø§Ø¨Ùƒ..." : "Verifying your account..."}</h4>
+                <p className="text-muted">{isArabic ? "ÙŠØ±Ø¬Ù‰ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø± Ù„Ø­Ø¸Ø§ØªØŒ ÙŠØªÙ… Ø§Ù„Ø¢Ù† ØªØ£ÙƒÙŠØ¯ Ø­Ø³Ø§Ø¨Ùƒ." : "Please wait a moment while we verify your account."}</p>
               </div>
             )}
 
             {status === "success" && (
               <div className="py-4">
                 <i className="bi bi-check-circle-fill text-success mb-3 d-block" style={{ fontSize: "4rem" }}></i>
-                <h4 className="fw-bold text-dark">{isArabic ? "تم التفعيل بنجاح!" : "Successfully Verified!"}</h4>
-                <p className="text-muted mb-4">{isArabic ? "لقد تم تفعيل حسابك بنجاح. سيتم توجيهك إلى لوحة التحكم الآن." : "Your account has been verified successfully. You will be redirected to the dashboard now."}</p>
+                <h4 className="fw-bold text-dark">{isArabic ? "ØªÙ… Ø§Ù„ØªÙØ¹ÙŠÙ„ Ø¨Ù†Ø¬Ø§Ø­!" : "Successfully Verified!"}</h4>
+                <p className="text-muted mb-4">{isArabic ? "Ù„Ù‚Ø¯ ØªÙ… ØªÙØ¹ÙŠÙ„ Ø­Ø³Ø§Ø¨Ùƒ Ø¨Ù†Ø¬Ø§Ø­. Ø³ÙŠØªÙ… ØªÙˆØ¬ÙŠÙ‡Ùƒ Ø¥Ù„Ù‰ Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… Ø§Ù„Ø¢Ù†." : "Your account has been verified successfully. You will be redirected to the dashboard now."}</p>
                 <Button 
                   variant="danger" 
                   className="w-100 fw-bold py-2"
                   onClick={() => navigate("/student/dashboard")}
                 >
-                  {isArabic ? "الانتقال للوحة التحكم" : "Go to Dashboard"}
+                  {isArabic ? "Ø§Ù„Ø§Ù†ØªÙ‚Ø§Ù„ Ù„Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…" : "Go to Dashboard"}
                 </Button>
               </div>
             )}
@@ -149,7 +150,7 @@ const VerifyEmailPage = () => {
             {status === "error" && (
               <div className="py-4">
                 <i className="bi bi-x-circle-fill text-danger mb-3 d-block" style={{ fontSize: "4rem" }}></i>
-                <h4 className="fw-bold text-dark">{isArabic ? "فشل التفعيل" : "Verification Failed"}</h4>
+                <h4 className="fw-bold text-dark">{isArabic ? "ÙØ´Ù„ Ø§Ù„ØªÙØ¹ÙŠÙ„" : "Verification Failed"}</h4>
                 <p className="text-muted mb-4">{errorMessage}</p>
                 <Button 
                   variant="danger" 
@@ -160,14 +161,14 @@ const VerifyEmailPage = () => {
                   {isResending ? (
                     <>
                       <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
-                      {isArabic ? "جاري الإرسال..." : "Sending..."}
+                      {isArabic ? "Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„..." : "Sending..."}
                     </>
                   ) : (
-                    isArabic ? "إعادة إرسال رابط التفعيل" : "Resend Verification Link"
+                    isArabic ? "Ø¥Ø¹Ø§Ø¯Ø© Ø¥Ø±Ø³Ø§Ù„ Ø±Ø§Ø¨Ø· Ø§Ù„ØªÙØ¹ÙŠÙ„" : "Resend Verification Link"
                   )}
                 </Button>
                 <Link to="/student/dashboard" className="text-muted text-decoration-none">
-                  {isArabic ? "العودة للوحة التحكم" : "Back to Dashboard"}
+                  {isArabic ? "Ø§Ù„Ø¹ÙˆØ¯Ø© Ù„Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…" : "Back to Dashboard"}
                 </Link>
               </div>
             )}
@@ -179,4 +180,6 @@ const VerifyEmailPage = () => {
 };
 
 export default VerifyEmailPage;
+
+
 

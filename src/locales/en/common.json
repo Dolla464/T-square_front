@@ -9,6 +9,16 @@
   "contact_us": "Contact us",
   "explore_courses": "Explore Courses",
 
+  "forbidden": {
+    "title": "Access denied",
+    "message": "You do not have permission to view this resource.",
+    "back": "Go back"
+  },
+
+  "notFound": {
+    "title": "Resource not found"
+  },
+
   "maintenance": {
     "backToHome": "Back to Home",
     "title": "Site Under Maintenance!",

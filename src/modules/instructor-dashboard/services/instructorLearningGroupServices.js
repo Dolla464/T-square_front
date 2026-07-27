@@ -20,10 +20,11 @@ export const getStudentExamResults = (groupId, studentId, examId) =>
     })
     .then((res) => res.data);
 
-export const getStudentAttemptReview = (groupId, studentId, attemptId) =>
+export const getStudentAttemptReview = (groupId, studentId, attemptId, config = {}) =>
   axiosClient
     .get(
       `/instructor/learning-groups/${groupId}/students/${studentId}/exam-attempts/${attemptId}/review`,
+      config,
     )
     .then((res) => res.data);
 

@@ -1,10 +1,11 @@
-import { useTranslation } from "react-i18next";
+﻿import { useTranslation } from "react-i18next";
 import { FaPhone } from "react-icons/fa";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import axiosClient from "../../api/axios";
 import { useState } from "react";
 import { formatCoursePrice } from "../../utils/coursePrice";
+import { safeReturnUrl } from "../../utils/safeReturnUrl";
 
 const CourseSidebar = ({ course }) => {
   const { t, i18n } = useTranslation("coursesDetails");
@@ -20,10 +21,10 @@ const CourseSidebar = ({ course }) => {
     return <Navigate to="/courses" replace />;
   }
 
-  // 1. تعديل الدالة لتصبح المسؤولة بالكامل عن فحص التمكين وتوجيه المستخدم
+  // 1. ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø¯Ø§Ù„Ø© Ù„ØªØµØ¨Ø­ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„Ø© Ø¨Ø§Ù„ÙƒØ§Ù…Ù„ Ø¹Ù† ÙØ­Øµ Ø§Ù„ØªÙ…ÙƒÙŠÙ† ÙˆØªÙˆØ¬ÙŠÙ‡ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…
   const handleEnrollmentProcess = async () => {
     if (!user) {
-      navigate("/login", { state: { from: location.pathname } });
+      navigate("/login", { state: { from: safeReturnUrl(location.pathname) } });
       return;
     }
 
@@ -43,7 +44,7 @@ const CourseSidebar = ({ course }) => {
       setIsChecking(false);
     }
 
-    // التوجيه لصفحة الدفع بعد انتهاء الفحص
+    // Ø§Ù„ØªÙˆØ¬ÙŠÙ‡ Ù„ØµÙØ­Ø© Ø§Ù„Ø¯ÙØ¹ Ø¨Ø¹Ø¯ Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„ÙØ­Øµ
     if (isEnrolled) {
       navigate(`/student/course/${course.id}`);
     } else {
@@ -81,7 +82,7 @@ const CourseSidebar = ({ course }) => {
             <span className="fw-bold">{course.level}</span>
           </p>
 
-          {/* 🟢 زر الشاشة الكبيرة المعدل */}
+          {/* ðŸŸ¢ Ø²Ø± Ø§Ù„Ø´Ø§Ø´Ø© Ø§Ù„ÙƒØ¨ÙŠØ±Ø© Ø§Ù„Ù…Ø¹Ø¯Ù„ */}
           <button
             className="btn btn-danger w-100 mt-3"
             disabled={!course || isChecking}
@@ -105,7 +106,7 @@ const CourseSidebar = ({ course }) => {
         </div>
       </div>
 
-      {/* 🔵 Mobile Floating Button Indicator */}
+      {/* ðŸ”µ Mobile Floating Button Indicator */}
       <button
         className="btn btn-danger mobile-price-btn d-lg-none"
         type="button"
@@ -123,7 +124,7 @@ const CourseSidebar = ({ course }) => {
         }}
       ></button>
 
-      {/* 🟣 Offcanvas */}
+      {/* ðŸŸ£ Offcanvas */}
       <div
         className={`offcanvas ${isArabic ? "offcanvas-start" : "offcanvas-end"}`}
         tabIndex="-1"
@@ -179,12 +180,12 @@ const CourseSidebar = ({ course }) => {
               <span className="fw-bold">{course.level}</span>
             </p>
 
-            {/* 🟢 زر الموبايل المعدل والمحمي بالـ Loader أيضاً */}
+            {/* ðŸŸ¢ Ø²Ø± Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„ Ø§Ù„Ù…Ø¹Ø¯Ù„ ÙˆØ§Ù„Ù…Ø­Ù…ÙŠ Ø¨Ø§Ù„Ù€ Loader Ø£ÙŠØ¶Ø§Ù‹ */}
             <button
               className="btn btn-danger w-100 mt-3"
               disabled={!course || isChecking}
               onClick={handleEnrollmentProcess}
-              data-bs-dismiss="offcanvas" // يغلق الـ offcanvas تلقائياً عند الانتقال لصفحة اللوج ان أو الدفع
+              data-bs-dismiss="offcanvas" // ÙŠØºÙ„Ù‚ Ø§Ù„Ù€ offcanvas ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ Ø¹Ù†Ø¯ Ø§Ù„Ø§Ù†ØªÙ‚Ø§Ù„ Ù„ØµÙØ­Ø© Ø§Ù„Ù„ÙˆØ¬ Ø§Ù† Ø£Ùˆ Ø§Ù„Ø¯ÙØ¹
             >
               {isChecking ? (
                 <span
@@ -209,3 +210,5 @@ const CourseSidebar = ({ course }) => {
 };
 
 export default CourseSidebar;
+
+

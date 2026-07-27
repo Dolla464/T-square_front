@@ -9,6 +9,8 @@ import {
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import ScrollToTop from "./components/shared/ScrollToTop";
+import ForbiddenRouteWatcher from "./components/shared/ForbiddenRouteWatcher";
+import RoleMismatchRedirect from "./components/shared/RoleMismatchRedirect";
 import AppNavbar from "./components/layout/Navbar";
 import AppFooter from "./components/layout/Footer";
 import Home from "./pages/Home";
@@ -598,6 +600,8 @@ function App() {
     <AuthProvider>
       <NotificationsProvider>
         <Router>
+          <ForbiddenRouteWatcher />
+          <RoleMismatchRedirect />
           <ErrorBoundary>
             {/* مكون الإشعارات العالمي */}
             <Toaster position="top-center" reverseOrder={false} />

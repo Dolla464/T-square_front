@@ -1,4 +1,5 @@
 import axiosClient from "../../../api/axios";
+import { buildProfilePayload } from "../../../utils/buildPayload";
 import { saveAs } from "file-saver";
 
 // --- الدوال المفقودة التي تسبب الخطأ ---
@@ -8,8 +9,8 @@ import { saveAs } from "file-saver";
  */
 export const getStudentCourses = () =>
   axiosClient.get("/student/dashboard/courses");
-export const getCourseDetails = (courseId) =>
-  axiosClient.get(`/student/dashboard/courses/${courseId}`);
+export const getCourseDetails = (courseId, config = {}) =>
+  axiosClient.get(`/student/dashboard/courses/${courseId}`, config);
 /**
  * جلب شهادات الطالب
  */
@@ -93,20 +94,17 @@ export const getStudentProfile = () => axiosClient.get("/profile");
  * تحديث بيانات الملف الشخصي والصورة (POST صريح يدعم الـ FormData)
  */
 export const updateStudentProfile = (profileData) => {
-  // 1. إذا كانت البيانات المارة عبارة عن FormData (رفع الصورة والبيانات)
-  if (profileData instanceof FormData) {
-    return axiosClient.post("/profile", profileData, {
+  const payload = buildProfilePayload(profileData);
+
+  if (payload instanceof FormData) {
+    return axiosClient.post("/profile", payload, {
       headers: {
-        "Content-Type": "multipart/form-data", // تأكيد للـ axios لمعالجة الباينري
+        "Content-Type": "multipart/form-data",
       },
     });
   }
 
-  // 2. إذا كانت بيانات نصية صافية عادية
-  return axiosClient.post("/profile", {
-    gender: profileData.gender,
-    phone: profileData.phone,
-  });
+  return axiosClient.post("/profile", payload);
 };
 
 /**
@@ -129,8 +127,8 @@ export const getExamResults = (examId) =>
 /**
  * جلب مراجعة إجابات محاولة منتهية
  */
-export const getAttemptReview = (attemptId) =>
-  axiosClient.get(`/exams/attempts/${attemptId}/review`);
+export const getAttemptReview = (attemptId, config = {}) =>
+  axiosClient.get(`/exams/attempts/${attemptId}/review`, config);
 
 /**
  * Check review eligibility for a course

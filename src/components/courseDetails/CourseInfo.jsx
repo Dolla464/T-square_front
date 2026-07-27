@@ -43,7 +43,22 @@ const CourseInfo = ({ course }) => {
         <h4 className="fw-bold mb-2">{t("about_program")}</h4>
         <p className="text-muted mb-4 fs-5">{course.description}</p>
       </div>
-      
+
+      {course.learnings?.length > 0 && (
+        <section className="course-learnings-section text-end mb-4">
+          <h4 className="fw-bold mb-3">{t("what_you_will_learn")}</h4>
+          <div className="row g-3">
+            {course.learnings.map((item, index) => (
+              <div className="col-12 col-md-6" key={index}>
+                <div className="course-learning-item">
+                  <i className="bi bi-check-circle-fill course-learning-check"></i>
+                  <span className="text-muted fs-5">{item}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

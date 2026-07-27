@@ -351,6 +351,43 @@ function QuizExamPage() {
     submitExam,
   ]);
 
+  const handlePrevious = useCallback(async () => {
+    if (currentIndex === 0 || !exam?.attempt_id) return;
+
+    let updatedAnswers = [...answers];
+
+    if (currentQuestion && selectedAnswer !== null) {
+      await saveAnswer(currentQuestion.id, selectedAnswer);
+      updatedAnswers[currentIndex] = selectedAnswer;
+      setAnswers(updatedAnswers);
+    }
+
+    const prevIndex = currentIndex - 1;
+
+    localStorage.setItem(
+      `quiz_state_${quizId}`,
+      JSON.stringify({
+        savedIndex: prevIndex,
+        savedAnswers: updatedAnswers,
+        attemptId: exam.attempt_id,
+      }),
+    );
+
+    setCurrentIndex(prevIndex);
+    const prevQuestionAnswer = updatedAnswers[prevIndex];
+    setSelectedAnswer(
+      prevQuestionAnswer !== undefined ? prevQuestionAnswer : null,
+    );
+  }, [
+    answers,
+    currentIndex,
+    currentQuestion,
+    exam?.attempt_id,
+    quizId,
+    saveAnswer,
+    selectedAnswer,
+  ]);
+
   const handleExit = useCallback(() => {
     navigate("/student/quizzes");
   }, [navigate]);
@@ -651,29 +688,43 @@ function QuizExamPage() {
           ))}
         </div>
 
-        <button
-          className="btn-continueQuiz"
-          disabled={selectedAnswer === null || submitting || !exam?.attempt_id}
-          onClick={handleNext}
-        >
-          {submitting ? (
-            <span
-              className="spinner-border spinner-border-sm me-2"
-              role="status"
-              aria-hidden="true"
-            ></span>
-          ) : null}
-          {isLastQuestion
-            ? isArabic
-              ? "إنهاء"
-              : "Finish"
-            : isArabic
-              ? "التالي"
-              : "Next"}
-          <i
-            className={`bi ${isLastQuestion ? "bi-check2-all" : "bi-arrow-right"} ms-2`}
-          ></i>
-        </button>
+        <div className="quiz-nav-buttons">
+          {currentIndex > 0 && (
+            <button
+              className="btn-previousQuiz"
+              disabled={submitting || !exam?.attempt_id}
+              onClick={handlePrevious}
+            >
+              <i
+                className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"} ${isArabic ? "ms-2" : "me-2"}`}
+              ></i>
+              {isArabic ? "السابق" : "Previous"}
+            </button>
+          )}
+          <button
+            className="btn-continueQuiz"
+            disabled={selectedAnswer === null || submitting || !exam?.attempt_id}
+            onClick={handleNext}
+          >
+            {submitting ? (
+              <span
+                className="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            ) : null}
+            {isLastQuestion
+              ? isArabic
+                ? "إنهاء"
+                : "Finish"
+              : isArabic
+                ? "التالي"
+                : "Next"}
+            <i
+              className={`bi ${isLastQuestion ? "bi-check2-all" : "bi-arrow-right"} ms-2`}
+            ></i>
+          </button>
+        </div>
       </div>
     </div>
   );

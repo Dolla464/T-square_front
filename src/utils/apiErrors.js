@@ -1,24 +1,24 @@
-/**
- * Extracts a human-readable error message from an Axios error response.
- *
- * The Laravel backend returns:
- *   { status: "error", message: "<first validation error>", errors: { field: ["msg", ...] } }
- *
- * Priority:
- *   1. response.data.message  — concise first-error string set by bootstrap/app.php
- *   2. response.data.errors   — all field-level messages joined with " • "
- *   3. fallback               — caller-supplied default
- */
-export function getApiErrorMessage(err, fallback = "Something went wrong") {
-  const data = err?.response?.data;
-  if (!data) return fallback;
+import axios from "axios";
 
-  if (data.message) return data.message;
+export function isAbortError(error) {
+  return axios.isCancel(error) || error?.code === "ERR_CANCELED";
+}
 
-  if (data.errors) {
-    const messages = Object.values(data.errors).flat().filter(Boolean);
-    if (messages.length) return messages.join(" • ");
-  }
+export function getApiErrorMeta(error) {
+  const status = error?.response?.status ?? null;
+  const data = error?.response?.data ?? null;
+  const code = data?.code ?? null;
 
-  return fallback;
+  return {
+    status,
+    code,
+    message: data?.message || data?.error || error?.message || null,
+    isNotFound: status === 404 && code === "NOT_FOUND",
+    isForbidden: status === 403 && (code === "FORBIDDEN" || !code),
+  };
+}
+
+export function getApiErrorMessage(error, fallback = "Something went wrong") {
+  const { message } = getApiErrorMeta(error);
+  return message || fallback;
 }
