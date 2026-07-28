@@ -119,7 +119,7 @@ function CourseDetails() {
   if (forbidden) {
     return (
       <div className="cd-page">
-        <ForbiddenAccess backTo="/student" backLabel={isArabic ? "العودة للوحة الطالب" : "Back to dashboard"} />
+        <ForbiddenAccess backTo="/student/dashboard" backLabel={isArabic ? "العودة للوحة الطالب" : "Back to dashboard"} />
       </div>
     );
   }

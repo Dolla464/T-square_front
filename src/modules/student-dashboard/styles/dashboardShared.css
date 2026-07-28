@@ -337,6 +337,16 @@
   justify-content: center;
   align-items: flex-start;
 }
+
+/* Admin/instructor question editor — inline layout (not full-screen overlay) */
+.quiz-exam-editor {
+  background-color: #f3f4f6;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
 .btn-continueQuiz {
   width: 100%;
   background: #be1522;

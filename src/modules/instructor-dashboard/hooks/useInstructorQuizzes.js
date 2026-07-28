@@ -20,6 +20,7 @@ import {
   getTrashedQuestions as apiGetTrashedQuestions,
   restoreQuestion as apiRestoreQuestion,
   forceDeleteQuestion as apiForceDeleteQuestion,
+  uploadQuestionImage as apiUploadQuestionImage,
 } from "../services/instructorQuizzesServices";
 
 export const useInstructorQuizzes = () => {
@@ -304,7 +305,7 @@ export const useInstructorQuizzes = () => {
     try {
       const response = await apiCreateQuestion(payload);
       toastSuccess(t("success.created", "Created successfully"));
-      return response.data || true;
+      return true;
     } catch (err) {
       const errorMsg = getApiErrorMessage(err, t("errors.create_failed", "Failed to create"));
       setError(errorMsg);
@@ -393,6 +394,15 @@ export const useInstructorQuizzes = () => {
     }
   }, []);
 
+  const uploadQuestionImage = useCallback(async (file) => {
+    try {
+      return await apiUploadQuestionImage(file);
+    } catch (err) {
+      toastError("Failed to upload question image");
+      return null;
+    }
+  }, []);
+
   return {
     quizzes,
     quiz,
@@ -415,5 +425,6 @@ export const useInstructorQuizzes = () => {
     getTrashedQuestions,
     restoreQuestion,
     forceDeleteQuestion,
+    uploadQuestionImage,
   };
 };

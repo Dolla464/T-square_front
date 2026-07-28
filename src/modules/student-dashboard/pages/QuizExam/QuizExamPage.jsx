@@ -5,27 +5,21 @@ import { Helmet } from "react-helmet-async";
 import { toastCustom } from "../../../../components/shared/Toaster/toaster";
 import { useExam } from "../../hooks/useExam";
 import AttemptReviewPanel from "../../../shared-dashboard/components/AttemptAnswerReview/AttemptReviewPanel";
+import QuestionContent from "../../../shared-dashboard/components/QuestionContent/QuestionContent";
 import { invalidateAttemptReview } from "../../../shared-dashboard/hooks/attemptReviewCache";
 import { formatExamScore } from "../../../shared-dashboard/utils/formatExamScore";
 import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
+import "../../../shared-dashboard/components/QuestionContent/questionContent.css";
 import "../../styles/dashboardShared.css";
 
-const QuizTimer = React.memo(({ durationMins, attemptId, quizId, isArabic, onTimeout }) => {
+const QuizTimer = React.memo(({ startedAt, durationMins, isArabic, onTimeout }) => {
   const [timeLeft, setTimeLeft] = useState(null);
 
   useEffect(() => {
-    if (!durationMins || durationMins <= 0 || !attemptId) return;
+    if (!startedAt || !durationMins || durationMins <= 0) return;
 
-    const storageKey = `quiz_timer_${quizId}_${attemptId}`;
-    const savedEndTime = localStorage.getItem(storageKey);
-    let endTime;
-
-    if (savedEndTime) {
-      endTime = parseInt(savedEndTime, 10);
-    } else {
-      endTime = Date.now() + durationMins * 60 * 1000;
-      localStorage.setItem(storageKey, endTime.toString());
-    }
+    const startMs = new Date(startedAt).getTime();
+    const endTime = startMs + durationMins * 60 * 1000;
 
     const calculateTimeLeft = () => {
       const difference = endTime - Date.now();
@@ -48,7 +42,6 @@ const QuizTimer = React.memo(({ durationMins, attemptId, quizId, isArabic, onTim
       setTimeLeft(remaining);
       if (remaining <= 0) {
         clearInterval(interval);
-        localStorage.removeItem(storageKey);
         onTimeout();
       }
     }, 1000);
@@ -56,7 +49,7 @@ const QuizTimer = React.memo(({ durationMins, attemptId, quizId, isArabic, onTim
     return () => {
       clearInterval(interval);
     };
-  }, [durationMins, attemptId, quizId, onTimeout]);
+  }, [startedAt, durationMins, onTimeout]);
 
   if (timeLeft === null) return null;
 
@@ -114,11 +107,17 @@ function QuizExamPage() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [answers, setAnswers] = useState([]);
+  const [answers, setAnswers] = useState({});
 
   // Load saved state if the attempt matches
   useEffect(() => {
     if (!exam) return;
+
+    const apiAnswers =
+      exam.user_answers && typeof exam.user_answers === "object"
+        ? { ...exam.user_answers }
+        : {};
+
     const savedState = localStorage.getItem(`quiz_state_${quizId}`);
     if (savedState) {
       try {
@@ -126,19 +125,21 @@ function QuizExamPage() {
         if (
           attemptId === exam.attempt_id &&
           typeof savedIndex === "number" &&
-          Array.isArray(savedAnswers)
+          savedAnswers &&
+          typeof savedAnswers === "object" &&
+          !Array.isArray(savedAnswers)
         ) {
           setCurrentIndex(savedIndex);
-          setAnswers(savedAnswers);
+          setAnswers({ ...apiAnswers, ...savedAnswers });
           return;
         }
       } catch (e) {
         console.error("Failed to load saved quiz state", e);
       }
     }
-    // If no saved state or mismatch, start fresh
+
     setCurrentIndex(0);
-    setAnswers([]);
+    setAnswers(apiAnswers);
   }, [quizId, exam]);
 
   // Save current progress to localStorage
@@ -162,6 +163,12 @@ function QuizExamPage() {
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
   const isLastQuestion = currentIndex === totalQuestions - 1;
+
+  useEffect(() => {
+    if (currentQuestion) {
+      setSelectedAnswer(answers[currentQuestion.id] ?? null);
+    }
+  }, [currentIndex, currentQuestion?.id, answers]);
 
   // Refs to avoid stale closures in the timer interval
   const currentIndexRef = useRef(currentIndex);
@@ -189,7 +196,6 @@ function QuizExamPage() {
       const result = await submitExam(exam.attempt_id);
 
       localStorage.removeItem(`quiz_state_${quizId}`);
-      localStorage.removeItem(`quiz_timer_${quizId}_${exam.attempt_id}`);
 
       invalidateAttemptReview(exam.attempt_id);
       setSubmittedAttemptId(exam.attempt_id);
@@ -237,31 +243,29 @@ function QuizExamPage() {
         : "Are you sure you want to exit? You might lose your current answers."
     );
     if (confirmExit) {
-      if (exam?.attempt_id) {
-        localStorage.removeItem(`quiz_timer_${quizId}_${exam.attempt_id}`);
-      }
       handleExit();
     }
-  }, [exam?.attempt_id, quizId, isArabic]);
+  }, [isArabic, handleExit]);
 
   const handleSelectAnswer = useCallback((choiceId) => {
-    setSelectedAnswer(choiceId); // تخزين الـ id مباشرة
+    if (!currentQuestion) return;
 
-    // وتحديث مصفوفة الـ answers لتخزين الـ id
-    const updatedAnswers = [...answers];
-    updatedAnswers[currentIndex] = choiceId;
-    setAnswers(updatedAnswers);
+    setSelectedAnswer(choiceId);
+    setAnswers((prev) => {
+      const updatedAnswers = { ...prev, [currentQuestion.id]: choiceId };
 
-    // الحفظ في الـ localStorage
-    localStorage.setItem(
-      `quiz_state_${quizId}`,
-      JSON.stringify({
-        savedIndex: currentIndex,
-        savedAnswers: updatedAnswers, // أصبحت تحتوي على ids
-        attemptId: exam?.attempt_id,
-      }),
-    );
-  }, [answers, currentIndex, exam?.attempt_id, quizId]);
+      localStorage.setItem(
+        `quiz_state_${quizId}`,
+        JSON.stringify({
+          savedIndex: currentIndex,
+          savedAnswers: updatedAnswers,
+          attemptId: exam?.attempt_id,
+        }),
+      );
+
+      return updatedAnswers;
+    });
+  }, [currentIndex, currentQuestion, exam?.attempt_id, quizId]);
 
   const handleNext = useCallback(async () => {
     // CRITICAL GUARD: must have a valid attempt before any action
@@ -278,16 +282,14 @@ function QuizExamPage() {
     }
 
     // 1. حفظ الإجابة الحالية في السيرفر ومصفوفة الإجابات المحلية
-    let updatedAnswers = [...answers];
+    let updatedAnswers = { ...answers };
 
     if (currentQuestion && selectedAnswer !== null) {
       const choiceId = selectedAnswer;
 
-      // إرسال الطلب للسيرفر للحفظ المباشر
       await saveAnswer(currentQuestion.id, choiceId);
 
-      // تحديث مكان الإجابة في المصفوفة بناءً على الـ currentIndex لضمان دقة الترتيب
-      updatedAnswers[currentIndex] = choiceId;
+      updatedAnswers = { ...updatedAnswers, [currentQuestion.id]: choiceId };
       setAnswers(updatedAnswers);
     }
 
@@ -311,7 +313,6 @@ function QuizExamPage() {
         const result = await submitExam(exam.attempt_id);
 
         localStorage.removeItem(`quiz_state_${quizId}`);
-        localStorage.removeItem(`quiz_timer_${quizId}_${exam.attempt_id}`);
 
         invalidateAttemptReview(exam.attempt_id);
         setSubmittedAttemptId(exam.attempt_id);
@@ -332,10 +333,11 @@ function QuizExamPage() {
       // الانتقال للسؤال التالي وتجهيز الاختيار للسؤال الجديد
       setCurrentIndex(nextIndex);
 
-      // مراجعة ما إذا كان الطالب قد أجاب على السؤال التالي مسبقاً لعرض إجابته، وإلا نتركها null
-      const nextQuestionAnswer = updatedAnswers[nextIndex];
+      const nextQuestion = questions[nextIndex];
       setSelectedAnswer(
-        nextQuestionAnswer !== undefined ? nextQuestionAnswer : null,
+        nextQuestion && updatedAnswers[nextQuestion.id] !== undefined
+          ? updatedAnswers[nextQuestion.id]
+          : null,
       );
     }
   }, [
@@ -354,11 +356,11 @@ function QuizExamPage() {
   const handlePrevious = useCallback(async () => {
     if (currentIndex === 0 || !exam?.attempt_id) return;
 
-    let updatedAnswers = [...answers];
+    let updatedAnswers = { ...answers };
 
     if (currentQuestion && selectedAnswer !== null) {
       await saveAnswer(currentQuestion.id, selectedAnswer);
-      updatedAnswers[currentIndex] = selectedAnswer;
+      updatedAnswers = { ...updatedAnswers, [currentQuestion.id]: selectedAnswer };
       setAnswers(updatedAnswers);
     }
 
@@ -374,9 +376,11 @@ function QuizExamPage() {
     );
 
     setCurrentIndex(prevIndex);
-    const prevQuestionAnswer = updatedAnswers[prevIndex];
+    const prevQuestion = questions[prevIndex];
     setSelectedAnswer(
-      prevQuestionAnswer !== undefined ? prevQuestionAnswer : null,
+      prevQuestion && updatedAnswers[prevQuestion.id] !== undefined
+        ? updatedAnswers[prevQuestion.id]
+        : null,
     );
   }, [
     answers,
@@ -639,11 +643,10 @@ function QuizExamPage() {
             ></i>
             {isArabic ? "خروج" : "Exit"}
           </button>
-          {exam && exam.duration && (
+          {exam && exam.duration && exam.started_at && (
             <QuizTimer
+              startedAt={exam.started_at}
               durationMins={parseFloat(exam.duration)}
-              attemptId={exam.attempt_id}
-              quizId={quizId}
               isArabic={isArabic}
               onTimeout={handleAutoSubmit}
             />
@@ -666,9 +669,7 @@ function QuizExamPage() {
         </div>
 
         <div className="quiz-question">
-          <h5 className="question-text">
-            {currentQuestion?.question_text || currentQuestion?.question}
-          </h5>
+          <QuestionContent question={currentQuestion} />
         </div>
 
         <div className="quiz-options">

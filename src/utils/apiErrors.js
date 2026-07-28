@@ -20,5 +20,18 @@ export function getApiErrorMeta(error) {
 
 export function getApiErrorMessage(error, fallback = "Something went wrong") {
   const { message } = getApiErrorMeta(error);
+  const validationErrors = error?.response?.data?.errors;
+
+  if (validationErrors && typeof validationErrors === "object") {
+    const firstField = Object.keys(validationErrors)[0];
+    const firstMessage = validationErrors[firstField];
+    if (Array.isArray(firstMessage) && firstMessage[0]) {
+      return firstMessage[0];
+    }
+    if (typeof firstMessage === "string") {
+      return firstMessage;
+    }
+  }
+
   return message || fallback;
 }

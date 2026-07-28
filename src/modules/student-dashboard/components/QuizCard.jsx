@@ -38,6 +38,7 @@ function QuizCard({ quiz, t }) {
   // ── بيانات الكويز ──────────────────────────────────────────────────
   const {
     is_locked,
+    has_ongoing_attempt,
     remaining_attempts,
     attempts_count,
     max_attempts,
@@ -47,7 +48,9 @@ function QuizCard({ quiz, t }) {
   } = quiz;
 
   const handleStartQuiz = () => {
-    if (!is_locked) navigate(`/student/quizzes/${quiz.id}`);
+    if (has_ongoing_attempt || !is_locked) {
+      navigate(`/student/quizzes/${quiz.id}`);
+    }
   };
 
   // ── معالجة المحاولات من الـ API ────────────────────────────────────
@@ -105,13 +108,15 @@ function QuizCard({ quiz, t }) {
 
   // ── الـ Render ─────────────────────────────────────────────────────
   return (
-    <div className={`quiz-card ${is_locked ? "quiz-card-locked" : ""}`}>
+    <div className={`quiz-card ${is_locked && !has_ongoing_attempt ? "quiz-card-locked" : ""}`}>
       {/* صورة / أيقونة الكارد */}
       <div className="quiz-card-icon-wrapper">
         <i
           className={`bi ${
             is_passed_before
               ? "bi-check-circle-fill text-success"
+              : has_ongoing_attempt
+              ? "bi-play-circle-fill text-primary"
               : is_locked
               ? "bi-lock-fill"
               : "bi-pencil-square"
@@ -124,6 +129,8 @@ function QuizCard({ quiz, t }) {
           style={
             is_passed_before
               ? { backgroundColor: "#d1fae5", color: "#065f46" }
+              : has_ongoing_attempt
+              ? { backgroundColor: "#dbeafe", color: "#1e40af" }
               : is_locked
               ? { backgroundColor: "#ffcccc", color: "#990000" }
               : { backgroundColor: "#c5e9ff", color: "#0d47a1" }
@@ -131,6 +138,8 @@ function QuizCard({ quiz, t }) {
         >
           {is_passed_before
             ? isArabic ? "ناجح" : "Passed"
+            : has_ongoing_attempt
+            ? isArabic ? "جاري" : "In Progress"
             : is_locked
             ? isArabic ? "مغلق" : "Locked"
             : isArabic ? "مفتوح" : "Open"}
@@ -182,7 +191,12 @@ function QuizCard({ quiz, t }) {
           )}
 
           {/* زر الدخول / الإعادة */}
-          {is_locked ? (
+          {has_ongoing_attempt ? (
+            <button onClick={handleStartQuiz} className="btn-continue flex-grow-1">
+              <i className="bi bi-play-circle me-1"></i>
+              {isArabic ? "متابعة الاختبار" : "Resume Quiz"}
+            </button>
+          ) : is_locked ? (
             <button
               disabled
               className="btn-continue bg-secondary-subtle text-muted border-0 w-100"

@@ -15,10 +15,17 @@ import {
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import ProfilePasswordField from "../../../../components/shared/ProfilePasswordField/ProfilePasswordField";
+import {
+  getNameInitials,
+  getProfileAvatarUrl,
+  getProfileDisplayName,
+  isDefaultAvatarUrl,
+} from "../../../../utils/avatar";
+import { getApiErrorMessage } from "../../../../utils/apiErrors";
 
 function DashboardProfile() {
   const { t, i18n } = useTranslation("studentDashboard");
-  const { user, updateUser } = useAuth();
+  const { user, userProfile, updateUser } = useAuth();
   const isArabic = i18n.language === "ar";
 
   const [fullName, setFullName] = useState("");
@@ -93,23 +100,22 @@ function DashboardProfile() {
       }
     } catch (error) {
       console.error("Upload Error:", error);
-      // لو لسه 401، تأكد إن اليوزر عامل Login والتوكن سليم
-      toastError(isArabic ? "فشل رفع الصورة" : "Failed to upload photo");
+      toastError(
+        getApiErrorMessage(
+          error,
+          isArabic ? "فشل رفع الصورة" : "Failed to upload photo",
+        ),
+      );
     } finally {
       setSaveLoading(false);
       e.target.value = "";
     }
   };
 
-  const initials = (typeof fullName === "string" && fullName.trim())
-    ? fullName
-        .split(" ")
-        .filter(Boolean) // تجاهل المسافات الزائدة
-        .map((w) => w[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "ST";
+  const initials = getNameInitials(fullName || getProfileDisplayName(user, userProfile), "ST");
+  const avatarUrl = getProfileAvatarUrl(user, userProfile);
+  const hasAvatar = Boolean(avatarUrl) && !isDefaultAvatarUrl(avatarUrl) && !imageError;
+  const displayName = getProfileDisplayName(user, userProfile) || fullName;
 
   const handleUpdateInformation = async () => {
     if (phone && phone.replace(/\D/g, "").length < 10) {
@@ -197,11 +203,11 @@ function DashboardProfile() {
               <div
                 className="profile-avatar position-relative overflow-hidden"
                 style={{
-                  cursor: user?.student?.avatar && !imageError ? "pointer" : "default",
+                  cursor: hasAvatar ? "pointer" : "default",
                 }}
                 onClick={() => {
-                  if (user?.student?.avatar && !imageError) {
-                    setLightboxSlides([{ src: user.student.avatar }]);
+                  if (hasAvatar) {
+                    setLightboxSlides([{ src: avatarUrl }]);
                     setLightboxIndex(0);
                   }
                 }}
@@ -227,10 +233,10 @@ function DashboardProfile() {
     المنطق الجديد: 
     لو مفيش avatar أو لو الصورة حاولت تحمل وفشلت (imageError)، اعرض الـ initials 
   */}
-                {user?.student?.avatar && !imageError ? (
+                {hasAvatar ? (
                   <>
                     <img
-                      src={user.student.avatar}
+                      src={avatarUrl}
                       alt="avatar"
                       onError={() => setImageError(true)} // لو الصورة مكسورة، اقلب على الـ initials
                     />
@@ -255,7 +261,7 @@ function DashboardProfile() {
               </div>
               <div>
                 <div className="profile-name">
-                  {user?.student?.full_name || user?.name}
+                  {displayName || user?.name}
                 </div>
                 <div className="profile-email-sub">{user?.email}</div>
               </div>

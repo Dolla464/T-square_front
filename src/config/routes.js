@@ -5,7 +5,7 @@
 export const ROLE_ROUTES = {
   admin: '/admin',
   instructor: '/instructor',
-  student: '/student',
+  student: '/student/dashboard',
   receptionist: '/receptionist',
 };
 

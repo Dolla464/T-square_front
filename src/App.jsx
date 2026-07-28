@@ -552,10 +552,7 @@ function AppContent() {
                 {/* STUDENT */}
                 <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
                   <Route path="/student" element={<DashboardLayout />}>
-                    <Route
-                      index
-                      element={<Navigate to="dashboard" replace />}
-                    />
+                    <Route index element={<DashboardHome />} />
                     <Route path="dashboard" element={<DashboardHome />} />
                     <Route
                       path="certificates"

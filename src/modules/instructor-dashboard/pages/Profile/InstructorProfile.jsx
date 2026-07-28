@@ -15,10 +15,17 @@ import {
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import ProfilePasswordField from "../../../../components/shared/ProfilePasswordField/ProfilePasswordField";
+import {
+  getNameInitials,
+  getProfileAvatarUrl,
+  getProfileDisplayName,
+  isDefaultAvatarUrl,
+} from "../../../../utils/avatar";
+import { getApiErrorMessage } from "../../../../utils/apiErrors";
 
 function InstructorProfile() {
   const { t, i18n } = useTranslation("adminDashboard");
-  const { user, updateUser } = useAuth();
+  const { user, userProfile, updateUser } = useAuth();
   const isArabic = i18n.language === "ar";
 
   const [fullName, setFullName] = useState("");
@@ -101,27 +108,22 @@ function InstructorProfile() {
       }
     } catch (error) {
       console.error("Upload Error:", error);
-      toastError(isArabic ? "فشل رفع الصورة" : "Failed to upload photo");
+      toastError(
+        getApiErrorMessage(
+          error,
+          isArabic ? "فشل رفع الصورة" : "Failed to upload photo",
+        ),
+      );
     } finally {
       setSaveLoading(false);
       e.target.value = "";
     }
   };
 
-  const initials =
-    typeof fullName === "string" && fullName.trim()
-      ? fullName
-          .split(" ")
-          .filter(Boolean)
-          .map((w) => w[0])
-          .join("")
-          .slice(0, 2)
-          .toUpperCase()
-      : "IN";
-
-  const avatarUrl = user?.instructor?.avatar;
-  const hasAvatar =
-    avatarUrl && !avatarUrl.includes("default-instructor.png") && !imageError;
+  const initials = getNameInitials(fullName || getProfileDisplayName(user, userProfile), "IN");
+  const avatarUrl = getProfileAvatarUrl(user, userProfile);
+  const hasAvatar = Boolean(avatarUrl) && !isDefaultAvatarUrl(avatarUrl) && !imageError;
+  const displayName = getProfileDisplayName(user, userProfile) || fullName;
 
   const handleUpdateInformation = async () => {
     if (phone && phone.replace(/\D/g, "").length < 10) {
@@ -270,7 +272,7 @@ function InstructorProfile() {
               </div>
               <div>
                 <div className="profile-name">
-                  {user?.instructor?.full_name || user?.name}
+                  {displayName || user?.name}
                 </div>
                 <div className="profile-email-sub">{user?.email}</div>
               </div>

@@ -28,7 +28,7 @@ function DashboardQuizzes() {
 
       const matchesSearch =
         q.title?.toLowerCase().includes(search.toLowerCase()) ||
-        q.course_name?.toLowerCase().includes(search.toLowerCase());
+        q.course_title?.toLowerCase().includes(search.toLowerCase());
       return matchesFilter && matchesSearch;
     });
   }, [quizzes, filter, search]);

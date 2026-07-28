@@ -149,7 +149,8 @@ function InstructorStudentResults() {
 
   const formatHighestScore = (student) => {
     if (!student.has_attempts || student.highest_score == null) return "—";
-    const total = examResults?.total_marks;
+    const total =
+      student.highest_attempt_max_marks ?? examResults?.total_marks;
     return total != null
       ? formatExamScorePair(student.highest_score, total)
       : formatExamScore(student.highest_score);
@@ -311,11 +312,18 @@ function InstructorStudentResults() {
                   </h6>
                   <div className="text-muted small">
                     {examResults?.exam_title || "..."}
-                    {examResults?.total_marks != null && (
+                    {examResults?.exam_total_marks != null && (
                       <span>
                         {" "}
-                        | {t("studentResults.totalMarks", "Total")}:{" "}
-                        {examResults.total_marks}
+                        | {t("studentResults.examTotal", "Exam total")}:{" "}
+                        {examResults.exam_total_marks}
+                      </span>
+                    )}
+                    {examResults?.questions_per_attempt != null && (
+                      <span>
+                        {" "}
+                        | {t("studentResults.questionsPerAttempt", "Questions / attempt")}:{" "}
+                        {examResults.questions_per_attempt}
                       </span>
                     )}
                   </div>

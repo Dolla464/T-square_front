@@ -193,9 +193,20 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = useCallback(
     (updatedUser) => {
+      if (!updatedUser || typeof updatedUser !== "object") {
+        return;
+      }
+
       const normalized = normalizeAuthUser(updatedUser) ?? updatedUser;
       setUser(normalized);
       persistUser(normalized);
+
+      if (updatedUser.student || updatedUser.instructor) {
+        setUserProfile((prev) => ({
+          ...(prev || {}),
+          ...updatedUser,
+        }));
+      }
     },
     [persistUser],
   );

@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
 import { startExam as startExamApi, saveExamAnswer, submitExam as submitExamApi } from "../services/dashboardService";
+import { toastCustom } from "../../../components/shared/Toaster/toaster";
+import { getApiErrorMessage } from "../../../utils/apiErrors";
 
 export const useExam = (examId) => {
   const [exam, setExam] = useState(null);
@@ -15,7 +17,6 @@ export const useExam = (examId) => {
       setExam(res.data.data);
     } catch (err) {
       console.error(err);
-      // نخزن الـ err بالكامل وليس رسالة نصية ثابتة ليتمكن الـ Component من فحص الـ status والـ message
       setError(err);
     } finally {
       setLoading(false);
@@ -23,11 +24,11 @@ export const useExam = (examId) => {
   }, [examId]);
 
   const saveAnswer = useCallback(async (questionId, choiceId) => {
-    // Guard: must have a valid attempt_id before saving
     if (!exam?.attempt_id) {
       console.warn("saveAnswer skipped — attempt_id not available yet");
       return;
     }
+
     try {
       await saveExamAnswer({
         attempt_id: exam.attempt_id,
@@ -36,6 +37,13 @@ export const useExam = (examId) => {
       });
     } catch (err) {
       console.error("Failed to save answer", err);
+      toastCustom({
+        message: getApiErrorMessage(err, "Failed to save answer"),
+        type: "error",
+        bsIcon: "bi-x-circle",
+        duration: 4000,
+      });
+      throw err;
     }
   }, [exam?.attempt_id]);
 

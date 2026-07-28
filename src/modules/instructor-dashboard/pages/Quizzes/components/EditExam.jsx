@@ -4,6 +4,14 @@ import { useInstructorQuizzes } from "../../../hooks/useInstructorQuizzes";
 import { Spinner } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { toastError } from "../../../../../components/shared/Toaster/toaster";
+import QuestionEditorFields from "../../../../shared-dashboard/components/QuestionEditorFields/QuestionEditorFields";
+import {
+  buildQuestionPayload,
+  hasQuestionContent,
+  isQuestionFormBlank,
+  resetQuestionRichFields,
+} from "../../../../shared-dashboard/utils/questionFormHelpers";
+import "../../../../shared-dashboard/components/QuestionContent/questionContent.css";
 import "../../../../student-dashboard/styles/dashboardShared.css";
 
 /**
@@ -18,7 +26,7 @@ function EditExam() {
   const navigate = useNavigate();
   const { i18n } = useTranslation(["adminDashboard"]);
   const isArabic = i18n.language?.startsWith("ar");
-  const { getQuestionById, getQuizById, createQuestion, updateQuestion, loading } = useInstructorQuizzes();
+  const { getQuestionById, getQuizById, createQuestion, updateQuestion, uploadQuestionImage, loading } = useInstructorQuizzes();
 
   const isAdd = id === "new";
   const isEdit = !isAdd;
@@ -27,6 +35,11 @@ function EditExam() {
 
   const [exam, setExam] = useState(null);
   const [questionText, setQuestionText] = useState("");
+  const [questionImagePath, setQuestionImagePath] = useState("");
+  const [questionImagePreview, setQuestionImagePreview] = useState("");
+  const [questionCode, setQuestionCode] = useState("");
+  const [questionCodeLanguage, setQuestionCodeLanguage] = useState("php");
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [marks, setMarks] = useState(1.0);
   const [choices, setChoices] = useState([
     { choice_text: "", is_correct: false },
@@ -36,12 +49,14 @@ function EditExam() {
   ]);
   const [saving, setSaving] = useState(false);
   const [fetchingQuestion, setFetchingQuestion] = useState(false);
+  const [storedExamId, setStoredExamId] = useState(null);
 
   // Load question and/or exam data
   useEffect(() => {
     const loadData = async () => {
       if (isAdd) {
         if (examId) {
+          setStoredExamId(examId);
           const examData = await getQuizById(examId);
           if (examData) setExam(examData);
         }
@@ -51,6 +66,12 @@ function EditExam() {
         setFetchingQuestion(false);
         if (questionData) {
           setQuestionText((questionData.question_text || "").replace(/\?+$/, ""));
+          setQuestionImagePath(questionData.question_image || "");
+          setQuestionImagePreview(
+            questionData.question_image_url || questionData.question_image || "",
+          );
+          setQuestionCode(questionData.question_code || "");
+          setQuestionCodeLanguage(questionData.question_code_language || "php");
           setMarks(questionData.marks || 1.0);
 
           let choicesData = questionData.choices || [];
@@ -65,6 +86,7 @@ function EditExam() {
           setChoices(choicesData);
 
           if (questionData.exam_id) {
+            setStoredExamId(questionData.exam_id);
             const examData = await getQuizById(questionData.exam_id);
             if (examData) setExam(examData);
           }
@@ -101,9 +123,51 @@ function EditExam() {
     setMarks(parseFloat(value) || 0);
   };
 
+  const handleImageSelect = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    const upload = await uploadQuestionImage(file);
+    setUploadingImage(false);
+
+    if (upload?.path) {
+      setQuestionImagePath(upload.path);
+      setQuestionImagePreview(upload.url || upload.path);
+    }
+
+    event.target.value = "";
+  };
+
+  const handleImageRemove = () => {
+    setQuestionImagePath("");
+    setQuestionImagePreview("");
+  };
+
+  const buildPayload = () =>
+    buildQuestionPayload({
+      examId: examId || exam?.id || storedExamId,
+      questionText,
+      questionImagePath,
+      questionCode,
+      questionCodeLanguage,
+      marks,
+      choices,
+    });
+
   const validateQuestion = () => {
-    if (!questionText.trim()) {
-      toastError(isArabic ? "من فضلك اكتب نص السؤال" : "Please enter the question text");
+    if (
+      !hasQuestionContent({
+        questionText,
+        questionImage: questionImagePath,
+        questionCode,
+      })
+    ) {
+      toastError(
+        isArabic
+          ? "أضف نص السؤال أو صورة أو كود على الأقل"
+          : "Add question text, an image, or code at minimum",
+      );
       return false;
     }
 
@@ -135,15 +199,25 @@ function EditExam() {
     return true;
   };
 
+  const resolveActiveExamId = () => examId || exam?.id || storedExamId;
+
   const handleSave = async () => {
-    const activeExamId = examId || exam?.id;
-    if (!activeExamId) return;
+    const activeExamId = resolveActiveExamId();
+    if (!activeExamId) {
+      toastError(
+        isArabic ? "تعذر تحديد الاختبار. ارجع وحاول مرة أخرى." : "Could not resolve the exam. Go back and try again.",
+      );
+      return;
+    }
 
     // In isAdd mode, check if form is completely clean/empty to allow exiting without saving
     if (isAdd) {
-      const isBlank =
-        !questionText.trim() &&
-        choices.every((c) => !c.choice_text.trim());
+      const isBlank = isQuestionFormBlank({
+        questionText,
+        questionImagePath,
+        questionCode,
+        choices,
+      });
       if (isBlank) {
         navigate(`/instructor/quizzes/view-exam/${activeExamId}`);
         return;
@@ -153,64 +227,54 @@ function EditExam() {
     if (!validateQuestion()) return;
 
     setSaving(true);
-    let success = false;
-    const payload = {
-      exam_id: activeExamId,
-      question_text: questionText.trim().endsWith("?") ? questionText.trim() : `${questionText.trim()}?`,
-      marks: marks,
-      choices: choices.map((c) => ({
-        choice_text: c.choice_text,
-        is_correct: !!c.is_correct,
-      })),
-    };
+    try {
+      const payload = buildPayload();
+      const success = isEdit
+        ? await updateQuestion(id, payload)
+        : await createQuestion(payload);
 
-    if (isEdit) {
-      success = await updateQuestion(id, payload);
-    } else {
-      success = await createQuestion(payload);
-    }
-
-    setSaving(false);
-    if (success) {
-      navigate(`/instructor/quizzes/view-exam/${activeExamId}`);
+      if (success) {
+        navigate(`/instructor/quizzes/view-exam/${activeExamId}`);
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleNext = async () => {
-    const activeExamId = examId || exam?.id;
-    if (!activeExamId) return;
+    const activeExamId = resolveActiveExamId();
+    if (!activeExamId) {
+      toastError(
+        isArabic ? "تعذر تحديد الاختبار. ارجع وحاول مرة أخرى." : "Could not resolve the exam. Go back and try again.",
+      );
+      return;
+    }
 
     if (!validateQuestion()) return;
 
     setSaving(true);
-    const payload = {
-      exam_id: activeExamId,
-      question_text: questionText.trim().endsWith("?") ? questionText.trim() : `${questionText.trim()}?`,
-      marks: marks,
-      choices: choices.map((c) => ({
-        choice_text: c.choice_text,
-        is_correct: !!c.is_correct,
-      })),
-    };
+    try {
+      const payload = buildPayload();
+      const success = await createQuestion(payload);
 
-    const success = await createQuestion(payload);
-    setSaving(false);
-
-    if (success) {
-      // Clear form inputs for the next question
-      setQuestionText("");
-      setMarks(1.0);
-      setChoices([
-        { choice_text: "", is_correct: false },
-        { choice_text: "", is_correct: false },
-        { choice_text: "", is_correct: false },
-        { choice_text: "", is_correct: false },
-      ]);
+      if (success) {
+        resetQuestionRichFields({
+          setQuestionText,
+          setQuestionImagePath,
+          setQuestionImagePreview,
+          setQuestionCode,
+          setQuestionCodeLanguage,
+          setMarks,
+          setChoices,
+        });
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleBack = () => {
-    const activeExamId = examId || exam?.id;
+    const activeExamId = resolveActiveExamId();
     if (activeExamId) {
       navigate(`/instructor/quizzes/view-exam/${activeExamId}`);
     } else {
@@ -229,12 +293,12 @@ function EditExam() {
 
   if (!exam) {
     return (
-      <div className="quiz-exam-page">
+      <div className="quiz-exam-editor">
         <div className="quiz-exam-container">
           <div className="quiz-exam-placeholder">
             <i className="bi bi-exclamation-circle placeholder-icon"></i>
             <h5>{isArabic ? "الاختبار غير موجود" : "Exam not found"}</h5>
-            <button className="btn-continue" onClick={() => navigate("/instructor/quizzes")}>
+            <button type="button" className="btn-continue" onClick={() => navigate("/instructor/quizzes")}>
               <i className="bi bi-arrow-left me-1"></i>
               {isArabic ? "العودة" : "Back"}
             </button>
@@ -250,6 +314,7 @@ function EditExam() {
       <div className="ac-header d-flex justify-content-between align-items-center mb-4">
         <div>
           <button
+            type="button"
             className="ac-back-btn ps-3 border-0 bg-transparent d-flex align-items-center"
             onClick={handleBack}
           >
@@ -261,36 +326,10 @@ function EditExam() {
             </span>
           </button>
         </div>
-        {isAdd && (
-          <div>
-
-            <button
-              className="btn btn-danger ac-add-btn"
-              onClick={handleSave}
-              disabled={saving}
-              style={{
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "6px"
-              }}
-            >
-              {saving ? (
-                <span className="spinner-border spinner-border-sm" role="status"></span>
-              ) : (
-                <i className="bi bi-check2-all"></i>
-              )}
-              <span>
-                {isArabic ? "حفظ" : "Save"}
-              </span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Quiz Exam Editor */}
-      <div className="quiz-exam-page">
+      <div className="quiz-exam-editor">
         <div className="quiz-exam-container" style={{ maxWidth: "1050px" }}>
 
           {/* Header Role Indicator */}
@@ -302,65 +341,21 @@ function EditExam() {
             </div>
           )}
 
-          <div className="row">
-            <div className="col-md-9">
-              {/* Question Text Input */}
-              <div className="quiz-question h-75 d-flex align-items-center">
-                <input
-                  type="text"
-                  className="form-control border-0 bg-transparent fw-bold"
-                  style={{
-                    fontSize: "1.1rem",
-                    color: "#1a1a1a",
-                  }}
-                  placeholder={
-                    isArabic
-                      ? "اكتب نص السؤال هنا..."
-                      : "Type question text here..."
-                  }
-                  value={questionText}
-                  onChange={(e) => {
-                    let value = e.target.value;
-                    // يمنع علامة الاستفهام في الحقل
-                    value = value.replace(/\?+$/, "");
-                    handleQuestionTextChange(value);
-                  }}
-                />
-                <div
-                  className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm"
-                  style={{ width: "40px", height: "40px", flexShrink: 0 }}
-                  title="لا تضع علامة استفهام يتم وضعها بشكل تلقائي"
-                >
-                  <i className="bi bi-question-lg text-white"></i>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3">
-              {/* Question Mark Input */}
-              <div className="d-flex align-items-center h-75 gap-3 mb-4 p-3 bg-light rounded-3">
-                <div
-                  className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm"
-                  style={{ width: "40px", height: "40px", flexShrink: 0 }}
-                >
-                  <i className="bi bi-star-fill text-white"></i>
-                </div>
-                <div className="flex-grow-1">
-                  <label className="form-label fw-bold text-dark mb-1" style={{ fontSize: "0.85rem" }}>
-                    {isArabic ? "درجة السؤال" : "Question Mark"}
-                  </label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    className="form-control border-0 bg-white rounded-3 p-2"
-                    value={marks}
-                    onChange={(e) => handleMarksChange(e.target.value)}
-                    min="0.5"
-                    style={{ maxWidth: "120px" }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          <QuestionEditorFields
+            isArabic={isArabic}
+            questionText={questionText}
+            onQuestionTextChange={handleQuestionTextChange}
+            marks={marks}
+            onMarksChange={handleMarksChange}
+            questionImagePreview={questionImagePreview}
+            onImageSelect={handleImageSelect}
+            onImageRemove={handleImageRemove}
+            uploadingImage={uploadingImage}
+            questionCode={questionCode}
+            onQuestionCodeChange={setQuestionCode}
+            questionCodeLanguage={questionCodeLanguage}
+            onQuestionCodeLanguageChange={setQuestionCodeLanguage}
+          />
 
           {/* Answer Options with Radio Buttons */}
           <div className="quiz-options">
@@ -467,6 +462,7 @@ function EditExam() {
               </div>
             ) : (
               <button
+                type="button"
                 className="btn btn-danger ac-add-btn"
                 onClick={handleSave}
                 disabled={saving}

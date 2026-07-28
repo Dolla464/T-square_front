@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import QuestionContent from "../../../../shared-dashboard/components/QuestionContent/QuestionContent";
+import "../../../../shared-dashboard/components/QuestionContent/questionContent.css";
 import { useQuizzes } from "../../../hooks/useQuizzes";
 import { Spinner } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
@@ -7,6 +9,7 @@ import {
     showConfirmCustom,
     showDeleteConfirm,
 } from "../../../../../components/shared/ConfirmDialog/confirmDialog";
+import "../../../components/shared/AdminContentPage/AdminContentPage.css";
 
 function ViewExam() {
     const { id } = useParams();
@@ -134,6 +137,7 @@ function ViewExam() {
                 <div className="d-flex gap-2">
                     {!showTrash && (
                         <button
+                            type="button"
                             className="btn btn-danger ac-add-btn"
                             onClick={() => navigate(`/admin/quizzes/edit-exam/new?exam_id=${id}`)}
                         >
@@ -144,9 +148,10 @@ function ViewExam() {
                         </button>
                     )}
                     <button
+                        type="button"
                         className="btn btn-outline-dark ac-add-btn"
                         style={{ color: "#ffffff" }}
-                        onClick={() => setShowTrash(!showTrash)}
+                        onClick={() => setShowTrash((prev) => !prev)}
                     >
                         <i className={`bi ${showTrash ? "bi-arrow-left" : "bi-trash"} me-0 me-md-2`}></i>
                         <span className="d-none d-md-inline">
@@ -234,11 +239,14 @@ function ViewExam() {
                                 }}>
                                     <tr>
                                         <th style={{ width: "35%" }}>{isArabic ? "السؤال" : "Question"}</th>
-                                        <th className="text-center" style={{ width: "30%" }}>{isArabic ? "الإجابات" : "Answers"}</th>
-                                        {!showTrash && (<>
-                                            <th className="text-center" style={{ width: "8%" }}>{isArabic ? "درجة السؤال" : "Question mark"}</th></>)
-                                        }
-                                        {showTrash && (<th className="text-center">{isArabic ? "تاريخ الحذف" : "Deleted at"}</th>)}
+                                        {!showTrash ? (
+                                            <>
+                                                <th className="text-center" style={{ width: "30%" }}>{isArabic ? "الإجابات" : "Answers"}</th>
+                                                <th className="text-center" style={{ width: "8%" }}>{isArabic ? "درجة السؤال" : "Question mark"}</th>
+                                            </>
+                                        ) : (
+                                            <th className="text-center">{isArabic ? "تاريخ الحذف" : "Deleted at"}</th>
+                                        )}
                                         <th className="text-center" style={{ width: "7%" }}>{isArabic ? "الإجراءات" : "Actions"}</th>
 
                                     </tr>
@@ -248,36 +256,32 @@ function ViewExam() {
                                         questions.map((question) => (
                                             <tr className="py-3" key={`question-${question.id}`}>
                                                 <td className="py-4 py-3 fw-bold text-dark">
-                                                    <div>{question?.question_text}</div>
-
+                                                    <QuestionContent question={question} />
                                                 </td>
-                                                {!showTrash && (<>
-                                                    <td className="py-3 text-secondary text-center small fw-bold">
-                                                        {question?.choices?.map((answer, index) => (
-                                                            <div
-                                                                className={`p-1 mb-1 ${answer?.is_correct ? "bg-success text-white" : ""}`}
-                                                                style={{ borderRadius: "10px" }}
-                                                                key={`${question.id}-choice-${index}`}
-                                                            >
-                                                                {answer?.is_correct && <i className="bi bi-patch-check me-1"></i>}
-                                                                {answer?.choice_text}
-                                                            </div>
-                                                        ))}
-                                                    </td>
-                                                </>)
-                                                }
-
-                                                <td className="py-3 text-secondary text-center small fw-bold">{question?.marks}</td>
-
-                                                {showTrash && (
+                                                {!showTrash ? (
+                                                    <>
+                                                        <td className="py-3 text-secondary text-center small fw-bold">
+                                                            {question?.choices?.map((answer, index) => (
+                                                                <div
+                                                                    className={`p-1 mb-1 ${answer?.is_correct ? "bg-success text-white" : ""}`}
+                                                                    style={{ borderRadius: "10px" }}
+                                                                    key={`${question.id}-choice-${index}`}
+                                                                >
+                                                                    {answer?.is_correct && <i className="bi bi-patch-check me-1"></i>}
+                                                                    {answer?.choice_text}
+                                                                </div>
+                                                            ))}
+                                                        </td>
+                                                        <td className="py-3 text-secondary text-center small fw-bold">{question?.marks}</td>
+                                                    </>
+                                                ) : (
                                                     <td className="text-center">
                                                         <span className="badge bg-secondary px-3 py-2 rounded-pill">
                                                             <i className="bi bi-trash me-1"></i>
-
                                                             {question?.deleted_at ? new Date(question.deleted_at).toLocaleDateString() : ""}
                                                         </span>
-                                                    </td>)
-                                                }
+                                                    </td>
+                                                )}
 
 
 
@@ -325,7 +329,7 @@ function ViewExam() {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={5} className="text-center py-4 text-muted">
+                                            <td colSpan={showTrash ? 3 : 4} className="text-center py-4 text-muted">
                                                 {showTrash
                                                     ? (isArabic ? "لا توجد أسئلة محذوفة" : "No deleted questions found")
                                                     : (isArabic ? "لا توجد أسئلة في هذا الاختبار" : "No questions in this exam")}

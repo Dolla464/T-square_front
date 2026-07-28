@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { formatExamScore } from "../../utils/formatExamScore";
+import QuestionContent from "../QuestionContent/QuestionContent";
+import "../QuestionContent/questionContent.css";
 
 const CHOICE_STATE_LABELS = {
   correct: "correct_answer",
@@ -63,22 +65,22 @@ function AttemptAnswerReview({ review, compact = false }) {
 
           return (
             <article
-              key={question.id}
+              key={`${question.id}-${index}`}
               className="attempt-review-question quiz-question"
-              aria-labelledby={`question-title-${question.id}`}
+              aria-labelledby={`question-title-${question.id}-${index}`}
             >
               <div className="attempt-review-question-header">
                 <h3
-                  id={`question-title-${question.id}`}
+                  id={`question-title-${question.id}-${index}`}
                   className="question-text"
                 >
-                  {t("attempt_review.question_num", { num: index + 1 })} —{" "}
-                  {question.question_text}
+                  {t("attempt_review.question_num", { num: index + 1 })}
                 </h3>
+                <QuestionContent question={question} className="mb-2" />
                 <span
                   className={`attempt-review-status ${statusClass}`}
-                  id={`question-status-${question.id}`}
-                  aria-describedby={`question-title-${question.id}`}
+                  id={`question-status-${question.id}-${index}`}
+                  aria-describedby={`question-title-${question.id}-${index}`}
                 >
                   {t(
                     `attempt_review.${RESULT_STATUS_LABELS[question.result_status]}`,
