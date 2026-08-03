@@ -99,6 +99,7 @@
   "quiz_results": {
     "title": "Quiz Results Details",
     "highest_score": "Highest Score Achieved",
+    "best_badge": "Best",
     "attempt_num": "Attempt {{num}}",
     "score": "Score",
     "status": "Status",

@@ -1,6 +1,7 @@
 import { useEffect, lazy, Suspense } from "react";
 import {
-  BrowserRouter as Router,
+  createBrowserRouter,
+  RouterProvider,
   Routes,
   Route,
   useLocation,
@@ -592,20 +593,29 @@ function AppContent() {
   );
 }
 
+const router = createBrowserRouter([
+  {
+    path: "*",
+    element: (
+      <>
+        <ForbiddenRouteWatcher />
+        <RoleMismatchRedirect />
+        <ErrorBoundary>
+          {/* مكون الإشعارات العالمي */}
+          <Toaster position="top-center" reverseOrder={false} />
+          <AppContent />
+          <ScrollToTop />
+        </ErrorBoundary>
+      </>
+    ),
+  },
+]);
+
 function App() {
   return (
     <AuthProvider>
       <NotificationsProvider>
-        <Router>
-          <ForbiddenRouteWatcher />
-          <RoleMismatchRedirect />
-          <ErrorBoundary>
-            {/* مكون الإشعارات العالمي */}
-            <Toaster position="top-center" reverseOrder={false} />
-            <AppContent />
-            <ScrollToTop />
-          </ErrorBoundary>
-        </Router>
+        <RouterProvider router={router} />
       </NotificationsProvider>
     </AuthProvider>
   );

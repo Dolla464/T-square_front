@@ -4,6 +4,29 @@ import { notifyRoleMismatch } from "../utils/authEvents";
 
 const ALLOWED_WHEN_FORBIDDEN = ["/profile", "/logout", "/login"];
 
+const EXAM_FLOW_URL_PATTERN = /\/exams\/(?:save-answer|\d+\/submit)/;
+
+function isExamFlowRequest(url = "") {
+  return EXAM_FLOW_URL_PATTERN.test(url);
+}
+
+function shouldTriggerGlobalForbidden(error) {
+  const status = error.response?.status;
+  const code = error.response?.data?.code;
+  const url = error.config?.url || "";
+
+  if (status !== 403) {
+    return false;
+  }
+
+  // Exam endpoints return 403 for closed attempts — handled in the exam UI.
+  if (isExamFlowRequest(url)) {
+    return false;
+  }
+
+  return code === "FORBIDDEN" || !code;
+}
+
 let accessForbidden = false;
 
 export function resetAccessForbidden() {
@@ -65,7 +88,7 @@ axiosClient.interceptors.response.use(
     const status = error.response?.status;
     const code = error.response?.data?.code;
 
-    if (status === 403 && (code === "FORBIDDEN" || !code)) {
+    if (shouldTriggerGlobalForbidden(error)) {
       accessForbidden = true;
       notifyAxiosForbidden(error.config?.url || null);
       notifyRoleMismatch();

@@ -98,6 +98,7 @@
   "quiz_results": {
     "title": "تفاصيل نتائج الكويز",
     "highest_score": "أعلى درجة حصلت عليها",
+    "best_badge": "الأفضل",
     "attempt_num": "المحاولة {{num}}",
     "score": "الدرجة",
     "status": "الحالة",

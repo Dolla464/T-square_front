@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Container, Button, Row, Col } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -7,13 +7,23 @@ import "./Hero.css";
 // ذاكرة تخزين مؤقتة على مستوى الموديول للاحتفاظ بحالة الصور المحملة ومنع الـ Shimmer من العمل عند تكرار الدخول
 const loadedImagesCache = new Set();
 
+function markHeroImageLoaded(url) {
+  if (!url) return;
+  loadedImagesCache.add(url);
+}
+
+function isHeroImageLoaded(url) {
+  return Boolean(url && loadedImagesCache.has(url));
+}
+
 function Hero({ heroImage, heroSettings }) {
   const { t, i18n } = useTranslation(["home", "common"]);
   const isAr = i18n.language === "ar";
   const isArabic = isAr;
+  const imgRef = useRef(null);
 
   const [imageLoaded, setImageLoaded] = useState(() =>
-    heroImage ? loadedImagesCache.has(heroImage) : false,
+    isHeroImageLoaded(heroImage),
   );
 
   // دالة مساعدة لتصفية قيم N/A والرجوع للترجمة الافتراضية
@@ -24,22 +34,37 @@ function Hero({ heroImage, heroSettings }) {
     return value;
   };
 
-  // تحديث حالة الكاش عند تغيير الصورة
-  useEffect(() => {
-    if (!heroImage) {
+  const syncImageLoadedState = (url) => {
+    if (!url) {
       setImageLoaded(false);
       return;
     }
-    if (loadedImagesCache.has(heroImage)) {
+
+    if (isHeroImageLoaded(url)) {
+      setImageLoaded(true);
+      return;
+    }
+
+    const img = imgRef.current;
+    if (img?.complete && img.naturalWidth > 0) {
+      markHeroImageLoaded(url);
       setImageLoaded(true);
     }
+  };
+
+  // تحديث حالة الكاش عند تغيير الصورة (يشمل الصور المحفوظة في cache المتصفح)
+  useEffect(() => {
+    syncImageLoadedState(heroImage);
   }, [heroImage]);
 
   // عند تحميل الصورة — تحديث الكاش والحالة
   const handleImageLoad = () => {
-    if (heroImage) {
-      loadedImagesCache.add(heroImage);
-    }
+    markHeroImageLoaded(heroImage);
+    setImageLoaded(true);
+  };
+
+  const handleImageError = () => {
+    // لا تترك الـ shimmer يغطي الصفحة إلى ما لا نهاية عند فشل التحميل
     setImageLoaded(true);
   };
 
@@ -48,6 +73,7 @@ function Hero({ heroImage, heroSettings }) {
       {/* صورة الخلفية الحقيقية — البراوزر يكتشفها فوراً بدون انتظار JS */}
       {heroImage && (
         <img
+          ref={imgRef}
           src={heroImage}
           alt=""
           className="hero-bg-image"
@@ -55,6 +81,7 @@ function Hero({ heroImage, heroSettings }) {
           loading="eager"
           decoding="async"
           onLoad={handleImageLoad}
+          onError={handleImageError}
         />
       )}
 

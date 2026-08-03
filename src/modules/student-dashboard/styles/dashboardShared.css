@@ -1193,6 +1193,24 @@
   font-size: 0.8rem;
 }
 
+.quiz-attempt-best-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.quiz-attempt-best-badge .bi-trophy-fill {
+  color: #d97706;
+  font-size: 0.72rem;
+}
+
 .quiz-attempts-scrollbar {
   max-height: 250px;
   overflow-y: auto;

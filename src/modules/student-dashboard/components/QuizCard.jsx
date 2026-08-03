@@ -5,6 +5,7 @@ import DetailModal from "../../../components/shared/DetailModal/DetailModal";
 import AttemptReviewPanel from "../../shared-dashboard/components/AttemptAnswerReview/AttemptReviewPanel";
 import { formatExamScore, formatExamScorePair } from "../../shared-dashboard/utils/formatExamScore";
 import { useExamResults } from "../hooks/useExamResults";
+import { clearQuizAttemptCompleted } from "../utils/quizExamSession";
 import "../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
 
 /**
@@ -49,6 +50,7 @@ function QuizCard({ quiz, t }) {
 
   const handleStartQuiz = () => {
     if (has_ongoing_attempt || !is_locked) {
+      clearQuizAttemptCompleted(quiz.id);
       navigate(`/student/quizzes/${quiz.id}`);
     }
   };
@@ -95,8 +97,12 @@ function QuizCard({ quiz, t }) {
 
   const strokeColor = isGaugeFailed ? "#ef4444" : "#22c55e";
 
-  // هل المحاولة المعروضة هي الـ highest
-  const isShowingBest = selectedAttempt === null;
+  // هل المحاولة المعروضة هي الأعلى درجة
+  const isBestAttempt = (attempt) =>
+    highestAttempt && attempt?.attempt_id === highestAttempt.attempt_id;
+
+  const isShowingBest =
+    !selectedAttempt || isBestAttempt(selectedAttempt);
 
   // ── دالة مساعدة: عرض الدرجة / المجموع (أو N/A) ───────────────────
   const formatScore = (attempt) =>
@@ -321,14 +327,17 @@ function QuizCard({ quiz, t }) {
                   <span className="quiz-modal-attempts-title">
                     {isArabic ? "سجل المحاولات" : "Attempts History"}
                   </span>
-                  {!isShowingBest && (
+                  {selectedAttempt && !isBestAttempt(selectedAttempt) && (
                     <button
                       type="button"
                       className="quiz-best-btn"
-                      onClick={() => setSelectedAttempt(null)}
+                      onClick={() => {
+                        setSelectedAttempt(null);
+                        setShowAnswers(false);
+                      }}
                     >
                       <i className="bi bi-trophy-fill me-1"></i>
-                      {isArabic ? "الأفضل" : "Best"}
+                      {t("quiz_results.best_badge")}
                     </button>
                   )}
                 </div>
@@ -358,6 +367,12 @@ function QuizCard({ quiz, t }) {
                           <div className="quiz-attempt-info">
                             <span className="quiz-attempt-num">
                               {t("quiz_results.attempt_num", { num: attempt.attempt_number })}
+                              {isBestAttempt(attempt) ? (
+                                <span className="quiz-attempt-best-badge ms-2">
+                                  <i className="bi bi-trophy-fill me-1" />
+                                  {t("quiz_results.best_badge")}
+                                </span>
+                              ) : null}
                             </span>
                             <span className="quiz-attempt-date">
                               {attempt.finished_at || "—"}

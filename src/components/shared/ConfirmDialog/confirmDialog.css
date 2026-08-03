@@ -3,6 +3,11 @@
    ألوان أبيض / أحمر / أسود
    ================================================================ */
 
+/* Above fullscreen exam overlay (.quiz-exam-page z-index: 9999) */
+.swal2-container {
+  z-index: 10100 !important;
+}
+
 /* ── النافذة الرئيسية ── */
 .tsq-swal-popup {
   border-radius: 18px !important;
