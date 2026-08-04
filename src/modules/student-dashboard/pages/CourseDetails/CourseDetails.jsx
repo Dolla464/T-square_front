@@ -6,6 +6,7 @@ import i18next from "i18next";
 import { useState, useEffect, useCallback, useRef } from "react";
 import "./CourseDetails.css";
 import { useCourseDetails } from "../../hooks/useCousrsesDetails";
+import ForbiddenAccess from "../../../../components/shared/ForbiddenAccess";
 import { getCourseInstructors } from "../../../../utils/courseInstructors";
 import { Spinner } from "react-bootstrap";
 
@@ -95,7 +96,7 @@ function CourseDetails() {
 
   const previewsSectionRef = useRef(null);
 
-  const { courseData, loading, error } = useCourseDetails(courseId);
+  const { courseData, loading, error, forbidden, notFound } = useCourseDetails(courseId);
   const [activeVideo, setActiveVideo] = useState(null); // الفيديو المفتوح في lightbox
 
   const scrollToPreviews = () => {
@@ -115,12 +116,24 @@ function CourseDetails() {
     );
   }
 
+  if (forbidden) {
+    return (
+      <div className="cd-page">
+        <ForbiddenAccess backTo="/student/dashboard" backLabel={isArabic ? "العودة للوحة الطالب" : "Back to dashboard"} />
+      </div>
+    );
+  }
+
   /* ── شاشة الخطأ ── */
   if (error || !courseData) {
     return (
       <div className="cd-error">
         <i className="bi bi-exclamation-triangle-fill"></i>
-        <p>{error || (isArabic ? "تعذّر تحميل الكورس" : "Course not found")}</p>
+        <p>
+          {notFound
+            ? (isArabic ? "الكورس غير موجود" : "Course not found")
+            : error || (isArabic ? "تعذّر تحميل الكورس" : "Failed to load course")}
+        </p>
       </div>
     );
   }

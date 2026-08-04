@@ -27,6 +27,12 @@ const defaultFormData = {
   gender: "male",
   status: "active",
   avatar: null,
+  age: "",
+  qualification: "",
+  guardian_phone: "",
+  national_id: "",
+  address: "",
+  notes: "",
 };
 
 const defaultAvatar = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
@@ -239,6 +245,12 @@ function AdminStudents({
     avatar: fullStudentData.avatar,
     created_at: fullStudentData.created_at || "",
     enrolled_courses: fullStudentData.enrolled_courses || [],
+    age: fullStudentData.age ?? "",
+    qualification: fullStudentData.qualification || "",
+    guardian_phone: fullStudentData.guardian_phone || "",
+    national_id: fullStudentData.national_id || "",
+    address: fullStudentData.address || "",
+    notes: fullStudentData.notes || "",
   });
 
   /**
@@ -305,6 +317,34 @@ function AdminStudents({
     }));
   };
 
+  const validateStudentProfileFields = () => {
+    if (formData.age !== "" && formData.age !== null) {
+      const ageValue = Number(formData.age);
+      if (!Number.isInteger(ageValue) || ageValue < 1 || ageValue > 120) {
+        toastError(
+          isArabic
+            ? "السن يجب أن يكون رقماً بين 1 و 120"
+            : "Age must be a number between 1 and 120",
+        );
+        return false;
+      }
+    }
+
+    if (formData.national_id) {
+      const nationalId = String(formData.national_id).replace(/\D/g, "");
+      if (nationalId.length !== 14) {
+        toastError(
+          isArabic
+            ? "الرقم القومي يجب أن يكون 14 رقمًا"
+            : "National ID must be exactly 14 digits",
+        );
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   /**
    * Handle form submission for create or update
    */
@@ -317,15 +357,32 @@ function AdminStudents({
       return;
     }
 
+    if (!validateStudentProfileFields()) {
+      return;
+    }
+
     if (editingItem) {
       const formDataObj = new FormData();
       formDataObj.append("full_name", formData.full_name);
-      formDataObj.append("enrollment_number", formData.enrollment_number);
       formDataObj.append("gender", formData.gender);
       formDataObj.append("status", formData.status);
       if (formData.avatar instanceof File) {
         formDataObj.append("avatar", formData.avatar);
       }
+
+      const optionalFields = [
+        "age",
+        "qualification",
+        "guardian_phone",
+        "national_id",
+        "address",
+        "notes",
+      ];
+      optionalFields.forEach((key) => {
+        if (formData[key] !== undefined && formData[key] !== null) {
+          formDataObj.append(key, formData[key]);
+        }
+      });
 
       try {
         await updateStudent(editingItem.id, formDataObj);
@@ -346,7 +403,9 @@ function AdminStudents({
 
     const formDataObj = new FormData();
     Object.keys(formData).forEach((key) => {
-      if (formData[key] !== null) formDataObj.append(key, formData[key]);
+      if (formData[key] !== null && formData[key] !== "") {
+        formDataObj.append(key, formData[key]);
+      }
     });
 
     const success = await createStudent(formDataObj);
@@ -1018,121 +1077,130 @@ function AdminStudents({
                   </p>
                 </div>
               )}
-              {/* رقم القيد */}
-              {(viewingItem || editingItem) && (
+
+              <div className="ac-student-form-grid">
+                {/* Row 1: name, email, gender */}
                 <div className="row mb-4">
-                  <div className="col-md-12 mb-3 mb-md-0">
+                  <div className="col-md-4 mb-3 mb-md-0">
                     <label className="form-label fw-bold text-dark">
-                      {isArabic ? "رقم القيد" : "Enrollment Number"}
+                      {t("students_page.name")}
                     </label>
                     <input
                       type="text"
-                      name="enrollment_number"
+                      name="full_name"
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                      value={formData.enrollment_number}
+                      placeholder={t("students_page.name_placeholder")}
+                      value={formData.full_name}
+                      onChange={handleChange}
+                      disabled={!!viewingItem}
+                    />
+                  </div>
+                  <div className="col-md-4 mb-3 mb-md-0">
+                    <label className="form-label fw-bold text-dark">
+                      {t("students_page.email")}
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                      placeholder={t("students_page.email_placeholder")}
+                      value={formData.email}
+                      onChange={handleChange}
+                      disabled={!!viewingItem || !!editingItem}
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label fw-bold text-dark">
+                      {isArabic ? "نوع الطالب" : "Gender"}
+                    </label>
+                    <select
+                      name="gender"
+                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
+                      value={formData.gender}
+                      onChange={handleChange}
+                      disabled={!!viewingItem}
+                    >
+                      <option value="">
+                        {isArabic ? "اختيار نوع الطالب" : "Gender"}
+                      </option>
+                      <option value="male">{isArabic ? "ذكر" : "Male"}</option>
+                      <option value="female">
+                        {isArabic ? "انثي" : "Female"}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Row 2: national ID, phone, age */}
+                <div className="row mb-4">
+                  <div className="col-md-4 mb-3 mb-md-0">
+                    <label className="form-label fw-bold text-dark">
+                      {t("students_page.national_id")}
+                    </label>
+                    <input
+                      type="text"
+                      name="national_id"
+                      maxLength={14}
+                      inputMode="numeric"
+                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                      placeholder={t("students_page.national_id_placeholder")}
+                      value={formData.national_id}
+                      onChange={handleChange}
+                      disabled={!!viewingItem}
+                    />
+                    <small className="text-muted">
+                      {t("students_page.national_id_hint")}
+                    </small>
+                  </div>
+                  <div className="col-md-4 mb-3 mb-md-0">
+                    <label className="form-label fw-bold text-dark">
+                      {t("students_page.phone")}
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                      placeholder={t("students_page.phone_placeholder")}
+                      value={formData.phone}
+                      onChange={handleChange}
+                      disabled={!!viewingItem || !!editingItem}
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label fw-bold text-dark">
+                      {t("students_page.age")}
+                    </label>
+                    <input
+                      type="number"
+                      name="age"
+                      min="1"
+                      max="120"
+                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                      placeholder={t("students_page.age_placeholder")}
+                      value={formData.age}
                       onChange={handleChange}
                       disabled={!!viewingItem}
                     />
                   </div>
                 </div>
-              )}
 
-              {/* حقل الاسم */}
-              <div className="mb-4">
-                <label className="form-label fw-bold text-dark">
-                  {t("students_page.name")}
-                </label>
-                <input
-                  type="text"
-                  name="full_name"
-                  className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                  placeholder={t("students_page.name_placeholder")}
-                  value={formData.full_name}
-                  onChange={handleChange}
-                  disabled={!!viewingItem}
-                />
-              </div>
-
-              {/* حقل الإيميل */}
-              <div className="mb-4">
-                <label className="form-label fw-bold text-dark">
-                  {t("students_page.email")}
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                  placeholder={t("students_page.email_placeholder")}
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={!!viewingItem || !!editingItem}
-                />
-              </div>
-
-              {/* حقل النوع */}
-              <div className="mb-4">
-                <label className="form-label fw-bold text-dark">
-                  {isArabic ? "نوع الطالب" : "Gender"}
-                </label>
-                <select
-                  name="gender"
-                  className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  disabled={!!viewingItem}
-                >
-                  <option value="">
-                    {isArabic ? "اختيار نوع الطالب" : "Gender"}
-                  </option>
-                  <option value="male">{isArabic ? "ذكر" : "Male"}</option>
-                  <option value="female">{isArabic ? "انثي" : "Female"}</option>
-                </select>
-              </div>
-
-              {/* حقل الهاتف */}
-              <div className="row mb-4">
-                <div className="col-12">
-                  <label className="form-label fw-bold text-dark">
-                    {t("students_page.phone")}
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    placeholder={t("students_page.phone_placeholder")}
-                    value={formData.phone}
-                    onChange={handleChange}
-                    disabled={!!viewingItem || !!editingItem}
-                  />
-                </div>
-              </div>
-
-              {/* اختيار المجموعة - إنشاء فقط */}
-              {!viewingItem && !editingItem && (
-              <div className="mb-4">
-                <label className="form-label fw-bold text-dark">
-                  {isArabic ? "اسم المجموعه" : "Group Name"}
-                </label>
-                <select
-                  name="group_id"
-                  className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
-                  value={formData.group_id}
-                  onChange={handleChange}
-                >
-                  <option value="">{t("students_page.select_group")}</option>
-                  {selectionGroups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              )}
-
-              {/* تفاصيل إضافية للعرض فقط */}
-              {viewingItem && (
+                {/* Row 3: guardian phone, joined at, status */}
                 <div className="row mb-4">
-                  <div className="col-md-12">
+                  <div className="col-md-4 mb-3 mb-md-0">
+                    <label className="form-label fw-bold text-dark">
+                      {t("students_page.guardian_phone")}
+                    </label>
+                    <input
+                      type="tel"
+                      name="guardian_phone"
+                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                      placeholder={t("students_page.guardian_phone_placeholder")}
+                      value={formData.guardian_phone}
+                      onChange={handleChange}
+                      disabled={!!viewingItem}
+                    />
+                  </div>
+                  <div className="col-md-4 mb-3 mb-md-0">
                     <label className="form-label fw-bold text-dark">
                       {t("students_page.joined_at")}
                     </label>
@@ -1141,98 +1209,197 @@ function AdminStudents({
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
                       value={formData.created_at || ""}
                       disabled
+                      readOnly
                     />
                   </div>
+                  <div className="col-md-4">
+                    <label className="form-label fw-bold text-dark">
+                      {t("students_page.table_status")}
+                    </label>
+                    <select
+                      name="status"
+                      className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
+                      value={formData.status}
+                      onChange={handleChange}
+                      disabled={!!viewingItem}
+                    >
+                      <option value="active">
+                        {t("students_page.active_status")}
+                      </option>
+                      <option value="inactive">
+                        {t("students_page.inactive_status")}
+                      </option>
+                    </select>
+                  </div>
                 </div>
-              )}
 
-              {/* كلمة المرور (إنشاء فقط) */}
-              {!viewingItem && !editingItem && (
-                <div className="position-relative">
-                  <label className="form-label fw-bold text-dark">
-                    {t("students_page.password")}
-                  </label>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    placeholder={t("students_page.password_placeholder")}
-                    value={formData.password}
-                    onChange={handleChange}
-                    style={{ paddingRight: "48px" }}
-                  />
+                {/* Qualification — view/edit only */}
+                {(viewingItem || editingItem) && (
+                  <div className="row mb-4">
+                    <div className="col-12">
+                      <label className="form-label fw-bold text-dark">
+                        {t("students_page.qualification")}
+                      </label>
+                      <input
+                        type="text"
+                        name="qualification"
+                        className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                        placeholder={t(
+                          "students_page.qualification_placeholder",
+                        )}
+                        value={formData.qualification}
+                        onChange={handleChange}
+                        disabled={!!viewingItem}
+                      />
+                    </div>
+                  </div>
+                )}
 
-                  <button
-                    type="button"
-                    aria-pressed={showPassword}
-                    title={
-                      showPassword
-                        ? isArabic
-                          ? "إخفاء كلمة المرور"
-                          : "Hide password"
-                        : isArabic
-                          ? "إظهار كلمة المرور"
-                          : "Show password"
-                    }
-                    onClick={() => setShowPassword((s) => !s)}
-                    className="btn p-0"
-                    style={{
-                      position: "absolute",
-                      right: "15px",
-                      top: "65%",
-                      transform: "translateY(-50%)",
-                      color: "#dc3545",
-                      textDecoration: "none",
-                      border: "none",
-                      background: "transparent",
-                      zIndex: 4,
-                    }}
-                  >
-                    <i
-                      className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"} fs-5`}
-                    ></i>
-                  </button>
-                </div>
-              )}
+                {/* Avatar upload — edit only, before address */}
+                {editingItem && (
+                  <div className="row mb-4">
+                    <div className="col-12">
+                      <label className="form-label fw-bold text-dark">
+                        {isArabic ? "صورة الطالب" : "Student Avatar"}
+                      </label>
+                      <input
+                        type="file"
+                        name="avatar"
+                        accept="image/jpeg,image/png,image/jpg"
+                        className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setFormData((prev) => ({ ...prev, avatar: file }));
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
 
-              {editingItem && (
                 <div className="mb-4">
                   <label className="form-label fw-bold text-dark">
-                    {isArabic ? "صورة الطالب" : "Student Avatar"}
+                    {t("students_page.address")}
                   </label>
-                  <input
-                    type="file"
-                    name="avatar"
-                    accept="image/jpeg,image/png,image/jpg"
+                  <textarea
+                    name="address"
+                    rows="2"
                     className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setFormData((prev) => ({ ...prev, avatar: file }));
-                      }
-                    }}
+                    placeholder={t("students_page.address_placeholder")}
+                    value={formData.address}
+                    onChange={handleChange}
+                    disabled={!!viewingItem}
                   />
                 </div>
-              )}
 
-              {/* حالة الحساب */}
-              <div className="mb-4">
-                <label className="form-label fw-bold text-dark">Status</label>
-                <select
-                  name="status"
-                  className="form-select ac-form-select p-3 bg-light border-0 rounded-3 text-muted"
-                  value={formData.status}
-                  onChange={handleChange}
-                  disabled={!!viewingItem}
-                >
-                  <option value="active">
-                    {t("students_page.active_status")}
-                  </option>
-                  <option value="inactive">
-                    {t("students_page.inactive_status")}
-                  </option>
-                </select>
+                <div className="mb-4">
+                  <label className="form-label fw-bold text-dark">
+                    {t("students_page.notes")}
+                  </label>
+                  <textarea
+                    name="notes"
+                    rows="3"
+                    className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                    placeholder={t("students_page.notes_placeholder")}
+                    value={formData.notes}
+                    onChange={handleChange}
+                    disabled={!!viewingItem}
+                  />
+                </div>
+
+                {/* Create only: group */}
+                {!viewingItem && !editingItem && (
+                  <div className="row mb-4">
+                    <div className="col-12">
+                      <label className="form-label fw-bold text-dark">
+                        {isArabic ? "اسم المجموعه" : "Group Name"}
+                      </label>
+                      <select
+                        name="group_id"
+                        className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
+                        value={formData.group_id}
+                        onChange={handleChange}
+                      >
+                        <option value="">
+                          {t("students_page.select_group")}
+                        </option>
+                        {selectionGroups.map((group) => (
+                          <option key={group.id} value={group.id}>
+                            {group.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Create only: password + qualification */}
+                {!viewingItem && !editingItem && (
+                  <div className="row mb-4">
+                    <div className="col-md-6 mb-3 mb-md-0 position-relative">
+                      <label className="form-label fw-bold text-dark">
+                        {t("students_page.password")}
+                      </label>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                        placeholder={t("students_page.password_placeholder")}
+                        value={formData.password}
+                        onChange={handleChange}
+                        style={{ paddingRight: "48px" }}
+                      />
+                      <button
+                        type="button"
+                        aria-pressed={showPassword}
+                        title={
+                          showPassword
+                            ? isArabic
+                              ? "إخفاء كلمة المرور"
+                              : "Hide password"
+                            : isArabic
+                              ? "إظهار كلمة المرور"
+                              : "Show password"
+                        }
+                        onClick={() => setShowPassword((s) => !s)}
+                        className="btn p-0"
+                        style={{
+                          position: "absolute",
+                          right: "15px",
+                          top: "65%",
+                          transform: "translateY(-50%)",
+                          color: "#dc3545",
+                          textDecoration: "none",
+                          border: "none",
+                          background: "transparent",
+                          zIndex: 4,
+                        }}
+                      >
+                        <i
+                          className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"} fs-5`}
+                        ></i>
+                      </button>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold text-dark">
+                        {t("students_page.qualification")}
+                      </label>
+                      <input
+                        type="text"
+                        name="qualification"
+                        className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                        placeholder={t(
+                          "students_page.qualification_placeholder",
+                        )}
+                        value={formData.qualification}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
+
               {/* تفاصيل إضافية للعرض فقط */}
               {viewingItem && (
                 <div className="ac-table-card mt-4">

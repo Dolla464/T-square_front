@@ -65,6 +65,7 @@ function DashboardLayout() {
       return isArabic ? "اختبار الكويز" : "Quiz Exam";
     }
     switch (path) {
+      case "/student":
       case "/student/dashboard":
         return HomePageTitle;
       case "/student/quizzes":

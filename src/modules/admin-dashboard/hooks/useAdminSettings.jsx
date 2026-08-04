@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { clearHeroAndAboutCache } from "../../../hooks/useDiscovery";
+import { clearWebsiteMediaCache } from "../../../hooks/useDiscovery";
 import {
   toastSuccess,
   toastError,
@@ -289,7 +289,7 @@ export const useAdminSettingsState = () => {
       }
 
       await apiUpdateSetting(key, payloadValue);
-      clearHeroAndAboutCache();
+      clearWebsiteMediaCache();
 
       toastDismiss(toastId);
       toastSuccess(t("success.updated", "تم تحديث الإعداد بنجاح"));
@@ -340,7 +340,7 @@ export const useAdminSettingsState = () => {
             return apiUpdateSetting(key, payloadValue);
           }),
         );
-        clearHeroAndAboutCache();
+        clearWebsiteMediaCache();
       }
 
       toastDismiss(toastId);
@@ -369,22 +369,48 @@ export const useAdminSettingsState = () => {
   // ================= رفع الميديا =================
   const DISCOVERY_BATCH_SIZE = 6;
 
+  const normalizeMediaSnapshot = (value) => {
+    if (Array.isArray(value)) {
+      return JSON.stringify(value);
+    }
+    return value || "";
+  };
+
+  const hasMediaChanged = (countKey, prevCount, baselineSnapshot, fresh) => {
+    const freshCount = Array.isArray(fresh) ? fresh.length : fresh ? 1 : 0;
+    if (freshCount > prevCount) {
+      return true;
+    }
+
+    const freshSnapshot = normalizeMediaSnapshot(fresh);
+    return Boolean(freshSnapshot && freshSnapshot !== baselineSnapshot);
+  };
+
   /**
    * Poll fetchMediaSettings up to `maxAttempts` times with `delayMs` between each
-   * attempt, stopping early when the image count for `countKey` exceeds `prevCount`.
+   * attempt, stopping early when media count grows or content changes (replace).
    * This is needed because image processing now runs in a background queue job.
    */
   const pollUntilMediaGrows = useCallback(
-    async (countKey, prevCount, maxAttempts = 4, delayMs = 2000) => {
+    async (
+      countKey,
+      prevCount,
+      prevSnapshot = null,
+      maxAttempts = 4,
+      delayMs = 2000,
+    ) => {
       setProcessingMedia(true);
+      const baselineSnapshot =
+        prevSnapshot ?? normalizeMediaSnapshot(settingsCache?.[countKey]);
+
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
         await new Promise((r) => setTimeout(r, delayMs));
         await fetchMediaSettings(true);
 
-        // Read the freshest value from the module-level cache
         const fresh = settingsCache?.[countKey];
-        const freshCount = Array.isArray(fresh) ? fresh.length : (fresh ? 1 : 0);
-        if (freshCount > prevCount) break;
+        if (hasMediaChanged(countKey, prevCount, baselineSnapshot, fresh)) {
+          break;
+        }
       }
       setProcessingMedia(false);
     },
@@ -418,6 +444,7 @@ export const useAdminSettingsState = () => {
     const totalFiles = files.length;
     const batches = chunkFiles(Array.from(files), DISCOVERY_BATCH_SIZE);
     const prevCount = Array.isArray(discoveryMedia) ? discoveryMedia.length : 0;
+    const prevSnapshot = normalizeMediaSnapshot(discoveryMedia);
     let toastId = toastLoading(
       isArabic
         ? `جاري رفع 0/${totalFiles}...`
@@ -444,7 +471,7 @@ export const useAdminSettingsState = () => {
         await uploadMediaBatch(batch, "discovery_media", batchAction);
       }
 
-      clearHeroAndAboutCache();
+      clearWebsiteMediaCache();
       toastDismiss(toastId);
       toastSuccess(
         isArabic
@@ -454,7 +481,7 @@ export const useAdminSettingsState = () => {
       setUploading(false);
 
       // Poll for processed images since the job runs asynchronously
-      pollUntilMediaGrows("discoveryMedia", prevCount);
+      pollUntilMediaGrows("discoveryMedia", prevCount, prevSnapshot);
       return true;
     } catch (err) {
       toastDismiss(toastId);
@@ -478,6 +505,7 @@ export const useAdminSettingsState = () => {
     const prevCount = key === "hero_image"
       ? (settingsCache?.heroImage ? 1 : 0)
       : (Array.isArray(settingsCache?.[cacheKey]) ? settingsCache[cacheKey].length : 0);
+    const prevSnapshot = normalizeMediaSnapshot(settingsCache?.[cacheKey]);
 
     try {
       const formData = new FormData();
@@ -489,7 +517,7 @@ export const useAdminSettingsState = () => {
       }
 
       const res = await apiUploadMedia(formData);
-      clearHeroAndAboutCache();
+      clearWebsiteMediaCache();
 
       toastDismiss(toastId);
       toastSuccess(
@@ -500,7 +528,7 @@ export const useAdminSettingsState = () => {
       setUploading(false);
 
       // Poll for processed images since the job runs asynchronously
-      pollUntilMediaGrows(cacheKey, prevCount);
+      pollUntilMediaGrows(cacheKey, prevCount, prevSnapshot);
       return res;
     } catch (err) {
       toastDismiss(toastId);
@@ -525,7 +553,7 @@ export const useAdminSettingsState = () => {
 
     try {
       await apiDeleteMedia(imageUrl, key);
-      clearHeroAndAboutCache();
+      clearWebsiteMediaCache();
 
       toastDismiss(toastId);
       toastSuccess(t("success.deleted", "تم حذف الصورة بنجاح"));

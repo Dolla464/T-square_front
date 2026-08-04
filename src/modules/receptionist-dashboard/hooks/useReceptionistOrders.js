@@ -9,7 +9,6 @@ import {
 
 export const useReceptionistOrders = () => {
   const [orders, setOrders] = useState([]);
-  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -20,10 +19,8 @@ export const useReceptionistOrders = () => {
     setError(null);
     try {
       const res = await getReviews(params);
-      const stats = res?.data?.stats;
       const data = res?.data?.orders || [];
       const paginationData = res?.meta || null;
-      setStats(stats);
       setOrders(Array.isArray(data) ? data : []);
       setPagination(paginationData);
       return data;
@@ -78,7 +75,6 @@ export const useReceptionistOrders = () => {
     loading,
     exportLoading,
     error,
-    stats,
     pagination,
     getOrders,
     getOrderById,

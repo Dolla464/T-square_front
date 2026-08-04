@@ -61,7 +61,9 @@ function AttendanceStatusBadge({ status, isArabic }) {
   );
 }
 
-function AdminStudentAttendance() {
+function AdminStudentAttendance({
+  useAttendanceHook = useAdminAttendance,
+}) {
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
 
@@ -80,7 +82,7 @@ function AdminStudentAttendance() {
     handleExportSession,
     markAttendance,
     resetSessionData,
-  } = useAdminAttendance();
+  } = useAttendanceHook();
 
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const [selectedSessionId, setSelectedSessionId] = useState("");
@@ -482,6 +484,7 @@ function AdminStudentAttendance() {
         studentId={modalStudent?.studentId}
         studentName={modalStudent?.studentName}
         onHide={() => setModalStudent(null)}
+        useAttendanceHook={useAttendanceHook}
       />
     </div>
   );

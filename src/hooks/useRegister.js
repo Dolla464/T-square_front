@@ -17,9 +17,7 @@ export const useRegister = () => {
     setError(null);
     setSuccessMsg(null);
     try {
-      // التأكد من إرسال الدور كـ student بشكل افتراضي للتوافق مع الباك-إند
-      const payload = { ...userData, role: userData.role || 'student' };
-      const response = await registerService(payload);
+      const response = await registerService(userData);
 
       const responseData = response.data;
       setSuccessMsg(responseData.message || response.data.message || 'Registration successful.');

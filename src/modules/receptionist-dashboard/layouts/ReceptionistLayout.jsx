@@ -9,11 +9,20 @@ import DashboardSharedLayout from "../../shared-dashboard/components/DashboardLa
 const RECEPTIONIST_NAV = [
   { key: "dashboard", path: "/receptionist", icon: "bi-grid-1x2", end: true },
   {
+    key: "attendance",
+    path: "/receptionist/attendance",
+    icon: "bi-person-check-fill",
+  },
+  {
     key: "groups",
     icon: "bi-collection",
     children: [
       { key: "learningGroups", path: "/receptionist/groups", icon: "bi-people" },
-      { key: "attendance", path: "/receptionist/attendance", icon: "bi-person-check-fill" },
+      {
+        key: "studentAttendance",
+        path: "/receptionist/student-attendance",
+        icon: "bi-clipboard-check",
+      },
     ],
   },
   { key: "students", path: "/receptionist/students", icon: "bi-people" },
@@ -38,6 +47,8 @@ function ReceptionistLayout() {
         return HomePageTitle;
       case "/receptionist/attendance":
         return isArabic ? "الحضور والغياب" : "Attendance";
+      case "/receptionist/student-attendance":
+        return isArabic ? "حضور الطلاب" : "Students Attendance";
       case "/receptionist/groups":
         return isArabic ? "المجموعات الدراسية" : "Learning Groups";
       case "/receptionist/students":

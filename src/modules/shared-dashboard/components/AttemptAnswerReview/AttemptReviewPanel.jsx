@@ -14,6 +14,7 @@ function AttemptReviewPanel({
   compact = true,
   enabled = true,
   fullPageTo,
+  fullPageReplace = false,
 }) {
   const { t } = useTranslation("studentDashboard");
 
@@ -50,7 +51,11 @@ function AttemptReviewPanel({
     <div>
       {fullPageTo ? (
         <div className="attempt-review-actions mb-2">
-          <Link to={fullPageTo} className="btn btn-review-action btn-sm">
+          <Link
+            to={fullPageTo}
+            replace={Boolean(fullPageReplace)}
+            className="btn btn-review-action btn-sm"
+          >
             <i className="bi bi-box-arrow-up-right me-1" />
             {t("attempt_review.open_full_page")}
           </Link>

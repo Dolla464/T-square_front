@@ -1,6 +1,7 @@
 import { useEffect, lazy, Suspense } from "react";
 import {
-  BrowserRouter as Router,
+  createBrowserRouter,
+  RouterProvider,
   Routes,
   Route,
   useLocation,
@@ -9,6 +10,8 @@ import {
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import ScrollToTop from "./components/shared/ScrollToTop";
+import ForbiddenRouteWatcher from "./components/shared/ForbiddenRouteWatcher";
+import RoleMismatchRedirect from "./components/shared/RoleMismatchRedirect";
 import AppNavbar from "./components/layout/Navbar";
 import AppFooter from "./components/layout/Footer";
 import Home from "./pages/Home";
@@ -202,6 +205,10 @@ const ReceptionistDashboard = lazy(
 const ReceptionistAttendance = lazy(
   () =>
     import("./modules/receptionist-dashboard/pages/Attendance/ReceptionistAttendance"),
+);
+const ReceptionistStudentAttendance = lazy(
+  () =>
+    import("./modules/receptionist-dashboard/pages/StudentAttendance/ReceptionistStudentAttendance"),
 );
 const ReceptionistStudents = lazy(
   () =>
@@ -512,6 +519,10 @@ function AppContent() {
                       path="attendance"
                       element={<ReceptionistAttendance />}
                     />
+                    <Route
+                      path="student-attendance"
+                      element={<ReceptionistStudentAttendance />}
+                    />
                     <Route path="groups" element={<ReceptionistGroups />} />
                     <Route path="students" element={<ReceptionistStudents />} />
                     <Route path="orders" element={<ReceptionistOrders />} />
@@ -550,10 +561,7 @@ function AppContent() {
                 {/* STUDENT */}
                 <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
                   <Route path="/student" element={<DashboardLayout />}>
-                    <Route
-                      index
-                      element={<Navigate to="dashboard" replace />}
-                    />
+                    <Route index element={<DashboardHome />} />
                     <Route path="dashboard" element={<DashboardHome />} />
                     <Route
                       path="certificates"
@@ -593,18 +601,29 @@ function AppContent() {
   );
 }
 
+const router = createBrowserRouter([
+  {
+    path: "*",
+    element: (
+      <>
+        <ForbiddenRouteWatcher />
+        <RoleMismatchRedirect />
+        <ErrorBoundary>
+          {/* مكون الإشعارات العالمي */}
+          <Toaster position="top-center" reverseOrder={false} />
+          <AppContent />
+          <ScrollToTop />
+        </ErrorBoundary>
+      </>
+    ),
+  },
+]);
+
 function App() {
   return (
     <AuthProvider>
       <NotificationsProvider>
-        <Router>
-          <ErrorBoundary>
-            {/* مكون الإشعارات العالمي */}
-            <Toaster position="top-center" reverseOrder={false} />
-            <AppContent />
-            <ScrollToTop />
-          </ErrorBoundary>
-        </Router>
+        <RouterProvider router={router} />
       </NotificationsProvider>
     </AuthProvider>
   );

@@ -108,3 +108,11 @@
     white-space: nowrap;
   }
 }
+
+.ac-student-form-grid .row {
+  --bs-gutter-x: 1rem;
+}
+
+.ac-student-form-grid .form-label {
+  margin-bottom: 0.35rem;
+}

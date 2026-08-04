@@ -18,6 +18,7 @@ function AdminOrders({
   basePath = "/admin",
   canExport = true,
   canDelete = true,
+  showStats = true,
 }) {
   const { t, i18n } = useTranslation("orderPayments");
   const isArabic = i18n.language?.startsWith("ar");
@@ -196,6 +197,7 @@ function AdminOrders({
         </div>
       </div>
 
+      {showStats && (
       <div className="row g-3 mb-4">
         {/* Card 1: Total Revenue */}
         <div className="col-lg-3 h-100 col-12">
@@ -297,6 +299,7 @@ function AdminOrders({
           </div>
         </div>
       </div>
+      )}
 
       <div className="ac-table-card">
         <div className="ac-table-container">

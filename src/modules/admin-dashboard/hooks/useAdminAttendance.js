@@ -5,16 +5,7 @@ import {
   toastError,
 } from "../../../components/shared/Toaster/toaster";
 import { parseApiDateOnly } from "../../../utils/formatDateTime";
-import {
-  getLearningGroupsSelection,
-  getLearningGroupSessions,
-  getSessionAttendance,
-  getGroupAttendanceSummary,
-  getStudentCourseAttendance,
-  exportSessionAttendance,
-  exportStudentCourseAttendance,
-  markSessionAttendance,
-} from "../services/learningGroupServices";
+import * as adminAttendanceServices from "../services/learningGroupServices";
 
 const APP_TIMEZONE = "Africa/Cairo";
 
@@ -40,7 +31,18 @@ const recalcAttendanceStats = (students) => {
   };
 };
 
-export const useAdminAttendance = () => {
+export const createAttendanceHook = (services) => () => {
+  const {
+    getLearningGroupsSelection,
+    getLearningGroupSessions,
+    getSessionAttendance,
+    getGroupAttendanceSummary,
+    getStudentCourseAttendance,
+    exportSessionAttendance,
+    exportStudentCourseAttendance,
+    markSessionAttendance,
+  } = services;
+
   const { t } = useTranslation(["common", "adminDashboard"]);
   const [selectionGroups, setSelectionGroups] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -72,7 +74,7 @@ export const useAdminAttendance = () => {
     } finally {
       setLoadingGroups(false);
     }
-  }, [t]);
+  }, [getLearningGroupsSelection, t]);
 
   const loadSessions = useCallback(
     async (groupId) => {
@@ -118,7 +120,7 @@ export const useAdminAttendance = () => {
         }
       }
     },
-    [t]
+    [getLearningGroupSessions, t]
   );
 
   const loadSessionAttendance = useCallback(
@@ -161,7 +163,7 @@ export const useAdminAttendance = () => {
         }
       }
     },
-    [t]
+    [getSessionAttendance, t]
   );
 
   const loadStudentCourseAttendance = useCallback(
@@ -190,7 +192,7 @@ export const useAdminAttendance = () => {
         setLoadingSummary(false);
       }
     },
-    [t]
+    [getStudentCourseAttendance, t]
   );
 
   const loadGroupSummary = useCallback(
@@ -219,7 +221,7 @@ export const useAdminAttendance = () => {
         setLoadingSummary(false);
       }
     },
-    [t]
+    [getGroupAttendanceSummary, t]
   );
 
   const handleExportSession = useCallback(
@@ -239,7 +241,7 @@ export const useAdminAttendance = () => {
         setExportLoading(false);
       }
     },
-    [t]
+    [exportSessionAttendance, t]
   );
 
   const handleExportStudent = useCallback(
@@ -259,7 +261,7 @@ export const useAdminAttendance = () => {
         setExportLoading(false);
       }
     },
-    [t]
+    [exportStudentCourseAttendance, t]
   );
 
   const resetSessionData = useCallback(() => {
@@ -341,7 +343,7 @@ export const useAdminAttendance = () => {
         });
       }
     },
-    [sessionAttendance, t, updatingIds]
+    [markSessionAttendance, sessionAttendance, t, updatingIds]
   );
 
   return {
@@ -368,3 +370,14 @@ export const useAdminAttendance = () => {
     resetSessionData,
   };
 };
+
+export const useAdminAttendance = createAttendanceHook({
+  getLearningGroupsSelection: adminAttendanceServices.getLearningGroupsSelection,
+  getLearningGroupSessions: adminAttendanceServices.getLearningGroupSessions,
+  getSessionAttendance: adminAttendanceServices.getSessionAttendance,
+  getGroupAttendanceSummary: adminAttendanceServices.getGroupAttendanceSummary,
+  getStudentCourseAttendance: adminAttendanceServices.getStudentCourseAttendance,
+  exportSessionAttendance: adminAttendanceServices.exportSessionAttendance,
+  exportStudentCourseAttendance: adminAttendanceServices.exportStudentCourseAttendance,
+  markSessionAttendance: adminAttendanceServices.markSessionAttendance,
+});

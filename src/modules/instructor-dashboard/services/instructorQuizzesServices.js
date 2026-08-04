@@ -87,3 +87,12 @@ export const forceDeleteQuestion = async (id) => {
   const response = await axiosClient.delete(`/instructor/questions/${id}/force-delete`);
   return response.data;
 };
+
+export const uploadQuestionImage = async (file) => {
+  const formData = new FormData();
+  formData.append("image", file);
+  const response = await axiosClient.post("/instructor/questions/upload-image", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data?.data;
+};

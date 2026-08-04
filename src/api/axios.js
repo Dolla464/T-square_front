@@ -1,20 +1,68 @@
 import axios from "axios";
+import { notifyAxiosForbidden } from "../contexts/ForbiddenContext";
+import { notifyRoleMismatch } from "../utils/authEvents";
+
+const ALLOWED_WHEN_FORBIDDEN = ["/profile", "/logout", "/login"];
+
+const EXAM_FLOW_URL_PATTERN = /\/exams\/(?:save-answer|\d+\/submit)/;
+
+function isExamFlowRequest(url = "") {
+  return EXAM_FLOW_URL_PATTERN.test(url);
+}
+
+function shouldTriggerGlobalForbidden(error) {
+  const status = error.response?.status;
+  const code = error.response?.data?.code;
+  const url = error.config?.url || "";
+
+  if (status !== 403) {
+    return false;
+  }
+
+  // Exam endpoints return 403 for closed attempts — handled in the exam UI.
+  if (isExamFlowRequest(url)) {
+    return false;
+  }
+
+  return code === "FORBIDDEN" || !code;
+}
+
+let accessForbidden = false;
+
+export function resetAccessForbidden() {
+  accessForbidden = false;
+}
+
+function isAllowedWhenForbidden(url = "") {
+  return ALLOWED_WHEN_FORBIDDEN.some((path) => url.includes(path));
+}
+
+const resolveBaseUrl = () => {
+  if (window.APP_CONFIG?.API_URL) {
+    return window.APP_CONFIG.API_URL;
+  }
+
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+
+  return "http://t-square-lms.test/api";
+};
 
 const axiosClient = axios.create({
-  baseURL:
-    window.APP_CONFIG && window.APP_CONFIG.API_URL
-      ? window.APP_CONFIG.API_URL
-      : "http://t-square-lms.test/api",
+  baseURL: resolveBaseUrl(),
   timeout: 150000,
-  // تم حذف withCredentials: true لأننا نستخدم Bearer Token
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
 });
 
-// Request Interceptor
 axiosClient.interceptors.request.use((config) => {
+  if (accessForbidden && !isAllowedWhenForbidden(config.url || "")) {
+    return Promise.reject(new axios.CanceledError("Request blocked after 403"));
+  }
+
   const token =
     localStorage.getItem("token") || sessionStorage.getItem("token");
 
@@ -22,7 +70,6 @@ axiosClient.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // فقط هذا التعديل - للتعامل مع FormData
   if (config.data instanceof FormData) {
     delete config.headers["Content-Type"];
     config.timeout = 0;
@@ -33,14 +80,19 @@ axiosClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Response Interceptor
 axiosClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     const token =
       localStorage.getItem("token") || sessionStorage.getItem("token");
+    const status = error.response?.status;
+    const code = error.response?.data?.code;
+
+    if (shouldTriggerGlobalForbidden(error)) {
+      accessForbidden = true;
+      notifyAxiosForbidden(error.config?.url || null);
+      notifyRoleMismatch();
+    }
 
     if (error.response && error.response.status === 503 && !token) {
       if (

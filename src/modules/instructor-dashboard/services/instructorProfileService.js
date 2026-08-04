@@ -1,24 +1,18 @@
 import axiosClient from "../../../api/axios";
+import { buildInstructorProfilePayload } from "../../../utils/buildPayload";
 
 export const getInstructorProfile = () => axiosClient.get("/profile");
 
 export const updateInstructorProfile = (profileData) => {
-  if (profileData instanceof FormData) {
-    return axiosClient.post("/profile", profileData, {
+  const payload = buildInstructorProfilePayload(profileData);
+
+  if (payload instanceof FormData) {
+    return axiosClient.post("/profile", payload, {
       headers: { "Content-Type": "multipart/form-data" },
     });
   }
 
-  return axiosClient.post("/profile", {
-    full_name: profileData.name || profileData.full_name,
-    gender: profileData.gender,
-    phone: profileData.phone,
-    field: profileData.field,
-    bio: profileData.bio,
-    insta_url: profileData.insta_url,
-    linkedin_url: profileData.linkedin_url,
-    facebook_url: profileData.facebook_url,
-  });
+  return axiosClient.post("/profile", payload);
 };
 
 export const updateInstructorPassword = (passwordData) => {

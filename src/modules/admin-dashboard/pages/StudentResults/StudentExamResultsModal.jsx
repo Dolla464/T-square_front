@@ -75,7 +75,12 @@ function StudentExamResultsModal({
     gaugeAttempt.is_passed === false;
 
   const strokeColor = isGaugeFailed ? "#ef4444" : "#22c55e";
-  const isShowingBest = selectedAttempt === null;
+
+  const isBestAttempt = (attempt) =>
+    highestAttempt && attempt?.attempt_id === highestAttempt.attempt_id;
+
+  const isShowingBest =
+    !selectedAttempt || isBestAttempt(selectedAttempt);
 
   const formatScore = (attempt) =>
     formatExamScorePair(
@@ -213,14 +218,17 @@ function StudentExamResultsModal({
                 <span className="quiz-modal-attempts-title">
                   {t("studentResults.attemptsHistory", "Attempts History")}
                 </span>
-                {!isShowingBest && (
+                {selectedAttempt && !isBestAttempt(selectedAttempt) && (
                   <button
                     type="button"
                     className="quiz-best-btn"
-                    onClick={() => setSelectedAttempt(null)}
+                    onClick={() => {
+                      setSelectedAttempt(null);
+                      setShowAnswers(false);
+                    }}
                   >
                     <i className="bi bi-trophy-fill me-1" />
-                    {isArabic ? "الأفضل" : "Best"}
+                    {t("studentResults.bestBadge", "Best")}
                   </button>
                 )}
               </div>
@@ -264,6 +272,12 @@ function StudentExamResultsModal({
                               num: attempt.attempt_number,
                               defaultValue: `Attempt ${attempt.attempt_number}`,
                             })}
+                            {isBestAttempt(attempt) ? (
+                              <span className="quiz-attempt-best-badge ms-2">
+                                <i className="bi bi-trophy-fill me-1" />
+                                {t("studentResults.bestBadge", "Best")}
+                              </span>
+                            ) : null}
                           </span>
                           <span className="quiz-attempt-date">
                             {attempt.finished_at || "—"}

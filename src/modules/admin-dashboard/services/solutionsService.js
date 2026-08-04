@@ -1,4 +1,5 @@
 import axiosClient from "../../../api/axios";
+import { buildSolutionPayload } from "../../../utils/buildPayload";
 
 // ----------------------------------------------------------------------------
 // جلب جميع الحلول البرمجية
@@ -19,16 +20,22 @@ export const getSolutionById = async (id) => {
 // ----------------------------------------------------------------------------
 // إنشاء حل برمجي جديد
 // ----------------------------------------------------------------------------
-export const createSolution = async (data) => {
-  const response = await axiosClient.post("/admin/solutions", data);
+export const createSolution = async (data, options = {}) => {
+  const response = await axiosClient.post(
+    "/admin/solutions",
+    buildSolutionPayload(data, options),
+  );
   return response.data;
 };
 
 // ----------------------------------------------------------------------------
 // تحديث البيانات الخاصة بحل برمجي
 // ----------------------------------------------------------------------------
-export const updateSolution = async (id, data) => {
-  const response = await axiosClient.put(`/admin/solutions/${id}`, data);
+export const updateSolution = async (id, data, options = {}) => {
+  const response = await axiosClient.put(
+    `/admin/solutions/${id}`,
+    buildSolutionPayload(data, options),
+  );
   return response.data;
 };
 

@@ -1,4 +1,28 @@
 import axiosClient from "../../../api/axios";
+import {
+  buildStudentCreateFormData,
+  buildStudentCreatePayload,
+  STUDENT_CREATE_ALLOWED,
+  toFormData,
+} from "../../../utils/buildPayload";
+
+const buildPayloadFromInput = (data) => {
+  if (data instanceof FormData) {
+    const obj = { role: "student" };
+    STUDENT_CREATE_ALLOWED.forEach((key) => {
+      if (data.has(key)) {
+        obj[key] = data.get(key);
+      }
+    });
+    return toFormData(obj);
+  }
+
+  if (data?.avatar instanceof File) {
+    return buildStudentCreateFormData(data);
+  }
+
+  return buildStudentCreatePayload(data);
+};
 
 /**
  * جلب قائمة الطلاب مع دعم الفلترة والبحث والصفحات
@@ -20,8 +44,14 @@ export const getStudentById = async (id) => {
  * تسجيل طالب جديد
  */
 export const registerStudents = async (data) => {
-  // ملاحظة: قد تحتاج لاستخدام FormData إذا كان هناك رفع صور
-  const response = await axiosClient.post("/admin/users", data);
+  const payload = buildPayloadFromInput(data);
+
+  const response = await axiosClient.post("/admin/users", payload, {
+    headers:
+      payload instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : undefined,
+  });
   return response.data;
 };
 

@@ -7,6 +7,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import "./index.css";
 import App from "./App.jsx";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
+import { ForbiddenProvider } from "./contexts/ForbiddenContext.jsx";
 // import { onCLS, onINP, onLCP } from "web-vitals";
 
 // onCLS((metric) => {
@@ -30,12 +31,13 @@ import("./i18n")
   .then(() => {
     createRoot(document.getElementById("root")).render(
       <AuthProvider>
-
-        <StrictMode>
-          <HelmetProvider>
-            <App />
-          </HelmetProvider>
-        </StrictMode>
+        <ForbiddenProvider>
+          <StrictMode>
+            <HelmetProvider>
+              <App />
+            </HelmetProvider>
+          </StrictMode>
+        </ForbiddenProvider>
       </AuthProvider>,
     );
   })
@@ -44,12 +46,13 @@ import("./i18n")
     // Fallback: render app anyway
     createRoot(document.getElementById("root")).render(
       <AuthProvider>
-
-        <StrictMode>
-          <HelmetProvider>
-            <App />
-          </HelmetProvider>
-        </StrictMode>
+        <ForbiddenProvider>
+          <StrictMode>
+            <HelmetProvider>
+              <App />
+            </HelmetProvider>
+          </StrictMode>
+        </ForbiddenProvider>
       </AuthProvider>,
     );
   });

@@ -5,6 +5,7 @@ import DetailModal from "../../../components/shared/DetailModal/DetailModal";
 import AttemptReviewPanel from "../../shared-dashboard/components/AttemptAnswerReview/AttemptReviewPanel";
 import { formatExamScore, formatExamScorePair } from "../../shared-dashboard/utils/formatExamScore";
 import { useExamResults } from "../hooks/useExamResults";
+import { clearQuizAttemptCompleted } from "../utils/quizExamSession";
 import "../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
 
 /**
@@ -38,6 +39,7 @@ function QuizCard({ quiz, t }) {
   // ── بيانات الكويز ──────────────────────────────────────────────────
   const {
     is_locked,
+    has_ongoing_attempt,
     remaining_attempts,
     attempts_count,
     max_attempts,
@@ -47,7 +49,10 @@ function QuizCard({ quiz, t }) {
   } = quiz;
 
   const handleStartQuiz = () => {
-    if (!is_locked) navigate(`/student/quizzes/${quiz.id}`);
+    if (has_ongoing_attempt || !is_locked) {
+      clearQuizAttemptCompleted(quiz.id);
+      navigate(`/student/quizzes/${quiz.id}`);
+    }
   };
 
   // ── معالجة المحاولات من الـ API ────────────────────────────────────
@@ -92,8 +97,12 @@ function QuizCard({ quiz, t }) {
 
   const strokeColor = isGaugeFailed ? "#ef4444" : "#22c55e";
 
-  // هل المحاولة المعروضة هي الـ highest
-  const isShowingBest = selectedAttempt === null;
+  // هل المحاولة المعروضة هي الأعلى درجة
+  const isBestAttempt = (attempt) =>
+    highestAttempt && attempt?.attempt_id === highestAttempt.attempt_id;
+
+  const isShowingBest =
+    !selectedAttempt || isBestAttempt(selectedAttempt);
 
   // ── دالة مساعدة: عرض الدرجة / المجموع (أو N/A) ───────────────────
   const formatScore = (attempt) =>
@@ -105,13 +114,15 @@ function QuizCard({ quiz, t }) {
 
   // ── الـ Render ─────────────────────────────────────────────────────
   return (
-    <div className={`quiz-card ${is_locked ? "quiz-card-locked" : ""}`}>
+    <div className={`quiz-card ${is_locked && !has_ongoing_attempt ? "quiz-card-locked" : ""}`}>
       {/* صورة / أيقونة الكارد */}
       <div className="quiz-card-icon-wrapper">
         <i
           className={`bi ${
             is_passed_before
               ? "bi-check-circle-fill text-success"
+              : has_ongoing_attempt
+              ? "bi-play-circle-fill text-primary"
               : is_locked
               ? "bi-lock-fill"
               : "bi-pencil-square"
@@ -124,6 +135,8 @@ function QuizCard({ quiz, t }) {
           style={
             is_passed_before
               ? { backgroundColor: "#d1fae5", color: "#065f46" }
+              : has_ongoing_attempt
+              ? { backgroundColor: "#dbeafe", color: "#1e40af" }
               : is_locked
               ? { backgroundColor: "#ffcccc", color: "#990000" }
               : { backgroundColor: "#c5e9ff", color: "#0d47a1" }
@@ -131,6 +144,8 @@ function QuizCard({ quiz, t }) {
         >
           {is_passed_before
             ? isArabic ? "ناجح" : "Passed"
+            : has_ongoing_attempt
+            ? isArabic ? "جاري" : "In Progress"
             : is_locked
             ? isArabic ? "مغلق" : "Locked"
             : isArabic ? "مفتوح" : "Open"}
@@ -182,7 +197,12 @@ function QuizCard({ quiz, t }) {
           )}
 
           {/* زر الدخول / الإعادة */}
-          {is_locked ? (
+          {has_ongoing_attempt ? (
+            <button onClick={handleStartQuiz} className="btn-continue flex-grow-1">
+              <i className="bi bi-play-circle me-1"></i>
+              {isArabic ? "متابعة الاختبار" : "Resume Quiz"}
+            </button>
+          ) : is_locked ? (
             <button
               disabled
               className="btn-continue bg-secondary-subtle text-muted border-0 w-100"
@@ -307,14 +327,17 @@ function QuizCard({ quiz, t }) {
                   <span className="quiz-modal-attempts-title">
                     {isArabic ? "سجل المحاولات" : "Attempts History"}
                   </span>
-                  {!isShowingBest && (
+                  {selectedAttempt && !isBestAttempt(selectedAttempt) && (
                     <button
                       type="button"
                       className="quiz-best-btn"
-                      onClick={() => setSelectedAttempt(null)}
+                      onClick={() => {
+                        setSelectedAttempt(null);
+                        setShowAnswers(false);
+                      }}
                     >
                       <i className="bi bi-trophy-fill me-1"></i>
-                      {isArabic ? "الأفضل" : "Best"}
+                      {t("quiz_results.best_badge")}
                     </button>
                   )}
                 </div>
@@ -344,6 +367,12 @@ function QuizCard({ quiz, t }) {
                           <div className="quiz-attempt-info">
                             <span className="quiz-attempt-num">
                               {t("quiz_results.attempt_num", { num: attempt.attempt_number })}
+                              {isBestAttempt(attempt) ? (
+                                <span className="quiz-attempt-best-badge ms-2">
+                                  <i className="bi bi-trophy-fill me-1" />
+                                  {t("quiz_results.best_badge")}
+                                </span>
+                              ) : null}
                             </span>
                             <span className="quiz-attempt-date">
                               {attempt.finished_at || "—"}

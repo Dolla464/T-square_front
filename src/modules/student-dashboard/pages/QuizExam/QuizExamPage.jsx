@@ -1,31 +1,45 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import { toastCustom } from "../../../../components/shared/Toaster/toaster";
-import { useExam } from "../../hooks/useExam";
+import { showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { useExam, mapExamResults } from "../../hooks/useExam";
 import AttemptReviewPanel from "../../../shared-dashboard/components/AttemptAnswerReview/AttemptReviewPanel";
+import QuestionContent from "../../../shared-dashboard/components/QuestionContent/QuestionContent";
 import { invalidateAttemptReview } from "../../../shared-dashboard/hooks/attemptReviewCache";
 import { formatExamScore } from "../../../shared-dashboard/utils/formatExamScore";
+import {
+  getCompletedAttemptId,
+  markQuizAttemptCompleted,
+} from "../../utils/quizExamSession";
 import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
+import "../../../shared-dashboard/components/QuestionContent/questionContent.css";
 import "../../styles/dashboardShared.css";
 
-const QuizTimer = React.memo(({ durationMins, attemptId, quizId, isArabic, onTimeout }) => {
+const confirmLeaveExam = (isArabic) =>
+  showConfirmCustom({
+    title: isArabic ? "إنهاء الامتحان" : "Leave Exam",
+    message: isArabic
+      ? "سيتم إرسال إجاباتك الحالية وإنهاء المحاولة. هل تريد المتابعة؟"
+      : "Your current answers will be submitted and the attempt will end. Continue?",
+    icon: "warning",
+    variant: "danger",
+  });
+
+const isAttemptFailed = (status) =>
+  status === "failed" || status === "timed_out";
+
+const QuizTimer = React.memo(({ startedAt, durationMins, onTimeout, disabled }) => {
   const [timeLeft, setTimeLeft] = useState(null);
+  const onTimeoutRef = useRef(onTimeout);
+  onTimeoutRef.current = onTimeout;
 
   useEffect(() => {
-    if (!durationMins || durationMins <= 0 || !attemptId) return;
+    if (disabled || !startedAt || !durationMins || durationMins <= 0) return;
 
-    const storageKey = `quiz_timer_${quizId}_${attemptId}`;
-    const savedEndTime = localStorage.getItem(storageKey);
-    let endTime;
-
-    if (savedEndTime) {
-      endTime = parseInt(savedEndTime, 10);
-    } else {
-      endTime = Date.now() + durationMins * 60 * 1000;
-      localStorage.setItem(storageKey, endTime.toString());
-    }
+    const startMs = new Date(startedAt).getTime();
+    const endTime = startMs + durationMins * 60 * 1000;
 
     const calculateTimeLeft = () => {
       const difference = endTime - Date.now();
@@ -39,7 +53,7 @@ const QuizTimer = React.memo(({ durationMins, attemptId, quizId, isArabic, onTim
     setTimeLeft(initialTime);
 
     if (initialTime <= 0) {
-      onTimeout();
+      onTimeoutRef.current();
       return;
     }
 
@@ -48,15 +62,14 @@ const QuizTimer = React.memo(({ durationMins, attemptId, quizId, isArabic, onTim
       setTimeLeft(remaining);
       if (remaining <= 0) {
         clearInterval(interval);
-        localStorage.removeItem(storageKey);
-        onTimeout();
+        onTimeoutRef.current();
       }
     }, 1000);
 
     return () => {
       clearInterval(interval);
     };
-  }, [durationMins, attemptId, quizId, onTimeout]);
+  }, [startedAt, durationMins, disabled]);
 
   if (timeLeft === null) return null;
 
@@ -74,14 +87,13 @@ const QuizTimer = React.memo(({ durationMins, attemptId, quizId, isArabic, onTim
   );
 });
 
-/**
- * صفحة اختبار الكويز - QuizExamPage
- * تعرض أسئلة الكويز وتحسب النتيجة
- */
 function QuizExamPage() {
   const { quizId } = useParams();
   const navigate = useNavigate();
   const hasStarted = useRef(false);
+  const hasAutoSubmittedRef = useRef(false);
+  const leaveDialogOpenRef = useRef(false);
+  const attemptFinalizedRef = useRef(false);
   const { i18n, t } = useTranslation("studentDashboard");
   const isArabic = i18n.language === "ar";
 
@@ -93,77 +105,32 @@ function QuizExamPage() {
     saveAnswer,
     submitExam,
     submitting,
+    recoverClosedAttempt,
   } = useExam(quizId);
-
-  useEffect(() => {
-    // إذا تم إرسال الطلب بالفعل أو قيد التنفيذ، اخرج فوراً ولا تكرر
-    if (hasStarted.current) return;
-
-    // تفعيل القفل فوراً لمنع أي طلبات متزامنة أخرى
-    hasStarted.current = true;
-
-    startExam();
-
-    // اختياري: عند الخروج من الصفحة تماماً (Unmount) نفتح القفل للمرة القادمة
-    return () => {
-      hasStarted.current = false;
-    };
-  }, [quizId]); // ابقِ على الاعتمادية كما هي
-
-  const questions = exam?.questions || [];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [answers, setAnswers] = useState([]);
-
-  // Load saved state if the attempt matches
-  useEffect(() => {
-    if (!exam) return;
-    const savedState = localStorage.getItem(`quiz_state_${quizId}`);
-    if (savedState) {
-      try {
-        const { savedIndex, savedAnswers, attemptId } = JSON.parse(savedState);
-        if (
-          attemptId === exam.attempt_id &&
-          typeof savedIndex === "number" &&
-          Array.isArray(savedAnswers)
-        ) {
-          setCurrentIndex(savedIndex);
-          setAnswers(savedAnswers);
-          return;
-        }
-      } catch (e) {
-        console.error("Failed to load saved quiz state", e);
-      }
-    }
-    // If no saved state or mismatch, start fresh
-    setCurrentIndex(0);
-    setAnswers([]);
-  }, [quizId, exam]);
-
-  // Save current progress to localStorage
-  useEffect(() => {
-    if (exam && exam.attempt_id) {
-      localStorage.setItem(
-        `quiz_state_${quizId}`,
-        JSON.stringify({
-          savedIndex: currentIndex,
-          savedAnswers: answers,
-          attemptId: exam.attempt_id,
-        }),
-      );
-    }
-  }, [currentIndex, answers, exam, quizId]);
+  const [answers, setAnswers] = useState({});
   const [showResult, setShowResult] = useState(false);
   const [scoreResult, setScoreResult] = useState(null);
   const [submittedAttemptId, setSubmittedAttemptId] = useState(null);
   const [showAnswerReview, setShowAnswerReview] = useState(false);
+  const [attemptFinalized, setAttemptFinalized] = useState(false);
 
+  const questions = exam?.questions || [];
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
   const isLastQuestion = currentIndex === totalQuestions - 1;
+  const isInteractionLocked =
+    submitting || attemptFinalized || hasAutoSubmittedRef.current;
+  const shouldBlockNavigation =
+    Boolean(exam?.attempt_id) && !attemptFinalized;
+  const isExamInProgress =
+    Boolean(exam?.attempt_id) &&
+    exam?.status === "ongoing" &&
+    !showResult &&
+    !attemptFinalized;
 
-  // Refs to avoid stale closures in the timer interval
   const currentIndexRef = useRef(currentIndex);
   currentIndexRef.current = currentIndex;
 
@@ -176,187 +143,486 @@ function QuizExamPage() {
   const submittingRef = useRef(submitting);
   submittingRef.current = submitting;
 
-  const handleAutoSubmit = useCallback(async () => {
-    if (submittingRef.current || !exam?.attempt_id) return;
-    
-    try {
-      const curQuestion = currentQuestionRef.current;
-      const selAnswer = selectedAnswerRef.current;
-      if (curQuestion && selAnswer !== null) {
-        await saveAnswer(curQuestion.id, selAnswer);
-      }
+  const examAttemptIdRef = useRef(exam?.attempt_id);
+  examAttemptIdRef.current = exam?.attempt_id;
 
-      const result = await submitExam(exam.attempt_id);
+  const completedReviewRedirectId = getCompletedAttemptId(quizId);
 
-      localStorage.removeItem(`quiz_state_${quizId}`);
-      localStorage.removeItem(`quiz_timer_${quizId}_${exam.attempt_id}`);
+  useEffect(() => {
+    setCurrentIndex(0);
+    setSelectedAnswer(null);
+    setAnswers({});
+    setShowResult(false);
+    setScoreResult(null);
+    setSubmittedAttemptId(null);
+    setShowAnswerReview(false);
+    setAttemptFinalized(false);
+    attemptFinalizedRef.current = false;
+    hasAutoSubmittedRef.current = false;
+    hasStarted.current = false;
+  }, [quizId]);
 
-      invalidateAttemptReview(exam.attempt_id);
+  useEffect(() => {
+    if (hasStarted.current) return;
+    hasStarted.current = true;
+
+    const completedAttemptId = getCompletedAttemptId(quizId);
+    if (completedAttemptId) {
+      navigate(
+        `/student/quizzes/${quizId}/attempts/${completedAttemptId}/review`,
+        { replace: true },
+      );
+      return () => {
+        hasStarted.current = false;
+      };
+    }
+
+    startExam();
+
+    return () => {
+      hasStarted.current = false;
+    };
+  }, [quizId, startExam, navigate]);
+
+  useEffect(() => {
+    if (!exam) return;
+
+    if (exam.status !== "ongoing" && exam.results) {
+      markQuizAttemptCompleted(quizId, exam.attempt_id);
+      attemptFinalizedRef.current = true;
+      setAttemptFinalized(true);
       setSubmittedAttemptId(exam.attempt_id);
       setShowAnswerReview(false);
-      setScoreResult(result.results);
+      setScoreResult(mapExamResults(exam.results));
       setShowResult(true);
-
-      toastCustom({
-        message: isArabic
-          ? "انتهى الوقت المخصص للاختبار! تم إرسال إجاباتك تلقائياً."
-          : "Exam duration has ended! Your answers were submitted automatically.",
-        type: "warning",
-        bsIcon: "bi-clock-history",
-        duration: 5000,
-      });
-    } catch (err) {
-      toastCustom({
-        message: isArabic
-          ? "حدث خطأ أثناء إرسال الإجابات تلقائياً بعد انتهاء الوقت"
-          : "Failed to automatically submit answers after time expired.",
-        type: "error",
-        bsIcon: "bi-x-circle",
-        duration: 5000,
-      });
-    }
-  }, [exam?.attempt_id, quizId, isArabic, saveAnswer, submitExam]);
-
-  // Prevent leaving tab by mistake
-  useEffect(() => {
-    if (!exam || showResult) return;
-    const handleBeforeUnload = (e) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [exam, showResult]);
-
-  const handleExitClick = useCallback(() => {
-    const confirmExit = window.confirm(
-      isArabic
-        ? "هل أنت متأكد أنك تريد الخروج؟ قد تفقد إجاباتك الحالية."
-        : "Are you sure you want to exit? You might lose your current answers."
-    );
-    if (confirmExit) {
-      if (exam?.attempt_id) {
-        localStorage.removeItem(`quiz_timer_${quizId}_${exam.attempt_id}`);
-      }
-      handleExit();
-    }
-  }, [exam?.attempt_id, quizId, isArabic]);
-
-  const handleSelectAnswer = useCallback((choiceId) => {
-    setSelectedAnswer(choiceId); // تخزين الـ id مباشرة
-
-    // وتحديث مصفوفة الـ answers لتخزين الـ id
-    const updatedAnswers = [...answers];
-    updatedAnswers[currentIndex] = choiceId;
-    setAnswers(updatedAnswers);
-
-    // الحفظ في الـ localStorage
-    localStorage.setItem(
-      `quiz_state_${quizId}`,
-      JSON.stringify({
-        savedIndex: currentIndex,
-        savedAnswers: updatedAnswers, // أصبحت تحتوي على ids
-        attemptId: exam?.attempt_id,
-      }),
-    );
-  }, [answers, currentIndex, exam?.attempt_id, quizId]);
-
-  const handleNext = useCallback(async () => {
-    // CRITICAL GUARD: must have a valid attempt before any action
-    if (!exam?.attempt_id) {
-      toastCustom({
-        message: isArabic
-          ? "الاختبار لم يُبدأ بعد، انتظر قليلاً"
-          : "Exam not ready yet, please wait",
-        type: "error",
-        bsIcon: "bi-x-circle",
-        duration: 3000,
-      });
+      localStorage.removeItem(`quiz_state_${quizId}`);
       return;
     }
 
-    // 1. حفظ الإجابة الحالية في السيرفر ومصفوفة الإجابات المحلية
-    let updatedAnswers = [...answers];
+    const apiAnswers =
+      exam.user_answers && typeof exam.user_answers === "object"
+        ? { ...exam.user_answers }
+        : {};
 
-    if (currentQuestion && selectedAnswer !== null) {
-      const choiceId = selectedAnswer;
-
-      // إرسال الطلب للسيرفر للحفظ المباشر
-      await saveAnswer(currentQuestion.id, choiceId);
-
-      // تحديث مكان الإجابة في المصفوفة بناءً على الـ currentIndex لضمان دقة الترتيب
-      updatedAnswers[currentIndex] = choiceId;
-      setAnswers(updatedAnswers);
+    const savedState = localStorage.getItem(`quiz_state_${quizId}`);
+    if (savedState) {
+      try {
+        const { savedIndex, savedAnswers, attemptId } = JSON.parse(savedState);
+        if (
+          attemptId === exam.attempt_id &&
+          typeof savedIndex === "number" &&
+          savedAnswers &&
+          typeof savedAnswers === "object" &&
+          !Array.isArray(savedAnswers)
+        ) {
+          setCurrentIndex(savedIndex);
+          setAnswers({ ...apiAnswers, ...savedAnswers });
+          return;
+        }
+      } catch (e) {
+        console.error("Failed to load saved quiz state", e);
+      }
     }
 
-    // 2. تحديث الـ LocalStorage بالخطوة القادمة والإجابات المحدثة لتأمين الـ Refresh
-    const nextIndex = currentIndex + 1;
+    setCurrentIndex(0);
+    setAnswers(apiAnswers);
+  }, [quizId, exam]);
 
-    if (!isLastQuestion) {
+  useEffect(() => {
+    if (exam && exam.attempt_id && exam.status === "ongoing") {
       localStorage.setItem(
         `quiz_state_${quizId}`,
         JSON.stringify({
-          savedIndex: nextIndex, // نخزن الاندكس التالي عشان لما يفتح يلاقيه
-          savedAnswers: updatedAnswers,
-          attemptId: exam?.attempt_id,
+          savedIndex: currentIndex,
+          savedAnswers: answers,
+          attemptId: exam.attempt_id,
         }),
       );
     }
+  }, [currentIndex, answers, exam, quizId]);
 
-    // 3. التحقق من حالة إنهاء الامتحان أو الانتقال للسؤال التالي
-    if (isLastQuestion) {
+  useEffect(() => {
+    if (currentQuestion) {
+      setSelectedAnswer(answers[currentQuestion.id] ?? null);
+    }
+  }, [currentIndex, currentQuestion?.id, answers]);
+
+  const markAttemptFinalized = useCallback(
+    (attemptId) => {
+      markQuizAttemptCompleted(quizId, attemptId);
+      attemptFinalizedRef.current = true;
+      setAttemptFinalized(true);
+    },
+    [quizId],
+  );
+
+  const applySubmitResult = useCallback((attemptId, results) => {
+    localStorage.removeItem(`quiz_state_${quizId}`);
+    invalidateAttemptReview(attemptId);
+    markAttemptFinalized(attemptId);
+    setSubmittedAttemptId(attemptId);
+    setShowAnswerReview(false);
+    setScoreResult(mapExamResults(results));
+    setShowResult(true);
+  }, [quizId, markAttemptFinalized]);
+
+  const syncClosedAttempt = useCallback(
+    async (attemptId) => {
+      if (!attemptId || attemptFinalizedRef.current) {
+        return true;
+      }
+
+      const results = await recoverClosedAttempt(attemptId);
+      if (!results) {
+        return false;
+      }
+
+      hasAutoSubmittedRef.current = true;
+      applySubmitResult(attemptId, results);
+      return true;
+    },
+    [applySubmitResult, recoverClosedAttempt],
+  );
+
+  const persistCurrentAnswer = useCallback(async () => {
+    if (
+      attemptFinalizedRef.current ||
+      hasAutoSubmittedRef.current ||
+      submittingRef.current
+    ) {
+      return true;
+    }
+
+    const curQuestion = currentQuestionRef.current;
+    const selAnswer = selectedAnswerRef.current;
+    const attemptId = examAttemptIdRef.current;
+
+    if (!attemptId || !curQuestion || selAnswer === null) {
+      return true;
+    }
+
+    try {
+      await saveAnswer(curQuestion.id, selAnswer);
+      return true;
+    } catch (err) {
+      if (err.response?.status === 403) {
+        return syncClosedAttempt(attemptId);
+      }
+      return false;
+    }
+  }, [saveAnswer, syncClosedAttempt]);
+
+  const finalizeAttemptRef = useRef(null);
+
+  const finalizeAttempt = useCallback(
+    async ({ showToast = true, toastVariant = "default" } = {}) => {
+      const attemptId = examAttemptIdRef.current;
+
+      if (
+        hasAutoSubmittedRef.current ||
+        submittingRef.current ||
+        attemptFinalizedRef.current ||
+        !attemptId
+      ) {
+        return false;
+      }
+
+      hasAutoSubmittedRef.current = true;
+
       try {
-        const result = await submitExam(exam.attempt_id);
+        const curQuestion = currentQuestionRef.current;
+        const selAnswer = selectedAnswerRef.current;
 
-        localStorage.removeItem(`quiz_state_${quizId}`);
-        localStorage.removeItem(`quiz_timer_${quizId}_${exam.attempt_id}`);
+        if (curQuestion && selAnswer !== null) {
+          await saveAnswer(curQuestion.id, selAnswer);
+        }
 
-        invalidateAttemptReview(exam.attempt_id);
-        setSubmittedAttemptId(exam.attempt_id);
-        setShowAnswerReview(false);
-        setScoreResult(result.results);
-        setShowResult(true);
+        const result = await submitExam(attemptId);
+        applySubmitResult(attemptId, result.results);
+
+        if (showToast) {
+          const toastConfig =
+            toastVariant === "timeout"
+              ? {
+                  message: isArabic
+                    ? "انتهى الوقت المخصص للاختبار! تم إرسال إجاباتك تلقائياً."
+                    : "Exam duration has ended! Your answers were submitted automatically.",
+                  type: "warning",
+                  bsIcon: "bi-clock-history",
+                }
+              : {
+                  message: isArabic
+                    ? "تم إنهاء المحاولة وإرسال إجاباتك."
+                    : "Your attempt has been submitted.",
+                  type: "success",
+                  bsIcon: "bi-check2-circle",
+                };
+
+          toastCustom({ ...toastConfig, duration: 5000 });
+        }
+
+        return true;
       } catch (err) {
+        hasAutoSubmittedRef.current = false;
         toastCustom({
           message: isArabic
             ? "حدث خطأ أثناء إرسال الإجابات"
             : "Failed to submit exam",
           type: "error",
           bsIcon: "bi-x-circle",
-          duration: 3000,
+          duration: 5000,
         });
+        return false;
       }
-    } else {
-      // الانتقال للسؤال التالي وتجهيز الاختيار للسؤال الجديد
-      setCurrentIndex(nextIndex);
+    },
+    [applySubmitResult, isArabic, saveAnswer, submitExam],
+  );
 
-      // مراجعة ما إذا كان الطالب قد أجاب على السؤال التالي مسبقاً لعرض إجابته، وإلا نتركها null
-      const nextQuestionAnswer = updatedAnswers[nextIndex];
-      setSelectedAnswer(
-        nextQuestionAnswer !== undefined ? nextQuestionAnswer : null,
-      );
-    }
-  }, [
-    answers,
-    currentIndex,
-    currentQuestion,
-    exam?.attempt_id,
-    isArabic,
-    isLastQuestion,
-    quizId,
-    saveAnswer,
-    selectedAnswer,
-    submitExam,
-  ]);
+  finalizeAttemptRef.current = finalizeAttempt;
+
+  const handleAutoSubmit = useCallback(async () => {
+    if (hasAutoSubmittedRef.current || showResult) return;
+    await finalizeAttempt({ showToast: true, toastVariant: "timeout" });
+  }, [finalizeAttempt, showResult]);
+
+  useEffect(() => {
+    if (!shouldBlockNavigation) return;
+
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [shouldBlockNavigation]);
+
+  const blocker = useBlocker(shouldBlockNavigation);
+
+  useEffect(() => {
+    if (blocker.state !== "blocked" || leaveDialogOpenRef.current) return;
+
+    leaveDialogOpenRef.current = true;
+
+    confirmLeaveExam(isArabic).then(async (confirmed) => {
+      leaveDialogOpenRef.current = false;
+
+      if (confirmed) {
+        const finalized = await finalizeAttemptRef.current?.({
+          showToast: false,
+        });
+        if (finalized) {
+          blocker.proceed();
+        } else {
+          blocker.reset();
+        }
+      } else {
+        blocker.reset();
+      }
+    });
+  }, [blocker, isArabic]);
 
   const handleExit = useCallback(() => {
     navigate("/student/quizzes");
   }, [navigate]);
 
+  const handleExitClick = useCallback(async () => {
+    const confirmed = await confirmLeaveExam(isArabic);
+    if (confirmed) {
+      await finalizeAttempt({ showToast: false });
+    }
+  }, [finalizeAttempt, isArabic]);
+
+  const handleSelectAnswer = useCallback(
+    (choiceId) => {
+      if (!currentQuestion) return;
+
+      setSelectedAnswer(choiceId);
+      setAnswers((prev) => {
+        const updatedAnswers = { ...prev, [currentQuestion.id]: choiceId };
+
+        localStorage.setItem(
+          `quiz_state_${quizId}`,
+          JSON.stringify({
+            savedIndex: currentIndex,
+            savedAnswers: updatedAnswers,
+            attemptId: exam?.attempt_id,
+          }),
+        );
+
+        return updatedAnswers;
+      });
+    },
+    [currentIndex, currentQuestion, exam?.attempt_id, quizId],
+  );
+
+  const handleNext = useCallback(async () => {
+    if (
+      !exam?.attempt_id ||
+      attemptFinalizedRef.current ||
+      hasAutoSubmittedRef.current
+    ) {
+      if (!exam?.attempt_id) {
+        toastCustom({
+          message: isArabic
+            ? "الاختبار لم يُبدأ بعد، انتظر قليلاً"
+            : "Exam not ready yet, please wait",
+          type: "error",
+          bsIcon: "bi-x-circle",
+          duration: 3000,
+        });
+      }
+      return;
+    }
+
+    let updatedAnswers = { ...answers };
+
+    if (currentQuestion && selectedAnswer !== null) {
+      const saved = await persistCurrentAnswer();
+      if (!saved) {
+        return;
+      }
+      updatedAnswers = {
+        ...updatedAnswers,
+        [currentQuestion.id]: selectedAnswer,
+      };
+      setAnswers(updatedAnswers);
+    }
+
+    if (attemptFinalizedRef.current || hasAutoSubmittedRef.current) {
+      return;
+    }
+
+    const nextIndex = currentIndex + 1;
+
+    if (!isLastQuestion) {
+      localStorage.setItem(
+        `quiz_state_${quizId}`,
+        JSON.stringify({
+          savedIndex: nextIndex,
+          savedAnswers: updatedAnswers,
+          attemptId: exam?.attempt_id,
+        }),
+      );
+    }
+
+    if (isLastQuestion) {
+      hasAutoSubmittedRef.current = true;
+      try {
+        const result = await submitExam(exam.attempt_id);
+        if (result?.results) {
+          applySubmitResult(exam.attempt_id, result.results);
+        } else {
+          hasAutoSubmittedRef.current = false;
+          toastCustom({
+            message: isArabic
+              ? "تعذر قراءة نتيجة الامتحان"
+              : "Could not read exam result",
+            type: "error",
+            bsIcon: "bi-x-circle",
+            duration: 3000,
+          });
+        }
+      } catch (err) {
+        hasAutoSubmittedRef.current = false;
+        const recovered = await syncClosedAttempt(exam.attempt_id);
+        if (!recovered) {
+          toastCustom({
+            message: isArabic
+              ? "حدث خطأ أثناء إرسال الإجابات"
+              : "Failed to submit exam",
+            type: "error",
+            bsIcon: "bi-x-circle",
+            duration: 3000,
+          });
+        }
+      }
+    } else {
+      setCurrentIndex(nextIndex);
+      const nextQuestion = questions[nextIndex];
+      setSelectedAnswer(
+        nextQuestion && updatedAnswers[nextQuestion.id] !== undefined
+          ? updatedAnswers[nextQuestion.id]
+          : null,
+      );
+    }
+  }, [
+    answers,
+    applySubmitResult,
+    currentIndex,
+    currentQuestion,
+    exam?.attempt_id,
+    isArabic,
+    isLastQuestion,
+    persistCurrentAnswer,
+    quizId,
+    questions,
+    selectedAnswer,
+    submitExam,
+    syncClosedAttempt,
+  ]);
+
+  const handlePrevious = useCallback(async () => {
+    if (
+      currentIndex === 0 ||
+      !exam?.attempt_id ||
+      attemptFinalizedRef.current ||
+      hasAutoSubmittedRef.current
+    ) {
+      return;
+    }
+
+    let updatedAnswers = { ...answers };
+
+    if (currentQuestion && selectedAnswer !== null) {
+      const saved = await persistCurrentAnswer();
+      if (!saved) {
+        return;
+      }
+      updatedAnswers = {
+        ...updatedAnswers,
+        [currentQuestion.id]: selectedAnswer,
+      };
+      setAnswers(updatedAnswers);
+    }
+
+    if (attemptFinalizedRef.current || hasAutoSubmittedRef.current) {
+      return;
+    }
+
+    const prevIndex = currentIndex - 1;
+
+    localStorage.setItem(
+      `quiz_state_${quizId}`,
+      JSON.stringify({
+        savedIndex: prevIndex,
+        savedAnswers: updatedAnswers,
+        attemptId: exam.attempt_id,
+      }),
+    );
+
+    setCurrentIndex(prevIndex);
+    const prevQuestion = questions[prevIndex];
+    setSelectedAnswer(
+      prevQuestion && updatedAnswers[prevQuestion.id] !== undefined
+        ? updatedAnswers[prevQuestion.id]
+        : null,
+    );
+  }, [
+    answers,
+    currentIndex,
+    currentQuestion,
+    exam?.attempt_id,
+    persistCurrentAnswer,
+    quizId,
+    questions,
+    selectedAnswer,
+  ]);
+
   const handleFinishWithToast = useCallback(() => {
-    const isFailed = scoreResult?.status === "failed";
+    const isFailed = isAttemptFailed(scoreResult?.status);
     toastCustom({
       message: isFailed
         ? isArabic
@@ -377,6 +643,19 @@ function QuizExamPage() {
 
     handleExit();
   }, [scoreResult, isArabic, handleExit, navigate]);
+
+  if (completedReviewRedirectId && !showResult) {
+    return (
+      <div className="quiz-exam-page">
+        <div
+          className="quiz-exam-container d-flex justify-content-center align-items-center"
+          style={{ minHeight: "300px" }}
+        >
+          <div className="spinner-border text-primary" role="status"></div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -419,7 +698,7 @@ function QuizExamPage() {
     );
   }
 
-  if (exam && questions.length === 0) {
+  if (exam && questions.length === 0 && exam.status === "ongoing") {
     return (
       <div className="quiz-exam-page">
         <div className="quiz-exam-container">
@@ -444,12 +723,9 @@ function QuizExamPage() {
   }
 
   if (showResult) {
-    const isFailed = scoreResult?.status === "failed";
+    const isFailed = isAttemptFailed(scoreResult?.status);
     const percentage = parseFloat(scoreResult?.percentage) || 0;
-
-    // Semicircle geometry:
-    // radius=80, circumference of HALF circle = π * r ≈ 251.2
-    const HALF_CIRC = Math.PI * 80; // ≈ 251.33
+    const HALF_CIRC = Math.PI * 80;
     const filled = (percentage / 100) * HALF_CIRC;
     const strokeColor = isFailed ? "#ef4444" : "#22c55e";
 
@@ -464,7 +740,6 @@ function QuizExamPage() {
             {isArabic ? "نتيجتك" : "Your Result"}
           </h4>
 
-          {/* Animated Half-Circle gauge */}
           <div
             className="result-circle-wrap"
             style={{ height: 130, marginBottom: 8 }}
@@ -474,7 +749,6 @@ function QuizExamPage() {
               xmlns="http://www.w3.org/2000/svg"
               style={{ width: "100%", height: "100%", overflow: "visible" }}
             >
-              {/* Background track — open bottom semicircle */}
               <path
                 d="M 20 100 A 80 80 0 0 1 180 100"
                 fill="none"
@@ -482,7 +756,6 @@ function QuizExamPage() {
                 strokeWidth="14"
                 strokeLinecap="round"
               />
-              {/* Animated progress arc */}
               <path
                 d="M 20 100 A 80 80 0 0 1 180 100"
                 fill="none"
@@ -495,7 +768,6 @@ function QuizExamPage() {
                     "stroke-dasharray 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
                 }}
               />
-              {/* Score text inside the arc */}
               <text
                 x="100"
                 y="82"
@@ -519,7 +791,6 @@ function QuizExamPage() {
             </svg>
           </div>
 
-          {/* Percentage label */}
           <p
             style={{
               fontSize: "1.4rem",
@@ -531,16 +802,19 @@ function QuizExamPage() {
             {scoreResult?.percentage}
           </p>
 
-          {/* Status label */}
           <p
             className={
               isFailed ? "result-messageFailed" : "result-messageSucsses"
             }
           >
             {isFailed
-              ? isArabic
-                ? "رسبت - لم تجتز الحد الأدنى"
-                : "Failed — Below passing mark"
+              ? scoreResult?.status === "timed_out"
+                ? isArabic
+                  ? "انتهى الوقت — لم تجتز الحد الأدنى"
+                  : "Time expired — Below passing mark"
+                : isArabic
+                  ? "رسبت - لم تجتز الحد الأدنى"
+                  : "Failed — Below passing mark"
               : isArabic
                 ? "مبروك! تجاوزت الحد الأدنى"
                 : "Passed — Above passing mark"}
@@ -562,7 +836,9 @@ function QuizExamPage() {
               className="btn-continue btn-exit"
               onClick={handleFinishWithToast}
             >
-              <i className={`bi ${scoreResult?.requires_review ? "bi-star-fill" : "bi-arrow-left"} me-2`}></i>
+              <i
+                className={`bi ${scoreResult?.requires_review ? "bi-star-fill" : "bi-arrow-left"} me-2`}
+              ></i>
               {!isFailed && scoreResult?.requires_review
                 ? isArabic
                   ? "اترك تقييم للحصول على الشهادة"
@@ -580,10 +856,24 @@ function QuizExamPage() {
                 attemptId={submittedAttemptId}
                 enabled={!!submittedAttemptId}
                 compact
+                fullPageReplace
                 fullPageTo={`/student/quizzes/${quizId}/attempts/${submittedAttemptId}/review`}
               />
             </div>
           ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  if (!isExamInProgress && !showResult && !submitting) {
+    return (
+      <div className="quiz-exam-page">
+        <div
+          className="quiz-exam-container d-flex justify-content-center align-items-center"
+          style={{ minHeight: "300px" }}
+        >
+          <div className="spinner-border text-primary" role="status"></div>
         </div>
       </div>
     );
@@ -596,19 +886,23 @@ function QuizExamPage() {
       </Helmet>
       <div className="quiz-exam-container">
         <div className="quiz-header d-flex justify-content-between align-items-center mb-3">
-          <button className="topbar-back-btn mb-0" onClick={handleExitClick}>
+          <button
+            type="button"
+            className="topbar-back-btn mb-0"
+            onClick={handleExitClick}
+          >
             <i
               className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
             ></i>
             {isArabic ? "خروج" : "Exit"}
           </button>
-          {exam && exam.duration && (
+          {exam && exam.duration && exam.started_at && (
             <QuizTimer
+              startedAt={exam.started_at}
               durationMins={parseFloat(exam.duration)}
-              attemptId={exam.attempt_id}
-              quizId={quizId}
               isArabic={isArabic}
               onTimeout={handleAutoSubmit}
+              disabled={showResult || isInteractionLocked}
             />
           )}
         </div>
@@ -629,51 +923,63 @@ function QuizExamPage() {
         </div>
 
         <div className="quiz-question">
-          <h5 className="question-text">
-            {currentQuestion?.question_text || currentQuestion?.question}
-          </h5>
+          <QuestionContent question={currentQuestion} />
         </div>
 
         <div className="quiz-options">
           {currentQuestion?.choices?.map((choice, idx) => (
             <button
               key={choice.id}
-              // التعديل هنا: نقارن الـ id المخزن بالـ id الخاص بالاختيار الحالي
               className={`quiz-option ${selectedAnswer === choice.id ? "selected" : ""}`}
-              onClick={() => handleSelectAnswer(choice.id)} // نمرر الـ id وليس الـ idx
+              onClick={() => handleSelectAnswer(choice.id)}
             >
               <span className="option-letter">
                 {String.fromCharCode(65 + idx)}{" "}
-                {/* الحرف يظل ثابتاً بصرياً A, B, C */}
               </span>
               <span className="option-text">{choice.choice_text}</span>
             </button>
           ))}
         </div>
 
-        <button
-          className="btn-continueQuiz"
-          disabled={selectedAnswer === null || submitting || !exam?.attempt_id}
-          onClick={handleNext}
-        >
-          {submitting ? (
-            <span
-              className="spinner-border spinner-border-sm me-2"
-              role="status"
-              aria-hidden="true"
-            ></span>
-          ) : null}
-          {isLastQuestion
-            ? isArabic
-              ? "إنهاء"
-              : "Finish"
-            : isArabic
-              ? "التالي"
-              : "Next"}
-          <i
-            className={`bi ${isLastQuestion ? "bi-check2-all" : "bi-arrow-right"} ms-2`}
-          ></i>
-        </button>
+        <div className="quiz-nav-buttons">
+          {currentIndex > 0 && (
+            <button
+              className="btn-previousQuiz"
+              disabled={isInteractionLocked || !exam?.attempt_id}
+              onClick={handlePrevious}
+            >
+              <i
+                className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"} ${isArabic ? "ms-2" : "me-2"}`}
+              ></i>
+              {isArabic ? "السابق" : "Previous"}
+            </button>
+          )}
+          <button
+            className="btn-continueQuiz"
+            disabled={
+              selectedAnswer === null || isInteractionLocked || !exam?.attempt_id
+            }
+            onClick={handleNext}
+          >
+            {submitting ? (
+              <span
+                className="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            ) : null}
+            {isLastQuestion
+              ? isArabic
+                ? "إنهاء"
+                : "Finish"
+              : isArabic
+                ? "التالي"
+                : "Next"}
+            <i
+              className={`bi ${isLastQuestion ? "bi-check2-all" : "bi-arrow-right"} ms-2`}
+            ></i>
+          </button>
+        </div>
       </div>
     </div>
   );

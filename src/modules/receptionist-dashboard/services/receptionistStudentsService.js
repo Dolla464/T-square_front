@@ -1,4 +1,28 @@
 import axiosClient from "../../../api/axios";
+import {
+  buildStudentCreateFormData,
+  buildStudentCreatePayload,
+  STUDENT_CREATE_ALLOWED,
+  toFormData,
+} from "../../../utils/buildPayload";
+
+const buildPayloadFromInput = (data) => {
+  if (data instanceof FormData) {
+    const obj = { role: "student" };
+    STUDENT_CREATE_ALLOWED.forEach((key) => {
+      if (data.has(key)) {
+        obj[key] = data.get(key);
+      }
+    });
+    return toFormData(obj);
+  }
+
+  if (data?.avatar instanceof File) {
+    return buildStudentCreateFormData(data);
+  }
+
+  return buildStudentCreatePayload(data);
+};
 
 export const getStudents = async (params = {}) => {
   const response = await axiosClient.get("/receptionist/students", { params });
@@ -11,7 +35,14 @@ export const getStudentById = async (id) => {
 };
 
 export const registerStudents = async (data) => {
-  const response = await axiosClient.post("/receptionist/users", data);
+  const payload = buildPayloadFromInput(data);
+
+  const response = await axiosClient.post("/receptionist/users", payload, {
+    headers:
+      payload instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : undefined,
+  });
   return response.data;
 };
 

@@ -14,6 +14,7 @@ const defaultFormData = {
   email: "",
   role: "instructor",
   password: "",
+  password_confirmation: "",
   phone: "",
   gender: "male",
   field: "",
@@ -135,6 +136,8 @@ function AdminInstructors() {
       facebook_url: insData.facebook_url || "",
       status: insData.status || "active",
       avatar: avatarValue,
+      password: "",
+      password_confirmation: "",
     });
     setShowForm(true);
   };
@@ -152,7 +155,7 @@ function AdminInstructors() {
       !(avatarValue instanceof File)
     ) {
       avatarValue = null;
-    } 
+    }
 
     setFormData({
       full_name: insData.full_name || instructor.name || "",
@@ -173,7 +176,7 @@ function AdminInstructors() {
       avatar: avatarValue,
     });
     setShowForm(true);
-  };;
+  };
 
   const handleBack = () => {
     setShowForm(false);
@@ -243,6 +246,11 @@ function AdminInstructors() {
           formDataObj.append(key, fields[key]);
         }
       });
+
+      if (data.password) {
+        formDataObj.append("password", data.password);
+        formDataObj.append("password_confirmation", data.password_confirmation);
+      }
     } else {
       // إنشاء مستخدم جديد بصفة محاضر (POST /admin/users)
       // الحقول المطلوبة حسب StoreUserRequest
@@ -298,6 +306,35 @@ function AdminInstructors() {
           : "Password must be at least 8 characters",
       );
       return;
+    }
+
+    if (!editingItem && formData.password !== formData.password_confirmation) {
+      alert(
+        isArabic
+          ? "تأكيد كلمة المرور غير متطابق"
+          : "Password confirmation does not match",
+      );
+      return;
+    }
+
+    if (editingItem && formData.password) {
+      if (formData.password.length < 8) {
+        alert(
+          isArabic
+            ? "يجب أن تكون كلمة المرور 8 أحرف على الأقل"
+            : "Password must be at least 8 characters",
+        );
+        return;
+      }
+
+      if (formData.password !== formData.password_confirmation) {
+        alert(
+          isArabic
+            ? "تأكيد كلمة المرور غير متطابق"
+            : "Password confirmation does not match",
+        );
+        return;
+      }
     }
 
     if (formData.bio.length < 20) {
@@ -851,10 +888,10 @@ function AdminInstructors() {
                 </div>
               </div>
 
-              {/* كلمة المرور (فقط عند الإضافة) */}
-              {!editingItem && !viewingItem && (
+              {/* كلمة المرور */}
+              {!viewingItem && (
                 <div className="row mb-4">
-                  <div className="col-md-12">
+                  <div className="col-md-6">
                     <label className="form-label fw-bold text-dark">
                       {t("instructors_page.password")}
                     </label>
@@ -862,13 +899,36 @@ function AdminInstructors() {
                       type="password"
                       name="password"
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                      placeholder={t("instructors_page.password_placeholder")}
+                      placeholder={
+                        editingItem
+                          ? t("instructors_page.password_edit_placeholder")
+                          : t("instructors_page.password_placeholder")
+                      }
                       value={formData.password}
                       onChange={handleChange}
                     />
                     <small className="text-muted">
-                      {isArabic ? "الأدنى 8 أحرف" : "Min 8 characters"}
+                      {editingItem
+                        ? t("instructors_page.password_optional_hint")
+                        : isArabic
+                          ? "الأدنى 8 أحرف"
+                          : "Min 8 characters"}
                     </small>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold text-dark">
+                      {t("instructors_page.confirm_password")}
+                    </label>
+                    <input
+                      type="password"
+                      name="password_confirmation"
+                      className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+                      placeholder={t(
+                        "instructors_page.confirm_password_placeholder",
+                      )}
+                      value={formData.password_confirmation}
+                      onChange={handleChange}
+                    />
                   </div>
                 </div>
               )}

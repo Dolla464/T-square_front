@@ -15,16 +15,29 @@ import {
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import ProfilePasswordField from "../../../../components/shared/ProfilePasswordField/ProfilePasswordField";
+import {
+  getNameInitials,
+  getProfileAvatarUrl,
+  getProfileDisplayName,
+  isDefaultAvatarUrl,
+} from "../../../../utils/avatar";
+import { getApiErrorMessage } from "../../../../utils/apiErrors";
 
 function DashboardProfile() {
   const { t, i18n } = useTranslation("studentDashboard");
-  const { user, updateUser } = useAuth();
+  const { user, userProfile, updateUser } = useAuth();
   const isArabic = i18n.language === "ar";
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [gender, setGender] = useState("");
+  const [age, setAge] = useState("");
+  const [qualification, setQualification] = useState("");
+  const [guardianPhone, setGuardianPhone] = useState("");
+  const [nationalId, setNationalId] = useState("");
+  const [address, setAddress] = useState("");
+  const [notes, setNotes] = useState("");
 
   const [currentPwd, setCurrentPwd] = useState("");
   const [newPwd, setNewPwd] = useState("");
@@ -53,6 +66,17 @@ function DashboardProfile() {
           setEmail(profileData.email || "");
           setPhone(profileData.student?.phone || "");
           setGender(profileData.student?.gender || "");
+          setAge(
+            profileData.student?.age !== null &&
+              profileData.student?.age !== undefined
+              ? String(profileData.student.age)
+              : "",
+          );
+          setQualification(profileData.student?.qualification || "");
+          setGuardianPhone(profileData.student?.guardian_phone || "");
+          setNationalId(profileData.student?.national_id || "");
+          setAddress(profileData.student?.address || "");
+          setNotes(profileData.student?.notes || "");
 
           if (updateUser) {
             updateUser(profileData);
@@ -93,23 +117,22 @@ function DashboardProfile() {
       }
     } catch (error) {
       console.error("Upload Error:", error);
-      // لو لسه 401، تأكد إن اليوزر عامل Login والتوكن سليم
-      toastError(isArabic ? "فشل رفع الصورة" : "Failed to upload photo");
+      toastError(
+        getApiErrorMessage(
+          error,
+          isArabic ? "فشل رفع الصورة" : "Failed to upload photo",
+        ),
+      );
     } finally {
       setSaveLoading(false);
       e.target.value = "";
     }
   };
 
-  const initials = (typeof fullName === "string" && fullName.trim())
-    ? fullName
-        .split(" ")
-        .filter(Boolean) // تجاهل المسافات الزائدة
-        .map((w) => w[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "ST";
+  const initials = getNameInitials(fullName || getProfileDisplayName(user, userProfile), "ST");
+  const avatarUrl = getProfileAvatarUrl(user, userProfile);
+  const hasAvatar = Boolean(avatarUrl) && !isDefaultAvatarUrl(avatarUrl) && !imageError;
+  const displayName = getProfileDisplayName(user, userProfile) || fullName;
 
   const handleUpdateInformation = async () => {
     if (phone && phone.replace(/\D/g, "").length < 10) {
@@ -119,6 +142,30 @@ function DashboardProfile() {
           : "Phone number must be at least 10 digits",
       );
       return;
+    }
+
+    if (age !== "") {
+      const ageValue = Number(age);
+      if (!Number.isInteger(ageValue) || ageValue < 1 || ageValue > 120) {
+        toastError(
+          isArabic
+            ? "السن يجب أن يكون رقماً بين 1 و 120"
+            : "Age must be a number between 1 and 120",
+        );
+        return;
+      }
+    }
+
+    if (nationalId) {
+      const normalizedNationalId = String(nationalId).replace(/\D/g, "");
+      if (normalizedNationalId.length !== 14) {
+        toastError(
+          isArabic
+            ? "الرقم القومي يجب أن يكون 14 رقمًا"
+            : "National ID must be exactly 14 digits",
+        );
+        return;
+      }
     }
 
     const ok = await showConfirmCustom({
@@ -135,6 +182,12 @@ function DashboardProfile() {
       const res = await updateStudentProfile({
         gender,
         phone,
+        age: age === "" ? "" : Number(age),
+        qualification,
+        guardian_phone: guardianPhone,
+        national_id: nationalId ? String(nationalId).replace(/\D/g, "") : "",
+        address,
+        notes,
       });
       const updatedData = res?.data?.data || res?.data;
       toastSuccess(isArabic ? "تم التحديث بنجاح" : "Updated successfully");
@@ -197,11 +250,11 @@ function DashboardProfile() {
               <div
                 className="profile-avatar position-relative overflow-hidden"
                 style={{
-                  cursor: user?.student?.avatar && !imageError ? "pointer" : "default",
+                  cursor: hasAvatar ? "pointer" : "default",
                 }}
                 onClick={() => {
-                  if (user?.student?.avatar && !imageError) {
-                    setLightboxSlides([{ src: user.student.avatar }]);
+                  if (hasAvatar) {
+                    setLightboxSlides([{ src: avatarUrl }]);
                     setLightboxIndex(0);
                   }
                 }}
@@ -227,10 +280,10 @@ function DashboardProfile() {
     المنطق الجديد: 
     لو مفيش avatar أو لو الصورة حاولت تحمل وفشلت (imageError)، اعرض الـ initials 
   */}
-                {user?.student?.avatar && !imageError ? (
+                {hasAvatar ? (
                   <>
                     <img
-                      src={user.student.avatar}
+                      src={avatarUrl}
                       alt="avatar"
                       onError={() => setImageError(true)} // لو الصورة مكسورة، اقلب على الـ initials
                     />
@@ -255,7 +308,7 @@ function DashboardProfile() {
               </div>
               <div>
                 <div className="profile-name">
-                  {user?.student?.full_name || user?.name}
+                  {displayName || user?.name}
                 </div>
                 <div className="profile-email-sub">{user?.email}</div>
               </div>
@@ -311,6 +364,91 @@ function DashboardProfile() {
                   <option value="male">{t("profile_page.male")}</option>
                   <option value="female">{t("profile_page.female")}</option>
                 </select>
+              </div>
+              <div className="profile-field">
+                <label>{t("profile_page.age")}</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="120"
+                  value={age}
+                  onChange={(e) => {
+                    setAge(e.target.value);
+                    setIsInfoUpdated(true);
+                  }}
+                  className="profile-input"
+                  placeholder={t("profile_page.age_placeholder")}
+                />
+              </div>
+              <div className="profile-field">
+                <label>{t("profile_page.qualification")}</label>
+                <input
+                  type="text"
+                  value={qualification}
+                  onChange={(e) => {
+                    setQualification(e.target.value);
+                    setIsInfoUpdated(true);
+                  }}
+                  className="profile-input"
+                  placeholder={t("profile_page.qualification_placeholder")}
+                />
+              </div>
+              <div className="profile-field">
+                <label>{t("profile_page.guardian_phone")}</label>
+                <input
+                  type="tel"
+                  value={guardianPhone}
+                  onChange={(e) => {
+                    setGuardianPhone(e.target.value);
+                    setIsInfoUpdated(true);
+                  }}
+                  className="profile-input"
+                  placeholder={t("profile_page.guardian_phone_placeholder")}
+                />
+              </div>
+              <div className="profile-field">
+                <label>{t("profile_page.national_id")}</label>
+                <input
+                  type="text"
+                  maxLength={14}
+                  inputMode="numeric"
+                  value={nationalId}
+                  onChange={(e) => {
+                    setNationalId(e.target.value);
+                    setIsInfoUpdated(true);
+                  }}
+                  className="profile-input"
+                  placeholder={t("profile_page.national_id_placeholder")}
+                />
+                <small className="text-muted d-block mt-1">
+                  {t("profile_page.national_id_hint")}
+                </small>
+              </div>
+              <div className="profile-field">
+                <label>{t("profile_page.address")}</label>
+                <textarea
+                  rows="2"
+                  value={address}
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    setIsInfoUpdated(true);
+                  }}
+                  className="profile-input"
+                  placeholder={t("profile_page.address_placeholder")}
+                />
+              </div>
+              <div className="profile-field">
+                <label>{t("profile_page.notes")}</label>
+                <textarea
+                  rows="3"
+                  value={notes}
+                  onChange={(e) => {
+                    setNotes(e.target.value);
+                    setIsInfoUpdated(true);
+                  }}
+                  className="profile-input"
+                  placeholder={t("profile_page.notes_placeholder")}
+                />
               </div>
               {isInfoUpdated && (
                 <div className="profile-field-actions">

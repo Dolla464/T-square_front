@@ -1,4 +1,5 @@
 import axiosClient from "../../../api/axios";
+import { buildCourseDraftPayload } from "../../../utils/buildPayload";
 
 // ----------------------------------------------------------------------------
 // جلب جميع الكورسات مع pagination
@@ -93,10 +94,7 @@ export const forceDeleteCourse = async (id) => {
 // إنشاء مسودة كورس (نفس endpoint مع status=draft)
 // ----------------------------------------------------------------------------
 export const createCourseDraft = async (payload) => {
-    const response = await axiosClient.post("/admin/courses", {
-        ...payload,
-        status: "draft",
-    });
+    const response = await axiosClient.post("/admin/courses", buildCourseDraftPayload(payload));
     return response.data;
 };
 

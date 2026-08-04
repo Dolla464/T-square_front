@@ -1,8 +1,8 @@
 import axiosClient from '../api/axios';
+import { buildRegisterPayload } from '../utils/buildPayload';
 
 export const registerService = async (userData) => {
-  // Expected userData: { name, email, password, password_confirmation, phone, role: 'student' }
-  const response = await axiosClient.post('/register', userData);
+  const response = await axiosClient.post('/register', buildRegisterPayload(userData));
   return response.data;
 };
 

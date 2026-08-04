@@ -252,7 +252,7 @@ function AppNavbar({ isLoggedIn, userName }) {
                   className={`fw-bold ${Tbtn}`}
                 >
                   {user.role === "student" ? (
-                    <NavDropdown.Item as={Link} to="/student">
+                    <NavDropdown.Item as={Link} to="/student/dashboard">
                       {t("user:my_courses")}
                     </NavDropdown.Item>
                   ) : user.role === "instructor" ? (

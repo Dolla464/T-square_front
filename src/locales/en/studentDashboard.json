@@ -64,7 +64,20 @@
     "select_gender": "Select Gender",
     "male": "Male",
     "female": "Female",
-    "update_data": "Update Data"
+    "update_data": "Update Data",
+    "age": "Age",
+    "age_placeholder": "Enter age",
+    "qualification": "Qualification",
+    "qualification_placeholder": "Enter qualification",
+    "guardian_phone": "Guardian Phone",
+    "guardian_phone_placeholder": "Enter guardian phone",
+    "national_id": "National ID",
+    "national_id_placeholder": "Enter 14-digit national ID",
+    "national_id_hint": "Must be exactly 14 digits",
+    "address": "Address",
+    "address_placeholder": "Enter address",
+    "notes": "Notes",
+    "notes_placeholder": "Enter notes"
   },
   "quizzes": {      
       "continue": "Enter the quiz",
@@ -99,6 +112,7 @@
   "quiz_results": {
     "title": "Quiz Results Details",
     "highest_score": "Highest Score Achieved",
+    "best_badge": "Best",
     "attempt_num": "Attempt {{num}}",
     "score": "Score",
     "status": "Status",

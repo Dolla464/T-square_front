@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getWebsiteMedia, getSetting } from "../services/discovery";
 import { cache } from "../utils/cache";
+import { clearHomePageCache } from "./useHomePage";
 
 export const useDiscoveryMedia = () => {
   const [discoveryMedia, setDiscoveryMedia] = useState(() => {
@@ -42,9 +43,14 @@ export const useDiscoveryMedia = () => {
   return { discoveryMedia, loading, error };
 };
 
-export const clearHeroAndAboutCache = () => {
+export const clearWebsiteMediaCache = () => {
   cache.clear("hero_and_about_data");
+  cache.clear("discovery_media_data");
+  clearHomePageCache();
 };
+
+/** @deprecated Use clearWebsiteMediaCache */
+export const clearHeroAndAboutCache = clearWebsiteMediaCache;
 
 export const useHeroAndAboutData = () => {
   const [heroImage, setHeroImage] = useState(() => {
