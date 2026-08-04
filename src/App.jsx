@@ -206,6 +206,10 @@ const ReceptionistAttendance = lazy(
   () =>
     import("./modules/receptionist-dashboard/pages/Attendance/ReceptionistAttendance"),
 );
+const ReceptionistStudentAttendance = lazy(
+  () =>
+    import("./modules/receptionist-dashboard/pages/StudentAttendance/ReceptionistStudentAttendance"),
+);
 const ReceptionistStudents = lazy(
   () =>
     import("./modules/receptionist-dashboard/pages/Students/ReceptionistStudents"),
@@ -514,6 +518,10 @@ function AppContent() {
                     <Route
                       path="attendance"
                       element={<ReceptionistAttendance />}
+                    />
+                    <Route
+                      path="student-attendance"
+                      element={<ReceptionistStudentAttendance />}
                     />
                     <Route path="groups" element={<ReceptionistGroups />} />
                     <Route path="students" element={<ReceptionistStudents />} />

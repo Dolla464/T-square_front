@@ -65,6 +65,7 @@ function StudentCourseAttendanceModal({
   studentId,
   studentName,
   onHide,
+  useAttendanceHook = useAdminAttendance,
 }) {
   const { t, i18n } = useTranslation("adminDashboard");
   const isArabic = i18n.language?.startsWith("ar");
@@ -75,7 +76,7 @@ function StudentCourseAttendanceModal({
     exportLoading,
     loadStudentCourseAttendance,
     handleExportStudent,
-  } = useAdminAttendance();
+  } = useAttendanceHook();
 
   useEffect(() => {
     if (show && groupId && studentId) {
