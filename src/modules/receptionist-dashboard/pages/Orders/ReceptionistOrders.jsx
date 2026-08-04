@@ -8,6 +8,7 @@ function ReceptionistOrders() {
       basePath="/receptionist"
       canExport={false}
       canDelete={false}
+      showStats={false}
     />
   );
 }
