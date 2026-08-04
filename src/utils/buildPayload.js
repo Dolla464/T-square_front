@@ -34,6 +34,12 @@ export const STUDENT_CREATE_ALLOWED = [
   "gender",
   "group_id",
   "avatar",
+  "age",
+  "qualification",
+  "guardian_phone",
+  "national_id",
+  "address",
+  "notes",
 ];
 
 export const STUDENT_PROFILE_ALLOWED = [
@@ -41,6 +47,12 @@ export const STUDENT_PROFILE_ALLOWED = [
   "phone",
   "avatar",
   "full_name",
+  "age",
+  "qualification",
+  "guardian_phone",
+  "national_id",
+  "address",
+  "notes",
 ];
 
 export const INSTRUCTOR_PROFILE_ALLOWED = [

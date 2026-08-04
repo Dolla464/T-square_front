@@ -63,7 +63,20 @@
     "select_gender": "اختر الجنس",
     "male": "ذكر",
     "female": "أنثى",
-    "update_data": "تحديث البيانات"
+    "update_data": "تحديث البيانات",
+    "age": "السن",
+    "age_placeholder": "اكتب السن",
+    "qualification": "المؤهل",
+    "qualification_placeholder": "اكتب المؤهل",
+    "guardian_phone": "رقم ولي الأمر",
+    "guardian_phone_placeholder": "اكتب رقم ولي الأمر",
+    "national_id": "الرقم القومي",
+    "national_id_placeholder": "اكتب الرقم القومي (14 رقم)",
+    "national_id_hint": "يجب أن يكون 14 رقمًا بالضبط",
+    "address": "العنوان",
+    "address_placeholder": "اكتب العنوان",
+    "notes": "ملاحظات",
+    "notes_placeholder": "اكتب الملاحظات"
   },
   "quizzes": {
         "continue": "الدخول للاختبار",
