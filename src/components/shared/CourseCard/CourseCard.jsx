@@ -1,8 +1,8 @@
 import React from "react";
 import "./CourseCard.css";
-// import courseThumb from "../../../assets/course-temp.webp";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { normalizeStorageUrl } from "../../../utils/resolveApiOrigin";
 
 const CourseCard = ({ course }) => {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ const CourseCard = ({ course }) => {
       <div className="course-img-wrapper">
         {/* لما يكون عندنا صور الكورسات هنشيل courseThumb */}
         <img
-          src={course.image}
+          src={normalizeStorageUrl(course.image)}
           alt={course.title}
           className="course-img"
           width="400"

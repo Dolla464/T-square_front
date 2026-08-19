@@ -39,7 +39,7 @@ const Team = lazy(() => import("./pages/Team"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Payment = lazy(() => import("./pages/Payment"));
 
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { useAuth } from "./contexts/AuthContext";
 import NotificationsProvider from "./contexts/NotificationsContext";
 import { getRouteByRole } from "./config/routes";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
@@ -621,11 +621,9 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <AuthProvider>
-      <NotificationsProvider>
-        <RouterProvider router={router} />
-      </NotificationsProvider>
-    </AuthProvider>
+    <NotificationsProvider>
+      <RouterProvider router={router} />
+    </NotificationsProvider>
   );
 }
 

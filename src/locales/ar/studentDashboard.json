@@ -194,6 +194,11 @@
     "selectGroup": "اختر مجموعة لعرض سجل حضورك.",
     "attended": "حضر",
     "remaining": "متبقي",
+    "attendanceRate": "نسبة الحضور",
+    "chartPresent": "حاضر",
+    "chartLate": "متأخر",
+    "chartAbsent": "غائب",
+    "chartNotMarked": "لم تُسجَّل",
     "sessionsAttended": "جلسة حضرها",
     "sessionStatus": {
       "upcoming": "قادمة",

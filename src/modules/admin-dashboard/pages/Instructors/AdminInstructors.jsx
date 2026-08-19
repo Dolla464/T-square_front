@@ -5,6 +5,7 @@ import "yet-another-react-lightbox/styles.css";
 import AdminPagination from "../../components/shared/AdminPagination";
 import { useInstructors } from "../../hooks/useInstractor";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { openExternalUrl } from "../../../../utils/openExternalUrl";
 // import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
@@ -392,7 +393,7 @@ function AdminInstructors() {
       `Platform link : https://tsquarecenter.com/\n\n` +
       `نتمنى لك تجربة موفقة معنا في T-Square `;
     const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, "_blank");
+    openExternalUrl(`https://wa.me/${phone}?text=${encodedMessage}`);
   };
   return (
     <div className="admin-content-page">

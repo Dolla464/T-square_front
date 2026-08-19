@@ -6,63 +6,56 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import axios from "axios";
-import axiosClient from "../api/axios";
+import axiosClient, { initCsrf } from "../api/axios";
 import { fetchCurrentUser } from "../services/auth";
 import { normalizeAuthUser } from "../utils/normalizeAuthUser";
 import Loading from "../Loading";
 
 const AuthContext = createContext();
 
+const QUIZ_STATE_PREFIX = "quiz_state_";
+const QUIZ_COMPLETED_PREFIX = "quiz_completed_";
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
-  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userSynced, setUserSynced] = useState(false);
   const [isMaintenance, setIsMaintenance] = useState(false);
 
-  const getStorage = useCallback((rememberMe) => {
-    return rememberMe ? localStorage : sessionStorage;
-  }, []);
-
-  const getActiveStorage = useCallback(() => {
-    if (localStorage.getItem("token")) {
-      return localStorage;
-    }
-    if (sessionStorage.getItem("token")) {
-      return sessionStorage;
-    }
-    return localStorage;
-  }, []);
-
-  const clearAllStorage = useCallback(() => {
+  const clearLegacyAuthStorage = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
   }, []);
 
-  const persistUser = useCallback(
-    (nextUser) => {
-      if (!nextUser) {
-        return;
+  const clearSensitiveSessionData = useCallback(() => {
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith(QUIZ_STATE_PREFIX)) {
+        localStorage.removeItem(key);
       }
+    });
 
-      const storage = getActiveStorage();
-      storage.setItem("user", JSON.stringify(nextUser));
-    },
-    [getActiveStorage],
-  );
+    Object.keys(sessionStorage).forEach((key) => {
+      if (
+        key.startsWith(QUIZ_STATE_PREFIX) ||
+        key.startsWith(QUIZ_COMPLETED_PREFIX)
+      ) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  }, []);
 
-  const syncUserFromServer = useCallback(async (tokenOverride = null) => {
-    const tokenToUse =
-      tokenOverride || localStorage.getItem("token") || sessionStorage.getItem("token");
-
-    if (!tokenToUse) {
-      throw new Error("Missing auth token");
+  const persistUser = useCallback((nextUser) => {
+    if (!nextUser) {
+      return;
     }
 
+    sessionStorage.setItem("user", JSON.stringify(nextUser));
+  }, []);
+
+  const syncUserFromServer = useCallback(async () => {
     const serverUser = await fetchCurrentUser();
     if (!serverUser?.role) {
       throw new Error("Invalid user payload from server");
@@ -75,13 +68,9 @@ export const AuthProvider = ({ children }) => {
     return serverUser;
   }, [persistUser]);
 
-  const fetchUserProfile = useCallback(async (tokenToUse) => {
+  const fetchUserProfile = useCallback(async () => {
     try {
-      const response = await axiosClient.get("/profile", {
-        headers: {
-          Authorization: `Bearer ${tokenToUse}`,
-        },
-      });
+      const response = await axiosClient.get("/profile");
       if (response.data.status === "success") {
         setUserProfile(response.data.data);
       }
@@ -123,9 +112,8 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const storedToken = localStorage.getItem("token");
-      const sessionToken = !storedToken ? sessionStorage.getItem("token") : null;
-      const finalToken = storedToken || sessionToken;
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
 
       try {
         await Promise.race([
@@ -136,59 +124,53 @@ export const AuthProvider = ({ children }) => {
         console.error("Maintenance check timed out or failed:", e);
       }
 
-      if (finalToken) {
-        setToken(finalToken);
-
-        try {
-          // Never trust role from session/local storage — always verify with backend.
-          await syncUserFromServer(finalToken);
-          await fetchUserProfile(finalToken);
-        } catch (e) {
+      try {
+        await initCsrf();
+        await syncUserFromServer();
+        await fetchUserProfile();
+      } catch (e) {
+        if (e?.response?.status !== 401) {
           console.error("Failed to verify session with server:", e);
-          clearAllStorage();
-          setToken(null);
-          setUser(null);
-          setUserSynced(false);
         }
-      } else {
+        setUser(null);
+        setUserProfile(null);
         setUserSynced(true);
+        sessionStorage.removeItem("user");
       }
 
       setLoading(false);
     };
 
     initializeAuth();
-  }, [checkMaintenanceStatus, fetchUserProfile, clearAllStorage, syncUserFromServer]);
+  }, [
+    checkMaintenanceStatus,
+    fetchUserProfile,
+    clearLegacyAuthStorage,
+    syncUserFromServer,
+  ]);
 
   const login = useCallback(
-    async (responseData, rememberMe = true) => {
-      const { token: authToken, user: loginUser } = responseData;
+    async (responseData) => {
+      clearLegacyAuthStorage();
 
-      clearAllStorage();
-
-      const storage = getStorage(rememberMe);
-      storage.setItem("token", authToken);
-
-      const normalizedUser = normalizeAuthUser(loginUser);
+      const normalizedUser = normalizeAuthUser(responseData.user);
       if (!normalizedUser?.role) {
         throw new Error("Login response missing user role");
       }
 
-      storage.setItem("user", JSON.stringify(normalizedUser));
-
-      setToken(authToken);
+      persistUser(normalizedUser);
       setUser(normalizedUser);
       setUserSynced(true);
 
       try {
-        await syncUserFromServer(authToken);
+        await syncUserFromServer();
       } catch {
         // Login payload is server-issued; keep normalized user if re-fetch fails transiently.
       }
 
-      await fetchUserProfile(authToken);
+      await fetchUserProfile();
     },
-    [clearAllStorage, getStorage, fetchUserProfile, syncUserFromServer],
+    [clearLegacyAuthStorage, persistUser, fetchUserProfile, syncUserFromServer],
   );
 
   const updateUser = useCallback(
@@ -214,31 +196,26 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(async () => {
     try {
       setLoading(true);
-
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/logout`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      await initCsrf();
+      await axiosClient.post("/logout");
     } catch (e) {
       console.error("Server-side logout failed:", e);
     } finally {
-      setToken(null);
       setUser(null);
       setUserProfile(null);
       setUserSynced(false);
-      clearAllStorage();
+      clearLegacyAuthStorage();
+      clearSensitiveSessionData();
+      sessionStorage.removeItem("user");
       setLoading(false);
     }
-  }, [token, clearAllStorage]);
+  }, [clearLegacyAuthStorage, clearSensitiveSessionData]);
 
   const contextValue = useMemo(
     () => ({
       user,
       userProfile,
-      token,
+      token: null,
       login,
       logout,
       updateUser,
@@ -248,12 +225,11 @@ export const AuthProvider = ({ children }) => {
       userSynced,
       isMaintenance,
       checkMaintenanceStatus,
-      isLoggedIn: !!token && !!user?.role,
+      isLoggedIn: !!user?.role,
     }),
     [
       user,
       userProfile,
-      token,
       login,
       logout,
       updateUser,

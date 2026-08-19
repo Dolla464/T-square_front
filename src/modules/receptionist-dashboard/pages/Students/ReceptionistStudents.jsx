@@ -5,6 +5,7 @@ import { useReceptionistGroups } from "../../hooks/useReceptionistGroups";
 function ReceptionistStudents() {
   return (
     <AdminStudents
+      allowEmailEdit={false}
       useStudentsHook={useReceptionistStudents}
       useGroupsHook={useReceptionistGroups}
     />

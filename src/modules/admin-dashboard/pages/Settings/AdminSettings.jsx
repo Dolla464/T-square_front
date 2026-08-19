@@ -717,7 +717,7 @@ function AdminSettings() {
 
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/jpeg,image/png,image/webp"
                         onChange={handleHeroChange}
                         ref={heroInputRef}
                         id="heroUploadInput"
@@ -1092,7 +1092,7 @@ function AdminSettings() {
               <div className="mt-3">
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                   multiple
                   onChange={handleAboutChange}
                   ref={aboutInputRef}
@@ -1271,7 +1271,7 @@ function AdminSettings() {
               <div>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                   multiple
                   onChange={handleDiscoveryChange}
                   ref={discoveryInputRef}

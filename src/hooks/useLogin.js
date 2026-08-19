@@ -27,7 +27,7 @@ export const useLogin = () => {
       const actualData = response.data.data;
 
       // ✅ استنى لما login يخلص (يخزن ويعمل fetch profile)
-      await login(actualData, rememberMe);
+      await login(actualData);
 
       // ✅ الرسالة بعد ما كل حاجة تخلص
       toastWelcome(actualData.user?.name || actualData.user?.email);

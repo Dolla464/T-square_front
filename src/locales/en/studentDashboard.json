@@ -195,6 +195,11 @@
     "selectGroup": "Select a group to view your attendance history.",
     "attended": "Attended",
     "remaining": "Remaining",
+    "attendanceRate": "Attendance Rate",
+    "chartPresent": "Present",
+    "chartLate": "Late",
+    "chartAbsent": "Absent",
+    "chartNotMarked": "Not Marked",
     "sessionsAttended": "sessions attended",
     "sessionStatus": {
       "upcoming": "Upcoming",
