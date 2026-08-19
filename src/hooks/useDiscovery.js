@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getWebsiteMedia, getSetting } from "../services/discovery";
 import { cache } from "../utils/cache";
 import { clearHomePageCache } from "./useHomePage";
+import { resolveMediaUrl } from "../utils/resolveApiOrigin";
 
 export const useDiscoveryMedia = () => {
   const [discoveryMedia, setDiscoveryMedia] = useState(() => {
@@ -111,8 +112,10 @@ export const useHeroAndAboutData = () => {
           getSetting("hero_subtitle_ar").catch(() => null),
         ]);
 
-        const heroImageVal = heroRes?.data?.data?.hero_image || null;
-        const aboutImagesVal = aboutRes?.data?.data?.about_images || [];
+        const heroImageVal = resolveMediaUrl(heroRes?.data?.data?.hero_image || null);
+        const aboutImagesVal = (aboutRes?.data?.data?.about_images || [])
+          .map((item) => resolveMediaUrl(item))
+          .filter(Boolean);
 
         // حقن preload للصورة فوراً بعد ما الـ API يرجع — البراوزر يبدأ التحميل قبل ما React يعمل re-render
         if (heroImageVal && !document.querySelector('link[data-hero-preload]')) {

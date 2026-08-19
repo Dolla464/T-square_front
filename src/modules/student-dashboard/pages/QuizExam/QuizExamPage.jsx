@@ -195,7 +195,7 @@ function QuizExamPage() {
       setShowAnswerReview(false);
       setScoreResult(mapExamResults(exam.results));
       setShowResult(true);
-      localStorage.removeItem(`quiz_state_${quizId}`);
+      sessionStorage.removeItem(`quiz_state_${quizId}`);
       return;
     }
 
@@ -204,7 +204,7 @@ function QuizExamPage() {
         ? { ...exam.user_answers }
         : {};
 
-    const savedState = localStorage.getItem(`quiz_state_${quizId}`);
+    const savedState = sessionStorage.getItem(`quiz_state_${quizId}`);
     if (savedState) {
       try {
         const { savedIndex, savedAnswers, attemptId } = JSON.parse(savedState);
@@ -230,7 +230,7 @@ function QuizExamPage() {
 
   useEffect(() => {
     if (exam && exam.attempt_id && exam.status === "ongoing") {
-      localStorage.setItem(
+      sessionStorage.setItem(
         `quiz_state_${quizId}`,
         JSON.stringify({
           savedIndex: currentIndex,
@@ -257,7 +257,7 @@ function QuizExamPage() {
   );
 
   const applySubmitResult = useCallback((attemptId, results) => {
-    localStorage.removeItem(`quiz_state_${quizId}`);
+    sessionStorage.removeItem(`quiz_state_${quizId}`);
     invalidateAttemptReview(attemptId);
     markAttemptFinalized(attemptId);
     setSubmittedAttemptId(attemptId);
@@ -443,7 +443,7 @@ function QuizExamPage() {
       setAnswers((prev) => {
         const updatedAnswers = { ...prev, [currentQuestion.id]: choiceId };
 
-        localStorage.setItem(
+        sessionStorage.setItem(
           `quiz_state_${quizId}`,
           JSON.stringify({
             savedIndex: currentIndex,
@@ -498,7 +498,7 @@ function QuizExamPage() {
     const nextIndex = currentIndex + 1;
 
     if (!isLastQuestion) {
-      localStorage.setItem(
+      sessionStorage.setItem(
         `quiz_state_${quizId}`,
         JSON.stringify({
           savedIndex: nextIndex,
@@ -594,7 +594,7 @@ function QuizExamPage() {
 
     const prevIndex = currentIndex - 1;
 
-    localStorage.setItem(
+    sessionStorage.setItem(
       `quiz_state_${quizId}`,
       JSON.stringify({
         savedIndex: prevIndex,

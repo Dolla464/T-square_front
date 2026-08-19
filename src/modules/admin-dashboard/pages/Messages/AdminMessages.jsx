@@ -7,6 +7,7 @@ import { useMessages } from "../../hooks/useMessages";
 import MessageCard from "./MessageCard";
 // import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastError } from "../../../../components/shared/Toaster/toaster";
+import { openExternalUrl } from "../../../../utils/openExternalUrl";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
 function AdminMessages() {
@@ -90,7 +91,7 @@ T-Square Team.
 `;
 
     const encodedMessage = encodeURIComponent(formattedMessageText);
-    window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, "_blank");
+    openExternalUrl(`https://wa.me/${cleanPhone}?text=${encodedMessage}`);
   };
 
   // تفعيل زر الواتساب من خلال جلب رقم الهاتف ديناميكياً بالـ ID من الـ API تفصيلياً

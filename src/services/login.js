@@ -1,7 +1,6 @@
-import axiosClient from "../api/axios";
+import axiosClient, { initCsrf } from "../api/axios";
 
 export const loginService = async (credentials) => {
-  // نرجع الـ response بالكامل كما هو معتاد في الـ services
-  return await axiosClient.post("/login", credentials);
-  
+  await initCsrf();
+  return axiosClient.post("/login", credentials);
 };

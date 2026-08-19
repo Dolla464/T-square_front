@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
@@ -16,6 +16,12 @@ import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useAdminAttendance } from "../../hooks/useAdminAttendance";
 import ExportBar from "../../components/shared/ExportBar";
+import {
+  buildAttendanceChartData,
+  buildAttendanceChartOptions,
+  countSessionsByStatus,
+  resolveSessionStatus,
+} from "../../../../utils/attendanceChart";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -87,36 +93,49 @@ function StudentCourseAttendanceModal({
   const student = studentCourseAttendance;
   const sessions = studentCourseAttendance?.sessions ?? [];
 
-  const chartData = {
-    labels: [
-      t("studentAttendance.attended", "Attended"),
-      t("studentAttendance.remaining", "Remaining"),
-    ],
-    datasets: [
-      {
-        data: [
-          student?.attendance_percentage ?? 0,
-          100 - (student?.attendance_percentage ?? 0),
-        ],
-        backgroundColor: ["#0d6efd", "#e9ecef"],
-        borderWidth: 0,
-        hoverOffset: 4,
-      },
-    ],
-  };
+  const statusCounts = useMemo(
+    () => countSessionsByStatus(sessions),
+    [sessions],
+  );
 
-  const chartOptions = {
-    cutout: "70%",
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: (ctx) => ` ${ctx.parsed}%`,
-        },
-      },
-    },
-    maintainAspectRatio: false,
-  };
+  const { lateCount, absentCount } = useMemo(() => {
+    const completed = sessions.filter((s) => s.session_status === "completed");
+
+    return {
+      lateCount: completed.filter((s) => resolveSessionStatus(s) === "late").length,
+      absentCount: completed.filter((s) => resolveSessionStatus(s) === "absent")
+        .length,
+    };
+  }, [sessions]);
+
+  const chartLabelKeys = useMemo(
+    () => ({
+      present: "studentAttendance.presentSessions",
+      late: "studentAttendance.lateSessions",
+      absent: "studentAttendance.absentSessions",
+      not_marked: "studentAttendance.notMarkedSessions",
+    }),
+    [],
+  );
+
+  const chartData = useMemo(
+    () =>
+      buildAttendanceChartData({
+        counts: statusCounts,
+        getLabel: (status) =>
+          t(chartLabelKeys[status], status.replace("_", " ")),
+      }),
+    [statusCounts, t, chartLabelKeys],
+  );
+
+  const chartOptions = useMemo(
+    () =>
+      buildAttendanceChartOptions({
+        isArabic,
+        totalSessions: student?.total_sessions ?? sessions.length,
+      }),
+    [isArabic, student?.total_sessions, sessions.length],
+  );
 
   const progressVariant =
     (student?.attendance_percentage ?? 0) >= 75
@@ -160,13 +179,13 @@ function StudentCourseAttendanceModal({
           <>
             <Row className="align-items-center mb-4">
               <Col xs={12} md={4} className="text-center mb-3 mb-md-0">
-                <div style={{ position: "relative", height: 180 }}>
+                <div style={{ position: "relative", height: 220 }}>
                   <Doughnut data={chartData} options={chartOptions} />
                   <div
                     className="position-absolute top-50 start-50 translate-middle text-center"
                     style={{ pointerEvents: "none" }}
                   >
-                    <span className="fw-bold fs-4 text-primary">
+                    <span className="fw-bold fs-4 text-success">
                       {student.attendance_percentage}%
                     </span>
                     <div className="text-muted small">
@@ -178,9 +197,9 @@ function StudentCourseAttendanceModal({
 
               <Col xs={12} md={8}>
                 <Row className="g-3">
-                  <Col xs={6}>
+                  <Col xs={6} lg={3}>
                     <Card className="border-0 bg-light text-center p-3">
-                      <div className="fw-bold fs-5 text-primary">
+                      <div className="fw-bold fs-5 text-success">
                         {student.attended_sessions}
                       </div>
                       <div className="text-muted small">
@@ -188,7 +207,23 @@ function StudentCourseAttendanceModal({
                       </div>
                     </Card>
                   </Col>
-                  <Col xs={6}>
+                  <Col xs={6} lg={3}>
+                    <Card className="border-0 bg-light text-center p-3">
+                      <div className="fw-bold fs-5 text-warning">{lateCount}</div>
+                      <div className="text-muted small">
+                        {t("studentAttendance.lateSessions", "Late Sessions")}
+                      </div>
+                    </Card>
+                  </Col>
+                  <Col xs={6} lg={3}>
+                    <Card className="border-0 bg-light text-center p-3">
+                      <div className="fw-bold fs-5 text-danger">{absentCount}</div>
+                      <div className="text-muted small">
+                        {t("studentAttendance.absentSessions", "Absent Sessions")}
+                      </div>
+                    </Card>
+                  </Col>
+                  <Col xs={6} lg={3}>
                     <Card className="border-0 bg-light text-center p-3">
                       <div className="fw-bold fs-5 text-secondary">
                         {student.total_sessions}

@@ -12,6 +12,7 @@ import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import "./AdminStudents.css";
 import { useGroups } from "../../hooks/useGroups";
 import { useStudents } from "../../hooks/useStudents";
+import { openExternalUrl } from "../../../../utils/openExternalUrl";
 
 /**
  * Default form data structure for creating or editing a student, ensuring all necessary fields are initialized to empty or default values to prevent uncontrolled input issues in the form components
@@ -64,6 +65,7 @@ const getAvatarSrc = (path) => {
 function AdminStudents({
   useStudentsHook = useStudents,
   useGroupsHook = useGroups,
+  allowEmailEdit = true,
 }) {
   const { selectionGroups, getGroupsSelection } = useGroupsHook();
 
@@ -176,9 +178,8 @@ function AdminStudents({
       👤 Name: ${student.full_name || "-"}
       📧 Email: ${student.email || "-"}
       📱 Phone: ${student.phone || "-"}
-      🔑 Password: ${student.password || "as you registered"}
 
-      ⚠️ Please change your password after your first login.
+      🔒 Use the password you registered with, or reset it from the login page if needed.
 
       🌐 Platform:
       https://tsquarecenter.com/
@@ -190,7 +191,7 @@ function AdminStudents({
 
     const encodedMessage = encodeURIComponent(message.trim());
 
-    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, "_blank");
+    openExternalUrl(`https://wa.me/${phone}?text=${encodedMessage}`);
   };
 
   /**
@@ -362,10 +363,31 @@ function AdminStudents({
     }
 
     if (editingItem) {
+      if (allowEmailEdit) {
+        const email = String(formData.email || "").trim();
+        if (!email) {
+          toastError(
+            isArabic ? "البريد الإلكتروني مطلوب" : "Email is required",
+          );
+          return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          toastError(
+            isArabic
+              ? "يرجى إدخال بريد إلكتروني صالح"
+              : "Please enter a valid email address",
+          );
+          return;
+        }
+      }
+
       const formDataObj = new FormData();
       formDataObj.append("full_name", formData.full_name);
       formDataObj.append("gender", formData.gender);
       formDataObj.append("status", formData.status);
+      if (allowEmailEdit) {
+        formDataObj.append("email", formData.email.trim());
+      }
       if (formData.avatar instanceof File) {
         formDataObj.append("avatar", formData.avatar);
       }
@@ -1106,8 +1128,15 @@ function AdminStudents({
                       placeholder={t("students_page.email_placeholder")}
                       value={formData.email}
                       onChange={handleChange}
-                      disabled={!!viewingItem || !!editingItem}
+                      disabled={
+                        !!viewingItem || (!!editingItem && !allowEmailEdit)
+                      }
                     />
+                    {editingItem && allowEmailEdit && (
+                      <small className="text-muted">
+                        {t("students_page.email_edit_hint")}
+                      </small>
+                    )}
                   </div>
                   <div className="col-md-4">
                     <label className="form-label fw-bold text-dark">

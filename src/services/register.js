@@ -1,7 +1,8 @@
-import axiosClient from '../api/axios';
+import axiosClient, { initCsrf } from '../api/axios';
 import { buildRegisterPayload } from '../utils/buildPayload';
 
 export const registerService = async (userData) => {
+  await initCsrf();
   const response = await axiosClient.post('/register', buildRegisterPayload(userData));
   return response.data;
 };

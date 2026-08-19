@@ -28,6 +28,9 @@ jobs:
       - name: Run Lint Check
         run: npm run lint || echo "Linting issues found, but continuing..."
 
+      - name: Run NPM Audit
+        run: npm audit --audit-level=high || true
+
       - name: Build
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}

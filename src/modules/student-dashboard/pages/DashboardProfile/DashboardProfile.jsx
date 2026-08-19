@@ -236,7 +236,7 @@ function DashboardProfile() {
         type="file"
         id="avatar-upload"
         className="d-none"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp"
         onChange={handleFileChange}
       />
 

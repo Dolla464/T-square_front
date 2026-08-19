@@ -5,9 +5,9 @@ import { getRouteByRole } from "../../config/routes";
 import LoadingSpiner from "../../LoadingSpiner";
 
 const ProtectedRoute = ({ allowedRoles }) => {
-  const { user, token, userSynced } = useAuth();
+  const { user, userSynced, isLoggedIn } = useAuth();
 
-  if (!token) {
+  if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
 

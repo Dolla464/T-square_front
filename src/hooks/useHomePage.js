@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { getHomePageData } from "../services/home";
 import { cache } from "../utils/cache";
+import { resolveMediaUrl } from "../utils/resolveApiOrigin";
 
-const CACHE_KEY = "home_page_data";
+const CACHE_KEY = "home_page_data_v2";
 const CACHE_TTL_MS = 15 * 60 * 1000;
 
 const emptyState = {
@@ -29,33 +30,6 @@ const emptyState = {
 
 const toList = (value) => (Array.isArray(value) ? value : []);
 
-const resolveMediaUrl = (item) => {
-  if (!item || typeof item !== "string") return null;
-
-  const path = item.trim();
-  if (!path) return null;
-
-  if (
-    path.startsWith("http://") ||
-    path.startsWith("https://") ||
-    path.startsWith("data:") ||
-    path.startsWith("blob:")
-  ) {
-    return path;
-  }
-
-  let apiURL = import.meta.env.VITE_API_URL || window.APP_CONFIG?.API_URL || "";
-  apiURL = apiURL.replace(/\/api\/?$/, "");
-  const cleanBase = apiURL.endsWith("/") ? apiURL.slice(0, -1) : apiURL;
-  const cleanPath = path.startsWith("/") ? path : `/${path}`;
-
-  if (!cleanPath.startsWith("/storage") && !cleanPath.startsWith("/public")) {
-    return `${cleanBase}/storage${cleanPath}`;
-  }
-
-  return `${cleanBase}${cleanPath}`;
-};
-
 const normalizeHomeData = (data) => ({
   hero: {
     image: resolveMediaUrl(data?.hero?.image),
@@ -73,7 +47,10 @@ const normalizeHomeData = (data) => ({
   },
   courses: {
     categories: toList(data?.courses?.categories),
-    items: toList(data?.courses?.items),
+    items: toList(data?.courses?.items).map((course) => ({
+      ...course,
+      image: resolveMediaUrl(course?.image),
+    })),
     meta: {
       current_page: data?.courses?.meta?.current_page ?? 1,
       last_page: data?.courses?.meta?.last_page ?? 1,

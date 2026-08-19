@@ -6,6 +6,14 @@ import Swal from "sweetalert2";
 // ================================================================
 const isRTL = () => document.documentElement.dir === "rtl";
 
+const escapeHtml = (str) =>
+  String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 // ================================================================
 // HTML الأيقونات (Bootstrap Icons) لحقن داخل SweetAlert2
 // ================================================================
@@ -78,8 +86,8 @@ export const showConfirmCustom = async ({
   const popupHtml = `
     <div class="swal-inner" dir="${rtl ? "rtl" : "ltr"}">
       ${iconHtml}
-      <h2 class="swal-custom-title">${title}</h2>
-      ${message  ? `<p class="swal-custom-msg">${message}</p>` : ""}
+      <h2 class="swal-custom-title">${escapeHtml(title)}</h2>
+      ${message  ? `<p class="swal-custom-msg">${escapeHtml(message)}</p>` : ""}
       ${html     ? `<div class="swal-custom-html">${html}</div>` : ""}
     </div>
   `;

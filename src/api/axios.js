@@ -1,6 +1,8 @@
 import axios from "axios";
 import { notifyAxiosForbidden } from "../contexts/ForbiddenContext";
 import { notifyRoleMismatch } from "../utils/authEvents";
+import { initCsrf, readCsrfToken } from "./csrf";
+import { resolveAxiosBaseUrl } from "../utils/resolveApiOrigin";
 
 const ALLOWED_WHEN_FORBIDDEN = ["/profile", "/logout", "/login"];
 
@@ -19,7 +21,6 @@ function shouldTriggerGlobalForbidden(error) {
     return false;
   }
 
-  // Exam endpoints return 403 for closed attempts — handled in the exam UI.
   if (isExamFlowRequest(url)) {
     return false;
   }
@@ -37,21 +38,12 @@ function isAllowedWhenForbidden(url = "") {
   return ALLOWED_WHEN_FORBIDDEN.some((path) => url.includes(path));
 }
 
-const resolveBaseUrl = () => {
-  if (window.APP_CONFIG?.API_URL) {
-    return window.APP_CONFIG.API_URL;
-  }
-
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-
-  return "http://t-square-lms.test/api";
-};
+const resolveBaseUrl = () => resolveAxiosBaseUrl();
 
 const axiosClient = axios.create({
   baseURL: resolveBaseUrl(),
   timeout: 150000,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -63,11 +55,16 @@ axiosClient.interceptors.request.use((config) => {
     return Promise.reject(new axios.CanceledError("Request blocked after 403"));
   }
 
-  const token =
+  const csrfToken = readCsrfToken();
+  if (csrfToken) {
+    config.headers["X-XSRF-TOKEN"] = csrfToken;
+  }
+
+  const legacyToken =
     localStorage.getItem("token") || sessionStorage.getItem("token");
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (legacyToken && !config.headers.Authorization) {
+    config.headers.Authorization = `Bearer ${legacyToken}`;
   }
 
   if (config.data instanceof FormData) {
@@ -86,7 +83,6 @@ axiosClient.interceptors.response.use(
     const token =
       localStorage.getItem("token") || sessionStorage.getItem("token");
     const status = error.response?.status;
-    const code = error.response?.data?.code;
 
     if (shouldTriggerGlobalForbidden(error)) {
       accessForbidden = true;
@@ -94,7 +90,7 @@ axiosClient.interceptors.response.use(
       notifyRoleMismatch();
     }
 
-    if (error.response && error.response.status === 503 && !token) {
+    if (error.response && status === 503 && !token) {
       if (
         window.location.pathname !== "/maintenance" &&
         window.location.pathname !== "/login"
@@ -107,4 +103,5 @@ axiosClient.interceptors.response.use(
   },
 );
 
+export { initCsrf };
 export default axiosClient;

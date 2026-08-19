@@ -10,6 +10,7 @@ import { showConfirmCustom } from "../shared/ConfirmDialog/confirmDialog";
 import { toastSuccess, toastError } from "../shared/Toaster/toaster";
 import usePayment from "../../hooks/usePayment";
 import { formatCoursePrice } from "../../utils/coursePrice";
+import { openExternalUrl } from "../../utils/openExternalUrl";
 import { formatInstructorNames, getCourseInstructors } from "../../utils/courseInstructors";
 import LoadingSpiner from "../../LoadingSpiner";
 
@@ -103,7 +104,7 @@ function AllPayment() {
       });
 
       if (whatsappConfirm) {
-        window.open(response.data.whatsapp_link, "_blank");
+        openExternalUrl(response.data.whatsapp_link);
       }
     } catch (error) {
       // استخلاص رسالة الخطأ من السيرفر بشكل مرن سواء كانت ملقاة ككائن بيانات مباشرة أو كخطأ Axios
@@ -155,7 +156,7 @@ function AllPayment() {
     }
     // Then open WhatsApp
     const message = encodeURIComponent(data);
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank");
+    openExternalUrl(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`);
   };
 
   return (

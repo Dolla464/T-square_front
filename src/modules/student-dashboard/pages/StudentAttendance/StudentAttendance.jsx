@@ -15,6 +15,11 @@ import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useStudentAttendance } from "../../hooks/useStudentAttendance";
 import StatCard from "../../components/StatCard";
+import {
+  buildAttendanceChartData,
+  buildAttendanceChartOptions,
+  countSessionsByStatus,
+} from "../../../../utils/attendanceChart";
 import "../../styles/dashboardShared.css";
 import "./StudentAttendance.css";
 
@@ -239,19 +244,40 @@ function StudentAttendance() {
     return { pct, present, absent, total };
   }, [summary]);
 
-  const chartData = {
-    labels: [t("attendance.attended"), t("attendance.remaining")],
-    datasets: [
-      {
-        data: [
-          groupHistory?.attendance_percentage ?? 0,
-          100 - (groupHistory?.attendance_percentage ?? 0),
-        ],
-        backgroundColor: ["#be1522", "#e9ecef"],
-        borderWidth: 0,
-      },
-    ],
-  };
+  const groupSessions = groupHistory?.sessions ?? [];
+
+  const groupStatusCounts = useMemo(
+    () => countSessionsByStatus(groupSessions),
+    [groupSessions],
+  );
+
+  const groupChartLabelKeys = useMemo(
+    () => ({
+      present: "attendance.chartPresent",
+      late: "attendance.chartLate",
+      absent: "attendance.chartAbsent",
+      not_marked: "attendance.chartNotMarked",
+    }),
+    [],
+  );
+
+  const chartData = useMemo(
+    () =>
+      buildAttendanceChartData({
+        counts: groupStatusCounts,
+        getLabel: (status) => t(groupChartLabelKeys[status]),
+      }),
+    [groupStatusCounts, t, groupChartLabelKeys],
+  );
+
+  const chartOptions = useMemo(
+    () =>
+      buildAttendanceChartOptions({
+        isArabic,
+        totalSessions: groupHistory?.total_sessions ?? groupSessions.length,
+      }),
+    [isArabic, groupHistory?.total_sessions, groupSessions.length],
+  );
 
   const todayLabel = new Date().toLocaleDateString(isArabic ? "ar-EG" : "en-US", {
     weekday: "long",
@@ -666,16 +692,34 @@ function StudentAttendance() {
                   <>
                     <Row className="align-items-center mb-4 g-3">
                       <Col md={5} className="text-center">
-                        <div style={{ maxWidth: 160, margin: "0 auto" }}>
-                          <Doughnut data={chartData} />
+                        <div
+                          style={{
+                            position: "relative",
+                            maxWidth: 220,
+                            height: 220,
+                            margin: "0 auto",
+                          }}
+                        >
+                          <Doughnut data={chartData} options={chartOptions} />
+                          <div
+                            className="position-absolute top-50 start-50 translate-middle text-center"
+                            style={{ pointerEvents: "none" }}
+                          >
+                            <span
+                              className="fw-bold fs-4"
+                              style={{ color: "#be1522" }}
+                            >
+                              {groupHistory.attendance_percentage}%
+                            </span>
+                            <div className="text-muted small">
+                              {t("attendance.attendanceRate", "Attendance Rate")}
+                            </div>
+                          </div>
                         </div>
                       </Col>
                       <Col md={7} className={isArabic ? "text-end" : "text-start"}>
                         <h5 className="fw-bold mb-1">{groupHistory.course_title}</h5>
                         <p className="text-muted mb-3 small">{groupHistory.group_name}</p>
-                        <div className="display-6 fw-bold text-danger mb-2" style={{ color: "#be1522" }}>
-                          {groupHistory.attendance_percentage}%
-                        </div>
                         <p className="text-muted small mb-0">
                           {groupHistory.attended_sessions} / {groupHistory.total_sessions}{" "}
                           {t("attendance.sessionsAttended")}
