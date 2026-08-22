@@ -64,10 +64,10 @@ function ScheduleFilters({
   const rangeBounds = viewMode === "month" ? monthBounds : weekBounds;
 
   return (
-    <div className="ac-filters-bar d-flex flex-column gap-3 mb-3">
-      {/* Day / Week / Month toggle */}
-      <div>
-        <div className="ac-tabs-menu">
+    <div className="ac-filters-bar schedule-filters-bar mb-3">
+      {/* Row 1: Day / Week / Month */}
+      <div className="schedule-filters-row schedule-filters-row--view">
+        <div className="ac-tabs-menu schedule-view-tabs">
           <button
             type="button"
             className={`ac-tab-btn ${viewMode === "day" ? "active" : ""}`}
@@ -92,97 +92,90 @@ function ScheduleFilters({
         </div>
       </div>
 
-      <section className="d-flex flex-column flex-md-row align-items-end gap-3 flex-wrap w-100">
-        {/* Date */}
-        <div className="w-100 w-md-auto">
-          <label className="fw-semibold small text-muted mb-1 d-block">
+      {/* Row 2: Date + Instructor + Status + Per Page */}
+      <div className="schedule-filters-row schedule-filters-row--controls">
+        <div className="schedule-filter-group schedule-filter-group--date">
+          <label className="schedule-filter-label fw-semibold small text-muted mb-1 d-block">
             <i className="bi bi-calendar-date me-1"></i>
             {dateLabel}
           </label>
           <input
             type="date"
-            className={`w-100 w-md-auto ${dateInputClass(filters.date)}`}
+            className={`schedule-filter-control w-100 ${dateInputClass(filters.date)}`}
             value={filters.date}
             onChange={(e) => handleDateChange(e.target.value)}
-            style={{ minWidth: "11rem", flex: "0 0 auto" }}
           />
           {(viewMode === "week" || viewMode === "month") && rangeBounds && (
-            <div className="mt-1">
-              <span
-                className="badge rounded-pill px-2 py-1 border-danger bg-danger-subtle text-danger-emphasis"
-                style={{ fontSize: "0.75rem" }}
-              >
-                <i className="bi bi-calendar-range me-1"></i>
-                {rangeBounds.from} → {rangeBounds.to}
-              </span>
-            </div>
+            <span className="schedule-range-badge badge rounded-pill px-2 py-1 border-danger bg-danger-subtle text-danger-emphasis">
+              <i className="bi bi-calendar-range me-1"></i>
+              {rangeBounds.from} → {rangeBounds.to}
+            </span>
           )}
         </div>
 
-        {/* Instructor / Status / Per Page */}
-        <div className="schedule-select-filters w-100 w-lg-auto">
-          <div className="schedule-filter-field schedule-filter-field--instructor">
-            <label className="schedule-filter-label fw-semibold small text-muted mb-1 d-block">
-              <i className="bi bi-person-badge me-1"></i>Instructor
-            </label>
-            <select
-              className={`schedule-filter-control w-100 ${selectClass(!!filters.instructor_id)}`}
-              value={filters.instructor_id}
-              onChange={(e) => updateFilter("instructor_id", e.target.value)}
-              disabled={instructorsLoading}
-            >
-              <option value="">All Instructors</option>
-              {instructors.map((inst) => (
-                <option key={inst.id} value={inst.id}>
-                  {inst.full_name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="schedule-filter-field schedule-filter-field--status">
-            <label className="schedule-filter-label fw-semibold small text-muted mb-1 d-block">
-              <i className="bi bi-funnel me-1"></i>Status
-            </label>
-            <select
-              className={`schedule-filter-control w-100 ${selectClass(!!filters.status)}`}
-              value={filters.status}
-              onChange={(e) => updateFilter("status", e.target.value)}
-            >
-              <option value="">All Statuses</option>
-              <option value="upcoming">Upcoming</option>
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-
-          <div className="schedule-filter-field schedule-filter-field--per-page">
-            <label className="schedule-filter-label fw-semibold small text-muted mb-1 d-block">
-              <i className="bi bi-list-ol me-1"></i>Per Page
-            </label>
-            <select
-              className={`schedule-filter-control w-100 ${selectClass(filters.per_page !== 15)}`}
-              value={filters.per_page}
-              onChange={(e) => updateFilter("per_page", Number(e.target.value))}
-            >
-              <option value={10}>10</option>
-              <option value={15}>15</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
+        <div className="schedule-filter-group schedule-filter-group--instructor">
+          <label className="schedule-filter-label fw-semibold small text-muted mb-1 d-block">
+            <i className="bi bi-person-badge me-1"></i>Instructor
+          </label>
+          <select
+            className={`schedule-filter-control w-100 ${selectClass(!!filters.instructor_id)}`}
+            value={filters.instructor_id}
+            onChange={(e) => updateFilter("instructor_id", e.target.value)}
+            disabled={instructorsLoading}
+          >
+            <option value="">All Instructors</option>
+            {instructors.map((inst) => (
+              <option key={inst.id} value={inst.id}>
+                {inst.full_name}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Reset */}
+        <div className="schedule-filter-group schedule-filter-group--status">
+          <label className="schedule-filter-label fw-semibold small text-muted mb-1 d-block">
+            <i className="bi bi-funnel me-1"></i>Status
+          </label>
+          <select
+            className={`schedule-filter-control w-100 ${selectClass(!!filters.status)}`}
+            value={filters.status}
+            onChange={(e) => updateFilter("status", e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+
+        <div className="schedule-filter-group schedule-filter-group--per-page">
+          <label className="schedule-filter-label fw-semibold small text-muted mb-1 d-block">
+            <i className="bi bi-list-ol me-1"></i>Per Page
+          </label>
+          <select
+            className={`schedule-filter-control w-100 ${selectClass(filters.per_page !== 15)}`}
+            value={filters.per_page}
+            onChange={(e) => updateFilter("per_page", Number(e.target.value))}
+          >
+            <option value={10}>10</option>
+            <option value={15}>15</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Row 3: Reset */}
+      <div className="schedule-filters-row schedule-filters-row--reset">
         <button
           type="button"
-          className="btn ac-btn-view border-0 rounded-3 px-3 py-2 fw-medium w-100 w-md-auto"
+          className="btn ac-btn-view border-0 rounded-3 px-3 py-2 fw-medium schedule-reset-btn"
           onClick={resetFilters}
         >
           <i className="bi bi-arrow-counterclockwise me-1"></i>Reset
         </button>
-      </section>
+      </div>
     </div>
   );
 }

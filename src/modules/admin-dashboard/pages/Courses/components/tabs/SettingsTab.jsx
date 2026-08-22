@@ -1,4 +1,11 @@
-function SettingsTab({ formData, handleChange, isReadOnly, isArabic, t }) {
+function SettingsTab({
+  formData,
+  handleChange,
+  isReadOnly,
+  isArabic,
+  t,
+  storageAccounts = [],
+}) {
   return (
     <div className="ac-tab-content settings-info">
       <h5 className="fw-bold mb-4">{isArabic ? "الإعدادات" : "Settings"}</h5>
@@ -32,6 +39,39 @@ function SettingsTab({ formData, handleChange, isReadOnly, isArabic, t }) {
             name="google_drive_link"
             placeholder="https://drive.google.com/..."
             value={formData.google_drive_link}
+            onChange={handleChange}
+            disabled={isReadOnly}
+          />
+        </div>
+        <div className="col-md-6 mb-3">
+          <label className="form-label fw-bold text-dark">
+            {isArabic ? "حساب Google Storage" : "Google Storage Account"}
+          </label>
+          <select
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
+            name="google_storage_account_id"
+            value={formData.google_storage_account_id || ""}
+            onChange={handleChange}
+            disabled={isReadOnly}
+          >
+            <option value="">{isArabic ? "بدون" : "None"}</option>
+            {storageAccounts.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.name} {account.email ? `(${account.email})` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="col-md-6 mb-3">
+          <label className="form-label fw-bold text-dark">
+            {isArabic ? "Google Drive Folder ID" : "Google Drive Folder ID"}
+          </label>
+          <input
+            type="text"
+            className="form-control p-3 bg-light border-0 rounded-3"
+            name="google_drive_folder_id"
+            placeholder={isArabic ? "اختياري للتنظيم فقط" : "Optional, organizational only"}
+            value={formData.google_drive_folder_id || ""}
             onChange={handleChange}
             disabled={isReadOnly}
           />

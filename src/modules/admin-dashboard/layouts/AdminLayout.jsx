@@ -13,6 +13,11 @@ const ADMIN_NAV = [
   { key: "categories", path: "/admin/categories", icon: "bi-list" },
   { key: "courses", path: "/admin/courses", icon: "bi-mortarboard" },
   {
+    key: "googleStorage",
+    path: "/admin/google-storage-accounts",
+    icon: "bi-cloud-arrow-up",
+  },
+  {
     key: "instructors",
     path: "/admin/instructors",
     icon: "bi-person-lines-fill",
@@ -100,6 +105,8 @@ function AdminLayout() {
         return isArabic ? "المجموعات" : "Groups";
       case "/admin/courses":
         return isArabic ? "الكورسات" : "Courses";
+      case "/admin/google-storage-accounts":
+        return isArabic ? "حسابات Google Storage" : "Google Storage Accounts";
       case "/admin/solutions":
         return isArabic ? "الحلول البرمجية" : "Solutions";
       case "/admin/students":

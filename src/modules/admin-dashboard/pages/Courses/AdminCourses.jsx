@@ -12,6 +12,8 @@ import {
 import VideoPreviewModal from "../../../../components/layout/VideoPreviewModal";
 import { getCourseInstructors, formatInstructorNames } from "../../../../utils/courseInstructors";
 import { useCourseFormLogic } from "./hooks/useCourseFormLogic";
+import { useCourseLessons } from "../../hooks/useCourseLessons";
+import { useGoogleStorageAccounts } from "../../hooks/useGoogleStorageAccounts";
 import {
   mapItemToFormData,
   buildFormData,
@@ -77,6 +79,8 @@ function AdminCourses() {
   // ─── Form logic hook ───────────────────────────────────────────────────────
   const formLogic = useCourseFormLogic();
   const { setFormData, setThumbnailFile, setCoverFile, setActiveTab } = formLogic;
+  const { accounts: storageAccounts } = useGoogleStorageAccounts();
+  const courseLessons = useCourseLessons(editingItem?.id ?? null);
 
   // ─── Data fetching ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -377,6 +381,8 @@ function AdminCourses() {
       is_free: formData.is_free,
       preview_video: formData.preview_video,
       google_drive_link: formData.google_drive_link,
+      google_storage_account_id: formData.google_storage_account_id || null,
+      google_drive_folder_id: formData.google_drive_folder_id || null,
       published_at:
         forceStatus === "published"
           ? formData.published_at
@@ -564,6 +570,16 @@ function AdminCourses() {
           handlePlayVideo={handlePlayVideo}
           isArabic={isArabic}
           t={t}
+          storageAccounts={storageAccounts}
+          courseLessonsProps={{
+            lessons: courseLessons.lessons,
+            loading: courseLessons.loading,
+            saving: courseLessons.saving,
+            onAddLesson: courseLessons.addLessonDraft,
+            onSaveLesson: courseLessons.saveLesson,
+            onRemoveLesson: courseLessons.removeLesson,
+            onUpdateLesson: courseLessons.updateLessonField,
+          }}
           onDraftCreated={(draft) => {
             const course = draft?.data ?? draft;
             if (course?.id) setEditingItem(course);
