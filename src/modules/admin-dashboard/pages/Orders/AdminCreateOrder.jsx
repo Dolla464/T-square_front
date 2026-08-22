@@ -7,6 +7,11 @@ import { getCourses as defaultGetCourses } from "../../services/coursesServices"
 import { selectClass, dateInputClass } from "../../components/shared/adminUiStyles";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
+const parseListResponse = (res) => {
+  const list = res?.data;
+  return Array.isArray(list) ? list : [];
+};
+
 function AdminCreateOrder({
   useOrdersHook = useOrders,
   getStudentsFn = defaultGetStudents,
@@ -20,12 +25,16 @@ function AdminCreateOrder({
 
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [studentsPagination, setStudentsPagination] = useState(null);
+  const [coursesPagination, setCoursesPagination] = useState(null);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const [studentSearch, setStudentSearch] = useState("");
   const [courseSearch, setCourseSearch] = useState("");
+  const [debouncedStudentSearch, setDebouncedStudentSearch] = useState("");
+  const [debouncedCourseSearch, setDebouncedCourseSearch] = useState("");
 
   const [formData, setFormData] = useState({
     student_id: "",
@@ -41,45 +50,77 @@ function AdminCreateOrder({
   const [showBillingOverride, setShowBillingOverride] = useState(false);
 
   useEffect(() => {
+    const timer = setTimeout(() => setDebouncedStudentSearch(studentSearch), 500);
+    return () => clearTimeout(timer);
+  }, [studentSearch]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedCourseSearch(courseSearch), 500);
+    return () => clearTimeout(timer);
+  }, [courseSearch]);
+
+  useEffect(() => {
     setLoadingStudents(true);
-    getStudentsFn({ per_page: 200, status: "active" })
+    const params = {
+      per_page: 50,
+      status: "active",
+      for_select: 1,
+    };
+    const trimmed = debouncedStudentSearch.trim();
+    if (trimmed) {
+      params.search = trimmed;
+    }
+
+    getStudentsFn(params)
       .then((res) => {
-        const list = res?.data?.students || res?.data || [];
-        setStudents(Array.isArray(list) ? list : []);
+        setStudents(parseListResponse(res));
+        setStudentsPagination(res?.pagination || null);
       })
-      .catch(() => setStudents([]))
+      .catch(() => {
+        setStudents([]);
+        setStudentsPagination(null);
+      })
       .finally(() => setLoadingStudents(false));
+  }, [debouncedStudentSearch, getStudentsFn]);
 
+  useEffect(() => {
     setLoadingCourses(true);
-    getCoursesFn({ per_page: 200, status: "published" })
+    const params = {
+      per_page: 50,
+      status: "published",
+    };
+    const trimmed = debouncedCourseSearch.trim();
+    if (trimmed) {
+      params.search = trimmed;
+    }
+
+    getCoursesFn(params)
       .then((res) => {
-        const list = res?.data?.courses || res?.data || [];
-        setCourses(Array.isArray(list) ? list : []);
+        setCourses(parseListResponse(res));
+        setCoursesPagination(res?.meta || res?.pagination || null);
       })
-      .catch(() => setCourses([]))
+      .catch(() => {
+        setCourses([]);
+        setCoursesPagination(null);
+      })
       .finally(() => setLoadingCourses(false));
-  }, []);
+  }, [debouncedCourseSearch, getCoursesFn]);
 
-  const filteredStudents = useMemo(() => {
-    if (!studentSearch.trim()) return students;
-    const q = studentSearch.toLowerCase();
-    return students.filter(
-      (s) =>
-        s.full_name?.toLowerCase().includes(q) ||
-        s.enrollment_number?.toLowerCase().includes(q) ||
-        s.phone?.includes(q)
-    );
-  }, [students, studentSearch]);
+  const displayStudents = useMemo(() => {
+    if (!selectedStudent) return students;
+    if (students.some((s) => s.id === selectedStudent.id)) return students;
+    return [selectedStudent, ...students];
+  }, [students, selectedStudent]);
 
-  const filteredCourses = useMemo(() => {
-    if (!courseSearch.trim()) return courses;
-    const q = courseSearch.toLowerCase();
-    return courses.filter((c) => c.title?.toLowerCase().includes(q));
-  }, [courses, courseSearch]);
+  const displayCourses = useMemo(() => {
+    if (!selectedCourse) return courses;
+    if (courses.some((c) => c.id === selectedCourse.id)) return courses;
+    return [selectedCourse, ...courses];
+  }, [courses, selectedCourse]);
 
   const handleStudentChange = (e) => {
     const id = e.target.value;
-    const student = students.find((s) => String(s.id) === id) || null;
+    const student = displayStudents.find((s) => String(s.id) === id) || null;
     setSelectedStudent(student);
     setFormData((prev) => ({
       ...prev,
@@ -92,7 +133,7 @@ function AdminCreateOrder({
 
   const handleCourseChange = (e) => {
     const id = e.target.value;
-    const course = courses.find((c) => String(c.id) === id) || null;
+    const course = displayCourses.find((c) => String(c.id) === id) || null;
     setSelectedCourse(course);
     setFormData((prev) => ({ ...prev, course_id: id }));
   };
@@ -128,6 +169,12 @@ function AdminCreateOrder({
   const isFree = selectedCourse
     ? selectedCourse.is_free === true || coursePrice <= 0
     : false;
+
+  const showStudentsHint =
+    studentsPagination?.total > displayStudents.length && !debouncedStudentSearch.trim();
+
+  const showCoursesHint =
+    coursesPagination?.total > displayCourses.length && !debouncedCourseSearch.trim();
 
   return (
     <div className="admin-content-page">
@@ -200,14 +247,19 @@ function AdminCreateOrder({
                   <option value="">
                     {loadingStudents ? t("loadingStudents") : t("selectStudent")}
                   </option>
-                  {filteredStudents.map((s) => (
+                  {displayStudents.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.full_name}
                       {s.enrollment_number ? ` — ${s.enrollment_number}` : ""}
                     </option>
                   ))}
                 </select>
-                {filteredStudents.length === 0 && !loadingStudents && studentSearch && (
+                {showStudentsHint && (
+                  <small className="text-muted mt-1 d-block">
+                    {t("searchStudentsHint", { count: studentsPagination.total })}
+                  </small>
+                )}
+                {displayStudents.length === 0 && !loadingStudents && debouncedStudentSearch && (
                   <small className="text-muted mt-1 d-block">{t("noStudentsFound")}</small>
                 )}
               </div>
@@ -239,7 +291,7 @@ function AdminCreateOrder({
                   <option value="">
                     {loadingCourses ? t("loadingCourses") : t("selectCourse")}
                   </option>
-                  {filteredCourses.map((c) => (
+                  {displayCourses.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.title}
                       {!c.is_free && Number(c.price) > 0
@@ -248,7 +300,12 @@ function AdminCreateOrder({
                     </option>
                   ))}
                 </select>
-                {filteredCourses.length === 0 && !loadingCourses && courseSearch && (
+                {showCoursesHint && (
+                  <small className="text-muted mt-1 d-block">
+                    {t("searchCoursesHint", { count: coursesPagination.total })}
+                  </small>
+                )}
+                {displayCourses.length === 0 && !loadingCourses && debouncedCourseSearch && (
                   <small className="text-muted mt-1 d-block">{t("noCoursesFound")}</small>
                 )}
               </div>
