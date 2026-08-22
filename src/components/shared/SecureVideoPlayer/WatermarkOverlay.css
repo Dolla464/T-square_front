@@ -1,0 +1,45 @@
+.video-watermark {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.55;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.video-watermark__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+}
+
+.video-watermark--top-left {
+  top: 1rem;
+  left: 1rem;
+}
+
+.video-watermark--top-right {
+  top: 1rem;
+  right: 1rem;
+}
+
+.video-watermark--bottom-left {
+  bottom: 4rem;
+  left: 1rem;
+}
+
+.video-watermark--bottom-right {
+  bottom: 4rem;
+  right: 1rem;
+}
+
+.video-watermark--center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

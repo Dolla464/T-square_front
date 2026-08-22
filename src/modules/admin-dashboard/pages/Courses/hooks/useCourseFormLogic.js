@@ -228,7 +228,7 @@ export const useCourseFormLogic = () => {
       return updated.length ? updated : [createSection()];
     });
 
-  const tabOrder = ["basic", "curriculum", "pricing", "settings"];
+  const tabOrder = ["basic", "curriculum", "lessons", "pricing", "settings"];
   const currentTabIndex = tabOrder.indexOf(activeTab);
 
   const goToNextTab = () => {

@@ -71,6 +71,9 @@ const StudentAttendance = lazy(
 const CourseDetails = lazy(
   () => import("./modules/student-dashboard/pages/CourseDetails/CourseDetails"),
 );
+const LessonPlayer = lazy(
+  () => import("./modules/student-dashboard/pages/LessonPlayer/LessonPlayer"),
+);
 const LeaveReview = lazy(
   () => import("./modules/student-dashboard/pages/LeaveReview/LeaveReview"),
 );
@@ -92,6 +95,9 @@ const AdminOverview = lazy(
 );
 const AdminCourses = lazy(
   () => import("./modules/admin-dashboard/pages/Courses/AdminCourses"),
+);
+const GoogleStorageAccounts = lazy(
+  () => import("./modules/admin-dashboard/pages/GoogleStorageAccounts/GoogleStorageAccounts"),
 );
 const AdminSolutions = lazy(
   () => import("./modules/admin-dashboard/pages/Solutions/AdminSolutions"),
@@ -422,6 +428,10 @@ function AppContent() {
                   >
                     <Route index element={<AdminOverview />} />
                     <Route path="courses" element={<AdminCourses />} />
+                    <Route
+                      path="google-storage-accounts"
+                      element={<GoogleStorageAccounts />}
+                    />
                     <Route path="categories" element={<AdminCategories />} />
                     <Route path="tags" element={<AdminTags />} />
                     <Route path="quizzes" element={<AdminQuizzes />} />
@@ -582,6 +592,10 @@ function AppContent() {
                     <Route
                       path="course/:courseId"
                       element={<CourseDetails />}
+                    />
+                    <Route
+                      path="course/:courseId/lesson/:lessonId"
+                      element={<LessonPlayer />}
                     />
                     <Route path="review/:courseId" element={<LeaveReview />} />
                   </Route>

@@ -236,6 +236,8 @@ export const mapItemToFormData = (item) => ({
   is_free: item.is_free || false,
   preview_video: item.preview_video || "",
   google_drive_link: item.google_drive_link || "",
+  google_storage_account_id: item.google_storage_account_id || item.google_storage_account?.id || "",
+  google_drive_folder_id: item.google_drive_folder_id || "",
   published_at: item.published_at
     ? new Date(item.published_at).toISOString().split("T")[0]
     : "",
@@ -270,6 +272,8 @@ export const defaultFormData = {
   is_free: false,
   preview_video: "",
   google_drive_link: "",
+  google_storage_account_id: "",
+  google_drive_folder_id: "",
   published_at: "",
   tags: [],
   learnings: [""],

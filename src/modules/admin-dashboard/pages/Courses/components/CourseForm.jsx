@@ -1,6 +1,7 @@
 import { Container, Row, Col } from "react-bootstrap";
 import BasicInfoTab from "./tabs/BasicInfoTab";
 import CurriculumTab from "./tabs/CurriculumTab";
+import LessonsTab from "./tabs/LessonsTab";
 import PricingTab from "./tabs/PricingTab";
 import SettingsTab from "./tabs/SettingsTab";
 import React, { useEffect } from "react";
@@ -57,6 +58,8 @@ function CourseForm({
   isArabic,
   t,
   onDraftCreated,
+  storageAccounts = [],
+  courseLessonsProps = {},
 }) {
   // 3. استدعاء الـ Hook محلياً للطوارئ في حال لم يرسل الأب البيانات
   const { treeCategories: hookTreeCategories, getCategoriesTree } =
@@ -148,6 +151,12 @@ function CourseForm({
                   {t("content.form.tabs.curriculum")}
                 </button>
                 <button
+                  className={`ac-tab-btn ${activeTab === "lessons" ? "active" : ""}`}
+                  onClick={() => setActiveTab("lessons")}
+                >
+                  {isArabic ? "الدروس" : "Lessons"}
+                </button>
+                <button
                   className={`ac-tab-btn ${activeTab === "pricing" ? "active" : ""}`}
                   onClick={() => setActiveTab("pricing")}
                 >
@@ -214,6 +223,15 @@ function CourseForm({
           />
         )}
 
+        {activeTab === "lessons" && (
+          <LessonsTab
+            courseId={editingItem?.id ?? null}
+            isReadOnly={isReadOnly}
+            isArabic={isArabic}
+            {...courseLessonsProps}
+          />
+        )}
+
         {activeTab === "pricing" && (
           <PricingTab
             formData={formData}
@@ -231,6 +249,7 @@ function CourseForm({
             isReadOnly={isReadOnly}
             isArabic={isArabic}
             t={t}
+            storageAccounts={storageAccounts}
           />
         )}
 

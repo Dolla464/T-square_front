@@ -1,5 +1,5 @@
 // صفحة تفاصيل الكورس — للمشترك فقط (لا يوجد سعر أو شراء)
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import i18next from "i18next";
@@ -144,7 +144,7 @@ function CourseDetails() {
     level, language,
     duration_hours, duration_weeks,
     avg_rating, total_reviews, total_students,
-    instructor, category, tags, learnings, previews,
+    instructor, category, tags, learnings, previews, lessons,
     enrollment,
     google_drive_link,
   } = courseData;
@@ -413,6 +413,35 @@ function CourseDetails() {
                   </div>
                   <i className="bi bi-fullscreen cd-preview-ext"></i>
                 </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {lessons?.length > 0 && (
+          <section className="cd-card cd-previews">
+            <h2 className="cd-section-title">
+              <i className="bi bi-play-btn-fill"></i>
+              {isArabic ? "دروس الكورس" : "Course Lessons"}
+            </h2>
+            <div className="cd-preview-list">
+              {lessons.map((lesson) => (
+                <Link
+                  key={lesson.id}
+                  to={`/student/course/${courseId}/lesson/${lesson.id}`}
+                  className="cd-preview-item text-decoration-none"
+                >
+                  <div className="cd-preview-icon">
+                    <i className="bi bi-play-fill"></i>
+                  </div>
+                  <div className="cd-preview-info">
+                    <span className="cd-preview-title">{lesson.title}</span>
+                    {lesson.description && (
+                      <span className="cd-preview-dur">{lesson.description}</span>
+                    )}
+                  </div>
+                  <i className="bi bi-chevron-right cd-preview-ext"></i>
+                </Link>
               ))}
             </div>
           </section>

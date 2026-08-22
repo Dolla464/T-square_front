@@ -1,0 +1,22 @@
+.secure-video-player {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.secure-video-player--loading,
+.secure-video-player--error {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: #111;
+}
+
+.secure-video-player .video-js {
+  width: 100%;
+}
