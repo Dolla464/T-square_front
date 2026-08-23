@@ -20,6 +20,7 @@ function LessonPlayer() {
       <div className="lesson-player-card bg-white border rounded-4 shadow-sm p-3 p-md-4">
         <SecureVideoPlayer
           lessonId={lessonId}
+          isArabic={isArabic}
           onUnauthorized={() => {}}
           onUnavailable={() => {}}
         />

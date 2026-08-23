@@ -1,10 +1,35 @@
 import { useEffect, useRef, useState } from "react";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
+import { normalizeStorageUrl } from "../../../utils/resolveApiOrigin";
 import WatermarkOverlay from "./WatermarkOverlay";
 import "./SecureVideoPlayer.css";
 
-function SecureVideoPlayer({ lessonId, onUnauthorized, onUnavailable }) {
+function resolvePlaybackError(status, isArabic) {
+  if (status === 403) {
+    return isArabic
+      ? "غير مسموح لك بمشاهدة هذا الدرس."
+      : "You are not allowed to watch this lesson.";
+  }
+
+  if (status === 422) {
+    return isArabic
+      ? "الفيديو غير متاح حالياً. تأكد من ربط حساب Google Drive بالكورس."
+      : "Video is unavailable right now. Check that Google Drive is linked to the course.";
+  }
+
+  if (status === 401) {
+    return isArabic
+      ? "انتهت جلستك. سجّل الدخول ثم حاول مرة أخرى."
+      : "Your session expired. Please sign in and try again.";
+  }
+
+  return isArabic
+    ? "تعذّر تحميل الفيديو. حاول مرة أخرى."
+    : "Unable to load video. Please try again.";
+}
+
+function SecureVideoPlayer({ lessonId, isArabic = false, onUnauthorized, onUnavailable }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -26,13 +51,30 @@ function SecureVideoPlayer({ lessonId, onUnauthorized, onUnavailable }) {
 
         if (cancelled) return;
 
+        if (!payload?.stream_url) {
+          onUnavailable?.();
+          setError(
+            isArabic
+              ? "لم يُرجع الخادم رابط تشغيل للفيديو."
+              : "The server did not return a playback URL.",
+          );
+          return;
+        }
+
         setWatermark(payload?.watermark || null);
+
+        const streamUrl = normalizeStorageUrl(payload.stream_url);
 
         if (!playerRef.current) {
           playerRef.current = videojs(videoRef.current, {
             controls: true,
             preload: "auto",
             fluid: true,
+            html5: {
+              vhs: {
+                withCredentials: true,
+              },
+            },
             controlBar: {
               pictureInPictureToggle: false,
             },
@@ -41,8 +83,12 @@ function SecureVideoPlayer({ lessonId, onUnauthorized, onUnavailable }) {
           playerRef.current.on("contextmenu", (event) => event.preventDefault());
         }
 
+        if (videoRef.current) {
+          videoRef.current.crossOrigin = "use-credentials";
+        }
+
         playerRef.current.src({
-          src: payload.stream_url,
+          src: streamUrl,
           type: "video/mp4",
         });
 
@@ -50,19 +96,24 @@ function SecureVideoPlayer({ lessonId, onUnauthorized, onUnavailable }) {
           try {
             const retryResponse = await axiosClient.post(`/student/lessons/${lessonId}/playback`);
             const retryPayload = retryResponse.data?.data;
+            const retryStreamUrl = normalizeStorageUrl(retryPayload?.stream_url);
+
+            if (!retryStreamUrl) {
+              throw new Error("Missing stream URL");
+            }
+
             playerRef.current?.src({
-              src: retryPayload.stream_url,
+              src: retryStreamUrl,
               type: "video/mp4",
             });
           } catch (retryError) {
             const status = retryError?.response?.status;
             if (status === 403) {
               onUnauthorized?.();
-              setError("You are not allowed to watch this lesson.");
-            } else {
+            } else if (status === 422) {
               onUnavailable?.();
-              setError("Video is unavailable right now.");
             }
+            setError(resolvePlaybackError(status, isArabic));
           }
         });
       } catch (requestError) {
@@ -70,13 +121,10 @@ function SecureVideoPlayer({ lessonId, onUnauthorized, onUnavailable }) {
         const status = requestError?.response?.status;
         if (status === 403) {
           onUnauthorized?.();
-          setError("You are not allowed to watch this lesson.");
         } else if (status === 422) {
           onUnavailable?.();
-          setError("Video is unavailable right now.");
-        } else {
-          setError("Unable to load video. Please try again.");
         }
+        setError(resolvePlaybackError(status, isArabic));
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -89,7 +137,7 @@ function SecureVideoPlayer({ lessonId, onUnauthorized, onUnavailable }) {
     return () => {
       cancelled = true;
     };
-  }, [lessonId, retryKey, onUnauthorized, onUnavailable]);
+  }, [lessonId, retryKey, isArabic, onUnauthorized, onUnavailable]);
 
   useEffect(() => {
     return () => {
@@ -112,8 +160,12 @@ function SecureVideoPlayer({ lessonId, onUnauthorized, onUnavailable }) {
     return (
       <div className="secure-video-player secure-video-player--error">
         <div className="alert alert-danger mb-3">{error}</div>
-        <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => setRetryKey((k) => k + 1)}>
-          Retry
+        <button
+          type="button"
+          className="btn btn-outline-danger btn-sm"
+          onClick={() => setRetryKey((k) => k + 1)}
+        >
+          {isArabic ? "إعادة المحاولة" : "Retry"}
         </button>
       </div>
     );
@@ -127,6 +179,7 @@ function SecureVideoPlayer({ lessonId, onUnauthorized, onUnavailable }) {
           className="video-js vjs-big-play-centered"
           controls
           controlsList="nodownload noplaybackrate"
+          crossOrigin="use-credentials"
           disablePictureInPicture
           playsInline
         />
