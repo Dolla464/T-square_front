@@ -68,16 +68,38 @@ function buildImgSrc(mode) {
   return [...sources].join(" ");
 }
 
+function buildMediaSrc(mode) {
+  const env = loadEnv(mode, process.cwd(), "");
+  const sources = new Set(["'self'", "blob:", "http://localhost:*", "http://127.0.0.1:*"]);
+
+  const apiOrigin = buildApiOrigin(mode);
+  if (apiOrigin) {
+    sources.add(apiOrigin);
+  }
+
+  if (env.VITE_DEV_API_PROXY) {
+    try {
+      sources.add(new URL(env.VITE_DEV_API_PROXY).origin);
+    } catch {
+      // ignore invalid VITE_DEV_API_PROXY
+    }
+  }
+
+  return [...sources].join(" ");
+}
+
 function injectCsp(mode) {
   const connectSrc = buildConnectSrc(mode);
   const imgSrc = buildImgSrc(mode);
+  const mediaSrc = buildMediaSrc(mode);
 
   return {
     name: "inject-csp",
     transformIndexHtml(html) {
       return html
         .replace("__CSP_CONNECT_SRC__", connectSrc)
-        .replace("__CSP_IMG_SRC__", imgSrc);
+        .replace("__CSP_IMG_SRC__", imgSrc)
+        .replace("__CSP_MEDIA_SRC__", mediaSrc);
     },
   };
 }
