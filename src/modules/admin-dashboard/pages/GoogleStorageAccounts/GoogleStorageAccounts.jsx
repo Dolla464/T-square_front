@@ -2,7 +2,7 @@ import { Spinner } from "react-bootstrap";
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useGoogleStorageAccounts } from "../../hooks/useGoogleStorageAccounts";
-import { showConfirmCustom, showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { showConfirmCustom, showDeleteConfirm, showInputDialog } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
 function statusBadge(status, isArabic) {
@@ -45,9 +45,20 @@ function GoogleStorageAccounts() {
   }, [searchParams, fetchAccounts]);
 
   const handleCreate = async () => {
-    const name = window.prompt(isArabic ? "اسم الحساب" : "Account name");
-    if (!name?.trim()) return;
-    await createAccount(name.trim());
+    const name = await showInputDialog({
+      title: isArabic ? "إضافة حساب Google" : "Add Google Account",
+      message: isArabic
+        ? "أدخل اسمًا يُميّز هذا الحساب داخل المنصة."
+        : "Enter a name to identify this account on the platform.",
+      inputPlaceholder: isArabic ? "اسم الحساب" : "Account name",
+      confirmText: isArabic ? "إضافة" : "Add",
+      icon: "info",
+      variant: "primary",
+      requiredMessage: isArabic ? "يرجى إدخال اسم الحساب." : "Please enter an account name.",
+    });
+
+    if (!name) return;
+    await createAccount(name);
   };
 
   const handleDelete = async (account) => {

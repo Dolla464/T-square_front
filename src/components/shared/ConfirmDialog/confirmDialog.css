@@ -109,3 +109,38 @@
   background: #e5e7eb !important;
   transform: translateY(-1px) !important;
 }
+
+/* ── نافذة الإدخال ── */
+.tsq-swal-popup--input .swal-inner--input {
+  padding-bottom: 0.25rem;
+}
+
+.tsq-swal-popup--input .tsq-swal-input,
+.tsq-swal-popup--input .swal2-input {
+  width: calc(100% - 4rem) !important;
+  margin: 0.75rem auto 0.25rem !important;
+  padding: 11px 14px !important;
+  border: 1.5px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  font-size: 0.92rem !important;
+  color: #1a1a1a !important;
+  box-shadow: none !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+.tsq-swal-popup--input .tsq-swal-input:focus,
+.tsq-swal-popup--input .swal2-input:focus {
+  border-color: #be1522 !important;
+  box-shadow: 0 0 0 3px rgba(190, 21, 34, 0.12) !important;
+  outline: none !important;
+}
+
+.tsq-swal-popup--input .swal2-validation-message {
+  background: #fff0f2 !important;
+  color: #be1522 !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  margin: 0.5rem auto 0 !important;
+  width: calc(100% - 4rem) !important;
+  border-radius: 8px !important;
+}
