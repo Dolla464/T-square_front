@@ -7,19 +7,15 @@ describe("WatermarkOverlay", () => {
     vi.useFakeTimers();
   });
 
-  it("renders student watermark text", () => {
-    render(
-      <WatermarkOverlay
-        watermark={{ name: "Adel Abdelmoneim", student_number: 1258 }}
-      />,
-    );
+  it("renders site branding and course name", () => {
+    render(<WatermarkOverlay courseName="Introduction to React" />);
 
-    expect(screen.getByText("Adel Abdelmoneim")).toBeInTheDocument();
-    expect(screen.getByText("Student #1258")).toBeInTheDocument();
+    expect(screen.getByAltText("T-Square")).toBeInTheDocument();
+    expect(screen.getByText("Introduction to React")).toBeInTheDocument();
   });
 
-  it("returns null when watermark is missing", () => {
-    const { container } = render(<WatermarkOverlay watermark={null} />);
+  it("returns null when course name is missing", () => {
+    const { container } = render(<WatermarkOverlay courseName={null} />);
     expect(container.firstChild).toBeNull();
   });
 });
