@@ -269,6 +269,7 @@ export const createAttendanceHook = (services) => () => {
     attendanceRequestRef.current += 1;
     setSessions([]);
     setSessionAttendance(null);
+    setGroupSummary(null);
     setLoadingSessions(false);
     setLoadingAttendance(false);
     setUpdatingIds(new Set());
@@ -316,6 +317,7 @@ export const createAttendanceHook = (services) => () => {
       try {
         await markSessionAttendance(groupId, sessionId, studentId, status);
         toastSuccess(t("adminDashboard:studentAttendance.attendanceUpdated"));
+        loadGroupSummary(groupId);
       } catch (err) {
         setSessionAttendance((prev) => {
           if (!prev) return prev;
@@ -343,7 +345,7 @@ export const createAttendanceHook = (services) => () => {
         });
       }
     },
-    [markSessionAttendance, sessionAttendance, t, updatingIds]
+    [markSessionAttendance, sessionAttendance, loadGroupSummary, t, updatingIds]
   );
 
   return {
