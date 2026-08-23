@@ -71,14 +71,17 @@ function AdminStudentAttendance({
     selectionGroups,
     sessions,
     sessionAttendance,
+    groupSummary,
     loadingGroups,
     loadingSessions,
     loadingAttendance,
+    loadingSummary,
     exportLoading,
     updatingIds,
     loadGroups,
     loadSessions,
     loadSessionAttendance,
+    loadGroupSummary,
     handleExportSession,
     markAttendance,
     resetSessionData,
@@ -103,7 +106,8 @@ function AdminStudentAttendance({
     setSelectedSessionId("");
     setModalStudent(null);
     loadSessions(selectedGroupId);
-  }, [selectedGroupId, loadSessions, resetSessionData]);
+    loadGroupSummary(selectedGroupId);
+  }, [selectedGroupId, loadSessions, loadGroupSummary, resetSessionData]);
 
   useEffect(() => {
     if (!selectedGroupId || !selectedSessionId) return;
@@ -125,6 +129,14 @@ function AdminStudentAttendance({
 
   const students = sessionAttendance?.students ?? [];
   const canExport = Boolean(selectedGroupId && selectedSessionId && students.length);
+
+  const absentByStudentId = useMemo(() => {
+    const map = new Map();
+    for (const student of groupSummary?.students ?? []) {
+      map.set(student.student_id, student.absent_sessions ?? 0);
+    }
+    return map;
+  }, [groupSummary]);
 
   const selectedSession = useMemo(
     () => sessions.find((session) => String(session.id) === String(selectedSessionId)),
@@ -331,6 +343,9 @@ function AdminStudentAttendance({
                       <tr>
                         <th style={{ width: 60 }}>#</th>
                         <th>{t("studentAttendance.studentName", "Student Name")}</th>
+                        <th className="text-center" style={{ minWidth: 120 }}>
+                          {t("studentAttendance.totalAbsences", "Total Absences")}
+                        </th>
                         <th>{t("studentAttendance.attendanceStatus", "Attendance Status")}</th>
                         {canMarkAttendance && (
                           <th className="text-center" style={{ minWidth: 180 }}>
@@ -340,7 +355,10 @@ function AdminStudentAttendance({
                       </tr>
                     </thead>
                     <tbody>
-                      {students.map((student, idx) => (
+                      {students.map((student, idx) => {
+                        const totalAbsences = absentByStudentId.get(student.student_id) ?? 0;
+
+                        return (
                         <tr key={student.student_id}>
                           <td className="text-muted small">{idx + 1}</td>
                           <td>
@@ -354,6 +372,19 @@ function AdminStudentAttendance({
                             </button>
                             {student.email && (
                               <div className="text-muted small">{student.email}</div>
+                            )}
+                          </td>
+                          <td className="text-center">
+                            {loadingSummary && !groupSummary ? (
+                              <Spinner animation="border" size="sm" variant="secondary" />
+                            ) : (
+                              <span
+                                className={`fw-semibold ${
+                                  totalAbsences > 0 ? "text-danger" : "text-muted"
+                                }`}
+                              >
+                                {totalAbsences}
+                              </span>
                             )}
                           </td>
                           <td>
@@ -468,7 +499,8 @@ function AdminStudentAttendance({
                             </td>
                           )}
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

@@ -393,6 +393,7 @@
     "chooseSession": "Choose a session…",
     "selectGroupFirst": "Select a group first",
     "studentName": "Student Name",
+    "totalAbsences": "Total Absences",
     "attendanceStatus": "Attendance Status",
     "emptyGroup": "Select a group to get started.",
     "emptySession": "Select a session to view attendance.",
