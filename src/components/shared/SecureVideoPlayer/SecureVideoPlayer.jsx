@@ -32,17 +32,19 @@ function resolvePlaybackError(status, isArabic) {
 function SecureVideoPlayer({ lessonId, isArabic = false, onUnauthorized, onUnavailable }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("loading");
   const [error, setError] = useState(null);
   const [watermark, setWatermark] = useState(null);
+  const [streamUrl, setStreamUrl] = useState(null);
   const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
-    const setup = async () => {
-      setLoading(true);
+    const authorize = async () => {
+      setStatus("loading");
       setError(null);
+      setStreamUrl(null);
 
       try {
         const axiosClient = (await import("../../../api/axios")).default;
@@ -58,86 +60,91 @@ function SecureVideoPlayer({ lessonId, isArabic = false, onUnauthorized, onUnava
               ? "لم يُرجع الخادم رابط تشغيل للفيديو."
               : "The server did not return a playback URL.",
           );
+          setStatus("error");
           return;
         }
 
         setWatermark(payload?.watermark || null);
-
-        const streamUrl = normalizeStorageUrl(payload.stream_url);
-
-        if (!playerRef.current) {
-          playerRef.current = videojs(videoRef.current, {
-            controls: true,
-            preload: "auto",
-            fluid: true,
-            html5: {
-              vhs: {
-                withCredentials: true,
-              },
-            },
-            controlBar: {
-              pictureInPictureToggle: false,
-            },
-          });
-
-          playerRef.current.on("contextmenu", (event) => event.preventDefault());
-        }
-
-        if (videoRef.current) {
-          videoRef.current.crossOrigin = "use-credentials";
-        }
-
-        playerRef.current.src({
-          src: streamUrl,
-          type: "video/mp4",
-        });
-
-        playerRef.current.one("error", async () => {
-          try {
-            const retryResponse = await axiosClient.post(`/student/lessons/${lessonId}/playback`);
-            const retryPayload = retryResponse.data?.data;
-            const retryStreamUrl = normalizeStorageUrl(retryPayload?.stream_url);
-
-            if (!retryStreamUrl) {
-              throw new Error("Missing stream URL");
-            }
-
-            playerRef.current?.src({
-              src: retryStreamUrl,
-              type: "video/mp4",
-            });
-          } catch (retryError) {
-            const status = retryError?.response?.status;
-            if (status === 403) {
-              onUnauthorized?.();
-            } else if (status === 422) {
-              onUnavailable?.();
-            }
-            setError(resolvePlaybackError(status, isArabic));
-          }
-        });
+        setStreamUrl(normalizeStorageUrl(payload.stream_url));
+        setStatus("ready");
       } catch (requestError) {
         if (cancelled) return;
-        const status = requestError?.response?.status;
-        if (status === 403) {
+
+        const httpStatus = requestError?.response?.status;
+        if (httpStatus === 403) {
           onUnauthorized?.();
-        } else if (status === 422) {
+        } else if (httpStatus === 422) {
           onUnavailable?.();
         }
-        setError(resolvePlaybackError(status, isArabic));
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+
+        setError(resolvePlaybackError(httpStatus, isArabic));
+        setStatus("error");
       }
     };
 
-    setup();
+    authorize();
 
     return () => {
       cancelled = true;
     };
   }, [lessonId, retryKey, isArabic, onUnauthorized, onUnavailable]);
+
+  useEffect(() => {
+    if (status !== "ready" || !streamUrl || !videoRef.current) {
+      return undefined;
+    }
+
+    if (!playerRef.current) {
+      playerRef.current = videojs(videoRef.current, {
+        controls: true,
+        preload: "auto",
+        fluid: true,
+        controlBar: {
+          pictureInPictureToggle: false,
+        },
+      });
+
+      playerRef.current.on("contextmenu", (event) => event.preventDefault());
+    }
+
+    playerRef.current.src({
+      src: streamUrl,
+      type: "video/mp4",
+    });
+
+    const handleError = async () => {
+      try {
+        const axiosClient = (await import("../../../api/axios")).default;
+        const retryResponse = await axiosClient.post(`/student/lessons/${lessonId}/playback`);
+        const retryPayload = retryResponse.data?.data;
+        const retryStreamUrl = normalizeStorageUrl(retryPayload?.stream_url);
+
+        if (!retryStreamUrl) {
+          throw new Error("Missing stream URL");
+        }
+
+        playerRef.current?.src({
+          src: retryStreamUrl,
+          type: "video/mp4",
+        });
+      } catch (retryError) {
+        const httpStatus = retryError?.response?.status;
+        if (httpStatus === 403) {
+          onUnauthorized?.();
+        } else if (httpStatus === 422) {
+          onUnavailable?.();
+        }
+        setError(resolvePlaybackError(httpStatus, isArabic));
+        setStatus("error");
+      }
+    };
+
+    playerRef.current.one("error", handleError);
+
+    return () => {
+      playerRef.current?.off("error", handleError);
+    };
+  }, [status, streamUrl, lessonId, isArabic, onUnauthorized, onUnavailable]);
 
   useEffect(() => {
     return () => {
@@ -148,43 +155,39 @@ function SecureVideoPlayer({ lessonId, isArabic = false, onUnauthorized, onUnava
     };
   }, []);
 
-  if (loading) {
-    return (
-      <div className="secure-video-player secure-video-player--loading">
-        <div className="spinner-border text-danger" role="status" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="secure-video-player secure-video-player--error">
-        <div className="alert alert-danger mb-3">{error}</div>
-        <button
-          type="button"
-          className="btn btn-outline-danger btn-sm"
-          onClick={() => setRetryKey((k) => k + 1)}
-        >
-          {isArabic ? "إعادة المحاولة" : "Retry"}
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="secure-video-player">
-      <div data-vjs-player>
+      {status === "loading" && (
+        <div className="secure-video-player__overlay secure-video-player--loading">
+          <div className="spinner-border text-danger" role="status" />
+        </div>
+      )}
+
+      {status === "error" && (
+        <div className="secure-video-player secure-video-player--error">
+          <div className="alert alert-danger mb-3">{error}</div>
+          <button
+            type="button"
+            className="btn btn-outline-danger btn-sm"
+            onClick={() => setRetryKey((k) => k + 1)}
+          >
+            {isArabic ? "إعادة المحاولة" : "Retry"}
+          </button>
+        </div>
+      )}
+
+      <div data-vjs-player className={status === "error" ? "d-none" : undefined}>
         <video
           ref={videoRef}
           className="video-js vjs-big-play-centered"
           controls
           controlsList="nodownload noplaybackrate"
-          crossOrigin="use-credentials"
           disablePictureInPicture
           playsInline
         />
       </div>
-      <WatermarkOverlay watermark={watermark} />
+
+      {status === "ready" && <WatermarkOverlay watermark={watermark} />}
     </div>
   );
 }
