@@ -42,11 +42,15 @@ const getInitials = (name = "") =>
   name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
 
 const formatDuration = (seconds) => {
-  if (!seconds) return null;
-  const m = Math.floor(seconds / 60);
-  const s = String(seconds % 60).padStart(2, "0");
+  const total = Number(seconds);
+  if (!Number.isFinite(total) || total <= 0) return null;
+  const m = Math.floor(total / 60);
+  const s = String(Math.floor(total % 60)).padStart(2, "0");
   return `${m}:${s}`;
 };
+
+const lessonHasVideo = (lesson) =>
+  Boolean(lesson?.has_video || lesson?.video_source_type === "google_drive");
 
 /* ════════════════════════════════════════════
    Lightbox — مشغّل فيديو مدمج
@@ -109,7 +113,9 @@ function CourseDetails() {
   };
 
   const toggleLesson = (lessonId) => {
-    setExpandedLessonId((current) => (current === lessonId ? null : lessonId));
+    setExpandedLessonId((current) =>
+      String(current) === String(lessonId) ? null : lessonId,
+    );
   };
 
   if (loading) {
@@ -342,8 +348,9 @@ function CourseDetails() {
             </h2>
             <div className="cd-lessons-grid">
               {lessons.map((lesson) => {
-                const isExpanded = expandedLessonId === lesson.id;
+                const isExpanded = String(expandedLessonId) === String(lesson.id);
                 const duration = formatDuration(lesson.duration_seconds);
+                const hasVideo = lessonHasVideo(lesson);
 
                 return (
                   <div
@@ -367,21 +374,20 @@ function CourseDetails() {
                         )}
 
                         <div className="cd-lesson-meta">
-                          {duration && (
+                          {duration ? (
                             <span className="cd-lesson-duration">
                               <i className="bi bi-clock"></i>
                               {duration} {isArabic ? "دقيقة" : "min"}
                             </span>
-                          )}
-                          {!duration && lesson.has_video && (
+                          ) : hasVideo ? (
                             <span className="cd-lesson-badge">
                               <i className="bi bi-camera-video"></i>
                               {isArabic ? "فيديو متاح" : "Video available"}
                             </span>
-                          )}
+                          ) : null}
                         </div>
 
-                        {lesson.has_video && (
+                        {hasVideo && (
                           <Link
                             to={`/student/course/${courseId}/lesson/${lesson.id}`}
                             className="cd-lesson-watch-btn"
