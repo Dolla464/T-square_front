@@ -167,6 +167,77 @@ export const showInfoDialog = (title, message) => {
   });
 };
 
+/**
+ * showInputDialog — نافذة إدخال نصية بهوية الموقع
+ *
+ * @returns {Promise<string|null>} القيمة المدخلة أو null عند الإلغاء
+ */
+export const showInputDialog = async ({
+  title = "",
+  message = "",
+  inputPlaceholder = "",
+  confirmText,
+  cancelText,
+  icon = "info",
+  variant = "primary",
+  requiredMessage,
+} = {}) => {
+  const rtl = isRTL();
+  const resolvedConfirm = confirmText ?? (rtl ? "تأكيد" : "Confirm");
+  const resolvedCancel = cancelText ?? (rtl ? "إلغاء" : "Cancel");
+  const resolvedRequired =
+    requiredMessage ?? (rtl ? "هذا الحقل مطلوب." : "This field is required.");
+
+  const colorConfig = CONFIRM_COLORS[variant] || CONFIRM_COLORS.primary;
+  const iconHtml = ICONS_HTML[icon] || ICONS_HTML.info;
+
+  const popupHtml = `
+    <div class="swal-inner swal-inner--input" dir="${rtl ? "rtl" : "ltr"}">
+      ${iconHtml}
+      <h2 class="swal-custom-title">${escapeHtml(title)}</h2>
+      ${message ? `<p class="swal-custom-msg">${escapeHtml(message)}</p>` : ""}
+    </div>
+  `;
+
+  const result = await Swal.fire({
+    html: popupHtml,
+    input: "text",
+    inputPlaceholder: inputPlaceholder || title,
+    inputAttributes: {
+      dir: rtl ? "rtl" : "ltr",
+      autocapitalize: "off",
+      autocorrect: "off",
+    },
+    showConfirmButton: true,
+    showCancelButton: true,
+    confirmButtonText: resolvedConfirm,
+    cancelButtonText: resolvedCancel,
+    confirmButtonColor: colorConfig.bg,
+    cancelButtonColor: "#e5e7eb",
+    allowOutsideClick: false,
+    allowEscapeKey: true,
+    target: document.body,
+    focusConfirm: false,
+    customClass: {
+      popup: "tsq-swal-popup tsq-swal-popup--input",
+      actions: "tsq-swal-actions",
+      confirmButton: "tsq-swal-confirm",
+      cancelButton: "tsq-swal-cancel",
+      input: "tsq-swal-input",
+    },
+    preConfirm: (value) => {
+      const trimmed = value?.trim();
+      if (!trimmed) {
+        Swal.showValidationMessage(resolvedRequired);
+        return false;
+      }
+      return trimmed;
+    },
+  });
+
+  return result.isConfirmed ? result.value : null;
+};
+
 /** نافذة تأكيد خاصة بحالة الدفع (تظهر زرين للاختيار وزر كبير للإلغاء) */
 export const showPaymentStatusConfirm = async (currentStatus) => {
   const rtl = isRTL();
