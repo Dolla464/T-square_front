@@ -80,7 +80,8 @@ function AdminCourses() {
   const formLogic = useCourseFormLogic();
   const { setFormData, setThumbnailFile, setCoverFile, setActiveTab } = formLogic;
   const { accounts: storageAccounts } = useGoogleStorageAccounts();
-  const courseLessons = useCourseLessons(editingItem?.id ?? null);
+  const effectiveCourseId = editingItem?.id ?? viewingItem?.id ?? null;
+  const courseLessons = useCourseLessons(effectiveCourseId);
 
   // ─── Data fetching ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -561,6 +562,7 @@ function AdminCourses() {
           isReadOnly={isReadOnly}
           editingItem={editingItem}
           viewingItem={viewingItem}
+          courseId={effectiveCourseId}
           handleBack={handleBack}
           handleSubmitWrapper={handleSubmitWrapper}
           {...formLogic}

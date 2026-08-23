@@ -17,6 +17,15 @@ const emptyLesson = () => ({
   duration_seconds: "",
 });
 
+const normalizeLessonFromApi = (lesson) => ({
+  ...lesson,
+  google_drive_url:
+    lesson.google_drive_url ||
+    (lesson.google_drive_file_id
+      ? `https://drive.google.com/file/d/${lesson.google_drive_file_id}/view`
+      : ""),
+});
+
 export function useCourseLessons(courseId) {
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -31,7 +40,7 @@ export function useCourseLessons(courseId) {
     setLoading(true);
     try {
       const response = await getCourseLessons(courseId);
-      setLessons(response?.data ?? []);
+      setLessons((response?.data ?? []).map(normalizeLessonFromApi));
     } catch (error) {
       toastError(error?.response?.data?.message || "Failed to load lessons.");
     } finally {
