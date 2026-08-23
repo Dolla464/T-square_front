@@ -1,7 +1,71 @@
 .lesson-player-page {
   padding: 1rem 0 2rem;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.lesson-player-page--error {
+  max-width: 720px;
+}
+
+.lesson-player-header {
+  margin-bottom: 1.25rem;
+}
+
+.lesson-player-title {
+  font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0 0 0.65rem;
+  color: #1a1a2e;
+}
+
+.lesson-player-description {
+  font-size: clamp(0.95rem, 1.8vw, 1.05rem);
+  line-height: 1.65;
+  color: #5c5c6d;
+  margin: 0;
 }
 
 .lesson-player-card {
   overflow: hidden;
+  padding: 0.75rem;
+}
+
+.lesson-player-note {
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .lesson-player-page {
+    padding: 0.75rem 0 1.5rem;
+  }
+
+  .lesson-player-header {
+    margin-bottom: 1rem;
+  }
+
+  .lesson-player-card {
+    padding: 0.5rem;
+    border-radius: 0.75rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .lesson-player-page {
+    padding: 0.5rem 0 1.25rem;
+  }
+
+  .lesson-player-title {
+    font-size: 1.2rem;
+  }
+
+  .lesson-player-description {
+    font-size: 0.9rem;
+  }
+
+  .lesson-player-card {
+    padding: 0.35rem;
+  }
 }

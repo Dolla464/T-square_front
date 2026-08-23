@@ -29,12 +29,17 @@ function resolvePlaybackError(status, isArabic) {
     : "Unable to load video. Please try again.";
 }
 
-function SecureVideoPlayer({ lessonId, isArabic = false, onUnauthorized, onUnavailable }) {
+function SecureVideoPlayer({
+  lessonId,
+  courseTitle,
+  isArabic = false,
+  onUnauthorized,
+  onUnavailable,
+}) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState(null);
-  const [watermark, setWatermark] = useState(null);
   const [streamUrl, setStreamUrl] = useState(null);
   const [retryKey, setRetryKey] = useState(0);
 
@@ -64,7 +69,6 @@ function SecureVideoPlayer({ lessonId, isArabic = false, onUnauthorized, onUnava
           return;
         }
 
-        setWatermark(payload?.watermark || null);
         setStreamUrl(normalizeStorageUrl(payload.stream_url));
         setStatus("ready");
       } catch (requestError) {
@@ -99,6 +103,7 @@ function SecureVideoPlayer({ lessonId, isArabic = false, onUnauthorized, onUnava
         controls: true,
         preload: "auto",
         fluid: true,
+        aspectRatio: "16:9",
         controlBar: {
           pictureInPictureToggle: false,
         },
@@ -187,7 +192,7 @@ function SecureVideoPlayer({ lessonId, isArabic = false, onUnauthorized, onUnava
         />
       </div>
 
-      {status === "ready" && <WatermarkOverlay watermark={watermark} />}
+      {status === "ready" && <WatermarkOverlay courseName={courseTitle} />}
     </div>
   );
 }
