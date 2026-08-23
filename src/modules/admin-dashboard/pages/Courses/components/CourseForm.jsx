@@ -60,6 +60,7 @@ function CourseForm({
   onDraftCreated,
   storageAccounts = [],
   courseLessonsProps = {},
+  courseId = null,
 }) {
   // 3. استدعاء الـ Hook محلياً للطوارئ في حال لم يرسل الأب البيانات
   const { treeCategories: hookTreeCategories, getCategoriesTree } =
@@ -212,7 +213,7 @@ function CourseForm({
             removeSection={removeSection}
             handlePlayVideo={handlePlayVideo}
             chunkUploads={chunkUploads}
-            courseId={editingItem?.id ?? null}
+            courseId={courseId}
             formData={formData}
             ensureCourseDraft={ensureCourseDraft}
             getAbortController={getAbortController}
@@ -225,7 +226,7 @@ function CourseForm({
 
         {activeTab === "lessons" && (
           <LessonsTab
-            courseId={editingItem?.id ?? null}
+            courseId={courseId}
             isReadOnly={isReadOnly}
             isArabic={isArabic}
             {...courseLessonsProps}
