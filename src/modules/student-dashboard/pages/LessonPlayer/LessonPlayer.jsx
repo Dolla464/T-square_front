@@ -74,9 +74,8 @@ function LessonPlayer() {
       </div>
 
       <p className="lesson-player-note text-muted small mt-3 mb-0">
-        {isArabic
-          ? "العلامة المائية تهدف لتقليل إعادة التوزيع، وليست وسيلة منع تقنية للتحميل."
-          : "The watermark discourages redistribution and is not a technical download-prevention control."}
+        Warning: Downloading or sharing this video through any means outside the platform is
+        strictly prohibited.
       </p>
     </div>
   );

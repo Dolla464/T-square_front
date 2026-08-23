@@ -41,6 +41,13 @@ const getStatusLabel = (status) => {
 const getInitials = (name = "") =>
   name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
 
+const formatDuration = (seconds) => {
+  if (!seconds) return null;
+  const m = Math.floor(seconds / 60);
+  const s = String(seconds % 60).padStart(2, "0");
+  return `${m}:${s}`;
+};
+
 /* ════════════════════════════════════════════
    Lightbox — مشغّل فيديو مدمج
 ════════════════════════════════════════════ */
@@ -50,19 +57,16 @@ function VideoLightbox({ video, onClose }) {
     [onClose]
   );
 
-  /* إغلاق بـ Escape */
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  /* منع scroll الخلفية */
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, []);
-
 
   return (
     <div className="cd-lightbox-backdrop" onClick={handleBackdrop}>
@@ -97,17 +101,17 @@ function CourseDetails() {
   const previewsSectionRef = useRef(null);
 
   const { courseData, loading, error, forbidden, notFound } = useCourseDetails(courseId);
-  const [activeVideo, setActiveVideo] = useState(null); // الفيديو المفتوح في lightbox
+  const [activeVideo, setActiveVideo] = useState(null);
+  const [expandedLessonId, setExpandedLessonId] = useState(null);
 
   const scrollToPreviews = () => {
     previewsSectionRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleDrive = () => {
-    if (courseData?.google_drive_link) window.open(courseData.google_drive_link);
+  const toggleLesson = (lessonId) => {
+    setExpandedLessonId((current) => (current === lessonId ? null : lessonId));
   };
 
-  /* ── شاشة التحميل ── */
   if (loading) {
     return (
       <div className="cd-page d-flex justify-content-center align-items-center" style={{ minHeight: "60vh" }}>
@@ -124,7 +128,6 @@ function CourseDetails() {
     );
   }
 
-  /* ── شاشة الخطأ ── */
   if (error || !courseData) {
     return (
       <div className="cd-error">
@@ -144,9 +147,8 @@ function CourseDetails() {
     level, language,
     duration_hours, duration_weeks,
     avg_rating, total_reviews, total_students,
-    instructor, category, tags, learnings, previews, lessons,
+    category, tags, learnings, previews, lessons,
     enrollment,
-    google_drive_link,
   } = courseData;
 
   const instructors = getCourseInstructors(courseData);
@@ -175,6 +177,7 @@ function CourseDetails() {
     }
     return isArabic ? "تم إرسال تقييمك وهو قيد المراجعة" : "Your review has been submitted and is pending approval";
   };
+
   return (
     <div className="cd-page" dir={isArabic ? "rtl" : "ltr"}>
       <Helmet>
@@ -185,7 +188,6 @@ function CourseDetails() {
         </title>
       </Helmet>
 
-      {/* ══ Video Lightbox ══ */}
       {activeVideo && (
         <VideoLightbox
           video={activeVideo}
@@ -198,11 +200,9 @@ function CourseDetails() {
         <div className="cd-hero-overlay" />
 
         <div className="cd-hero-body d-flex align-items-center">
-          {/* الجانب الأيسر — المحتوى */}
           <div className="cd-hero-left">
             <h1 className="cd-hero-title">{title}</h1>
 
-            {/* Category + Status — solid badges */}
             <div className="cd-breadcrumb">
               {category && (
                 <span className="cd-chip cd-chip-cat">{category.name}</span>
@@ -214,7 +214,6 @@ function CourseDetails() {
 
             <p className="cd-hero-sub">{short_description || description}</p>
 
-            {/* Meta strip */}
             <ul className="cd-meta-row">
               <li>
                 <i className="bi bi-clock-fill"></i> {duration_hours}{" "}
@@ -242,7 +241,6 @@ function CourseDetails() {
               </li>
             </ul>
 
-            {/* Tags */}
             {tags?.length > 0 && (
               <div className="cd-tags">
                 {tags.map((tag) => (
@@ -253,14 +251,7 @@ function CourseDetails() {
               </div>
             )}
 
-            {/* أزرار الإجراء */}
             <div className="cd-hero-actions">
-              {google_drive_link && (
-                <button onClick={handleDrive} className="cd-btn-primary">
-                  <i className="bi bi-play-circle-fill"></i>
-                  {isArabic ? "متابعة التعلم" : "Continue Learning"}
-                </button>
-              )}
               {isCompleted && certificateAvailable && (
                 <button
                   onClick={handleCertificateClick}
@@ -285,7 +276,6 @@ function CourseDetails() {
                   {getReviewStatusMessage()}
                 </span>
               )}
-              {/* 1. الزر الذي سيقوم بالانتقال */}
               {previews?.length > 0 && (
                 <button onClick={scrollToPreviews} className="cd-btn-ghost">
                   <i className="bi bi-collection-play"></i>
@@ -295,9 +285,8 @@ function CourseDetails() {
             </div>
           </div>
 
-          {/* الجانب الأيمن — cover_image */}
           {cover_image && (
-            <div className="cd-hero-right ">
+            <div className="cd-hero-right">
               <div className="cd-thumb-wrap">
                 <img
                   src={cover_image}
@@ -313,6 +302,17 @@ function CourseDetails() {
 
       {/* ══════════════════ BODY ══════════════════ */}
       <div className="cd-body">
+        {/* ── عن الكورس ── */}
+        {description && (
+          <section className="cd-card cd-description">
+            <h2 className="cd-section-title">
+              <i className="bi bi-file-text-fill"></i>
+              {isArabic ? "عن الكورس" : "About this Course"}
+            </h2>
+            <p className="cd-desc-body">{description}</p>
+          </section>
+        )}
+
         {/* ── ما ستتعلمه ── */}
         {learnings?.length > 0 && (
           <section className="cd-card cd-learnings">
@@ -333,54 +333,70 @@ function CourseDetails() {
           </section>
         )}
 
-        {/* ── تفاصيل الكورس ── */}
-        <section className="cd-card cd-info-grid">
-          <h2 className="cd-section-title">
-            <i className="bi bi-info-circle-fill"></i>
-            {isArabic ? "تفاصيل الكورس" : "Course Details"}
-          </h2>
-          <div className="cd-info-cells">
-            <div className="cd-info-cell">
-              <span className="cd-info-label">
-                {isArabic ? "المستوى" : "Level"}
-              </span>
-              <span className="cd-info-val">
-                {getLevelLabel(level, isArabic)}
-              </span>
-            </div>
-            <div className="cd-info-cell">
-              <span className="cd-info-label">
-                {isArabic ? "اللغة" : "Language"}
-              </span>
-              <span className="cd-info-val"> {language?.toUpperCase()}</span>
-            </div>
-            <div className="cd-info-cell">
-              <span className="cd-info-label">
-                {isArabic ? "المدة" : "Duration"}
-              </span>
-              <span className="cd-info-val">
-                {duration_hours} {isArabic ? "ساعة" : "hrs"} / {duration_weeks}{" "}
-                {isArabic ? "أسبوع" : "wks"}
-              </span>
-            </div>
-
-            <div className="cd-info-cell">
-              <span className="cd-info-label">
-                {isArabic ? "التصنيف" : "Category"}
-              </span>
-              <span className="cd-info-val">{category?.name ?? "—"}</span>
-            </div>
-          </div>
-        </section>
-
-        {/* ── وصف الكورس ── */}
-        {description && (
-          <section className="cd-card cd-description">
+        {/* ── دروس الكورس ── */}
+        {lessons?.length > 0 && (
+          <section className="cd-card cd-lessons">
             <h2 className="cd-section-title">
-              <i className="bi bi-file-text-fill"></i>
-              {isArabic ? "عن الكورس" : "About this Course"}
+              <i className="bi bi-play-btn-fill"></i>
+              {isArabic ? "دروس الكورس" : "Course Lessons"}
             </h2>
-            <p className="cd-desc-body">{description}</p>
+            <div className="cd-lessons-grid">
+              {lessons.map((lesson) => {
+                const isExpanded = expandedLessonId === lesson.id;
+                const duration = formatDuration(lesson.duration_seconds);
+
+                return (
+                  <div
+                    key={lesson.id}
+                    className={`cd-lesson-item${isExpanded ? " cd-lesson-item--expanded" : ""}`}
+                  >
+                    <button
+                      type="button"
+                      className="cd-lesson-toggle"
+                      onClick={() => toggleLesson(lesson.id)}
+                      aria-expanded={isExpanded}
+                    >
+                      <span className="cd-lesson-toggle-title">{lesson.title}</span>
+                      <i className={`bi bi-chevron-${isExpanded ? "up" : "down"} cd-lesson-chevron`}></i>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="cd-lesson-details">
+                        {lesson.description && (
+                          <p className="cd-lesson-description">{lesson.description}</p>
+                        )}
+
+                        <div className="cd-lesson-meta">
+                          {duration && (
+                            <span className="cd-lesson-duration">
+                              <i className="bi bi-clock"></i>
+                              {duration} {isArabic ? "دقيقة" : "min"}
+                            </span>
+                          )}
+                          {!duration && lesson.has_video && (
+                            <span className="cd-lesson-badge">
+                              <i className="bi bi-camera-video"></i>
+                              {isArabic ? "فيديو متاح" : "Video available"}
+                            </span>
+                          )}
+                        </div>
+
+                        {lesson.has_video && (
+                          <Link
+                            to={`/student/course/${courseId}/lesson/${lesson.id}`}
+                            className="cd-lesson-watch-btn"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <i className="bi bi-play-circle-fill"></i>
+                            {isArabic ? "مشاهدة الدرس" : "Watch Lesson"}
+                          </Link>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </section>
         )}
 
@@ -413,35 +429,6 @@ function CourseDetails() {
                   </div>
                   <i className="bi bi-fullscreen cd-preview-ext"></i>
                 </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {lessons?.length > 0 && (
-          <section className="cd-card cd-previews">
-            <h2 className="cd-section-title">
-              <i className="bi bi-play-btn-fill"></i>
-              {isArabic ? "دروس الكورس" : "Course Lessons"}
-            </h2>
-            <div className="cd-preview-list">
-              {lessons.map((lesson) => (
-                <Link
-                  key={lesson.id}
-                  to={`/student/course/${courseId}/lesson/${lesson.id}`}
-                  className="cd-preview-item text-decoration-none"
-                >
-                  <div className="cd-preview-icon">
-                    <i className="bi bi-play-fill"></i>
-                  </div>
-                  <div className="cd-preview-info">
-                    <span className="cd-preview-title">{lesson.title}</span>
-                    {lesson.description && (
-                      <span className="cd-preview-dur">{lesson.description}</span>
-                    )}
-                  </div>
-                  <i className="bi bi-chevron-right cd-preview-ext"></i>
-                </Link>
               ))}
             </div>
           </section>

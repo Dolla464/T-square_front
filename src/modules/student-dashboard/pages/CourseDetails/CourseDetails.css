@@ -76,8 +76,12 @@
 
 /* ── جانب المحتوى ── */
 .cd-hero-left {
-  flex: 1;
+  flex: 2;
   min-width: 0;
+}
+
+[dir="rtl"] .cd-hero-body {
+  flex-direction: row-reverse;
 }
 
 /* ── Breadcrumb / Status — solid chips (no border) ── */
@@ -266,8 +270,9 @@
 
 /* ── Thumbnail (الجانب الأيمن) ── */
 .cd-hero-right {
-  flex-shrink: 0;
-  width: 260px;
+  flex: 1;
+  min-width: 0;
+  max-width: 33.333%;
 }
 
 .cd-thumb-wrap {
@@ -279,7 +284,8 @@
 
 .cd-thumb {
   width: 100%;
-  height: 180px;
+  height: auto;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
   display: block;
 }
@@ -353,40 +359,6 @@
   margin-top: 1px;
 }
 
-/* ── شبكة معلومات الكورس ── */
-.cd-info-cells {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px;
-}
-
-.cd-info-cell {
-  background: var(--cd-bg);
-  border: 1px solid var(--cd-border);
-  border-radius: var(--cd-radius-sm);
-  padding: 16px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.cd-info-label {
-  font-size: 0.76rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--cd-muted);
-}
-
-.cd-info-val {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--cd-text);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
 /* ── وصف الكورس ── */
 .cd-desc-body {
   font-size: 0.94rem;
@@ -457,6 +429,126 @@
   font-size: 0.9rem;
   color: var(--cd-muted);
   opacity: 0.6;
+}
+
+/* ── دروس الكورس (accordion) ── */
+.cd-lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.cd-lesson-item {
+  background: var(--cd-bg);
+  border: 1px solid var(--cd-border);
+  border-radius: var(--cd-radius-sm);
+  overflow: hidden;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.cd-lesson-item--expanded {
+  border-color: var(--cd-red);
+  box-shadow: 0 2px 12px var(--cd-red-glow);
+}
+
+.cd-lesson-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  color: var(--cd-text);
+  cursor: pointer;
+  text-align: start;
+  transition: background 0.18s;
+}
+
+.cd-lesson-toggle:hover {
+  background: var(--cd-red-light);
+}
+
+.cd-lesson-toggle-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+}
+
+.cd-lesson-chevron {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  color: var(--cd-muted);
+  transition: transform 0.2s;
+}
+
+.cd-lesson-details {
+  padding: 0 16px 16px;
+  animation: cd-lesson-expand 0.2s ease;
+}
+
+@keyframes cd-lesson-expand {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cd-lesson-description {
+  font-size: 0.85rem;
+  color: #4b5563;
+  line-height: 1.6;
+  margin: 0 0 12px;
+}
+
+.cd-lesson-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cd-lesson-duration,
+.cd-lesson-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--cd-muted);
+}
+
+.cd-lesson-badge {
+  color: var(--cd-red-dark);
+}
+
+.cd-lesson-watch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cd-red);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.18s, transform 0.18s;
+}
+
+.cd-lesson-watch-btn:hover {
+  background: var(--cd-red-dark);
+  color: #fff;
+  transform: translateY(-1px);
 }
 
 /* ── المدربون ── */
@@ -738,7 +830,7 @@
 ═══════════════════════════════════════ */
 @media (max-width: 1024px) {
   .cd-hero-right {
-    width: 220px;
+    max-width: 36%;
   }
 }
 
@@ -749,12 +841,17 @@
     gap: 24px;
   }
 
+  [dir="rtl"] .cd-hero-body {
+    flex-direction: column-reverse;
+  }
+
   .cd-hero-right {
+    max-width: 100%;
     width: 100%;
   }
 
   .cd-thumb {
-    height: 200px;
+    aspect-ratio: 16 / 9;
   }
 
   .cd-hero-title {
@@ -769,8 +866,8 @@
     grid-template-columns: 1fr;
   }
 
-  .cd-info-cells {
-    grid-template-columns: 1fr 1fr;
+  .cd-lessons-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -782,10 +879,6 @@
   .cd-meta-row {
     gap: 14px;
     font-size: 0.82rem;
-  }
-
-  .cd-info-cells {
-    grid-template-columns: 1fr;
   }
 
   .cd-instructor-row {
