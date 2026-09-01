@@ -1,0 +1,76 @@
+.ac-google-storage-table-wrap {
+  overflow-x: visible;
+  width: 100%;
+}
+
+.ac-google-storage-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.ac-google-storage-table th,
+.ac-google-storage-table td {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.ac-google-storage-table .col-name {
+  width: 16%;
+}
+
+.ac-google-storage-table .col-email {
+  width: 22%;
+}
+
+.ac-google-storage-table .col-status {
+  width: 12%;
+}
+
+.ac-google-storage-table .col-courses {
+  width: 10%;
+}
+
+.ac-google-storage-table .col-last-check {
+  width: 18%;
+}
+
+.ac-google-storage-table .col-actions {
+  width: 22%;
+}
+
+.ac-google-storage-table .col-email .ac-truncate-text {
+  display: block;
+  max-width: 100%;
+}
+
+.ac-google-storage-table .col-actions .btn {
+  padding: 0.25rem 0.35rem;
+}
+
+.ac-google-storage-table .col-actions .d-flex {
+  gap: 0.25rem !important;
+}
+
+@media (min-width: 992px) {
+  .ac-google-storage-table th,
+  .ac-google-storage-table td {
+    padding: 12px 8px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .ac-google-storage-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ac-google-storage-table {
+    table-layout: auto;
+    min-width: 760px;
+  }
+
+  .ac-google-storage-table th,
+  .ac-google-storage-table td {
+    white-space: nowrap;
+  }
+}
