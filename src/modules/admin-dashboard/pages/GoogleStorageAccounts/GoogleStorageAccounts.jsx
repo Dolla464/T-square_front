@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useGoogleStorageAccounts } from "../../hooks/useGoogleStorageAccounts";
 import { showConfirmCustom, showDeleteConfirm, showInputDialog } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import { toastError } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import "./GoogleStorageAccounts.css";
 
@@ -62,11 +63,22 @@ function GoogleStorageAccounts() {
   };
 
   const handleDelete = async (account) => {
+    const coursesCount = account.courses_count ?? 0;
+
+    if (coursesCount > 0) {
+      toastError(
+        isArabic
+          ? `لا يمكن حذف الحساب لأنه مرتبط بـ ${coursesCount} كورس. أزل الربط من الكورسات أولاً.`
+          : `Cannot delete this account because ${coursesCount} course(s) are still assigned to it. Unassign it from courses first.`,
+      );
+      return;
+    }
+
     const confirmed = await showDeleteConfirm(
       isArabic ? "حذف حساب Google؟" : "Delete Google account?",
       isArabic
-        ? "سيتم حذف الحساب إذا لم يكن مرتبطًا بأي كورس."
-        : "The account will be deleted if no courses are assigned.",
+        ? "سيتم حذف الحساب نهائياً."
+        : "This account will be permanently deleted.",
     );
     if (confirmed) {
       await removeAccount(account.id);
@@ -225,7 +237,16 @@ function GoogleStorageAccounts() {
                             <button
                               type="button"
                               className="btn btn-sm ac-btn-deleteTable border-0"
-                              title={isArabic ? "حذف" : "Delete"}
+                              title={
+                                (account.courses_count ?? 0) > 0
+                                  ? isArabic
+                                    ? `لا يمكن الحذف — مرتبط بـ ${account.courses_count} كورس`
+                                    : `Cannot delete — assigned to ${account.courses_count} course(s)`
+                                  : isArabic
+                                    ? "حذف"
+                                    : "Delete"
+                              }
+                              disabled={(account.courses_count ?? 0) > 0}
                               onClick={() => handleDelete(account)}
                             >
                               <i className="bi bi-trash fs-6"></i>
