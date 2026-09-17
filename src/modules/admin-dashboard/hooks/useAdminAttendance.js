@@ -37,8 +37,10 @@ export const createAttendanceHook = (services) => () => {
     getLearningGroupSessions,
     getSessionAttendance,
     getGroupAttendanceSummary,
+    getAttendanceMatrix,
     getStudentCourseAttendance,
     exportSessionAttendance,
+    exportAttendanceMatrix,
     exportStudentCourseAttendance,
     markSessionAttendance,
   } = services;
@@ -48,16 +50,20 @@ export const createAttendanceHook = (services) => () => {
   const [sessions, setSessions] = useState([]);
   const [sessionAttendance, setSessionAttendance] = useState(null);
   const [groupSummary, setGroupSummary] = useState(null);
+  const [attendanceMatrix, setAttendanceMatrix] = useState(null);
   const [studentCourseAttendance, setStudentCourseAttendance] = useState(null);
   const [loadingGroups, setLoadingGroups] = useState(false);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [loadingAttendance, setLoadingAttendance] = useState(false);
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const [loadingMatrix, setLoadingMatrix] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [matrixExportLoading, setMatrixExportLoading] = useState(false);
   const [updatingIds, setUpdatingIds] = useState(() => new Set());
   const [error, setError] = useState(null);
   const sessionsRequestRef = useRef(0);
   const attendanceRequestRef = useRef(0);
+  const matrixRequestRef = useRef(0);
 
   const loadGroups = useCallback(async () => {
     setLoadingGroups(true);
@@ -224,6 +230,49 @@ export const createAttendanceHook = (services) => () => {
     [getGroupAttendanceSummary, t]
   );
 
+  const loadAttendanceMatrix = useCallback(
+    async (groupId) => {
+      if (!groupId) {
+        setAttendanceMatrix(null);
+        return null;
+      }
+
+      const requestId = ++matrixRequestRef.current;
+
+      setLoadingMatrix(true);
+      setError(null);
+
+      try {
+        const res = await getAttendanceMatrix(groupId);
+        const data = res?.data || null;
+
+        if (requestId !== matrixRequestRef.current) {
+          return data;
+        }
+
+        setAttendanceMatrix(data);
+        return data;
+      } catch (err) {
+        if (requestId !== matrixRequestRef.current) {
+          return null;
+        }
+
+        const errorMsg =
+          err.response?.data?.message ||
+          t("adminDashboard:errors.fetch_failed");
+        setError(errorMsg);
+        toastError(errorMsg);
+        setAttendanceMatrix(null);
+        return null;
+      } finally {
+        if (requestId === matrixRequestRef.current) {
+          setLoadingMatrix(false);
+        }
+      }
+    },
+    [getAttendanceMatrix, t]
+  );
+
   const handleExportSession = useCallback(
     async (groupId, sessionId, format) => {
       if (!groupId || !sessionId) return;
@@ -242,6 +291,26 @@ export const createAttendanceHook = (services) => () => {
       }
     },
     [exportSessionAttendance, t]
+  );
+
+  const handleExportMatrix = useCallback(
+    async (groupId, format) => {
+      if (!groupId) return;
+
+      setMatrixExportLoading(true);
+      try {
+        await exportAttendanceMatrix(groupId, format);
+        toastSuccess(t("adminDashboard:studentAttendance.exportSuccess"));
+      } catch (err) {
+        const errorMsg =
+          err.response?.data?.message ||
+          t("adminDashboard:studentAttendance.exportFailed");
+        toastError(errorMsg);
+      } finally {
+        setMatrixExportLoading(false);
+      }
+    },
+    [exportAttendanceMatrix, t]
   );
 
   const handleExportStudent = useCallback(
@@ -267,11 +336,14 @@ export const createAttendanceHook = (services) => () => {
   const resetSessionData = useCallback(() => {
     sessionsRequestRef.current += 1;
     attendanceRequestRef.current += 1;
+    matrixRequestRef.current += 1;
     setSessions([]);
     setSessionAttendance(null);
     setGroupSummary(null);
+    setAttendanceMatrix(null);
     setLoadingSessions(false);
     setLoadingAttendance(false);
+    setLoadingMatrix(false);
     setUpdatingIds(new Set());
   }, []);
 
@@ -353,20 +425,25 @@ export const createAttendanceHook = (services) => () => {
     sessions,
     sessionAttendance,
     groupSummary,
+    attendanceMatrix,
     studentCourseAttendance,
     loadingGroups,
     loadingSessions,
     loadingAttendance,
     loadingSummary,
+    loadingMatrix,
     exportLoading,
+    matrixExportLoading,
     updatingIds,
     error,
     loadGroups,
     loadSessions,
     loadSessionAttendance,
     loadGroupSummary,
+    loadAttendanceMatrix,
     loadStudentCourseAttendance,
     handleExportSession,
+    handleExportMatrix,
     handleExportStudent,
     markAttendance,
     resetSessionData,
@@ -378,8 +455,10 @@ export const useAdminAttendance = createAttendanceHook({
   getLearningGroupSessions: adminAttendanceServices.getLearningGroupSessions,
   getSessionAttendance: adminAttendanceServices.getSessionAttendance,
   getGroupAttendanceSummary: adminAttendanceServices.getGroupAttendanceSummary,
+  getAttendanceMatrix: adminAttendanceServices.getAttendanceMatrix,
   getStudentCourseAttendance: adminAttendanceServices.getStudentCourseAttendance,
   exportSessionAttendance: adminAttendanceServices.exportSessionAttendance,
+  exportAttendanceMatrix: adminAttendanceServices.exportAttendanceMatrix,
   exportStudentCourseAttendance: adminAttendanceServices.exportStudentCourseAttendance,
   markSessionAttendance: adminAttendanceServices.markSessionAttendance,
 });

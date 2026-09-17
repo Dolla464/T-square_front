@@ -8,6 +8,7 @@ import { selectClass } from "../../components/shared/adminUiStyles";
 import StudentCourseAttendanceModal from "./StudentCourseAttendanceModal";
 import { parseApiDateOnly } from "../../../../utils/formatDateTime";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
+import "./AttendanceMatrix.css";
 
 const STATUS_CONFIG = {
   present: {
@@ -15,24 +16,42 @@ const STATUS_CONFIG = {
     icon: "bi-check-circle-fill",
     labelEn: "Present",
     labelAr: "حاضر",
+    colorClass: "text-success",
   },
   absent: {
     bg: "danger-subtle text-danger",
     icon: "bi-x-circle-fill",
     labelEn: "Absent",
     labelAr: "غائب",
+    colorClass: "text-danger",
   },
   late: {
     bg: "warning-subtle text-warning",
-    icon: "bi-clock-fill",
+    icon: "bi-alarm-fill",
     labelEn: "Late",
     labelAr: "متأخر",
+    colorClass: "attendance-matrix-late",
+  },
+  excused: {
+    bg: "info-subtle text-info",
+    icon: "bi-shield-check",
+    labelEn: "Excused",
+    labelAr: "معذور",
+    colorClass: "text-info",
+  },
+  cancelled: {
+    bg: "secondary-subtle text-secondary",
+    icon: "bi-slash-circle",
+    labelEn: "Cancelled",
+    labelAr: "ملغاة",
+    colorClass: "text-secondary",
   },
   not_marked: {
     bg: "secondary-subtle text-secondary",
     icon: "bi-dash-circle",
     labelEn: "Not Marked",
     labelAr: "لم يسجَّل",
+    colorClass: "text-secondary",
   },
 };
 
@@ -61,6 +80,35 @@ function AttendanceStatusBadge({ status, isArabic }) {
   );
 }
 
+function AttendanceStatusIcon({ status, title }) {
+  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.not_marked;
+  return (
+    <span className={`attendance-matrix-icon ${cfg.colorClass}`} title={title}>
+      <i className={`bi ${cfg.icon}`}></i>
+    </span>
+  );
+}
+
+const formatSessionHeader = (session) => {
+  const dateRaw = session.session_date || "";
+  const date = parseApiDateOnly(dateRaw);
+  if (!date) return "—";
+
+  const parsed = new Date(`${date}T00:00:00`);
+  const shortDate = Number.isNaN(parsed.getTime())
+    ? date
+    : parsed.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+
+  return shortDate;
+};
+
+const formatSessionTooltip = (session) => {
+  const date = session.session_date || "—";
+  const start = fmt(session.start_time);
+  const end = fmt(session.end_time);
+  return `${date} | ${start}-${end}`;
+};
+
 function AdminStudentAttendance({
   useAttendanceHook = useAdminAttendance,
 }) {
@@ -72,17 +120,22 @@ function AdminStudentAttendance({
     sessions,
     sessionAttendance,
     groupSummary,
+    attendanceMatrix,
     loadingGroups,
     loadingSessions,
     loadingAttendance,
     loadingSummary,
+    loadingMatrix,
     exportLoading,
+    matrixExportLoading,
     updatingIds,
     loadGroups,
     loadSessions,
     loadSessionAttendance,
     loadGroupSummary,
+    loadAttendanceMatrix,
     handleExportSession,
+    handleExportMatrix,
     markAttendance,
     resetSessionData,
   } = useAttendanceHook();
@@ -107,7 +160,8 @@ function AdminStudentAttendance({
     setModalStudent(null);
     loadSessions(selectedGroupId);
     loadGroupSummary(selectedGroupId);
-  }, [selectedGroupId, loadSessions, loadGroupSummary, resetSessionData]);
+    loadAttendanceMatrix(selectedGroupId);
+  }, [selectedGroupId, loadSessions, loadGroupSummary, loadAttendanceMatrix, resetSessionData]);
 
   useEffect(() => {
     if (!selectedGroupId || !selectedSessionId) return;
@@ -129,6 +183,16 @@ function AdminStudentAttendance({
 
   const students = sessionAttendance?.students ?? [];
   const canExport = Boolean(selectedGroupId && selectedSessionId && students.length);
+  const matrixSessions = attendanceMatrix?.sessions ?? [];
+  const matrixStudents = attendanceMatrix?.students ?? [];
+  const canExportMatrix = Boolean(
+    selectedGroupId && matrixStudents.length && matrixSessions.length
+  );
+
+  const getStatusLabel = (status) => {
+    const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.not_marked;
+    return isArabic ? cfg.labelAr : cfg.labelEn;
+  };
 
   const absentByStudentId = useMemo(() => {
     const map = new Map();
@@ -237,6 +301,141 @@ function AdminStudentAttendance({
               </div>
             </div>
           </div>
+
+          {selectedGroupId && (
+            <div className="px-3 px-md-4 pb-3">
+              <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+                <div>
+                  <h6 className="fw-bold mb-1">
+                    {t("studentAttendance.matrixTitle", "Attendance Overview")}
+                  </h6>
+                  <p className="text-muted small mb-0">
+                    {t(
+                      "studentAttendance.matrixSubtitle",
+                      "All students and sessions at a glance"
+                    )}
+                  </p>
+                </div>
+                <ExportBar
+                  onExport={(format) => handleExportMatrix(selectedGroupId, format)}
+                  loading={matrixExportLoading}
+                  disabled={!canExportMatrix}
+                />
+              </div>
+
+              {loadingMatrix && (
+                <div className="text-center py-4">
+                  <div className="spinner-border text-danger" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              )}
+
+              {!loadingMatrix && attendanceMatrix && matrixSessions.length === 0 && (
+                <div className="text-center py-4 text-muted">
+                  <p className="small mb-0">
+                    {t(
+                      "studentAttendance.noSessionsForMatrix",
+                      "No sessions found for this group."
+                    )}
+                  </p>
+                </div>
+              )}
+
+              {!loadingMatrix &&
+                attendanceMatrix &&
+                matrixSessions.length > 0 &&
+                matrixStudents.length === 0 && (
+                  <div className="text-center py-4 text-muted">
+                    <p className="small mb-0">
+                      {t("studentAttendance.noStudents", "No students enrolled in this group.")}
+                    </p>
+                  </div>
+                )}
+
+              {!loadingMatrix &&
+                attendanceMatrix &&
+                matrixSessions.length > 0 &&
+                matrixStudents.length > 0 && (
+                  <div className="attendance-matrix-wrap">
+                    <table className="table ac-table mb-0 align-middle attendance-matrix-table">
+                      <thead>
+                        <tr>
+                          <th className="matrix-sticky-col matrix-sticky-col-1">#</th>
+                          <th className="matrix-sticky-col matrix-sticky-col-2">
+                            {t("studentAttendance.studentName", "Student Name")}
+                          </th>
+                          {matrixSessions.map((session) => (
+                            <th
+                              key={session.id}
+                              className="matrix-session-col matrix-session-header"
+                              title={formatSessionTooltip(session)}
+                            >
+                              {formatSessionHeader(session)}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {matrixStudents.map((student, idx) => (
+                          <tr key={student.student_id}>
+                            <td className="matrix-sticky-col matrix-sticky-col-1 text-muted small">
+                              {idx + 1}
+                            </td>
+                            <td className="matrix-sticky-col matrix-sticky-col-2">
+                              <button
+                                type="button"
+                                className="btn btn-link p-0 text-decoration-none fw-semibold text-dark"
+                                style={{ fontSize: "0.9rem" }}
+                                onClick={() =>
+                                  openStudentModal({
+                                    student_id: student.student_id,
+                                    full_name: student.full_name,
+                                    email: student.email,
+                                  })
+                                }
+                              >
+                                {student.full_name}
+                              </button>
+                            </td>
+                            {matrixSessions.map((session) => {
+                              const status =
+                                student.statuses?.[String(session.id)] ?? "not_marked";
+                              const tooltip = `${getStatusLabel(status)} — ${formatSessionTooltip(session)}`;
+
+                              return (
+                                <td
+                                  key={`${student.student_id}-${session.id}`}
+                                  className="matrix-session-col matrix-status-cell"
+                                >
+                                  <AttendanceStatusIcon status={status} title={tooltip} />
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+            </div>
+          )}
+
+          {selectedGroupId && !loadingMatrix && attendanceMatrix && (
+            <div className="attendance-matrix-divider mx-3 mx-md-4">
+              <div className="mb-3">
+                <h6 className="fw-bold mb-1">
+                  {t("studentAttendance.markSessionTitle", "Mark Attendance for a Session")}
+                </h6>
+                <p className="text-muted small mb-0">
+                  {t(
+                    "studentAttendance.markSessionSubtitle",
+                    "Select a session below to view or update individual attendance records"
+                  )}
+                </p>
+              </div>
+            </div>
+          )}
 
           {!selectedGroupId && (
             <div className="text-center py-5">

@@ -1,5 +1,11 @@
 import { useState, useCallback } from "react";
-import { startExam as startExamApi, saveExamAnswer, submitExam as submitExamApi, getAttemptReview } from "../services/dashboardService";
+import {
+  startExam as startExamApi,
+  saveExamAnswer,
+  submitExam as submitExamApi,
+  getAttemptReview,
+  getExamTimeStatus,
+} from "../services/dashboardService";
 import { toastCustom } from "../../../components/shared/Toaster/toaster";
 import { getApiErrorMessage } from "../../../utils/apiErrors";
 
@@ -37,6 +43,36 @@ export const useExam = (examId) => {
       setLoading(false);
     }
   }, [examId]);
+
+  const syncExamTime = useCallback(async (attemptId) => {
+    if (!attemptId) {
+      return null;
+    }
+
+    try {
+      const res = await getExamTimeStatus(attemptId);
+      const data = res.data?.data ?? res.data;
+
+      if (!data) {
+        return null;
+      }
+
+      setExam((prev) =>
+        prev
+          ? {
+              ...prev,
+              ...data,
+              attempt_id: data.attempt_id ?? prev.attempt_id,
+            }
+          : prev,
+      );
+
+      return data;
+    } catch (err) {
+      console.error("Failed to sync exam time", err);
+      return null;
+    }
+  }, []);
 
   const saveAnswer = useCallback(async (questionId, choiceId) => {
     if (!exam?.attempt_id) {
@@ -107,12 +143,29 @@ export const useExam = (examId) => {
         results: mapExamResults(res.data?.results),
       };
     } catch (err) {
+      if (err.response?.status === 403) {
+        const recovered = await recoverClosedAttempt(attemptId);
+        if (recovered) {
+          return { results: recovered };
+        }
+      }
+
       console.error("Submit failed:", err);
       throw err;
     } finally {
       setSubmitting(false);
     }
-  }, []);
+  }, [recoverClosedAttempt]);
 
-  return { exam, loading, error, startExam, saveAnswer, submitExam, submitting, recoverClosedAttempt };
+  return {
+    exam,
+    loading,
+    error,
+    startExam,
+    saveAnswer,
+    submitExam,
+    submitting,
+    recoverClosedAttempt,
+    syncExamTime,
+  };
 };

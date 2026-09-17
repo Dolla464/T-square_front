@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { useQuizzes } from "../../hooks/useQuizzes";
 import StatCard from "../../components/StatCard";
@@ -14,9 +15,16 @@ function DashboardQuizzes() {
   const { t, i18n } = useTranslation("studentDashboard");
   const isArabic = i18n.language == "ar";
   const { user } = useAuth();
-  const { quizzes, stats, loading } = useQuizzes();
+  const location = useLocation();
+  const { quizzes, stats, loading, refetch } = useQuizzes();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+
+  useEffect(() => {
+    if (location.state?.refreshQuizzes) {
+      refetch();
+    }
+  }, [location.state?.refreshQuizzes, refetch]);
 
   // تعديل منطق الفلترة ليعتمد على جاهزية الامتحان وليس مجرد وجود محاولة سابقة
   const filtered = useMemo(() => {

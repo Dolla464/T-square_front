@@ -424,7 +424,18 @@
     "markAbsent": "غائب",
     "historicalSessionHint": "جلسة سابقة — قابلة للتعديل",
     "attendanceUpdated": "تم تحديث الحضور بنجاح",
-    "attendanceUpdateFailed": "فشل تحديث الحضور"
+    "attendanceUpdateFailed": "فشل تحديث الحضور",
+    "matrixTitle": "نظرة عامة على الحضور",
+    "matrixSubtitle": "جميع الطلاب والجلسات في جدول واحد",
+    "noSessionsForMatrix": "لا توجد جلسات لهذه المجموعة.",
+    "markSessionTitle": "تسجيل حضور جلسة",
+    "markSessionSubtitle": "اختر جلسة أدناه لعرض أو تعديل سجل الحضور",
+    "statusPresent": "حاضر",
+    "statusAbsent": "غائب",
+    "statusLate": "متأخر",
+    "statusNotMarked": "لم يسجَّل",
+    "statusExcused": "معذور",
+    "statusCancelled": "ملغاة"
   },
   "studentResults": {
     "title": "نتائج الطلاب",

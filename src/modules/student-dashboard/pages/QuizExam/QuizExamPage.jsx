@@ -9,9 +9,11 @@ import AttemptReviewPanel from "../../../shared-dashboard/components/AttemptAnsw
 import QuestionContent from "../../../shared-dashboard/components/QuestionContent/QuestionContent";
 import { invalidateAttemptReview } from "../../../shared-dashboard/hooks/attemptReviewCache";
 import { formatExamScore } from "../../../shared-dashboard/utils/formatExamScore";
+import { getStudentExams } from "../../services/dashboardService";
 import {
   getCompletedAttemptId,
   markQuizAttemptCompleted,
+  clearQuizAttemptCompleted,
 } from "../../utils/quizExamSession";
 import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
 import "../../../shared-dashboard/components/QuestionContent/questionContent.css";
@@ -30,23 +32,51 @@ const confirmLeaveExam = (isArabic) =>
 const isAttemptFailed = (status) =>
   status === "failed" || status === "timed_out";
 
-const QuizTimer = React.memo(({ startedAt, durationMins, onTimeout, disabled }) => {
+const QuizTimer = React.memo(
+  ({
+    deadlineAt,
+    startedAt,
+    durationMins,
+    remainingSeconds,
+    onTimeout,
+    onSync,
+    disabled,
+  }) => {
   const [timeLeft, setTimeLeft] = useState(null);
   const onTimeoutRef = useRef(onTimeout);
   onTimeoutRef.current = onTimeout;
 
-  useEffect(() => {
-    if (disabled || !startedAt || !durationMins || durationMins <= 0) return;
+  const getEndTimeMs = useCallback(() => {
+    if (deadlineAt) {
+      const deadlineMs = new Date(deadlineAt).getTime();
+      if (!Number.isNaN(deadlineMs)) {
+        return deadlineMs;
+      }
+    }
 
-    const startMs = new Date(startedAt).getTime();
-    const endTime = startMs + durationMins * 60 * 1000;
+    if (startedAt && durationMins > 0) {
+      const startMs = new Date(startedAt).getTime();
+      if (!Number.isNaN(startMs)) {
+        return startMs + durationMins * 60 * 1000;
+      }
+    }
+
+    return null;
+  }, [deadlineAt, startedAt, durationMins]);
+
+  useEffect(() => {
+    if (disabled) return;
+
+    const endTime = getEndTimeMs();
+    if (!endTime && typeof remainingSeconds !== "number") return;
 
     const calculateTimeLeft = () => {
-      const difference = endTime - Date.now();
-      if (difference <= 0) {
-        return 0;
+      if (endTime) {
+        const difference = endTime - Date.now();
+        return difference <= 0 ? 0 : Math.floor(difference / 1000);
       }
-      return Math.floor(difference / 1000);
+
+      return Math.max(0, remainingSeconds);
     };
 
     const initialTime = calculateTimeLeft();
@@ -69,7 +99,31 @@ const QuizTimer = React.memo(({ startedAt, durationMins, onTimeout, disabled }) 
     return () => {
       clearInterval(interval);
     };
-  }, [startedAt, durationMins, disabled]);
+  }, [deadlineAt, startedAt, durationMins, disabled, getEndTimeMs, remainingSeconds]);
+
+  useEffect(() => {
+    if (typeof remainingSeconds === "number" && !disabled) {
+      setTimeLeft(Math.max(0, remainingSeconds));
+    }
+  }, [remainingSeconds, disabled]);
+
+  useEffect(() => {
+    if (!onSync || disabled) return undefined;
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        onSync();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    const interval = setInterval(onSync, 60000);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      clearInterval(interval);
+    };
+  }, [onSync, disabled]);
 
   if (timeLeft === null) return null;
 
@@ -85,7 +139,8 @@ const QuizTimer = React.memo(({ startedAt, durationMins, onTimeout, disabled }) 
       <span>{formatTime(timeLeft)}</span>
     </div>
   );
-});
+  },
+);
 
 function QuizExamPage() {
   const { quizId } = useParams();
@@ -106,6 +161,7 @@ function QuizExamPage() {
     submitExam,
     submitting,
     recoverClosedAttempt,
+    syncExamTime,
   } = useExam(quizId);
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -116,6 +172,7 @@ function QuizExamPage() {
   const [submittedAttemptId, setSubmittedAttemptId] = useState(null);
   const [showAnswerReview, setShowAnswerReview] = useState(false);
   const [attemptFinalized, setAttemptFinalized] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const questions = exam?.questions || [];
   const currentQuestion = questions[currentIndex];
@@ -146,8 +203,6 @@ function QuizExamPage() {
   const examAttemptIdRef = useRef(exam?.attempt_id);
   examAttemptIdRef.current = exam?.attempt_id;
 
-  const completedReviewRedirectId = getCompletedAttemptId(quizId);
-
   useEffect(() => {
     setCurrentIndex(0);
     setSelectedAnswer(null);
@@ -160,26 +215,57 @@ function QuizExamPage() {
     attemptFinalizedRef.current = false;
     hasAutoSubmittedRef.current = false;
     hasStarted.current = false;
+    setIsInitializing(true);
   }, [quizId]);
 
   useEffect(() => {
     if (hasStarted.current) return;
     hasStarted.current = true;
 
-    const completedAttemptId = getCompletedAttemptId(quizId);
-    if (completedAttemptId) {
-      navigate(
-        `/student/quizzes/${quizId}/attempts/${completedAttemptId}/review`,
-        { replace: true },
-      );
-      return () => {
-        hasStarted.current = false;
-      };
-    }
+    let cancelled = false;
 
-    startExam();
+    const initExam = async () => {
+      try {
+        const completedAttemptId = getCompletedAttemptId(quizId);
+
+        if (completedAttemptId) {
+          const res = await getStudentExams();
+          const quizzes = res.data?.data || [];
+          const quiz = quizzes.find((q) => String(q.id) === String(quizId));
+          const canStartNewAttempt =
+            quiz && !quiz.is_locked && !quiz.has_ongoing_attempt;
+
+          if (canStartNewAttempt) {
+            clearQuizAttemptCompleted(quizId);
+            if (!cancelled) {
+              await startExam();
+            }
+            return;
+          }
+
+          if (!cancelled) {
+            navigate(
+              `/student/quizzes/${quizId}/attempts/${completedAttemptId}/review`,
+              { replace: true },
+            );
+          }
+          return;
+        }
+
+        if (!cancelled) {
+          await startExam();
+        }
+      } finally {
+        if (!cancelled) {
+          setIsInitializing(false);
+        }
+      }
+    };
+
+    initExam();
 
     return () => {
+      cancelled = true;
       hasStarted.current = false;
     };
   }, [quizId, startExam, navigate]);
@@ -334,7 +420,13 @@ function QuizExamPage() {
         const selAnswer = selectedAnswerRef.current;
 
         if (curQuestion && selAnswer !== null) {
-          await saveAnswer(curQuestion.id, selAnswer);
+          try {
+            await saveAnswer(curQuestion.id, selAnswer);
+          } catch (saveErr) {
+            if (saveErr.response?.status !== 403) {
+              throw saveErr;
+            }
+          }
         }
 
         const result = await submitExam(attemptId);
@@ -363,6 +455,13 @@ function QuizExamPage() {
 
         return true;
       } catch (err) {
+        if (attemptId) {
+          const recovered = await syncClosedAttempt(attemptId);
+          if (recovered) {
+            return true;
+          }
+        }
+
         hasAutoSubmittedRef.current = false;
         toastCustom({
           message: isArabic
@@ -375,7 +474,7 @@ function QuizExamPage() {
         return false;
       }
     },
-    [applySubmitResult, isArabic, saveAnswer, submitExam],
+    [applySubmitResult, isArabic, saveAnswer, submitExam, syncClosedAttempt],
   );
 
   finalizeAttemptRef.current = finalizeAttempt;
@@ -384,6 +483,47 @@ function QuizExamPage() {
     if (hasAutoSubmittedRef.current || showResult) return;
     await finalizeAttempt({ showToast: true, toastVariant: "timeout" });
   }, [finalizeAttempt, showResult]);
+
+  const handleTimerSync = useCallback(async () => {
+    const attemptId = examAttemptIdRef.current;
+    if (!attemptId || attemptFinalizedRef.current || showResult) {
+      return;
+    }
+
+    const data = await syncExamTime(attemptId);
+    if (!data) {
+      return;
+    }
+
+    if (data.status && data.status !== "ongoing") {
+      if (data.results) {
+        hasAutoSubmittedRef.current = true;
+        applySubmitResult(attemptId, data.results);
+        toastCustom({
+          message: isArabic
+            ? "انتهى الوقت المخصص للاختبار! تم إرسال إجاباتك تلقائياً."
+            : "Exam duration has ended! Your answers were submitted automatically.",
+          type: "warning",
+          bsIcon: "bi-clock-history",
+          duration: 5000,
+        });
+      } else {
+        await syncClosedAttempt(attemptId);
+      }
+      return;
+    }
+
+    if (data.is_timed_out || data.remaining_seconds === 0) {
+      await handleAutoSubmit();
+    }
+  }, [
+    applySubmitResult,
+    handleAutoSubmit,
+    isArabic,
+    showResult,
+    syncClosedAttempt,
+    syncExamTime,
+  ]);
 
   useEffect(() => {
     if (!shouldBlockNavigation) return;
@@ -425,7 +565,7 @@ function QuizExamPage() {
   }, [blocker, isArabic]);
 
   const handleExit = useCallback(() => {
-    navigate("/student/quizzes");
+    navigate("/student/quizzes", { state: { refreshQuizzes: true } });
   }, [navigate]);
 
   const handleExitClick = useCallback(async () => {
@@ -644,20 +784,7 @@ function QuizExamPage() {
     handleExit();
   }, [scoreResult, isArabic, handleExit, navigate]);
 
-  if (completedReviewRedirectId && !showResult) {
-    return (
-      <div className="quiz-exam-page">
-        <div
-          className="quiz-exam-container d-flex justify-content-center align-items-center"
-          style={{ minHeight: "300px" }}
-        >
-          <div className="spinner-border text-primary" role="status"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
+  if ((isInitializing || loading) && !showResult) {
     return (
       <div className="quiz-exam-page">
         <div
@@ -896,12 +1023,17 @@ function QuizExamPage() {
             ></i>
             {isArabic ? "خروج" : "Exit"}
           </button>
-          {exam && exam.duration && exam.started_at && (
+          {exam &&
+            exam.started_at &&
+            (exam.deadline_at ||
+              (exam.duration && parseFloat(exam.duration) > 0)) && (
             <QuizTimer
+              deadlineAt={exam.deadline_at}
               startedAt={exam.started_at}
               durationMins={parseFloat(exam.duration)}
-              isArabic={isArabic}
+              remainingSeconds={exam.remaining_seconds}
               onTimeout={handleAutoSubmit}
+              onSync={handleTimerSync}
               disabled={showResult || isInteractionLocked}
             />
           )}

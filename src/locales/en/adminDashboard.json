@@ -424,7 +424,18 @@
     "markAbsent": "Mark Absent",
     "historicalSessionHint": "Historical session — editable",
     "attendanceUpdated": "Attendance updated successfully",
-    "attendanceUpdateFailed": "Failed to update attendance"
+    "attendanceUpdateFailed": "Failed to update attendance",
+    "matrixTitle": "Attendance Overview",
+    "matrixSubtitle": "All students and sessions at a glance",
+    "noSessionsForMatrix": "No sessions found for this group.",
+    "markSessionTitle": "Mark Attendance for a Session",
+    "markSessionSubtitle": "Select a session below to view or update individual attendance records",
+    "statusPresent": "Present",
+    "statusAbsent": "Absent",
+    "statusLate": "Late",
+    "statusNotMarked": "Not Marked",
+    "statusExcused": "Excused",
+    "statusCancelled": "Cancelled"
   },
   "studentResults": {
     "title": "Students Results",
