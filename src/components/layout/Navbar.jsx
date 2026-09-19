@@ -14,39 +14,10 @@ import { isArabic } from "../../i18n";
 import SearchDropdown from "../search/SearchDropdown";
 import NotificationsDropdown from "../shared/NotificationsDropdown";
 import {
-  getNameInitials,
   getProfileAvatarUrl,
   getProfileDisplayName,
-  isDefaultAvatarUrl,
 } from "../../utils/avatar";
-
-function UserAvatar({ user, userProfile, size = 35 }) {
-  const [imageError, setImageError] = useState(false);
-
-  const displayName = getProfileDisplayName(user, userProfile);
-  const avatarUrl = getProfileAvatarUrl(user, userProfile);
-  const initials = getNameInitials(displayName, "U");
-  const showInitials = isDefaultAvatarUrl(avatarUrl) || imageError;
-
-  return (
-    <div
-      className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold overflow-hidden"
-      style={{ width: size, height: size, fontSize: size <= 35 ? "0.75rem" : "0.9rem" }}
-    >
-      {!showInitials ? (
-        <img
-          src={avatarUrl}
-          alt={displayName}
-          className="w-100 h-100"
-          style={{ objectFit: "cover" }}
-          onError={() => setImageError(true)}
-        />
-      ) : (
-        initials
-      )}
-    </div>
-  );
-}
+import ProfileAvatar from "../shared/ProfileAvatar/ProfileAvatar";
 
 function AppNavbar({ isLoggedIn, userName }) {
   const { t, i18n } = useTranslation(["navbar", "common", "user"]);
@@ -235,7 +206,12 @@ function AppNavbar({ isLoggedIn, userName }) {
               <div
                 className={`d-flex align-items-center gap-2 border-start ps-md-3 ${isDarkMode ? "border-dark" : "border-light"}`}
               >
-                <UserAvatar user={user} userProfile={userProfile} />
+                <ProfileAvatar
+                  name={getProfileDisplayName(user, userProfile)}
+                  avatarUrl={getProfileAvatarUrl(user, userProfile)}
+                  size={35}
+                  fallbackInitials="U"
+                />
 
                 {user?.is_verified === false && (
                   <i

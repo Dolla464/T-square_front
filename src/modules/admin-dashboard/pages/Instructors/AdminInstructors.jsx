@@ -6,6 +6,11 @@ import AdminPagination from "../../components/shared/AdminPagination";
 import { useInstructors } from "../../hooks/useInstractor";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { openExternalUrl } from "../../../../utils/openExternalUrl";
+import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
+import {
+  hasRealAvatar,
+  resolveAvatarUrl,
+} from "../../../../utils/avatar";
 // import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
@@ -27,31 +32,11 @@ const defaultFormData = {
   avatar: null,
 };
 
-const defaultAvatar = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
-
-const getAvatarSrc = (path) => {
-  if (!path) return defaultAvatar;
-
-  if (
-    path.startsWith("http://") ||
-    path.startsWith("https://") ||
-    path.startsWith("data:") ||
-    path.startsWith("blob:")
-  ) {
-    return path;
-  }
-
-  let apiURL = import.meta.env.VITE_API_URL || "";
-  apiURL = apiURL.replace(/\/api\/?$/, "");
-  const cleanBase = apiURL.endsWith("/") ? apiURL.slice(0, -1) : apiURL;
-  const cleanPath = path.startsWith("/") ? path : `/${path}`;
-
-  if (!cleanPath.startsWith("/storage") && !cleanPath.startsWith("/public")) {
-    return `${cleanBase}/storage${cleanPath}`;
-  }
-
-  return `${cleanBase}${cleanPath}`;
-};
+function getFormAvatarUrl(avatar) {
+  if (!avatar) return null;
+  if (avatar instanceof File) return URL.createObjectURL(avatar);
+  return resolveAvatarUrl(avatar);
+}
 
 function AdminInstructors() {
   const {
@@ -515,37 +500,45 @@ function AdminInstructors() {
                                     className="bg-white rounded-circle position-relative overflow-hidden"
                                     style={{ width: "55px", height: "55px" }}
                                   >
-                                    <img
-                                      src={getAvatarSrc(insData.avatar)}
-                                      alt={instructorName}
-                                      className="rounded-circle w-100 h-100"
-                                      style={{ objectFit: "cover" }}
-                                    />
-                                    <div
-                                      className="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
-                                      style={{
-                                        backgroundColor:
-                                          "rgba(190, 21, 34, 0.85)",
-                                        opacity: 0,
-                                        transition: "opacity 0.3s ease",
-                                        cursor: "pointer",
-                                        zIndex: 3,
-                                      }}
-                                      onMouseEnter={(e) =>
-                                        (e.currentTarget.style.opacity = 1)
-                                      }
-                                      onMouseLeave={(e) =>
-                                        (e.currentTarget.style.opacity = 0)
-                                      }
-                                      onClick={() => {
-                                        setLightboxSlides([
-                                          {
-                                            src: getAvatarSrc(insData.avatar),
-                                          },
-                                        ]);
-                                        setLightboxIndex(0);
-                                      }}
-                                    >
+                                    {(() => {
+                                      const instructorAvatarUrl = resolveAvatarUrl(
+                                        insData.avatar,
+                                      );
+                                      const instructorHasAvatar =
+                                        hasRealAvatar(instructorAvatarUrl);
+
+                                      return (
+                                        <>
+                                          <ProfileAvatar
+                                            name={instructorName}
+                                            avatarUrl={instructorAvatarUrl}
+                                            size={55}
+                                            imgClassName="rounded-circle"
+                                          />
+                                          {instructorHasAvatar && (
+                                            <div
+                                              className="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
+                                              style={{
+                                                backgroundColor:
+                                                  "rgba(190, 21, 34, 0.85)",
+                                                opacity: 0,
+                                                transition: "opacity 0.3s ease",
+                                                cursor: "pointer",
+                                                zIndex: 3,
+                                              }}
+                                              onMouseEnter={(e) =>
+                                                (e.currentTarget.style.opacity = 1)
+                                              }
+                                              onMouseLeave={(e) =>
+                                                (e.currentTarget.style.opacity = 0)
+                                              }
+                                              onClick={() => {
+                                                setLightboxSlides([
+                                                  { src: instructorAvatarUrl },
+                                                ]);
+                                                setLightboxIndex(0);
+                                              }}
+                                            >
                                       <button
                                         type="button"
                                         className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
@@ -567,7 +560,11 @@ function AdminInstructors() {
                                       >
                                         <i className="bi bi-eye-fill text-danger fs-4"></i>
                                       </button>
-                                    </div>
+                                            </div>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
                                   </div>
                                 </div>
                               </td>
@@ -677,57 +674,65 @@ function AdminInstructors() {
                       className="bg-white rounded-circle p-1 position-relative overflow-hidden"
                       style={{ width: "200px", height: "200px" }}
                     >
-                      <img
-                        src={getAvatarSrc(formData.avatar)}
-                        alt={formData.full_name}
-                        className="rounded-circle w-100 h-100"
-                        style={{
-                          objectFit: "cover",
-                          border: "3px solid #f8f9fa",
-                        }}
-                      />
-                      <div
-                        className="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
-                        style={{
-                          backgroundColor: "rgba(190, 21, 34, 0.85)",
-                          opacity: 0,
-                          transition: "opacity 0.3s ease",
-                          cursor: "pointer",
-                          zIndex: 3,
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.opacity = 1)
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.opacity = 0)
-                        }
-                        onClick={() => {
-                          setLightboxSlides([
-                            { src: getAvatarSrc(formData.avatar) },
-                          ]);
-                          setLightboxIndex(0);
-                        }}
-                      >
-                        <button
-                          type="button"
-                          className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
-                          style={{
-                            width: "48px",
-                            height: "48px",
-                            transition: "transform 0.2s ease",
-                            border: "none",
-                            backgroundColor: "#ffffff",
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.transform = "scale(1.15)")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.transform = "scale(1)")
-                          }
-                        >
-                          <i className="bi bi-eye-fill text-danger fs-4"></i>
-                        </button>
-                      </div>
+                      {(() => {
+                        const formAvatarUrl = getFormAvatarUrl(formData.avatar);
+                        const formHasAvatar = hasRealAvatar(formAvatarUrl);
+
+                        return (
+                          <>
+                            <ProfileAvatar
+                              name={formData.full_name}
+                              avatarUrl={formAvatarUrl}
+                              size={200}
+                              imgClassName="rounded-circle"
+                              style={{ border: "3px solid #f8f9fa" }}
+                            />
+                            {formHasAvatar && (
+                              <div
+                                className="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
+                                style={{
+                                  backgroundColor: "rgba(190, 21, 34, 0.85)",
+                                  opacity: 0,
+                                  transition: "opacity 0.3s ease",
+                                  cursor: "pointer",
+                                  zIndex: 3,
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.opacity = 1)
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.opacity = 0)
+                                }
+                                onClick={() => {
+                                  setLightboxSlides([{ src: formAvatarUrl }]);
+                                  setLightboxIndex(0);
+                                }}
+                              >
+                                <button
+                                  type="button"
+                                  className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
+                                  style={{
+                                    width: "48px",
+                                    height: "48px",
+                                    transition: "transform 0.2s ease",
+                                    border: "none",
+                                    backgroundColor: "#ffffff",
+                                  }}
+                                  onMouseEnter={(e) =>
+                                    (e.currentTarget.style.transform =
+                                      "scale(1.15)")
+                                  }
+                                  onMouseLeave={(e) =>
+                                    (e.currentTarget.style.transform = "scale(1)")
+                                  }
+                                >
+                                  <i className="bi bi-eye-fill text-danger fs-4"></i>
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                   <h4 className="fw-bold mt-2 text-dark mb-1">
@@ -755,20 +760,12 @@ function AdminInstructors() {
                       className="bg-white rounded-circle p-1 position-relative overflow-hidden"
                       style={{ width: "200px", height: "200px" }}
                     >
-                      <img
-                        src={
-                          formData.avatar
-                            ? formData.avatar instanceof File
-                              ? URL.createObjectURL(formData.avatar)
-                              : getAvatarSrc(formData.avatar)
-                            : defaultAvatar
-                        }
-                        alt={formData.full_name || "Instructor Avatar"}
-                        className="rounded-circle w-100 h-100"
-                        style={{
-                          objectFit: "cover",
-                          border: "3px solid #f8f9fa",
-                        }}
+                      <ProfileAvatar
+                        name={formData.full_name || "Instructor"}
+                        avatarUrl={getFormAvatarUrl(formData.avatar)}
+                        size={200}
+                        imgClassName="rounded-circle"
+                        style={{ border: "3px solid #f8f9fa" }}
                       />
                     </div>
                   </div>

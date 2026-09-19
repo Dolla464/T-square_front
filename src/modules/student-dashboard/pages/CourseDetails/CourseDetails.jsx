@@ -9,6 +9,7 @@ import { useCourseDetails } from "../../hooks/useCousrsesDetails";
 import ForbiddenAccess from "../../../../components/shared/ForbiddenAccess";
 import { getCourseInstructors } from "../../../../utils/courseInstructors";
 import { Spinner } from "react-bootstrap";
+import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
 
 /* ── دوال مساعدة ──────────────────────────────────────── */
 const getLevelIcon = (level) => {
@@ -37,9 +38,6 @@ const getStatusLabel = (status) => {
   };
   return map[status] ?? { ar: status, en: status, cls: "cd-status-idle" };
 };
-
-const getInitials = (name = "") =>
-  name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
 
 const formatDuration = (seconds) => {
   const total = Number(seconds);
@@ -462,18 +460,12 @@ function CourseDetails() {
                 >
                   <div className="cd-instructor-row">
                     <div className="cd-avatar-wrap">
-                      {instructorItem.avatar &&
-                      !instructorItem.avatar.includes("default_avatar") ? (
-                        <img
-                          src={instructorItem.avatar}
-                          alt={instructorItem.full_name}
-                          className="cd-avatar-img"
-                        />
-                      ) : (
-                        <div className="cd-avatar-placeholder">
-                          {getInitials(instructorItem.full_name)}
-                        </div>
-                      )}
+                      <ProfileAvatar
+                        name={instructorItem.full_name}
+                        avatarUrl={instructorItem.avatar}
+                        size={80}
+                        className="cd-avatar-profile"
+                      />
                     </div>
 
                     <div className="cd-instructor-info">

@@ -19,11 +19,10 @@ import { Alert, Spinner } from "react-bootstrap";
 import { useUnreadCount } from "../../../../hooks/useNotifications";
 import { formatNotificationBadge } from "../../../../utils/notifications";
 import {
-  getNameInitials,
   getProfileAvatarUrl,
   getProfileDisplayName,
-  isDefaultAvatarUrl,
 } from "../../../../utils/avatar";
+import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
 
 const SIDEBAR_STORAGE_KEY = "dashboard-sidebar-expanded";
 
@@ -129,8 +128,6 @@ function DashboardSharedLayout({
 
   const displayName = getProfileDisplayName(user, userProfile);
   const avatarUrl = getProfileAvatarUrl(user, userProfile);
-  const initials = getNameInitials(displayName);
-  const showInitials = isDefaultAvatarUrl(avatarUrl);
 
   const handleNotificationsClick = () => {
     if (isAdmin) {
@@ -424,20 +421,16 @@ function DashboardSharedLayout({
                     : ""
               }
             >
-              <div className="topbar-avatar">
-                {showInitials ? (
-                  initials
-                ) : (
-                  <img
-                    src={avatarUrl}
-                    alt={displayName || user?.name}
-                    className="w-100 h-100 rounded-circle"
-                    style={{ objectFit: "cover" }}
-                  />
-                )}
-              </div>
+              <ProfileAvatar
+                name={displayName || user?.name}
+                avatarUrl={avatarUrl}
+                size={38}
+                className="topbar-avatar"
+              />
               <div className="topbar-user-info">
-                <span className="topbar-user-name">{user?.name || "User"}</span>
+                <span className="topbar-user-name">
+                  {displayName || user?.name || "User"}
+                </span>
                 <span className="topbar-user-role">{userRoleName}</span>
               </div>
             </button>
