@@ -14,13 +14,17 @@ export const mapExamResults = (results) => {
 
   const totalMarks = results.total_marks > 0 ? results.total_marks : 1;
   const score = results.score ?? 0;
+  const isAwaitingGrading = results.status === "awaiting_grading";
   const percentage =
     results.percentage ??
-    `${Math.round((parseFloat(score) / totalMarks) * 100)}%`;
+    (isAwaitingGrading
+      ? null
+      : `${Math.round((parseFloat(score) / totalMarks) * 100)}%`);
 
   return {
     ...results,
     percentage,
+    is_passed: isAwaitingGrading ? null : results.is_passed,
   };
 };
 
@@ -74,18 +78,25 @@ export const useExam = (examId) => {
     }
   }, []);
 
-  const saveAnswer = useCallback(async (questionId, choiceId) => {
+  const saveAnswer = useCallback(async (questionId, answerValue, questionType = "mcq") => {
     if (!exam?.attempt_id) {
       console.warn("saveAnswer skipped — attempt_id not available yet");
       return;
     }
 
+    const payload = {
+      attempt_id: exam.attempt_id,
+      question_id: questionId,
+    };
+
+    if (questionType === "essay") {
+      payload.answer_text = answerValue;
+    } else {
+      payload.choice_id = answerValue;
+    }
+
     try {
-      await saveExamAnswer({
-        attempt_id: exam.attempt_id,
-        question_id: questionId,
-        choice_id: choiceId,
-      });
+      await saveExamAnswer(payload);
     } catch (err) {
       console.error("Failed to save answer", err);
       if (err.response?.status !== 403) {
@@ -120,7 +131,10 @@ export const useExam = (examId) => {
         score,
         total_marks: totalMarks,
         status: review.status,
-        is_passed: review.status === "passed",
+        is_passed:
+          review.status === "awaiting_grading"
+            ? null
+            : review.is_passed ?? review.status === "passed",
       });
     } catch (err) {
       console.error("Failed to recover closed attempt", err);

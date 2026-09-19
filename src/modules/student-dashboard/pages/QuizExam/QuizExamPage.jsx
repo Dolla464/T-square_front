@@ -32,6 +32,10 @@ const confirmLeaveExam = (isArabic) =>
 const isAttemptFailed = (status) =>
   status === "failed" || status === "timed_out";
 
+const isAwaitingGrading = (status) => status === "awaiting_grading";
+
+const isEssayQuestion = (question) => question?.type === "essay";
+
 const QuizTimer = React.memo(
   ({
     deadlineAt,
@@ -329,7 +333,12 @@ function QuizExamPage() {
 
   useEffect(() => {
     if (currentQuestion) {
-      setSelectedAnswer(answers[currentQuestion.id] ?? null);
+      const saved = answers[currentQuestion.id];
+      setSelectedAnswer(
+        isEssayQuestion(currentQuestion)
+          ? saved ?? ""
+          : saved ?? null,
+      );
     }
   }, [currentIndex, currentQuestion?.id, answers]);
 
@@ -383,12 +392,24 @@ function QuizExamPage() {
     const selAnswer = selectedAnswerRef.current;
     const attemptId = examAttemptIdRef.current;
 
-    if (!attemptId || !curQuestion || selAnswer === null) {
+    if (!attemptId || !curQuestion) {
+      return true;
+    }
+
+    if (isEssayQuestion(curQuestion)) {
+      if (!String(selAnswer ?? "").trim()) {
+        return true;
+      }
+    } else if (selAnswer === null) {
       return true;
     }
 
     try {
-      await saveAnswer(curQuestion.id, selAnswer);
+      await saveAnswer(
+        curQuestion.id,
+        selAnswer,
+        isEssayQuestion(curQuestion) ? "essay" : "mcq",
+      );
       return true;
     } catch (err) {
       if (err.response?.status === 403) {
@@ -419,13 +440,23 @@ function QuizExamPage() {
         const curQuestion = currentQuestionRef.current;
         const selAnswer = selectedAnswerRef.current;
 
-        if (curQuestion && selAnswer !== null) {
+        if (curQuestion) {
+          const shouldSave =
+            isEssayQuestion(curQuestion)
+              ? String(selAnswer ?? "").trim()
+              : selAnswer !== null;
+          if (shouldSave) {
           try {
-            await saveAnswer(curQuestion.id, selAnswer);
+            await saveAnswer(
+              curQuestion.id,
+              selAnswer,
+              isEssayQuestion(curQuestion) ? "essay" : "mcq",
+            );
           } catch (saveErr) {
             if (saveErr.response?.status !== 403) {
               throw saveErr;
             }
+          }
           }
         }
 
@@ -575,13 +606,13 @@ function QuizExamPage() {
     }
   }, [finalizeAttempt, isArabic]);
 
-  const handleSelectAnswer = useCallback(
-    (choiceId) => {
+  const handleAnswerChange = useCallback(
+    (value) => {
       if (!currentQuestion) return;
 
-      setSelectedAnswer(choiceId);
+      setSelectedAnswer(value);
       setAnswers((prev) => {
-        const updatedAnswers = { ...prev, [currentQuestion.id]: choiceId };
+        const updatedAnswers = { ...prev, [currentQuestion.id]: value };
 
         sessionStorage.setItem(
           `quiz_state_${quizId}`,
@@ -619,16 +650,22 @@ function QuizExamPage() {
 
     let updatedAnswers = { ...answers };
 
-    if (currentQuestion && selectedAnswer !== null) {
-      const saved = await persistCurrentAnswer();
-      if (!saved) {
-        return;
+    if (currentQuestion) {
+      const hasAnswer = isEssayQuestion(currentQuestion)
+        ? String(selectedAnswer ?? "").trim()
+        : selectedAnswer !== null;
+
+      if (hasAnswer) {
+        const saved = await persistCurrentAnswer();
+        if (!saved) {
+          return;
+        }
+        updatedAnswers = {
+          ...updatedAnswers,
+          [currentQuestion.id]: selectedAnswer,
+        };
+        setAnswers(updatedAnswers);
       }
-      updatedAnswers = {
-        ...updatedAnswers,
-        [currentQuestion.id]: selectedAnswer,
-      };
-      setAnswers(updatedAnswers);
     }
 
     if (attemptFinalizedRef.current || hasAutoSubmittedRef.current) {
@@ -683,8 +720,10 @@ function QuizExamPage() {
       setCurrentIndex(nextIndex);
       const nextQuestion = questions[nextIndex];
       setSelectedAnswer(
-        nextQuestion && updatedAnswers[nextQuestion.id] !== undefined
-          ? updatedAnswers[nextQuestion.id]
+        nextQuestion
+          ? isEssayQuestion(nextQuestion)
+            ? updatedAnswers[nextQuestion.id] ?? ""
+            : updatedAnswers[nextQuestion.id] ?? null
           : null,
       );
     }
@@ -716,16 +755,22 @@ function QuizExamPage() {
 
     let updatedAnswers = { ...answers };
 
-    if (currentQuestion && selectedAnswer !== null) {
-      const saved = await persistCurrentAnswer();
-      if (!saved) {
-        return;
+    if (currentQuestion) {
+      const hasAnswer = isEssayQuestion(currentQuestion)
+        ? String(selectedAnswer ?? "").trim()
+        : selectedAnswer !== null;
+
+      if (hasAnswer) {
+        const saved = await persistCurrentAnswer();
+        if (!saved) {
+          return;
+        }
+        updatedAnswers = {
+          ...updatedAnswers,
+          [currentQuestion.id]: selectedAnswer,
+        };
+        setAnswers(updatedAnswers);
       }
-      updatedAnswers = {
-        ...updatedAnswers,
-        [currentQuestion.id]: selectedAnswer,
-      };
-      setAnswers(updatedAnswers);
     }
 
     if (attemptFinalizedRef.current || hasAutoSubmittedRef.current) {
@@ -746,8 +791,10 @@ function QuizExamPage() {
     setCurrentIndex(prevIndex);
     const prevQuestion = questions[prevIndex];
     setSelectedAnswer(
-      prevQuestion && updatedAnswers[prevQuestion.id] !== undefined
-        ? updatedAnswers[prevQuestion.id]
+      prevQuestion
+        ? isEssayQuestion(prevQuestion)
+          ? updatedAnswers[prevQuestion.id] ?? ""
+          : updatedAnswers[prevQuestion.id] ?? null
         : null,
     );
   }, [
@@ -762,6 +809,11 @@ function QuizExamPage() {
   ]);
 
   const handleFinishWithToast = useCallback(() => {
+    if (isAwaitingGrading(scoreResult?.status)) {
+      handleExit();
+      return;
+    }
+
     const isFailed = isAttemptFailed(scoreResult?.status);
     toastCustom({
       message: isFailed
@@ -850,11 +902,16 @@ function QuizExamPage() {
   }
 
   if (showResult) {
+    const pendingGrading = isAwaitingGrading(scoreResult?.status);
     const isFailed = isAttemptFailed(scoreResult?.status);
     const percentage = parseFloat(scoreResult?.percentage) || 0;
     const HALF_CIRC = Math.PI * 80;
-    const filled = (percentage / 100) * HALF_CIRC;
-    const strokeColor = isFailed ? "#ef4444" : "#22c55e";
+    const filled = pendingGrading ? 0 : (percentage / 100) * HALF_CIRC;
+    const strokeColor = pendingGrading
+      ? "#f59e0b"
+      : isFailed
+        ? "#ef4444"
+        : "#22c55e";
 
     return (
       <div className="quiz-result-overlay">
@@ -864,9 +921,42 @@ function QuizExamPage() {
           }`}
         >
           <h4 className="result-title">
-            {isArabic ? "نتيجتك" : "Your Result"}
+            {pendingGrading
+              ? isArabic
+                ? "تم إرسال إجاباتك"
+                : "Submission Received"
+              : isArabic
+                ? "نتيجتك"
+                : "Your Result"}
           </h4>
 
+          {pendingGrading ? (
+            <div className="text-center px-3 mb-3">
+              <i
+                className="bi bi-hourglass-split"
+                style={{ fontSize: "3rem", color: "#f59e0b" }}
+              />
+              <p className="mt-3 mb-2 fw-semibold">
+                {isArabic
+                  ? "تم تسليم الامتحان بنجاح. بعض الأسئلة المقالية تحتاج تصحيحاً يدوياً من المدرّس."
+                  : "Your exam was submitted successfully. Essay questions are awaiting instructor grading."}
+              </p>
+              <p className="text-muted mb-0">
+                {isArabic
+                  ? "ستصلك إشعار عند اعتماد النتيجة النهائية."
+                  : "You will be notified when your final result is ready."}
+              </p>
+              {scoreResult?.score != null ? (
+                <p className="mt-3 mb-0">
+                  {isArabic ? "الدرجة الحالية (جزئية):" : "Current partial score:"}{" "}
+                  <strong>
+                    {formatExamScore(scoreResult.score)} /{" "}
+                    {formatExamScore(scoreResult.total_marks)}
+                  </strong>
+                </p>
+              ) : null}
+            </div>
+          ) : (
           <div
             className="result-circle-wrap"
             style={{ height: 130, marginBottom: 8 }}
@@ -917,38 +1007,43 @@ function QuizExamPage() {
               </text>
             </svg>
           </div>
+          )}
 
-          <p
-            style={{
-              fontSize: "1.4rem",
-              fontWeight: 700,
-              color: strokeColor,
-              margin: "0 0 6px",
-            }}
-          >
-            {scoreResult?.percentage}
-          </p>
+          {!pendingGrading ? (
+            <>
+              <p
+                style={{
+                  fontSize: "1.4rem",
+                  fontWeight: 700,
+                  color: strokeColor,
+                  margin: "0 0 6px",
+                }}
+              >
+                {scoreResult?.percentage}
+              </p>
 
-          <p
-            className={
-              isFailed ? "result-messageFailed" : "result-messageSucsses"
-            }
-          >
-            {isFailed
-              ? scoreResult?.status === "timed_out"
-                ? isArabic
-                  ? "انتهى الوقت — لم تجتز الحد الأدنى"
-                  : "Time expired — Below passing mark"
-                : isArabic
-                  ? "رسبت - لم تجتز الحد الأدنى"
-                  : "Failed — Below passing mark"
-              : isArabic
-                ? "مبروك! تجاوزت الحد الأدنى"
-                : "Passed — Above passing mark"}
-          </p>
+              <p
+                className={
+                  isFailed ? "result-messageFailed" : "result-messageSucsses"
+                }
+              >
+                {isFailed
+                  ? scoreResult?.status === "timed_out"
+                    ? isArabic
+                      ? "انتهى الوقت — لم تجتز الحد الأدنى"
+                      : "Time expired — Below passing mark"
+                    : isArabic
+                      ? "رسبت - لم تجتز الحد الأدنى"
+                      : "Failed — Below passing mark"
+                  : isArabic
+                    ? "مبروك! تجاوزت الحد الأدنى"
+                    : "Passed — Above passing mark"}
+              </p>
+            </>
+          ) : null}
 
           <div className="d-flex flex-wrap gap-2 justify-content-center mt-2">
-            {!showAnswerReview ? (
+            {!pendingGrading && !showAnswerReview ? (
               <button
                 type="button"
                 className="btn btn-review-action"
@@ -964,9 +1059,9 @@ function QuizExamPage() {
               onClick={handleFinishWithToast}
             >
               <i
-                className={`bi ${scoreResult?.requires_review ? "bi-star-fill" : "bi-arrow-left"} me-2`}
+                className={`bi ${!pendingGrading && !isFailed && scoreResult?.requires_review ? "bi-star-fill" : "bi-arrow-left"} me-2`}
               ></i>
-              {!isFailed && scoreResult?.requires_review
+              {!pendingGrading && !isFailed && scoreResult?.requires_review
                 ? isArabic
                   ? "اترك تقييم للحصول على الشهادة"
                   : "Leave Review to Get Certificate"
@@ -976,7 +1071,7 @@ function QuizExamPage() {
             </button>
           </div>
 
-          {showAnswerReview && submittedAttemptId ? (
+          {!pendingGrading && showAnswerReview && submittedAttemptId ? (
             <div className="mt-3 text-start">
               <AttemptReviewPanel
                 role="student"
@@ -1058,20 +1153,40 @@ function QuizExamPage() {
           <QuestionContent question={currentQuestion} />
         </div>
 
-        <div className="quiz-options">
-          {currentQuestion?.choices?.map((choice, idx) => (
-            <button
-              key={choice.id}
-              className={`quiz-option ${selectedAnswer === choice.id ? "selected" : ""}`}
-              onClick={() => handleSelectAnswer(choice.id)}
-            >
-              <span className="option-letter">
-                {String.fromCharCode(65 + idx)}{" "}
-              </span>
-              <span className="option-text">{choice.choice_text}</span>
-            </button>
-          ))}
-        </div>
+        {isEssayQuestion(currentQuestion) ? (
+          <div className="quiz-essay-answer mb-4">
+            <label className="form-label fw-semibold">
+              {isArabic ? "إجابتك" : "Your Answer"}
+            </label>
+            <textarea
+              className="form-control"
+              rows={8}
+              value={selectedAnswer ?? ""}
+              onChange={(e) => handleAnswerChange(e.target.value)}
+              placeholder={
+                isArabic
+                  ? "اكتب إجابتك هنا (اختياري)..."
+                  : "Write your answer here (optional)..."
+              }
+              disabled={isInteractionLocked}
+            />
+          </div>
+        ) : (
+          <div className="quiz-options">
+            {currentQuestion?.choices?.map((choice, idx) => (
+              <button
+                key={choice.id}
+                className={`quiz-option ${selectedAnswer === choice.id ? "selected" : ""}`}
+                onClick={() => handleAnswerChange(choice.id)}
+              >
+                <span className="option-letter">
+                  {String.fromCharCode(65 + idx)}{" "}
+                </span>
+                <span className="option-text">{choice.choice_text}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="quiz-nav-buttons">
           {currentIndex > 0 && (
@@ -1089,7 +1204,9 @@ function QuizExamPage() {
           <button
             className="btn-continueQuiz"
             disabled={
-              selectedAnswer === null || isInteractionLocked || !exam?.attempt_id
+              (!isEssayQuestion(currentQuestion) && selectedAnswer === null) ||
+              isInteractionLocked ||
+              !exam?.attempt_id
             }
             onClick={handleNext}
           >

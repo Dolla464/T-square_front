@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import ScrollToTop from "./components/shared/ScrollToTop";
 import ForbiddenRouteWatcher from "./components/shared/ForbiddenRouteWatcher";
 import RoleMismatchRedirect from "./components/shared/RoleMismatchRedirect";
+import SessionExpiredRedirect from "./components/shared/SessionExpiredRedirect";
 import AppNavbar from "./components/layout/Navbar";
 import AppFooter from "./components/layout/Footer";
 import Home from "./pages/Home";
@@ -195,6 +196,14 @@ const InstructorStudentResults = lazy(
 const InstructorExamActivation = lazy(
   () =>
     import("./modules/instructor-dashboard/pages/ExamActivation/InstructorExamActivation"),
+);
+const InstructorExamGrading = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/ExamGrading/InstructorExamGrading"),
+);
+const GradeAttemptPage = lazy(
+  () =>
+    import("./modules/instructor-dashboard/pages/ExamGrading/GradeAttemptPage"),
 );
 const InstructorProfile = lazy(
   () =>
@@ -512,6 +521,14 @@ function AppContent() {
                       element={<InstructorExamActivation />}
                     />
                     <Route
+                      path="exam-grading"
+                      element={<InstructorExamGrading />}
+                    />
+                    <Route
+                      path="exam-grading/:attemptId"
+                      element={<GradeAttemptPage />}
+                    />
+                    <Route
                       path="notifications"
                       element={<NotificationsPage />}
                     />
@@ -622,6 +639,7 @@ const router = createBrowserRouter([
       <>
         <ForbiddenRouteWatcher />
         <RoleMismatchRedirect />
+        <SessionExpiredRedirect />
         <ErrorBoundary>
           {/* مكون الإشعارات العالمي */}
           <Toaster position="top-center" reverseOrder={false} />

@@ -39,6 +39,11 @@ const INSTRUCTOR_NAV = [
         icon: "bi-toggle-on",
       },
       { key: "quizzes", path: "/instructor/quizzes", icon: "bi-chat-right-quote" },
+      {
+        key: "examGrading",
+        path: "/instructor/exam-grading",
+        icon: "bi-pencil-square",
+      },
     ],
   },
   {
@@ -75,6 +80,8 @@ function InstructorLayout() {
         return isArabic ? "تفعيل الامتحانات" : "Exam Activation";
       case "/instructor/quizzes":
         return isArabic ? "الاختبارات" : "Quizzes";
+      case "/instructor/exam-grading":
+        return isArabic ? "تصحيح الامتحانات" : "Exam Grading";
       case "/instructor/notifications":
         return isArabic ? "الإشعارات" : "Notifications";
       case "/instructor/profile":

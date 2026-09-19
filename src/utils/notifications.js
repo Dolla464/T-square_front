@@ -69,6 +69,7 @@ export const NOTIFICATION_ICON_MAP = {
   admin_enrollment: "bi-people",
   group_assigned: "bi-people",
   instructor_exam_result: "bi-patch-check",
+  grading_required: "bi-pencil-square",
 };
 
 /**
@@ -115,6 +116,8 @@ export const getNotificationTarget = (notification, userRole) => {
       case "session_rescheduled":
       case "session_cancelled":
         return "/instructor/attendance";
+      case "grading_required":
+        return "/instructor/exam-grading";
       case "exam_result":
       case "instructor_exam_result":
         return "/instructor/student-results";

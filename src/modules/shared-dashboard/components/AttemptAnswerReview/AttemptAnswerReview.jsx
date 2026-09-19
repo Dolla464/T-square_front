@@ -14,15 +14,25 @@ const RESULT_STATUS_LABELS = {
   correct: "question_correct",
   incorrect: "question_incorrect",
   unanswered: "unanswered",
+  pending_grading: "pending_grading",
+  graded: "question_graded",
 };
 
 const RESULT_STATUS_CLASS = {
   correct: "attempt-review-status--correct",
   incorrect: "attempt-review-status--incorrect",
   unanswered: "attempt-review-status--unanswered",
+  pending_grading: "attempt-review-status--pending",
+  graded: "attempt-review-status--correct",
 };
 
-function AttemptAnswerReview({ review, compact = false }) {
+function AttemptAnswerReview({
+  review,
+  compact = false,
+  gradingMode = false,
+  gradingValues = {},
+  onGradingChange,
+}) {
   const { t, i18n } = useTranslation("studentDashboard");
   const isArabic = i18n.language?.startsWith("ar");
 
@@ -56,12 +66,20 @@ function AttemptAnswerReview({ review, compact = false }) {
             count: summary.unanswered ?? 0,
           })}
         </span>
+        {(summary.pending_grading ?? 0) > 0 ? (
+          <span className="attempt-review-summary-item attempt-review-status--pending">
+            {isArabic
+              ? `بانتظار التصحيح: ${summary.pending_grading}`
+              : `Pending grading: ${summary.pending_grading}`}
+          </span>
+        ) : null}
       </div>
 
       <div className="attempt-review-questions">
         {questions.map((question, index) => {
           const statusClass =
             RESULT_STATUS_CLASS[question.result_status] ?? "";
+          const isEssay = question.type === "essay";
 
           return (
             <article
@@ -75,6 +93,11 @@ function AttemptAnswerReview({ review, compact = false }) {
                   className="question-text"
                 >
                   {t("attempt_review.question_num", { num: index + 1 })}
+                  {isEssay ? (
+                    <span className="badge bg-secondary ms-2">
+                      {isArabic ? "مقالي" : "Essay"}
+                    </span>
+                  ) : null}
                 </h3>
                 <QuestionContent question={question} className="mb-2" />
                 <span
@@ -83,46 +106,108 @@ function AttemptAnswerReview({ review, compact = false }) {
                   aria-describedby={`question-title-${question.id}-${index}`}
                 >
                   {t(
-                    `attempt_review.${RESULT_STATUS_LABELS[question.result_status]}`,
+                    `attempt_review.${RESULT_STATUS_LABELS[question.result_status] ?? "option"}`,
+                    {
+                      defaultValue:
+                        question.result_status === "pending_grading"
+                          ? isArabic
+                            ? "بانتظار التصحيح"
+                            : "Pending grading"
+                          : question.result_status === "graded"
+                            ? isArabic
+                              ? "تم التصحيح"
+                              : "Graded"
+                            : question.result_status,
+                    },
                   )}
                 </span>
               </div>
 
-              <div className="quiz-options" role="list">
-                {(question.choices ?? []).map((choice, choiceIndex) => {
-                  const letter = String.fromCharCode(65 + choiceIndex);
-                  const labelKey = CHOICE_STATE_LABELS[choice.state] ?? "option";
+              {isEssay ? (
+                <div className="attempt-review-essay">
+                  <label className="form-label fw-semibold">
+                    {isArabic ? "إجابة الطالب" : "Student Answer"}
+                  </label>
+                  <div className="p-3 bg-light rounded-3 border">
+                    {question.answer_text?.trim() ? (
+                      <p className="mb-0" style={{ whiteSpace: "pre-wrap" }}>
+                        {question.answer_text}
+                      </p>
+                    ) : (
+                      <p className="text-muted mb-0">
+                        {isArabic ? "لم يُجب" : "No answer provided"}
+                      </p>
+                    )}
+                  </div>
 
-                  return (
-                    <div
-                      key={choice.id}
-                      className={`quiz-option quiz-option--${choice.state}`}
-                      role="listitem"
-                      aria-label={t(`attempt_review.${labelKey}`, {
-                        text: choice.choice_text,
-                      })}
-                    >
-                      <span className="option-letter" aria-hidden="true">
-                        {letter}
-                      </span>
-                      <span className="option-text">{choice.choice_text}</span>
-                      {choice.state === "correct" ||
-                      choice.state === "correct_selected" ? (
-                        <i
-                          className="bi bi-check-circle-fill attempt-review-icon attempt-review-icon--correct"
-                          aria-hidden="true"
+                  {gradingMode &&
+                  question.result_status === "pending_grading" &&
+                  question.answer_id ? (
+                    <div className="mt-3">
+                      <label className="form-label fw-semibold">
+                        {isArabic ? "الدرجة الممنوحة" : "Marks Awarded"}
+                      </label>
+                      <div className="d-flex align-items-center gap-2">
+                        <input
+                          type="number"
+                          className="form-control"
+                          style={{ maxWidth: "140px" }}
+                          min="0"
+                          max={question.marks}
+                          step="0.5"
+                          value={gradingValues[question.answer_id] ?? ""}
+                          onChange={(e) =>
+                            onGradingChange?.(
+                              question.answer_id,
+                              e.target.value,
+                            )
+                          }
                         />
-                      ) : null}
-                      {choice.state === "wrong_selected" ? (
-                        <i
-                          className="bi bi-x-circle-fill attempt-review-icon attempt-review-icon--wrong"
-                          aria-hidden="true"
-                        />
-                      ) : null}
+                        <span className="text-muted">
+                          / {formatExamScore(question.marks ?? 0)}
+                        </span>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="quiz-options" role="list">
+                  {(question.choices ?? []).map((choice, choiceIndex) => {
+                    const letter = String.fromCharCode(65 + choiceIndex);
+                    const labelKey =
+                      CHOICE_STATE_LABELS[choice.state] ?? "option";
+
+                    return (
+                      <div
+                        key={choice.id}
+                        className={`quiz-option quiz-option--${choice.state}`}
+                        role="listitem"
+                        aria-label={t(`attempt_review.${labelKey}`, {
+                          text: choice.choice_text,
+                        })}
+                      >
+                        <span className="option-letter" aria-hidden="true">
+                          {letter}
+                        </span>
+                        <span className="option-text">{choice.choice_text}</span>
+                        {choice.state === "correct" ||
+                        choice.state === "correct_selected" ? (
+                          <i
+                            className="bi bi-check-circle-fill attempt-review-icon attempt-review-icon--correct"
+                            aria-hidden="true"
+                          />
+                        ) : null}
+                        {choice.state === "wrong_selected" ? (
+                          <i
+                            className="bi bi-x-circle-fill attempt-review-icon attempt-review-icon--wrong"
+                            aria-hidden="true"
+                          />
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               <div className="attempt-review-marks">
                 {t("attempt_review.marks_earned", {

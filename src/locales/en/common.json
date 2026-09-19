@@ -15,6 +15,11 @@
     "back": "Go back"
   },
 
+  "sessionExpired": {
+    "toast": "Your session expired due to inactivity. Please sign in again.",
+    "loginAlert": "Your session expired due to inactivity. Please sign in again."
+  },
+
   "notFound": {
     "title": "Resource not found"
   },

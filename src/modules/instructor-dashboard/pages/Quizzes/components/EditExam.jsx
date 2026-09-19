@@ -3,15 +3,19 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useInstructorQuizzes } from "../../../hooks/useInstructorQuizzes";
 import { Spinner } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
+import { showConfirmCustom } from "../../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastError } from "../../../../../components/shared/Toaster/toaster";
 import QuestionEditorFields from "../../../../shared-dashboard/components/QuestionEditorFields/QuestionEditorFields";
 import {
   buildQuestionPayload,
-  hasQuestionContent,
-  isQuestionFormBlank,
+  DEFAULT_QUESTION_MARKS,
+  getQuestionFormValidationError,
+  QUESTION_TYPE_ESSAY,
+  QUESTION_TYPE_MCQ,
   resetQuestionRichFields,
 } from "../../../../shared-dashboard/utils/questionFormHelpers";
 import "../../../../shared-dashboard/components/QuestionContent/questionContent.css";
+import "../../../../shared-dashboard/components/QuestionEditorFields/questionEditorFields.css";
 import "../../../../student-dashboard/styles/dashboardShared.css";
 
 /**
@@ -40,7 +44,8 @@ function EditExam() {
   const [questionCode, setQuestionCode] = useState("");
   const [questionCodeLanguage, setQuestionCodeLanguage] = useState("php");
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [marks, setMarks] = useState(1.0);
+  const [questionType, setQuestionType] = useState(QUESTION_TYPE_MCQ);
+  const [marks, setMarks] = useState(DEFAULT_QUESTION_MARKS);
   const [choices, setChoices] = useState([
     { choice_text: "", is_correct: false },
     { choice_text: "", is_correct: false },
@@ -72,7 +77,8 @@ function EditExam() {
           );
           setQuestionCode(questionData.question_code || "");
           setQuestionCodeLanguage(questionData.question_code_language || "php");
-          setMarks(questionData.marks || 1.0);
+          setQuestionType(questionData.type || QUESTION_TYPE_MCQ);
+          setMarks(questionData.marks ?? DEFAULT_QUESTION_MARKS);
 
           let choicesData = questionData.choices || [];
           if (choicesData.length === 0) {
@@ -120,7 +126,13 @@ function EditExam() {
   };
 
   const handleMarksChange = (value) => {
-    setMarks(parseFloat(value) || 0);
+    if (value === "") {
+      setMarks(0);
+      return;
+    }
+
+    const parsed = Number.parseInt(value, 10);
+    setMarks(Number.isNaN(parsed) ? 0 : Math.max(0, parsed));
   };
 
   const handleImageSelect = async (event) => {
@@ -153,46 +165,19 @@ function EditExam() {
       questionCodeLanguage,
       marks,
       choices,
+      type: questionType,
     });
 
   const validateQuestion = () => {
-    if (
-      !hasQuestionContent({
-        questionText,
-        questionImage: questionImagePath,
-        questionCode,
-      })
-    ) {
-      toastError(
-        isArabic
-          ? "أضف نص السؤال أو صورة أو كود على الأقل"
-          : "Add question text, an image, or code at minimum",
-      );
-      return false;
-    }
+    const validationError = getQuestionFormValidationError({
+      questionType,
+      questionText,
+      marks,
+      choices,
+    });
 
-    if (!marks || isNaN(marks) || marks < 0.5) {
-      toastError(
-        isArabic
-          ? "من فضلك أدخل درجة صحيحة (0.5 على الأقل)"
-          : "Please enter a valid mark (minimum 0.5)"
-      );
-      return false;
-    }
-
-    const hasCorrect = choices.some((c) => c.is_correct);
-    if (!hasCorrect) {
-      toastError(
-        isArabic
-          ? "من فضلك حدد إجابة واحدة صحيحة على الأقل"
-          : "Please select at least one correct answer"
-      );
-      return false;
-    }
-
-    const allHaveText = choices.every((c) => c.choice_text.trim() !== "");
-    if (!allHaveText) {
-      toastError(isArabic ? "من فضلك املأ جميع الاختيارات" : "Please fill in all choice options");
+    if (validationError) {
+      toastError(isArabic ? validationError.ar : validationError.en);
       return false;
     }
 
@@ -208,20 +193,6 @@ function EditExam() {
         isArabic ? "تعذر تحديد الاختبار. ارجع وحاول مرة أخرى." : "Could not resolve the exam. Go back and try again.",
       );
       return;
-    }
-
-    // In isAdd mode, check if form is completely clean/empty to allow exiting without saving
-    if (isAdd) {
-      const isBlank = isQuestionFormBlank({
-        questionText,
-        questionImagePath,
-        questionCode,
-        choices,
-      });
-      if (isBlank) {
-        navigate(`/instructor/quizzes/view-exam/${activeExamId}`);
-        return;
-      }
     }
 
     if (!validateQuestion()) return;
@@ -264,6 +235,7 @@ function EditExam() {
           setQuestionImagePreview,
           setQuestionCode,
           setQuestionCodeLanguage,
+          setQuestionType,
           setMarks,
           setChoices,
         });
@@ -279,6 +251,23 @@ function EditExam() {
       navigate(`/instructor/quizzes/view-exam/${activeExamId}`);
     } else {
       navigate("/instructor/quizzes");
+    }
+  };
+
+  const handleExitWithoutSaving = async () => {
+    const confirmed = await showConfirmCustom({
+      title: isArabic ? "خروج دون حفظ" : "Exit without saving",
+      message: isArabic
+        ? "لم يتم حفظ السؤال. هل تريد الخروج وفقدان التغييرات؟"
+        : "This question has not been saved. Exit and discard your changes?",
+      icon: "warning",
+      variant: "danger",
+      confirmText: isArabic ? "نعم، اخرج" : "Yes, exit",
+      cancelText: isArabic ? "إلغاء" : "Cancel",
+    });
+
+    if (confirmed) {
+      handleBack();
     }
   };
 
@@ -343,6 +332,8 @@ function EditExam() {
 
           <QuestionEditorFields
             isArabic={isArabic}
+            questionType={questionType}
+            onQuestionTypeChange={setQuestionType}
             questionText={questionText}
             onQuestionTextChange={handleQuestionTextChange}
             marks={marks}
@@ -357,13 +348,21 @@ function EditExam() {
             onQuestionCodeLanguageChange={setQuestionCodeLanguage}
           />
 
+          {questionType === QUESTION_TYPE_ESSAY ? (
+            <div className="alert alert-info mb-4 editor-essay-notice">
+              {isArabic
+                ? "أسئلة المقال لا تحتاج خيارات. سيقوم المدرّس بتصحيح إجابات الطلاب يدوياً بعد التسليم."
+                : "Essay questions do not need choices. Instructors will manually grade student answers after submission."}
+            </div>
+          ) : null}
+
           {/* Answer Options with Radio Buttons */}
+          {questionType === QUESTION_TYPE_MCQ ? (
           <div className="quiz-options">
             {choices.map((choice, idx) => (
               <div
                 key={idx}
-                className={`quiz-option ${choice.is_correct ? "selected" : ""}`}
-                style={{ cursor: "default" }}
+                className={`quiz-option quiz-option--editable ${choice.is_correct ? "selected" : ""}`}
               >
                 {/* Letter prefix */}
                 <span className="option-letter">
@@ -403,8 +402,7 @@ function EditExam() {
               </div>
             ))}
           </div>
-
-
+          ) : null}
 
           {/* Footer Actions */}
           <div className="d-flex justify-content-end align-items-center gap-2 mt-4">
@@ -412,8 +410,8 @@ function EditExam() {
               <div className="d-flex flex-wrap gap-2 w-100 justify-content-between">
                 <button
                   type="button"
-                  className="btn btn-outline-secondary px-4 py-2 rounded-3 fw-bold"
-                  onClick={handleBack}
+                  className="btn btn-outline-secondary px-4 py-2 rounded-3 fw-bold editor-action-btn"
+                  onClick={handleExitWithoutSaving}
                   style={{ fontSize: "0.9rem" }}
                 >
                   <i className="bi bi-x-circle me-1"></i>
@@ -423,7 +421,7 @@ function EditExam() {
                 <div className="d-flex gap-2">
                   <button
                     type="button"
-                    className="btn btn-success px-4 py-2 rounded-3 fw-bold text-white d-flex align-items-center gap-2"
+                    className="btn btn-success px-4 py-2 rounded-3 fw-bold text-white d-flex align-items-center gap-2 editor-action-btn editor-action-btn--success"
                     onClick={handleSave}
                     disabled={saving}
                     style={{ fontSize: "0.9rem" }}
@@ -438,7 +436,7 @@ function EditExam() {
 
                   <button
                     type="button"
-                    className="btn btn-danger ac-add-btn m-0"
+                    className="btn btn-danger ac-add-btn m-0 editor-action-btn editor-action-btn--primary"
                     onClick={handleNext}
                     disabled={saving}
                     style={{
@@ -463,7 +461,7 @@ function EditExam() {
             ) : (
               <button
                 type="button"
-                className="btn btn-danger ac-add-btn"
+                className="btn btn-danger ac-add-btn editor-action-btn editor-action-btn--primary"
                 onClick={handleSave}
                 disabled={saving}
                 style={{
