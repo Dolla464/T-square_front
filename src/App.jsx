@@ -557,6 +557,10 @@ function AppContent() {
                       path="orders/create"
                       element={<ReceptionistCreateOrder />}
                     />
+                    <Route
+                      path="notifications"
+                      element={<NotificationsPage />}
+                    />
                   </Route>
                 </Route>
 

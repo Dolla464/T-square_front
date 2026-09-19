@@ -17,6 +17,7 @@ import { resendVerificationNotification } from "../../../../services/register";
 import toast from "react-hot-toast";
 import { Alert, Spinner } from "react-bootstrap";
 import { useUnreadCount } from "../../../../hooks/useNotifications";
+import { formatNotificationBadge } from "../../../../utils/notifications";
 import {
   getNameInitials,
   getProfileAvatarUrl,
@@ -124,6 +125,7 @@ function DashboardSharedLayout({
   const isExmam = location.pathname.includes("/student/quizzes/");
   const isLeaveReviewPage = location.pathname.includes("/student/review/");
   const { unreadCount } = useUnreadCount();
+  const topbarUnreadBadge = formatNotificationBadge(unreadCount);
 
   const displayName = getProfileDisplayName(user, userProfile);
   const avatarUrl = getProfileAvatarUrl(user, userProfile);
@@ -136,7 +138,7 @@ function DashboardSharedLayout({
     } else if (userRoleName === "Instructor" || user?.role === "instructor") {
       navigate("/instructor/notifications");
     } else if (userRoleName === "Receptionist" || user?.role === "receptionist") {
-      // Receptionist has no dedicated notifications page — no-op
+      navigate("/receptionist/notifications");
     } else {
       navigate("/student/notifications");
     }
@@ -387,8 +389,8 @@ function DashboardSharedLayout({
               aria-label="Notifications"
             >
               <i className="bi bi-bell"></i>
-              {unreadCount > 0 && (
-                <span className="notif-badge-count">{unreadCount}</span>
+              {topbarUnreadBadge != null && (
+                <span className="notif-badge-count">{topbarUnreadBadge}</span>
               )}
             </button>
 

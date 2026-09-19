@@ -6,6 +6,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useAdminSettings } from "../hooks/useAdminSettings";
 import { useEffect } from "react";
 import { useUnreadCount } from "../../../hooks/useNotifications";
+import { formatNotificationBadge } from "../../../utils/notifications";
 
 const ADMIN_NAV = [
   { key: "dashboard", path: "/admin", icon: "bi-grid-1x2", end: true },
@@ -75,8 +76,9 @@ function AdminLayout() {
     generalSettings?.maintenance_mode === true;
 
   const navItems = ADMIN_NAV.map((item) => {
-    if (item.key === "Notification" && unreadCount > 0) {
-      return { ...item, badge: unreadCount > 9 ? "9+" : unreadCount };
+    const badge = formatNotificationBadge(unreadCount);
+    if (item.key === "Notification" && badge != null) {
+      return { ...item, badge };
     }
     return item;
   });

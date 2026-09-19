@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom";
 import i18next from "i18next";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useUnreadCount } from "../../../hooks/useNotifications";
+import { formatNotificationBadge } from "../../../utils/notifications";
 
 const INSTRUCTOR_NAV = [
   { key: "dashboard", path: "/instructor", icon: "bi-grid-1x2", end: true },
@@ -67,6 +68,10 @@ function InstructorLayout() {
   );
 
   const getPageTitle = (path) => {
+    if (path.startsWith("/instructor/exam-grading")) {
+      return isArabic ? "تصحيح الامتحانات" : "Exam Grading";
+    }
+
     switch (path) {
       case "/instructor":
         return HomePageTitle;
@@ -80,8 +85,6 @@ function InstructorLayout() {
         return isArabic ? "تفعيل الامتحانات" : "Exam Activation";
       case "/instructor/quizzes":
         return isArabic ? "الاختبارات" : "Quizzes";
-      case "/instructor/exam-grading":
-        return isArabic ? "تصحيح الامتحانات" : "Exam Grading";
       case "/instructor/notifications":
         return isArabic ? "الإشعارات" : "Notifications";
       case "/instructor/profile":
@@ -99,11 +102,9 @@ function InstructorLayout() {
   const navItems = useMemo(
     () =>
       INSTRUCTOR_NAV.map((item) => {
-        if (item.key === "Notification" && unreadCount > 0) {
-          return {
-            ...item,
-            badge: unreadCount > 9 ? "9+" : unreadCount,
-          };
+        const badge = formatNotificationBadge(unreadCount);
+        if (item.key === "Notification" && badge != null) {
+          return { ...item, badge };
         }
         return item;
       }),

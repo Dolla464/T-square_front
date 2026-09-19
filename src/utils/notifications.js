@@ -31,6 +31,31 @@ export const normalizeNotification = (notification) => ({
   data: notification?.data ?? null,
 });
 
+export const NOTIFICATIONS_PER_PAGE = 30;
+
+export function parseUnreadCount(value) {
+  if (Array.isArray(value)) {
+    return parseUnreadCount(value[0]);
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+}
+
+/** Sidebar / topbar badge — full unread count (not capped at 9+). */
+export function formatNotificationBadge(count) {
+  const safe = parseUnreadCount(count);
+  if (safe <= 0) {
+    return null;
+  }
+
+  if (safe > 99) {
+    return "99+";
+  }
+
+  return safe;
+}
+
 export const getNotificationsPayload = (response) => {
   const payload = response?.data ?? {};
 
@@ -55,6 +80,7 @@ export const getNotificationsPayload = (response) => {
 export const getNotificationsPagePath = (userRole) => {
   if (userRole === "admin") return "/admin/notifications";
   if (userRole === "instructor") return "/instructor/notifications";
+  if (userRole === "receptionist") return "/receptionist/notifications";
   return "/student/notifications";
 };
 
@@ -80,6 +106,7 @@ export const getNotificationTarget = (notification, userRole) => {
   const role = userRole || (typeof window !== "undefined"
     ? (window.location.pathname.startsWith("/admin") ? "admin"
        : window.location.pathname.startsWith("/instructor") ? "instructor"
+       : window.location.pathname.startsWith("/receptionist") ? "receptionist"
        : "student")
     : "student");
 
@@ -126,6 +153,18 @@ export const getNotificationTarget = (notification, userRole) => {
         return "/instructor/schedule";
       case "group_assigned":
         return "/instructor/schedule";
+      default:
+        return null;
+    }
+  }
+
+  if (role === "receptionist") {
+    switch (type) {
+      case "enrollment":
+      case "admin_enrollment":
+        return "/receptionist/orders";
+      case "group_assigned":
+        return "/receptionist/groups";
       default:
         return null;
     }

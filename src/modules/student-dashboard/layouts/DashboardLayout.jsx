@@ -4,6 +4,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 import i18next from "i18next";
 import { useUnreadCount } from "../../../hooks/useNotifications";
+import { formatNotificationBadge } from "../../../utils/notifications";
 
 const STUDENT_NAV = [
   {
@@ -38,8 +39,9 @@ function DashboardLayout() {
   if (!user) return null;
 
   const navItems = STUDENT_NAV.map((item) => {
-    if (item.key === "notifications" && unreadCount > 0) {
-      return { ...item, badge: unreadCount > 9 ? "9+" : unreadCount };
+    const badge = formatNotificationBadge(unreadCount);
+    if (item.key === "notifications" && badge != null) {
+      return { ...item, badge };
     }
     return item;
   });

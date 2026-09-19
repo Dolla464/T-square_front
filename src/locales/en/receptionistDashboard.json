@@ -6,7 +6,8 @@
     "learningGroups": "Learning Groups",
     "studentAttendance": "Students Attendance",
     "students": "Students",
-    "orders": "Orders & Payment"
+    "orders": "Orders & Payment",
+    "Notification": "Notifications"
   },
   "topbar": {
     "role": "Receptionist"

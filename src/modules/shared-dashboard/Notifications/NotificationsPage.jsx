@@ -1,13 +1,14 @@
-import { useMemo } from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { toastCustom } from "../../../components/shared/Toaster/toaster";
 import NotificationCard from "../../student-dashboard/components/NotificationCard";
-import "../components/DashboardLayout/DashboardSharedLayout";
+import "../../student-dashboard/styles/dashboardShared.css";
 import { useNotifications } from "../../../hooks/useNotifications";
 import AdminPagination from "../../admin-dashboard/components/shared/AdminPagination";
 
 function NotificationsPage() {
   const { t } = useTranslation("studentDashboard");
+  const listRef = useRef(null);
 
   const {
     notifications,
@@ -18,12 +19,6 @@ function NotificationsPage() {
     goToPage,
   } = useNotifications();
 
-  const sortedNotifications = useMemo(() => {
-    return [...notifications].sort(
-      (a, b) => new Date(b.created_at) - new Date(a.created_at),
-    );
-  }, [notifications]);
-
   const handleMarkAllAsRead = async () => {
     await markAllAsRead();
 
@@ -33,6 +28,13 @@ function NotificationsPage() {
       bsIcon: "bi-check2-all",
       duration: 3000,
     });
+  };
+
+  const handlePageChange = (page) => {
+    if (isLoading) return;
+
+    goToPage(page);
+    listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   if (isLoading && notifications.length === 0) {
@@ -61,15 +63,15 @@ function NotificationsPage() {
         )}
       </div>
 
-      {sortedNotifications.length === 0 ? (
+      {notifications.length === 0 ? (
         <div className="notifications-empty">
           <i className="bi bi-bell-slash notifications-empty-icon"></i>
           <p>{t("notifications.empty")}</p>
         </div>
       ) : (
         <>
-          <div className="notifications-list">
-            {sortedNotifications.map((notification) => (
+          <div className="notifications-list" ref={listRef}>
+            {notifications.map((notification) => (
               <NotificationCard key={notification.id} notification={notification} />
             ))}
           </div>
@@ -77,7 +79,7 @@ function NotificationsPage() {
           {pagination.last_page > 1 && (
             <AdminPagination
               pagination={pagination}
-              onPageChange={(page) => !isLoading && goToPage(page)}
+              onPageChange={handlePageChange}
               wrapperClassName="d-flex justify-content-center mt-4"
             />
           )}
