@@ -16,6 +16,8 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useStudentAttendance } from "../../hooks/useStudentAttendance";
 import StatCard from "../../components/StatCard";
 import {
+  ATTENDANCE_CHART_COLORS,
+  ATTENDANCE_STATUS_ORDER,
   buildAttendanceChartData,
   buildAttendanceChartOptions,
   countSessionsByStatus,
@@ -39,7 +41,7 @@ const SESSION_STATUS = {
   cancelled: "dark",
 };
 
-function StatusBadge({ status, isArabic }) {
+function StatusBadge({ status, isArabic, compact = false }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.not_marked;
   const labels = {
     present: isArabic ? "حاضر" : "Present",
@@ -50,7 +52,9 @@ function StatusBadge({ status, isArabic }) {
 
   return (
     <span
-      className="badge rounded-pill px-3 py-2 d-inline-flex align-items-center gap-1"
+      className={`badge rounded-pill d-inline-flex align-items-center gap-1 ${
+        compact ? "attendance-history-status-badge" : "px-3 py-2"
+      }`}
       style={{ backgroundColor: cfg.bg, color: cfg.color }}
     >
       <i className={`bi ${cfg.icon}`} />
@@ -275,9 +279,34 @@ function StudentAttendance() {
       buildAttendanceChartOptions({
         isArabic,
         totalSessions: groupHistory?.total_sessions ?? groupSessions.length,
+        showLegend: false,
       }),
     [isArabic, groupHistory?.total_sessions, groupSessions.length],
   );
+
+  const chartLegendItems = useMemo(() => {
+    const items = ATTENDANCE_STATUS_ORDER.filter(
+      (status) => (groupStatusCounts[status] ?? 0) > 0,
+    ).map((status) => ({
+      status,
+      label: t(groupChartLabelKeys[status]),
+      color: ATTENDANCE_CHART_COLORS[status],
+      count: groupStatusCounts[status],
+    }));
+
+    if (items.length === 0) {
+      return [
+        {
+          status: "not_marked",
+          label: t(groupChartLabelKeys.not_marked),
+          color: ATTENDANCE_CHART_COLORS.not_marked,
+          count: 0,
+        },
+      ];
+    }
+
+    return items;
+  }, [groupStatusCounts, t, groupChartLabelKeys]);
 
   const todayLabel = new Date().toLocaleDateString(isArabic ? "ar-EG" : "en-US", {
     weekday: "long",
@@ -590,7 +619,7 @@ function StudentAttendance() {
               </div>
             ) : (
               <div className="table-responsive">
-                <Table responsive hover className="align-middle mb-0 text-center">
+                <Table hover className="align-middle mb-0 text-center">
                   <thead>
                     <tr>
                       <th className="text-start">{t("attendance.course")}</th>
@@ -690,34 +719,38 @@ function StudentAttendance() {
                   </div>
                 ) : (
                   <>
-                    <Row className="align-items-center mb-4 g-3">
-                      <Col md={5} className="text-center">
-                        <div
-                          style={{
-                            position: "relative",
-                            maxWidth: 220,
-                            height: 220,
-                            margin: "0 auto",
-                          }}
-                        >
-                          <Doughnut data={chartData} options={chartOptions} />
-                          <div
-                            className="position-absolute top-50 start-50 translate-middle text-center"
-                            style={{ pointerEvents: "none" }}
-                          >
-                            <span
-                              className="fw-bold fs-4"
-                              style={{ color: "#be1522" }}
-                            >
-                              {groupHistory.attendance_percentage}%
-                            </span>
-                            <div className="text-muted small">
-                              {t("attendance.attendanceRate", "Attendance Rate")}
+                    <Row className="attendance-history-summary align-items-center mb-4 g-3">
+                      <Col xs={12} md={5} className="text-center">
+                        <div className="attendance-history-chart">
+                          <div className="attendance-history-chart-ring">
+                            <Doughnut data={chartData} options={chartOptions} />
+                            <div className="attendance-history-chart-center">
+                              <span className="attendance-history-chart-pct">
+                                {groupHistory.attendance_percentage}%
+                              </span>
+                              <div className="text-muted small">
+                                {t("attendance.attendanceRate", "Attendance Rate")}
+                              </div>
                             </div>
+                          </div>
+                          <div className="attendance-history-chart-legend">
+                            {chartLegendItems.map((item) => (
+                              <span
+                                key={item.status}
+                                className="attendance-history-legend-item"
+                              >
+                                <span
+                                  className="attendance-history-legend-dot"
+                                  style={{ backgroundColor: item.color }}
+                                />
+                                {item.label}
+                                {item.count > 0 ? ` (${item.count})` : ""}
+                              </span>
+                            ))}
                           </div>
                         </div>
                       </Col>
-                      <Col md={7} className={isArabic ? "text-end" : "text-start"}>
+                      <Col xs={12} md={7} className="attendance-history-summary-text">
                         <h5 className="fw-bold mb-1">{groupHistory.course_title}</h5>
                         <p className="text-muted mb-3 small">{groupHistory.group_name}</p>
                         <p className="text-muted small mb-0">
@@ -727,39 +760,59 @@ function StudentAttendance() {
                       </Col>
                     </Row>
 
-                    <div className="table-responsive">
-                      <Table responsive hover className="align-middle mb-0 text-center">
-                        <thead>
-                          <tr>
-                            <th>{t("attendance.date")}</th>
-                            <th>{t("attendance.time")}</th>
-                            <th>{t("attendance.session")}</th>
-                            <th>{t("attendance.yourStatus")}</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(groupHistory.sessions ?? []).map((session) => (
-                            <tr key={session.session_id}>
-                              <td>{session.session_date}</td>
-                              <td>
-                                {session.start_time} – {session.end_time}
-                              </td>
-                              <td>
-                                <Badge bg={SESSION_STATUS[session.session_status] ?? "secondary"}>
-                                  {t(
-                                    `attendance.sessionStatus.${session.session_status}`,
-                                    session.session_status,
-                                  )}
-                                </Badge>
-                              </td>
-                              <td>
-                                <StatusBadge status={session.status} isArabic={isArabic} />
-                              </td>
+                    {(groupHistory.sessions ?? []).length === 0 ? (
+                      <div className="attendance-history-empty py-4 text-center text-muted">
+                        <i
+                          className="bi bi-calendar-x fs-2 text-muted mb-2 d-block"
+                          style={{ opacity: 0.5 }}
+                        />
+                        <p className="mb-0 small">{t("attendance.noSessionsHistory")}</p>
+                      </div>
+                    ) : (
+                      <div className="table-responsive attendance-history-table-wrap">
+                        <Table
+                          hover
+                          className="align-middle mb-0 text-center attendance-history-table"
+                        >
+                          <thead>
+                            <tr>
+                              <th>{t("attendance.date")}</th>
+                              <th>{t("attendance.time")}</th>
+                              <th>{t("attendance.sessionStatusColumn")}</th>
+                              <th>{t("attendance.yourStatus")}</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </Table>
-                    </div>
+                          </thead>
+                          <tbody>
+                            {(groupHistory.sessions ?? []).map((session) => (
+                              <tr key={session.session_id}>
+                                <td>{session.session_date}</td>
+                                <td>
+                                  {session.start_time} – {session.end_time}
+                                </td>
+                                <td>
+                                  <Badge
+                                    bg={SESSION_STATUS[session.session_status] ?? "secondary"}
+                                    className="attendance-history-session-badge"
+                                  >
+                                    {t(
+                                      `attendance.sessionStatus.${session.session_status}`,
+                                      session.session_status,
+                                    )}
+                                  </Badge>
+                                </td>
+                                <td>
+                                  <StatusBadge
+                                    status={session.status}
+                                    isArabic={isArabic}
+                                    compact
+                                  />
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </Table>
+                      </div>
+                    )}
                   </>
                 )}
               </Card.Body>
