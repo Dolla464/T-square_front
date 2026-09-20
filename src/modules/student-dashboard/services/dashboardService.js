@@ -85,6 +85,9 @@ export const saveExamAnswer = (payload) =>
 export const submitExam = (attemptId) =>
   axiosClient.post(`/exams/${attemptId}/submit`);
 
+export const getExamTimeStatus = (attemptId) =>
+  axiosClient.get(`/exams/attempts/${attemptId}/time-status`);
+
 /**
  * جلب بيانات ملف الطالب الشخصية
  */

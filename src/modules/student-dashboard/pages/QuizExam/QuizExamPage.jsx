@@ -9,9 +9,11 @@ import AttemptReviewPanel from "../../../shared-dashboard/components/AttemptAnsw
 import QuestionContent from "../../../shared-dashboard/components/QuestionContent/QuestionContent";
 import { invalidateAttemptReview } from "../../../shared-dashboard/hooks/attemptReviewCache";
 import { formatExamScore } from "../../../shared-dashboard/utils/formatExamScore";
+import { getStudentExams } from "../../services/dashboardService";
 import {
   getCompletedAttemptId,
   markQuizAttemptCompleted,
+  clearQuizAttemptCompleted,
 } from "../../utils/quizExamSession";
 import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
 import "../../../shared-dashboard/components/QuestionContent/questionContent.css";
@@ -30,23 +32,55 @@ const confirmLeaveExam = (isArabic) =>
 const isAttemptFailed = (status) =>
   status === "failed" || status === "timed_out";
 
-const QuizTimer = React.memo(({ startedAt, durationMins, onTimeout, disabled }) => {
+const isAwaitingGrading = (status) => status === "awaiting_grading";
+
+const isEssayQuestion = (question) => question?.type === "essay";
+
+const QuizTimer = React.memo(
+  ({
+    deadlineAt,
+    startedAt,
+    durationMins,
+    remainingSeconds,
+    onTimeout,
+    onSync,
+    disabled,
+  }) => {
   const [timeLeft, setTimeLeft] = useState(null);
   const onTimeoutRef = useRef(onTimeout);
   onTimeoutRef.current = onTimeout;
 
-  useEffect(() => {
-    if (disabled || !startedAt || !durationMins || durationMins <= 0) return;
+  const getEndTimeMs = useCallback(() => {
+    if (deadlineAt) {
+      const deadlineMs = new Date(deadlineAt).getTime();
+      if (!Number.isNaN(deadlineMs)) {
+        return deadlineMs;
+      }
+    }
 
-    const startMs = new Date(startedAt).getTime();
-    const endTime = startMs + durationMins * 60 * 1000;
+    if (startedAt && durationMins > 0) {
+      const startMs = new Date(startedAt).getTime();
+      if (!Number.isNaN(startMs)) {
+        return startMs + durationMins * 60 * 1000;
+      }
+    }
+
+    return null;
+  }, [deadlineAt, startedAt, durationMins]);
+
+  useEffect(() => {
+    if (disabled) return;
+
+    const endTime = getEndTimeMs();
+    if (!endTime && typeof remainingSeconds !== "number") return;
 
     const calculateTimeLeft = () => {
-      const difference = endTime - Date.now();
-      if (difference <= 0) {
-        return 0;
+      if (endTime) {
+        const difference = endTime - Date.now();
+        return difference <= 0 ? 0 : Math.floor(difference / 1000);
       }
-      return Math.floor(difference / 1000);
+
+      return Math.max(0, remainingSeconds);
     };
 
     const initialTime = calculateTimeLeft();
@@ -69,7 +103,31 @@ const QuizTimer = React.memo(({ startedAt, durationMins, onTimeout, disabled }) 
     return () => {
       clearInterval(interval);
     };
-  }, [startedAt, durationMins, disabled]);
+  }, [deadlineAt, startedAt, durationMins, disabled, getEndTimeMs, remainingSeconds]);
+
+  useEffect(() => {
+    if (typeof remainingSeconds === "number" && !disabled) {
+      setTimeLeft(Math.max(0, remainingSeconds));
+    }
+  }, [remainingSeconds, disabled]);
+
+  useEffect(() => {
+    if (!onSync || disabled) return undefined;
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        onSync();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    const interval = setInterval(onSync, 60000);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      clearInterval(interval);
+    };
+  }, [onSync, disabled]);
 
   if (timeLeft === null) return null;
 
@@ -85,7 +143,8 @@ const QuizTimer = React.memo(({ startedAt, durationMins, onTimeout, disabled }) 
       <span>{formatTime(timeLeft)}</span>
     </div>
   );
-});
+  },
+);
 
 function QuizExamPage() {
   const { quizId } = useParams();
@@ -106,6 +165,7 @@ function QuizExamPage() {
     submitExam,
     submitting,
     recoverClosedAttempt,
+    syncExamTime,
   } = useExam(quizId);
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -116,6 +176,7 @@ function QuizExamPage() {
   const [submittedAttemptId, setSubmittedAttemptId] = useState(null);
   const [showAnswerReview, setShowAnswerReview] = useState(false);
   const [attemptFinalized, setAttemptFinalized] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const questions = exam?.questions || [];
   const currentQuestion = questions[currentIndex];
@@ -146,8 +207,6 @@ function QuizExamPage() {
   const examAttemptIdRef = useRef(exam?.attempt_id);
   examAttemptIdRef.current = exam?.attempt_id;
 
-  const completedReviewRedirectId = getCompletedAttemptId(quizId);
-
   useEffect(() => {
     setCurrentIndex(0);
     setSelectedAnswer(null);
@@ -160,26 +219,57 @@ function QuizExamPage() {
     attemptFinalizedRef.current = false;
     hasAutoSubmittedRef.current = false;
     hasStarted.current = false;
+    setIsInitializing(true);
   }, [quizId]);
 
   useEffect(() => {
     if (hasStarted.current) return;
     hasStarted.current = true;
 
-    const completedAttemptId = getCompletedAttemptId(quizId);
-    if (completedAttemptId) {
-      navigate(
-        `/student/quizzes/${quizId}/attempts/${completedAttemptId}/review`,
-        { replace: true },
-      );
-      return () => {
-        hasStarted.current = false;
-      };
-    }
+    let cancelled = false;
 
-    startExam();
+    const initExam = async () => {
+      try {
+        const completedAttemptId = getCompletedAttemptId(quizId);
+
+        if (completedAttemptId) {
+          const res = await getStudentExams();
+          const quizzes = res.data?.data || [];
+          const quiz = quizzes.find((q) => String(q.id) === String(quizId));
+          const canStartNewAttempt =
+            quiz && !quiz.is_locked && !quiz.has_ongoing_attempt;
+
+          if (canStartNewAttempt) {
+            clearQuizAttemptCompleted(quizId);
+            if (!cancelled) {
+              await startExam();
+            }
+            return;
+          }
+
+          if (!cancelled) {
+            navigate(
+              `/student/quizzes/${quizId}/attempts/${completedAttemptId}/review`,
+              { replace: true },
+            );
+          }
+          return;
+        }
+
+        if (!cancelled) {
+          await startExam();
+        }
+      } finally {
+        if (!cancelled) {
+          setIsInitializing(false);
+        }
+      }
+    };
+
+    initExam();
 
     return () => {
+      cancelled = true;
       hasStarted.current = false;
     };
   }, [quizId, startExam, navigate]);
@@ -243,7 +333,12 @@ function QuizExamPage() {
 
   useEffect(() => {
     if (currentQuestion) {
-      setSelectedAnswer(answers[currentQuestion.id] ?? null);
+      const saved = answers[currentQuestion.id];
+      setSelectedAnswer(
+        isEssayQuestion(currentQuestion)
+          ? saved ?? ""
+          : saved ?? null,
+      );
     }
   }, [currentIndex, currentQuestion?.id, answers]);
 
@@ -297,12 +392,24 @@ function QuizExamPage() {
     const selAnswer = selectedAnswerRef.current;
     const attemptId = examAttemptIdRef.current;
 
-    if (!attemptId || !curQuestion || selAnswer === null) {
+    if (!attemptId || !curQuestion) {
+      return true;
+    }
+
+    if (isEssayQuestion(curQuestion)) {
+      if (!String(selAnswer ?? "").trim()) {
+        return true;
+      }
+    } else if (selAnswer === null) {
       return true;
     }
 
     try {
-      await saveAnswer(curQuestion.id, selAnswer);
+      await saveAnswer(
+        curQuestion.id,
+        selAnswer,
+        isEssayQuestion(curQuestion) ? "essay" : "mcq",
+      );
       return true;
     } catch (err) {
       if (err.response?.status === 403) {
@@ -333,8 +440,24 @@ function QuizExamPage() {
         const curQuestion = currentQuestionRef.current;
         const selAnswer = selectedAnswerRef.current;
 
-        if (curQuestion && selAnswer !== null) {
-          await saveAnswer(curQuestion.id, selAnswer);
+        if (curQuestion) {
+          const shouldSave =
+            isEssayQuestion(curQuestion)
+              ? String(selAnswer ?? "").trim()
+              : selAnswer !== null;
+          if (shouldSave) {
+          try {
+            await saveAnswer(
+              curQuestion.id,
+              selAnswer,
+              isEssayQuestion(curQuestion) ? "essay" : "mcq",
+            );
+          } catch (saveErr) {
+            if (saveErr.response?.status !== 403) {
+              throw saveErr;
+            }
+          }
+          }
         }
 
         const result = await submitExam(attemptId);
@@ -363,6 +486,13 @@ function QuizExamPage() {
 
         return true;
       } catch (err) {
+        if (attemptId) {
+          const recovered = await syncClosedAttempt(attemptId);
+          if (recovered) {
+            return true;
+          }
+        }
+
         hasAutoSubmittedRef.current = false;
         toastCustom({
           message: isArabic
@@ -375,7 +505,7 @@ function QuizExamPage() {
         return false;
       }
     },
-    [applySubmitResult, isArabic, saveAnswer, submitExam],
+    [applySubmitResult, isArabic, saveAnswer, submitExam, syncClosedAttempt],
   );
 
   finalizeAttemptRef.current = finalizeAttempt;
@@ -384,6 +514,47 @@ function QuizExamPage() {
     if (hasAutoSubmittedRef.current || showResult) return;
     await finalizeAttempt({ showToast: true, toastVariant: "timeout" });
   }, [finalizeAttempt, showResult]);
+
+  const handleTimerSync = useCallback(async () => {
+    const attemptId = examAttemptIdRef.current;
+    if (!attemptId || attemptFinalizedRef.current || showResult) {
+      return;
+    }
+
+    const data = await syncExamTime(attemptId);
+    if (!data) {
+      return;
+    }
+
+    if (data.status && data.status !== "ongoing") {
+      if (data.results) {
+        hasAutoSubmittedRef.current = true;
+        applySubmitResult(attemptId, data.results);
+        toastCustom({
+          message: isArabic
+            ? "انتهى الوقت المخصص للاختبار! تم إرسال إجاباتك تلقائياً."
+            : "Exam duration has ended! Your answers were submitted automatically.",
+          type: "warning",
+          bsIcon: "bi-clock-history",
+          duration: 5000,
+        });
+      } else {
+        await syncClosedAttempt(attemptId);
+      }
+      return;
+    }
+
+    if (data.is_timed_out || data.remaining_seconds === 0) {
+      await handleAutoSubmit();
+    }
+  }, [
+    applySubmitResult,
+    handleAutoSubmit,
+    isArabic,
+    showResult,
+    syncClosedAttempt,
+    syncExamTime,
+  ]);
 
   useEffect(() => {
     if (!shouldBlockNavigation) return;
@@ -425,7 +596,7 @@ function QuizExamPage() {
   }, [blocker, isArabic]);
 
   const handleExit = useCallback(() => {
-    navigate("/student/quizzes");
+    navigate("/student/quizzes", { state: { refreshQuizzes: true } });
   }, [navigate]);
 
   const handleExitClick = useCallback(async () => {
@@ -435,13 +606,13 @@ function QuizExamPage() {
     }
   }, [finalizeAttempt, isArabic]);
 
-  const handleSelectAnswer = useCallback(
-    (choiceId) => {
+  const handleAnswerChange = useCallback(
+    (value) => {
       if (!currentQuestion) return;
 
-      setSelectedAnswer(choiceId);
+      setSelectedAnswer(value);
       setAnswers((prev) => {
-        const updatedAnswers = { ...prev, [currentQuestion.id]: choiceId };
+        const updatedAnswers = { ...prev, [currentQuestion.id]: value };
 
         sessionStorage.setItem(
           `quiz_state_${quizId}`,
@@ -479,16 +650,22 @@ function QuizExamPage() {
 
     let updatedAnswers = { ...answers };
 
-    if (currentQuestion && selectedAnswer !== null) {
-      const saved = await persistCurrentAnswer();
-      if (!saved) {
-        return;
+    if (currentQuestion) {
+      const hasAnswer = isEssayQuestion(currentQuestion)
+        ? String(selectedAnswer ?? "").trim()
+        : selectedAnswer !== null;
+
+      if (hasAnswer) {
+        const saved = await persistCurrentAnswer();
+        if (!saved) {
+          return;
+        }
+        updatedAnswers = {
+          ...updatedAnswers,
+          [currentQuestion.id]: selectedAnswer,
+        };
+        setAnswers(updatedAnswers);
       }
-      updatedAnswers = {
-        ...updatedAnswers,
-        [currentQuestion.id]: selectedAnswer,
-      };
-      setAnswers(updatedAnswers);
     }
 
     if (attemptFinalizedRef.current || hasAutoSubmittedRef.current) {
@@ -543,8 +720,10 @@ function QuizExamPage() {
       setCurrentIndex(nextIndex);
       const nextQuestion = questions[nextIndex];
       setSelectedAnswer(
-        nextQuestion && updatedAnswers[nextQuestion.id] !== undefined
-          ? updatedAnswers[nextQuestion.id]
+        nextQuestion
+          ? isEssayQuestion(nextQuestion)
+            ? updatedAnswers[nextQuestion.id] ?? ""
+            : updatedAnswers[nextQuestion.id] ?? null
           : null,
       );
     }
@@ -576,16 +755,22 @@ function QuizExamPage() {
 
     let updatedAnswers = { ...answers };
 
-    if (currentQuestion && selectedAnswer !== null) {
-      const saved = await persistCurrentAnswer();
-      if (!saved) {
-        return;
+    if (currentQuestion) {
+      const hasAnswer = isEssayQuestion(currentQuestion)
+        ? String(selectedAnswer ?? "").trim()
+        : selectedAnswer !== null;
+
+      if (hasAnswer) {
+        const saved = await persistCurrentAnswer();
+        if (!saved) {
+          return;
+        }
+        updatedAnswers = {
+          ...updatedAnswers,
+          [currentQuestion.id]: selectedAnswer,
+        };
+        setAnswers(updatedAnswers);
       }
-      updatedAnswers = {
-        ...updatedAnswers,
-        [currentQuestion.id]: selectedAnswer,
-      };
-      setAnswers(updatedAnswers);
     }
 
     if (attemptFinalizedRef.current || hasAutoSubmittedRef.current) {
@@ -606,8 +791,10 @@ function QuizExamPage() {
     setCurrentIndex(prevIndex);
     const prevQuestion = questions[prevIndex];
     setSelectedAnswer(
-      prevQuestion && updatedAnswers[prevQuestion.id] !== undefined
-        ? updatedAnswers[prevQuestion.id]
+      prevQuestion
+        ? isEssayQuestion(prevQuestion)
+          ? updatedAnswers[prevQuestion.id] ?? ""
+          : updatedAnswers[prevQuestion.id] ?? null
         : null,
     );
   }, [
@@ -622,6 +809,11 @@ function QuizExamPage() {
   ]);
 
   const handleFinishWithToast = useCallback(() => {
+    if (isAwaitingGrading(scoreResult?.status)) {
+      handleExit();
+      return;
+    }
+
     const isFailed = isAttemptFailed(scoreResult?.status);
     toastCustom({
       message: isFailed
@@ -644,20 +836,7 @@ function QuizExamPage() {
     handleExit();
   }, [scoreResult, isArabic, handleExit, navigate]);
 
-  if (completedReviewRedirectId && !showResult) {
-    return (
-      <div className="quiz-exam-page">
-        <div
-          className="quiz-exam-container d-flex justify-content-center align-items-center"
-          style={{ minHeight: "300px" }}
-        >
-          <div className="spinner-border text-primary" role="status"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
+  if ((isInitializing || loading) && !showResult) {
     return (
       <div className="quiz-exam-page">
         <div
@@ -723,11 +902,16 @@ function QuizExamPage() {
   }
 
   if (showResult) {
+    const pendingGrading = isAwaitingGrading(scoreResult?.status);
     const isFailed = isAttemptFailed(scoreResult?.status);
     const percentage = parseFloat(scoreResult?.percentage) || 0;
     const HALF_CIRC = Math.PI * 80;
-    const filled = (percentage / 100) * HALF_CIRC;
-    const strokeColor = isFailed ? "#ef4444" : "#22c55e";
+    const filled = pendingGrading ? 0 : (percentage / 100) * HALF_CIRC;
+    const strokeColor = pendingGrading
+      ? "#f59e0b"
+      : isFailed
+        ? "#ef4444"
+        : "#22c55e";
 
     return (
       <div className="quiz-result-overlay">
@@ -737,9 +921,42 @@ function QuizExamPage() {
           }`}
         >
           <h4 className="result-title">
-            {isArabic ? "نتيجتك" : "Your Result"}
+            {pendingGrading
+              ? isArabic
+                ? "تم إرسال إجاباتك"
+                : "Submission Received"
+              : isArabic
+                ? "نتيجتك"
+                : "Your Result"}
           </h4>
 
+          {pendingGrading ? (
+            <div className="text-center px-3 mb-3">
+              <i
+                className="bi bi-hourglass-split"
+                style={{ fontSize: "3rem", color: "#f59e0b" }}
+              />
+              <p className="mt-3 mb-2 fw-semibold">
+                {isArabic
+                  ? "تم تسليم الامتحان بنجاح. بعض الأسئلة المقالية تحتاج تصحيحاً يدوياً من المدرّس."
+                  : "Your exam was submitted successfully. Essay questions are awaiting instructor grading."}
+              </p>
+              <p className="text-muted mb-0">
+                {isArabic
+                  ? "ستصلك إشعار عند اعتماد النتيجة النهائية."
+                  : "You will be notified when your final result is ready."}
+              </p>
+              {scoreResult?.score != null ? (
+                <p className="mt-3 mb-0">
+                  {isArabic ? "الدرجة الحالية (جزئية):" : "Current partial score:"}{" "}
+                  <strong>
+                    {formatExamScore(scoreResult.score)} /{" "}
+                    {formatExamScore(scoreResult.total_marks)}
+                  </strong>
+                </p>
+              ) : null}
+            </div>
+          ) : (
           <div
             className="result-circle-wrap"
             style={{ height: 130, marginBottom: 8 }}
@@ -790,38 +1007,43 @@ function QuizExamPage() {
               </text>
             </svg>
           </div>
+          )}
 
-          <p
-            style={{
-              fontSize: "1.4rem",
-              fontWeight: 700,
-              color: strokeColor,
-              margin: "0 0 6px",
-            }}
-          >
-            {scoreResult?.percentage}
-          </p>
+          {!pendingGrading ? (
+            <>
+              <p
+                style={{
+                  fontSize: "1.4rem",
+                  fontWeight: 700,
+                  color: strokeColor,
+                  margin: "0 0 6px",
+                }}
+              >
+                {scoreResult?.percentage}
+              </p>
 
-          <p
-            className={
-              isFailed ? "result-messageFailed" : "result-messageSucsses"
-            }
-          >
-            {isFailed
-              ? scoreResult?.status === "timed_out"
-                ? isArabic
-                  ? "انتهى الوقت — لم تجتز الحد الأدنى"
-                  : "Time expired — Below passing mark"
-                : isArabic
-                  ? "رسبت - لم تجتز الحد الأدنى"
-                  : "Failed — Below passing mark"
-              : isArabic
-                ? "مبروك! تجاوزت الحد الأدنى"
-                : "Passed — Above passing mark"}
-          </p>
+              <p
+                className={
+                  isFailed ? "result-messageFailed" : "result-messageSucsses"
+                }
+              >
+                {isFailed
+                  ? scoreResult?.status === "timed_out"
+                    ? isArabic
+                      ? "انتهى الوقت — لم تجتز الحد الأدنى"
+                      : "Time expired — Below passing mark"
+                    : isArabic
+                      ? "رسبت - لم تجتز الحد الأدنى"
+                      : "Failed — Below passing mark"
+                  : isArabic
+                    ? "مبروك! تجاوزت الحد الأدنى"
+                    : "Passed — Above passing mark"}
+              </p>
+            </>
+          ) : null}
 
           <div className="d-flex flex-wrap gap-2 justify-content-center mt-2">
-            {!showAnswerReview ? (
+            {!pendingGrading && !showAnswerReview ? (
               <button
                 type="button"
                 className="btn btn-review-action"
@@ -837,9 +1059,9 @@ function QuizExamPage() {
               onClick={handleFinishWithToast}
             >
               <i
-                className={`bi ${scoreResult?.requires_review ? "bi-star-fill" : "bi-arrow-left"} me-2`}
+                className={`bi ${!pendingGrading && !isFailed && scoreResult?.requires_review ? "bi-star-fill" : "bi-arrow-left"} me-2`}
               ></i>
-              {!isFailed && scoreResult?.requires_review
+              {!pendingGrading && !isFailed && scoreResult?.requires_review
                 ? isArabic
                   ? "اترك تقييم للحصول على الشهادة"
                   : "Leave Review to Get Certificate"
@@ -849,7 +1071,7 @@ function QuizExamPage() {
             </button>
           </div>
 
-          {showAnswerReview && submittedAttemptId ? (
+          {!pendingGrading && showAnswerReview && submittedAttemptId ? (
             <div className="mt-3 text-start">
               <AttemptReviewPanel
                 role="student"
@@ -896,12 +1118,17 @@ function QuizExamPage() {
             ></i>
             {isArabic ? "خروج" : "Exit"}
           </button>
-          {exam && exam.duration && exam.started_at && (
+          {exam &&
+            exam.started_at &&
+            (exam.deadline_at ||
+              (exam.duration && parseFloat(exam.duration) > 0)) && (
             <QuizTimer
+              deadlineAt={exam.deadline_at}
               startedAt={exam.started_at}
               durationMins={parseFloat(exam.duration)}
-              isArabic={isArabic}
+              remainingSeconds={exam.remaining_seconds}
               onTimeout={handleAutoSubmit}
+              onSync={handleTimerSync}
               disabled={showResult || isInteractionLocked}
             />
           )}
@@ -926,20 +1153,40 @@ function QuizExamPage() {
           <QuestionContent question={currentQuestion} />
         </div>
 
-        <div className="quiz-options">
-          {currentQuestion?.choices?.map((choice, idx) => (
-            <button
-              key={choice.id}
-              className={`quiz-option ${selectedAnswer === choice.id ? "selected" : ""}`}
-              onClick={() => handleSelectAnswer(choice.id)}
-            >
-              <span className="option-letter">
-                {String.fromCharCode(65 + idx)}{" "}
-              </span>
-              <span className="option-text">{choice.choice_text}</span>
-            </button>
-          ))}
-        </div>
+        {isEssayQuestion(currentQuestion) ? (
+          <div className="quiz-essay-answer mb-4">
+            <label className="form-label fw-semibold">
+              {isArabic ? "إجابتك" : "Your Answer"}
+            </label>
+            <textarea
+              className="form-control"
+              rows={8}
+              value={selectedAnswer ?? ""}
+              onChange={(e) => handleAnswerChange(e.target.value)}
+              placeholder={
+                isArabic
+                  ? "اكتب إجابتك هنا (اختياري)..."
+                  : "Write your answer here (optional)..."
+              }
+              disabled={isInteractionLocked}
+            />
+          </div>
+        ) : (
+          <div className="quiz-options">
+            {currentQuestion?.choices?.map((choice, idx) => (
+              <button
+                key={choice.id}
+                className={`quiz-option ${selectedAnswer === choice.id ? "selected" : ""}`}
+                onClick={() => handleAnswerChange(choice.id)}
+              >
+                <span className="option-letter">
+                  {String.fromCharCode(65 + idx)}{" "}
+                </span>
+                <span className="option-text">{choice.choice_text}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="quiz-nav-buttons">
           {currentIndex > 0 && (
@@ -957,7 +1204,9 @@ function QuizExamPage() {
           <button
             className="btn-continueQuiz"
             disabled={
-              selectedAnswer === null || isInteractionLocked || !exam?.attempt_id
+              (!isEssayQuestion(currentQuestion) && selectedAnswer === null) ||
+              isInteractionLocked ||
+              !exam?.attempt_id
             }
             onClick={handleNext}
           >

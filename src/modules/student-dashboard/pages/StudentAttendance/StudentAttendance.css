@@ -72,3 +72,114 @@
   padding: 5px 12px;
   font-size: 0.75rem;
 }
+
+/* ── History Tab ── */
+.attendance-history-summary {
+  padding-bottom: 0.25rem;
+}
+
+.attendance-history-summary-text {
+  text-align: start;
+}
+
+.attendance-history-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.attendance-history-chart-ring {
+  position: relative;
+  width: 100%;
+  max-width: 220px;
+  height: 200px;
+  margin: 0 auto;
+}
+
+.attendance-history-chart-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.attendance-history-chart-pct {
+  display: block;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #be1522;
+  line-height: 1.2;
+}
+
+.attendance-history-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  justify-content: center;
+  margin-top: 12px;
+  max-width: 280px;
+}
+
+.attendance-history-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.attendance-history-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.attendance-history-table-wrap {
+  margin-top: 0.5rem;
+}
+
+.attendance-history-table th {
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.attendance-history-table td {
+  vertical-align: middle;
+}
+
+.attendance-history-session-badge,
+.attendance-history-status-badge {
+  font-size: 0.72rem !important;
+  padding: 4px 10px !important;
+  font-weight: 600;
+}
+
+.attendance-history-status-badge {
+  white-space: nowrap;
+}
+
+.attendance-history-empty {
+  border-top: 1px solid #f3f4f6;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 767.98px) {
+  .attendance-history-summary-text {
+    text-align: center;
+  }
+
+  .attendance-history-table th,
+  .attendance-history-table td {
+    white-space: normal;
+    font-size: 0.8rem;
+    padding: 10px 8px;
+  }
+
+  .attendance-history-chart-legend {
+    max-width: 100%;
+  }
+}

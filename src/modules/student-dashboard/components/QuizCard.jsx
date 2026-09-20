@@ -210,10 +210,19 @@ function QuizCard({ quiz, t }) {
               {isArabic ? "استنفدت محاولاتك" : "No attempts left"}
             </button>
           ) : (
-            <button onClick={handleStartQuiz} className="btn-continue flex-grow-1">
+            <button
+              onClick={handleStartQuiz}
+              className={`btn-continue flex-grow-1${
+                has_attempt && is_passed_before ? " btn-continue-improve" : ""
+              }`}
+            >
               <i
                 className={`${
-                  !has_attempt ? "bi bi-play-circle" : "bi bi-arrow-counterclockwise"
+                  !has_attempt
+                    ? "bi bi-play-circle"
+                    : is_passed_before
+                      ? "bi bi-graph-up-arrow"
+                      : "bi bi-arrow-counterclockwise"
                 } me-1`}
               ></i>
               {!has_attempt

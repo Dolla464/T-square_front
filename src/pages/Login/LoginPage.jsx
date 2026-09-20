@@ -10,7 +10,7 @@ import {
   Spinner,
   InputGroup,
 } from "react-bootstrap";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import tsquareLogo from "../../assets/logo-dark.webp";
 import "./Login.css";
@@ -23,7 +23,10 @@ import { getRouteByRole } from "../../config/routes";
 
 function LoginPage() {
   const { t, i18n } = useTranslation("auth");
+  const { t: tCommon } = useTranslation("common");
   const isArabic = i18n.language === "ar";
+  const location = useLocation();
+  const sessionExpired = location.state?.sessionExpired === true;
   const { user } = useAuth();
   const { executeLogin, loading, error: apiError } = useLogin();
   const [rememberMe, setRememberMe] = useState(true);
@@ -83,6 +86,10 @@ function LoginPage() {
             <Card.Title className="fw-bold fs-4 mb-4 text-dark login-title">
               {t("login_form.title")}
             </Card.Title>
+
+            {sessionExpired && (
+              <Alert variant="warning">{tCommon("sessionExpired.loginAlert")}</Alert>
+            )}
 
             {apiError && (
               <Alert variant="danger">

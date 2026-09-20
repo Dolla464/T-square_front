@@ -4,8 +4,10 @@ import {
   getLearningGroupSessions,
   getSessionAttendance,
   getGroupAttendanceSummary,
+  getAttendanceMatrix,
   getStudentCourseAttendance,
   exportSessionAttendance,
+  exportAttendanceMatrix,
   exportStudentCourseAttendance,
   markSessionAttendance,
 } from "../services/receptionistLearningGroupService";
@@ -15,8 +17,10 @@ export const useReceptionistStudentAttendance = createAttendanceHook({
   getLearningGroupSessions,
   getSessionAttendance,
   getGroupAttendanceSummary,
+  getAttendanceMatrix,
   getStudentCourseAttendance,
   exportSessionAttendance,
+  exportAttendanceMatrix,
   exportStudentCourseAttendance,
   markSessionAttendance,
 });

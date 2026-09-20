@@ -75,6 +75,11 @@
   color: #374151;
 }
 
+.attempt-review-status--pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .attempt-review .quiz-option--correct,
 .attempt-review .quiz-option--correct_selected {
   border-color: #22c55e;

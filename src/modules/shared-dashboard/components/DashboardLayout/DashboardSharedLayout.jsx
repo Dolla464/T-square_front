@@ -17,12 +17,12 @@ import { resendVerificationNotification } from "../../../../services/register";
 import toast from "react-hot-toast";
 import { Alert, Spinner } from "react-bootstrap";
 import { useUnreadCount } from "../../../../hooks/useNotifications";
+import { formatNotificationBadge } from "../../../../utils/notifications";
 import {
-  getNameInitials,
   getProfileAvatarUrl,
   getProfileDisplayName,
-  isDefaultAvatarUrl,
 } from "../../../../utils/avatar";
+import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
 
 const SIDEBAR_STORAGE_KEY = "dashboard-sidebar-expanded";
 
@@ -124,11 +124,10 @@ function DashboardSharedLayout({
   const isExmam = location.pathname.includes("/student/quizzes/");
   const isLeaveReviewPage = location.pathname.includes("/student/review/");
   const { unreadCount } = useUnreadCount();
+  const topbarUnreadBadge = formatNotificationBadge(unreadCount);
 
   const displayName = getProfileDisplayName(user, userProfile);
   const avatarUrl = getProfileAvatarUrl(user, userProfile);
-  const initials = getNameInitials(displayName);
-  const showInitials = isDefaultAvatarUrl(avatarUrl);
 
   const handleNotificationsClick = () => {
     if (isAdmin) {
@@ -136,7 +135,7 @@ function DashboardSharedLayout({
     } else if (userRoleName === "Instructor" || user?.role === "instructor") {
       navigate("/instructor/notifications");
     } else if (userRoleName === "Receptionist" || user?.role === "receptionist") {
-      // Receptionist has no dedicated notifications page — no-op
+      navigate("/receptionist/notifications");
     } else {
       navigate("/student/notifications");
     }
@@ -387,8 +386,8 @@ function DashboardSharedLayout({
               aria-label="Notifications"
             >
               <i className="bi bi-bell"></i>
-              {unreadCount > 0 && (
-                <span className="notif-badge-count">{unreadCount}</span>
+              {topbarUnreadBadge != null && (
+                <span className="notif-badge-count">{topbarUnreadBadge}</span>
               )}
             </button>
 
@@ -422,20 +421,16 @@ function DashboardSharedLayout({
                     : ""
               }
             >
-              <div className="topbar-avatar">
-                {showInitials ? (
-                  initials
-                ) : (
-                  <img
-                    src={avatarUrl}
-                    alt={displayName || user?.name}
-                    className="w-100 h-100 rounded-circle"
-                    style={{ objectFit: "cover" }}
-                  />
-                )}
-              </div>
+              <ProfileAvatar
+                name={displayName || user?.name}
+                avatarUrl={avatarUrl}
+                size={38}
+                className="topbar-avatar"
+              />
               <div className="topbar-user-info">
-                <span className="topbar-user-name">{user?.name || "User"}</span>
+                <span className="topbar-user-name">
+                  {displayName || user?.name || "User"}
+                </span>
                 <span className="topbar-user-role">{userRoleName}</span>
               </div>
             </button>

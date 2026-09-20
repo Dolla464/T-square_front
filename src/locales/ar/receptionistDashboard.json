@@ -6,7 +6,8 @@
     "learningGroups": "المجموعات الدراسية",
     "studentAttendance": "حضور الطلاب",
     "students": "الطلاب",
-    "orders": "الطلبات والدفع"
+    "orders": "الطلبات والدفع",
+    "Notification": "الإشعارات"
   },
   "topbar": {
     "role": "موظف استقبال"

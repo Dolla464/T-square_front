@@ -13,35 +13,37 @@ import { formatDateTime } from "../utils/formatDateTime";
 import {
   getNotificationsPayload,
   normalizeNotification,
+  NOTIFICATIONS_PER_PAGE,
+  parseUnreadCount,
 } from "../utils/notifications";
 
 const NotificationsContext = createContext(null);
 
 export function NotificationsProvider({ children }) {
-  const { token, user } = useAuth();
+  const { isLoggedIn, user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(Boolean(token));
+  const [isLoading, setIsLoading] = useState(Boolean(isLoggedIn));
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
     total: 0,
-    per_page: 15,
+    per_page: NOTIFICATIONS_PER_PAGE,
   });
   const isDropdownOpenRef = useRef(false);
   const currentPageRef = useRef(1);
 
   const fetchNotifications = useCallback(
     async ({ silent = false, page = 1 } = {}) => {
-      if (!token) {
+      if (!isLoggedIn) {
         setNotifications([]);
         setUnreadCount(0);
         setPagination({
           current_page: 1,
           last_page: 1,
           total: 0,
-          per_page: 15,
+          per_page: NOTIFICATIONS_PER_PAGE,
         });
         setIsLoading(false);
         return;
@@ -51,19 +53,16 @@ export function NotificationsProvider({ children }) {
         if (!silent) setIsLoading(true);
 
         const response = await axiosClient.get("/notifications", {
-          params: { page },
+          params: { page, per_page: NOTIFICATIONS_PER_PAGE },
         });
         const { items, meta } = getNotificationsPayload(response);
 
         setNotifications(items.map(normalizeNotification));
-        setUnreadCount(
-          Number(meta?.unread_count ?? response?.data?.unread_count ?? 0) || 0,
-        );
         setPagination({
           current_page: Number(meta?.current_page ?? page) || 1,
           last_page: Number(meta?.last_page ?? 1) || 1,
           total: Number(meta?.total ?? items.length) || 0,
-          per_page: Number(meta?.per_page ?? 15) || 15,
+          per_page: Number(meta?.per_page ?? NOTIFICATIONS_PER_PAGE) || NOTIFICATIONS_PER_PAGE,
         });
         currentPageRef.current = Number(meta?.current_page ?? page) || 1;
         setError(null);
@@ -74,22 +73,22 @@ export function NotificationsProvider({ children }) {
         if (!silent) setIsLoading(false);
       }
     },
-    [token],
+    [isLoggedIn],
   );
 
   const fetchUnreadCountOnly = useCallback(async () => {
-    if (!token) return;
+    if (!isLoggedIn) return;
 
     try {
       const response = await axiosClient.get("/notifications/unread-count");
-      setUnreadCount(response.data?.data?.unread_count ?? 0);
+      setUnreadCount(parseUnreadCount(response.data?.data?.unread_count));
     } catch (err) {
       console.error("Failed to fetch unread count", err);
     }
-  }, [token]);
+  }, [isLoggedIn]);
 
   useEffect(() => {
-    if (!token) {
+    if (!isLoggedIn) {
       setTimeout(() => {
         setNotifications([]);
         setUnreadCount(0);
@@ -100,22 +99,26 @@ export function NotificationsProvider({ children }) {
     }
 
     setTimeout(() => {
+      fetchUnreadCountOnly();
       fetchNotifications({ silent: false, page: 1 });
     }, 0);
 
     let intervalId;
 
     const startPolling = () => {
-      const isNotificationsPage = window.location.pathname.endsWith("/notifications");
-      const fetchFn = (isDropdownOpenRef.current || isNotificationsPage)
-        ? () =>
-            fetchNotifications({
-              silent: true,
-              page: currentPageRef.current,
-            })
-        : () => fetchUnreadCountOnly();
+      intervalId = window.setInterval(() => {
+        fetchUnreadCountOnly();
 
-      intervalId = window.setInterval(fetchFn, 4000);
+        const isNotificationsPage =
+          window.location.pathname.endsWith("/notifications");
+
+        if (isDropdownOpenRef.current || isNotificationsPage) {
+          fetchNotifications({
+            silent: true,
+            page: currentPageRef.current,
+          });
+        }
+      }, 4000);
     };
 
     const stopPolling = () => {
@@ -127,11 +130,10 @@ export function NotificationsProvider({ children }) {
         stopPolling();
       } else {
         startPolling();
+        fetchUnreadCountOnly();
         const isNotificationsPage = window.location.pathname.endsWith("/notifications");
         if (isDropdownOpenRef.current || isNotificationsPage) {
           fetchNotifications({ silent: true, page: currentPageRef.current });
-        } else {
-          fetchUnreadCountOnly();
         }
       }
     };
@@ -143,11 +145,11 @@ export function NotificationsProvider({ children }) {
       stopPolling();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [fetchNotifications, fetchUnreadCountOnly, token]);
+  }, [fetchNotifications, fetchUnreadCountOnly, isLoggedIn]);
 
   const markAsRead = useCallback(
     async (id) => {
-      if (!token) return;
+      if (!isLoggedIn) return;
 
       const currentNotification = notifications.find((item) => item.id === id);
       if (currentNotification?.is_read) return;
@@ -161,8 +163,10 @@ export function NotificationsProvider({ children }) {
 
       try {
         await axiosClient.post(`/notifications/${id}/read`);
+        await fetchUnreadCountOnly();
       } catch (err) {
         console.error("Failed to mark notification as read", err);
+        await fetchUnreadCountOnly();
         await fetchNotifications({
           silent: true,
           page: pagination.current_page,
@@ -170,11 +174,17 @@ export function NotificationsProvider({ children }) {
         throw err;
       }
     },
-    [fetchNotifications, notifications, pagination.current_page, token],
+    [
+      fetchNotifications,
+      fetchUnreadCountOnly,
+      notifications,
+      pagination.current_page,
+      isLoggedIn,
+    ],
   );
 
   const markAllAsRead = useCallback(async () => {
-    if (!token) return;
+    if (!isLoggedIn) return;
 
     setNotifications((prev) =>
       prev.map((item) => ({ ...item, is_read: true })),
@@ -183,15 +193,17 @@ export function NotificationsProvider({ children }) {
 
     try {
       await axiosClient.post("/notifications/read-all");
+      await fetchUnreadCountOnly();
     } catch (err) {
       console.error("Failed to mark all notifications as read", err);
+      await fetchUnreadCountOnly();
       await fetchNotifications({
         silent: true,
         page: pagination.current_page,
       });
       throw err;
     }
-  }, [fetchNotifications, pagination.current_page, token]);
+  }, [fetchNotifications, fetchUnreadCountOnly, pagination.current_page, isLoggedIn]);
 
   const setDropdownOpen = useCallback(
     (isOpen) => {

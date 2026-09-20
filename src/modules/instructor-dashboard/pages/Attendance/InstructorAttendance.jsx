@@ -13,6 +13,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { useInstructorAttendance } from "../../hooks/useInstructorAttendance";
 import { useAttendanceRealtime } from "../../hooks/useAttendanceRealtime";
 import "../../../admin-dashboard/components/shared/AdminContentPage/AdminContentPage.css";
+import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
+import { resolveAvatarUrl } from "../../../../utils/avatar";
 
 const RECENT_SCANS_LIMIT = 10;
 
@@ -73,34 +75,6 @@ const SESSION_STATUS_CONFIG = {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function getInitials(name = "") {
-  return name
-    .split(" ")
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
-function getAvatarSrc(path) {
-  if (!path) return null;
-  if (
-    path.startsWith("http://") ||
-    path.startsWith("https://") ||
-    path.startsWith("data:") ||
-    path.startsWith("blob:")
-  ) {
-    return path;
-  }
-  let apiURL = import.meta.env.VITE_API_URL || "";
-  apiURL = apiURL.replace(/\/api\/?$/, "");
-  const cleanBase = apiURL.endsWith("/") ? apiURL.slice(0, -1) : apiURL;
-  const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  if (!cleanPath.startsWith("/storage") && !cleanPath.startsWith("/public")) {
-    return `${cleanBase}/storage${cleanPath}`;
-  }
-  return `${cleanBase}${cleanPath}`;
-}
 
 function StatusBadge({ status, isArabic }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.not_marked;
@@ -641,27 +615,11 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                                 {/* Avatar + name */}
                                 <td className="ps-4 py-3">
                                   <div className="d-flex align-items-center gap-3">
-                                    {getAvatarSrc(student.avatar) ? (
-                                      <img
-                                        src={getAvatarSrc(student.avatar)}
-                                        alt={student.full_name}
-                                        className="rounded-circle"
-                                        style={{ width: 38, height: 38, objectFit: "cover" }}
-                                      />
-                                    ) : (
-                                      <div
-                                        className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                                        style={{
-                                          width: 38,
-                                          height: 38,
-                                          fontSize: "0.85rem",
-                                          background: "linear-gradient(135deg,#dc3545,#c41230)",
-                                          flexShrink: 0,
-                                        }}
-                                      >
-                                        {getInitials(student.full_name)}
-                                      </div>
-                                    )}
+                                    <ProfileAvatar
+                                      name={student.full_name}
+                                      avatarUrl={resolveAvatarUrl(student.avatar)}
+                                      size={38}
+                                    />
                                     <div>
                                       <div className="fw-bold text-dark" style={{ fontSize: "0.9rem" }}>
                                         {student.full_name}

@@ -131,6 +131,11 @@ export const getGroupAttendanceSummary = (groupId) =>
     .get(`/receptionist/learning-groups/${groupId}/attendance-summary`)
     .then((res) => res.data);
 
+export const getAttendanceMatrix = (groupId) =>
+  axiosClient
+    .get(`/receptionist/learning-groups/${groupId}/attendance-matrix`)
+    .then((res) => res.data);
+
 export const getStudentCourseAttendance = (groupId, studentId) =>
   axiosClient
     .get(`/receptionist/learning-groups/${groupId}/students/${studentId}/attendance`)
@@ -164,6 +169,14 @@ const downloadExportBlob = (response) => {
 export const exportSessionAttendance = async (groupId, sessionId, format = "pdf") => {
   const response = await axiosClient.get(
     `/receptionist/learning-groups/${groupId}/sessions/${sessionId}/attendance/export`,
+    { params: { format } }
+  );
+  downloadExportBlob(response);
+};
+
+export const exportAttendanceMatrix = async (groupId, format = "pdf") => {
+  const response = await axiosClient.get(
+    `/receptionist/learning-groups/${groupId}/attendance-matrix/export`,
     { params: { format } }
   );
   downloadExportBlob(response);

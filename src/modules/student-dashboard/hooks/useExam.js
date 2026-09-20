@@ -1,5 +1,11 @@
 import { useState, useCallback } from "react";
-import { startExam as startExamApi, saveExamAnswer, submitExam as submitExamApi, getAttemptReview } from "../services/dashboardService";
+import {
+  startExam as startExamApi,
+  saveExamAnswer,
+  submitExam as submitExamApi,
+  getAttemptReview,
+  getExamTimeStatus,
+} from "../services/dashboardService";
 import { toastCustom } from "../../../components/shared/Toaster/toaster";
 import { getApiErrorMessage } from "../../../utils/apiErrors";
 
@@ -8,13 +14,17 @@ export const mapExamResults = (results) => {
 
   const totalMarks = results.total_marks > 0 ? results.total_marks : 1;
   const score = results.score ?? 0;
+  const isAwaitingGrading = results.status === "awaiting_grading";
   const percentage =
     results.percentage ??
-    `${Math.round((parseFloat(score) / totalMarks) * 100)}%`;
+    (isAwaitingGrading
+      ? null
+      : `${Math.round((parseFloat(score) / totalMarks) * 100)}%`);
 
   return {
     ...results,
     percentage,
+    is_passed: isAwaitingGrading ? null : results.is_passed,
   };
 };
 
@@ -38,18 +48,55 @@ export const useExam = (examId) => {
     }
   }, [examId]);
 
-  const saveAnswer = useCallback(async (questionId, choiceId) => {
+  const syncExamTime = useCallback(async (attemptId) => {
+    if (!attemptId) {
+      return null;
+    }
+
+    try {
+      const res = await getExamTimeStatus(attemptId);
+      const data = res.data?.data ?? res.data;
+
+      if (!data) {
+        return null;
+      }
+
+      setExam((prev) =>
+        prev
+          ? {
+              ...prev,
+              ...data,
+              attempt_id: data.attempt_id ?? prev.attempt_id,
+            }
+          : prev,
+      );
+
+      return data;
+    } catch (err) {
+      console.error("Failed to sync exam time", err);
+      return null;
+    }
+  }, []);
+
+  const saveAnswer = useCallback(async (questionId, answerValue, questionType = "mcq") => {
     if (!exam?.attempt_id) {
       console.warn("saveAnswer skipped — attempt_id not available yet");
       return;
     }
 
+    const payload = {
+      attempt_id: exam.attempt_id,
+      question_id: questionId,
+    };
+
+    if (questionType === "essay") {
+      payload.answer_text = answerValue;
+    } else {
+      payload.choice_id = answerValue;
+    }
+
     try {
-      await saveExamAnswer({
-        attempt_id: exam.attempt_id,
-        question_id: questionId,
-        choice_id: choiceId,
-      });
+      await saveExamAnswer(payload);
     } catch (err) {
       console.error("Failed to save answer", err);
       if (err.response?.status !== 403) {
@@ -84,7 +131,10 @@ export const useExam = (examId) => {
         score,
         total_marks: totalMarks,
         status: review.status,
-        is_passed: review.status === "passed",
+        is_passed:
+          review.status === "awaiting_grading"
+            ? null
+            : review.is_passed ?? review.status === "passed",
       });
     } catch (err) {
       console.error("Failed to recover closed attempt", err);
@@ -107,12 +157,29 @@ export const useExam = (examId) => {
         results: mapExamResults(res.data?.results),
       };
     } catch (err) {
+      if (err.response?.status === 403) {
+        const recovered = await recoverClosedAttempt(attemptId);
+        if (recovered) {
+          return { results: recovered };
+        }
+      }
+
       console.error("Submit failed:", err);
       throw err;
     } finally {
       setSubmitting(false);
     }
-  }, []);
+  }, [recoverClosedAttempt]);
 
-  return { exam, loading, error, startExam, saveAnswer, submitExam, submitting, recoverClosedAttempt };
+  return {
+    exam,
+    loading,
+    error,
+    startExam,
+    saveAnswer,
+    submitExam,
+    submitting,
+    recoverClosedAttempt,
+    syncExamTime,
+  };
 };

@@ -1,10 +1,17 @@
 import axios from "axios";
 import { notifyAxiosForbidden } from "../contexts/ForbiddenContext";
-import { notifyRoleMismatch } from "../utils/authEvents";
+import { notifyRoleMismatch, notifySessionExpired } from "../utils/authEvents";
 import { initCsrf, readCsrfToken } from "./csrf";
 import { resolveAxiosBaseUrl } from "../utils/resolveApiOrigin";
 
 const ALLOWED_WHEN_FORBIDDEN = ["/profile", "/logout", "/login"];
+
+const SESSION_EXPIRY_SKIP_URLS = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+];
 
 const EXAM_FLOW_URL_PATTERN = /\/exams\/(?:save-answer|\d+\/submit)/;
 
@@ -29,9 +36,25 @@ function shouldTriggerGlobalForbidden(error) {
 }
 
 let accessForbidden = false;
+let sessionExpiredHandled = false;
 
 export function resetAccessForbidden() {
   accessForbidden = false;
+}
+
+export function resetSessionExpiredHandled() {
+  sessionExpiredHandled = false;
+}
+
+function shouldHandleSessionExpired(error) {
+  const status = error.response?.status;
+  const url = error.config?.url || "";
+
+  if (status !== 401 && status !== 419) {
+    return false;
+  }
+
+  return !SESSION_EXPIRY_SKIP_URLS.some((path) => url.includes(path));
 }
 
 function isAllowedWhenForbidden(url = "") {
@@ -60,13 +83,6 @@ axiosClient.interceptors.request.use((config) => {
     config.headers["X-XSRF-TOKEN"] = csrfToken;
   }
 
-  const legacyToken =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
-
-  if (legacyToken && !config.headers.Authorization) {
-    config.headers.Authorization = `Bearer ${legacyToken}`;
-  }
-
   if (config.data instanceof FormData) {
     delete config.headers["Content-Type"];
     config.timeout = 0;
@@ -80,17 +96,18 @@ axiosClient.interceptors.request.use((config) => {
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    const token =
-      localStorage.getItem("token") || sessionStorage.getItem("token");
     const status = error.response?.status;
 
     if (shouldTriggerGlobalForbidden(error)) {
       accessForbidden = true;
       notifyAxiosForbidden(error.config?.url || null);
       notifyRoleMismatch();
+    } else if (shouldHandleSessionExpired(error) && !sessionExpiredHandled) {
+      sessionExpiredHandled = true;
+      notifySessionExpired();
     }
 
-    if (error.response && status === 503 && !token) {
+    if (error.response && status === 503) {
       if (
         window.location.pathname !== "/maintenance" &&
         window.location.pathname !== "/login"

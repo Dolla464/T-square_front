@@ -78,12 +78,16 @@ export function buildAttendanceChartData({ counts, getLabel }) {
   };
 }
 
-export function buildAttendanceChartOptions({ isArabic, totalSessions }) {
+export function buildAttendanceChartOptions({
+  isArabic,
+  totalSessions,
+  showLegend = true,
+}) {
   return {
     cutout: "70%",
     plugins: {
       legend: {
-        display: true,
+        display: showLegend,
         position: "bottom",
         rtl: isArabic,
         labels: {

@@ -11,12 +11,12 @@ import { registerRoleMismatchHandler } from "../../utils/authEvents";
  */
 function RoleMismatchRedirect() {
   const navigate = useNavigate();
-  const { token, syncUserFromServer } = useAuth();
+  const { isLoggedIn, syncUserFromServer } = useAuth();
   const { clearForbidden } = useForbidden();
 
   useEffect(() => {
     registerRoleMismatchHandler(async () => {
-      if (!token) {
+      if (!isLoggedIn) {
         navigate("/login", { replace: true });
         return;
       }
@@ -30,7 +30,7 @@ function RoleMismatchRedirect() {
         navigate("/login", { replace: true });
       }
     });
-  }, [token, syncUserFromServer, navigate, clearForbidden]);
+  }, [isLoggedIn, syncUserFromServer, navigate, clearForbidden]);
 
   return null;
 }

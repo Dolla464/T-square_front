@@ -16,11 +16,11 @@ import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import ProfilePasswordField from "../../../../components/shared/ProfilePasswordField/ProfilePasswordField";
 import {
-  getNameInitials,
   getProfileAvatarUrl,
   getProfileDisplayName,
-  isDefaultAvatarUrl,
+  hasRealAvatar,
 } from "../../../../utils/avatar";
+import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
 import { getApiErrorMessage } from "../../../../utils/apiErrors";
 
 function InstructorProfile() {
@@ -120,9 +120,8 @@ function InstructorProfile() {
     }
   };
 
-  const initials = getNameInitials(fullName || getProfileDisplayName(user, userProfile), "IN");
   const avatarUrl = getProfileAvatarUrl(user, userProfile);
-  const hasAvatar = Boolean(avatarUrl) && !isDefaultAvatarUrl(avatarUrl) && !imageError;
+  const hasAvatar = hasRealAvatar(avatarUrl) && !imageError;
   const displayName = getProfileDisplayName(user, userProfile) || fullName;
 
   const handleUpdateInformation = async () => {
@@ -242,32 +241,32 @@ function InstructorProfile() {
                   </div>
                 )}
 
-                {hasAvatar ? (
-                  <>
-                    <img
-                      src={avatarUrl}
-                      alt="avatar"
-                      onError={() => setImageError(true)}
-                    />
-                    <div
-                      className="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
-                      style={{
-                        backgroundColor: "rgba(190, 21, 34, 0.85)",
-                        opacity: 0,
-                        transition: "opacity 0.3s ease",
-                        zIndex: 3,
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
-                      onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
-                    >
-                      <i
-                        className="bi bi-eye-fill text-danger"
-                        style={{ fontSize: "1.1rem" }}
-                      ></i>
-                    </div>
-                  </>
-                ) : (
-                  <span className="avatar-initials">{initials}</span>
+                <ProfileAvatar
+                  name={fullName || displayName}
+                  avatarUrl={avatarUrl}
+                  size={52}
+                  fallbackInitials="IN"
+                  className="w-100 h-100"
+                  style={{ width: "100%", height: "100%" }}
+                  onImageError={() => setImageError(true)}
+                />
+                {hasAvatar && (
+                  <div
+                    className="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
+                    style={{
+                      backgroundColor: "rgba(190, 21, 34, 0.85)",
+                      opacity: 0,
+                      transition: "opacity 0.3s ease",
+                      zIndex: 3,
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
+                  >
+                    <i
+                      className="bi bi-eye-fill text-danger"
+                      style={{ fontSize: "1.1rem" }}
+                    ></i>
+                  </div>
                 )}
               </div>
               <div>

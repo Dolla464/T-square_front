@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import i18next from "i18next";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useUnreadCount } from "../../../hooks/useNotifications";
+import { formatNotificationBadge } from "../../../utils/notifications";
 import DashboardSharedLayout from "../../shared-dashboard/components/DashboardLayout/DashboardSharedLayout";
 
 const RECEPTIONIST_NAV = [
@@ -27,6 +28,11 @@ const RECEPTIONIST_NAV = [
   },
   { key: "students", path: "/receptionist/students", icon: "bi-people" },
   { key: "orders", path: "/receptionist/orders", icon: "bi-cart3" },
+  {
+    key: "Notification",
+    path: "/receptionist/notifications",
+    icon: "bi-bell-fill",
+  },
 ];
 
 function ReceptionistLayout() {
@@ -57,6 +63,8 @@ function ReceptionistLayout() {
         return isArabic ? "الطلبات والدفع" : "Orders & Payment";
       case "/receptionist/orders/create":
         return isArabic ? "إنشاء طلب" : "Create Order";
+      case "/receptionist/notifications":
+        return isArabic ? "الإشعارات" : "Notifications";
       default:
         return "";
     }
@@ -70,8 +78,9 @@ function ReceptionistLayout() {
   const navItems = useMemo(
     () =>
       RECEPTIONIST_NAV.map((item) => {
-        if (item.key === "Notification" && unreadCount > 0) {
-          return { ...item, badge: unreadCount > 9 ? "9+" : unreadCount };
+        const badge = formatNotificationBadge(unreadCount);
+        if (item.key === "Notification" && badge != null) {
+          return { ...item, badge };
         }
         return item;
       }),

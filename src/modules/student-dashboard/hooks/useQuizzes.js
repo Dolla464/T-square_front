@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getStudentExams } from "../services/dashboardService";
 
 export const useQuizzes = () => {
@@ -7,41 +7,37 @@ export const useQuizzes = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchFromAPI = async () => {
-      try {
-        setLoading(true);
+  const refetch = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const res = await getStudentExams();
-        const quizzesData = res.data?.data || [];
+      const res = await getStudentExams();
+      const quizzesData = res.data?.data || [];
 
-        setQuizzes(quizzesData);
+      setQuizzes(quizzesData);
 
-        const completed = quizzesData.filter(
-          (quiz) => quiz.is_locked, // تم قفله تماماً لاستنفاد المحاولات
-        ).length;
+      const completed = quizzesData.filter((quiz) => quiz.is_locked).length;
+      const pending = quizzesData.filter((quiz) => !quiz.is_locked).length;
 
-        const pending = quizzesData.filter(
-          (quiz) => !quiz.is_locked, // ما زال متاحاً للمحاولة (سواء دخله قبل كده أو لأ)
-        ).length;
-
-        setStats({
-          total: quizzesData.length,
-          completed,
-          pending,
-          open: pending,
-          avgScore: 0,
-        });
-      } catch (err) {
-        console.error(err);
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFromAPI();
+      setStats({
+        total: quizzesData.length,
+        completed,
+        pending,
+        open: pending,
+        avgScore: 0,
+      });
+    } catch (err) {
+      console.error(err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { quizzes, stats, loading, error };
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
+  return { quizzes, stats, loading, error, refetch };
 };

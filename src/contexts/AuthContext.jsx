@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import axiosClient, { initCsrf } from "../api/axios";
+import axiosClient, { initCsrf, resetSessionExpiredHandled } from "../api/axios";
 import { fetchCurrentUser } from "../services/auth";
 import { normalizeAuthUser } from "../utils/normalizeAuthUser";
 import Loading from "../Loading";
@@ -15,6 +15,7 @@ const AuthContext = createContext();
 
 const QUIZ_STATE_PREFIX = "quiz_state_";
 const QUIZ_COMPLETED_PREFIX = "quiz_completed_";
+const SESSION_KEEP_ALIVE_MS = 30 * 60 * 1000;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -54,6 +55,15 @@ export const AuthProvider = ({ children }) => {
 
     sessionStorage.setItem("user", JSON.stringify(nextUser));
   }, []);
+
+  const clearSessionLocally = useCallback(() => {
+    setUser(null);
+    setUserProfile(null);
+    setUserSynced(true);
+    clearLegacyAuthStorage();
+    clearSensitiveSessionData();
+    sessionStorage.removeItem("user");
+  }, [clearLegacyAuthStorage, clearSensitiveSessionData]);
 
   const syncUserFromServer = useCallback(async () => {
     const serverUser = await fetchCurrentUser();
@@ -152,6 +162,7 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback(
     async (responseData) => {
       clearLegacyAuthStorage();
+      resetSessionExpiredHandled();
 
       const normalizedUser = normalizeAuthUser(responseData.user);
       if (!normalizedUser?.role) {
@@ -211,6 +222,42 @@ export const AuthProvider = ({ children }) => {
     }
   }, [clearLegacyAuthStorage, clearSensitiveSessionData]);
 
+  useEffect(() => {
+    if (!user?.role) {
+      return undefined;
+    }
+
+    const ping = async () => {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+
+      try {
+        await syncUserFromServer();
+      } catch (error) {
+        const status = error?.response?.status;
+        if (status !== 401 && status !== 419) {
+          console.error("Session keep-alive failed:", error);
+        }
+      }
+    };
+
+    const intervalId = window.setInterval(ping, SESSION_KEEP_ALIVE_MS);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        ping();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [user?.role, syncUserFromServer]);
+
   const contextValue = useMemo(
     () => ({
       user,
@@ -218,6 +265,7 @@ export const AuthProvider = ({ children }) => {
       token: null,
       login,
       logout,
+      clearSessionLocally,
       updateUser,
       fetchUserProfile,
       syncUserFromServer,
@@ -232,6 +280,7 @@ export const AuthProvider = ({ children }) => {
       userProfile,
       login,
       logout,
+      clearSessionLocally,
       updateUser,
       fetchUserProfile,
       syncUserFromServer,
