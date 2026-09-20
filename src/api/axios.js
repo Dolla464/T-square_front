@@ -83,13 +83,6 @@ axiosClient.interceptors.request.use((config) => {
     config.headers["X-XSRF-TOKEN"] = csrfToken;
   }
 
-  const legacyToken =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
-
-  if (legacyToken && !config.headers.Authorization) {
-    config.headers.Authorization = `Bearer ${legacyToken}`;
-  }
-
   if (config.data instanceof FormData) {
     delete config.headers["Content-Type"];
     config.timeout = 0;
@@ -103,8 +96,6 @@ axiosClient.interceptors.request.use((config) => {
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    const token =
-      localStorage.getItem("token") || sessionStorage.getItem("token");
     const status = error.response?.status;
 
     if (shouldTriggerGlobalForbidden(error)) {
@@ -116,7 +107,7 @@ axiosClient.interceptors.response.use(
       notifySessionExpired();
     }
 
-    if (error.response && status === 503 && !token) {
+    if (error.response && status === 503) {
       if (
         window.location.pathname !== "/maintenance" &&
         window.location.pathname !== "/login"
