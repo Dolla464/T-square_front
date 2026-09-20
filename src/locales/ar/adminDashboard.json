@@ -351,6 +351,8 @@
     "table_course": "اسم الكورس",
     "table_questions_count": "الأسئلة",
     "table_duration": "المدة",
+    "table_last_updated": "آخر تعديل",
+    "no_updates_yet": "—",
     "table_status": "الحالة",
     "table_actions": "الإجراءات",
     "no_quizzes": "لا توجد اختبارات متاحة.",

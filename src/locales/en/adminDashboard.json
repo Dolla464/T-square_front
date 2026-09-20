@@ -351,6 +351,8 @@
     "table_course": "Course Name",
     "table_questions_count": "Questions",
     "table_duration": "Duration",
+    "table_last_updated": "Last Updated",
+    "no_updates_yet": "—",
     "table_status": "status",
     "table_actions": "Actions",
     "no_quizzes": "No quizzes available.",

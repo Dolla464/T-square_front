@@ -87,6 +87,9 @@ export const useQuizzes = () => {
           passing_mark: item.passing_mark || 0,
           final_exam: !!item.is_final,
           shuffle_questions: !!item.shuffle_questions,
+          updated_at: item.updated_at || "",
+          updated_by_name: item.updated_by?.name || null,
+          updated_by_role: item.updated_by?.role || null,
         }));
 
         setQuizzes(mapped);

@@ -11,6 +11,7 @@ import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { useQuizzes } from "../../hooks/useQuizzes";
 import { useAdminCourses } from "../../hooks/useAdminCourses";
 import { useNavigate, useParams } from "react-router-dom";
+import { formatDateTime } from "../../../../utils/formatDateTime";
 
 /**
  * Default form data structure for creating or editing a quiz
@@ -486,6 +487,9 @@ function AdminQuizzes() {
                           {t("quizzes_page.table_duration")}
                         </th>
                         <th className="text-center">
+                          {t("quizzes_page.table_last_updated")}
+                        </th>
+                        <th className="text-center">
                           {showTrash
                             ? isArabic
                               ? "تاريخ الحذف"
@@ -501,7 +505,7 @@ function AdminQuizzes() {
                     <tbody>
                       {loading ? (
                         <tr>
-                          <td colSpan="6" className="text-center py-4">
+                          <td colSpan="7" className="text-center py-4">
                             <div
                               className="spinner-border text-danger"
                               role="status"
@@ -522,6 +526,29 @@ function AdminQuizzes() {
                             </td>
                             <td className="text-center text-muted">
                               {quizItem.duration} {isArabic ? "دقيقة" : "mins"}
+                            </td>
+                            <td className="text-center">
+                              {quizItem.updated_by_name || quizItem.updated_at ? (
+                                <div className="d-flex flex-column align-items-center">
+                                  {quizItem.updated_by_name && (
+                                    <span className="fw-medium text-dark">
+                                      {quizItem.updated_by_name}
+                                    </span>
+                                  )}
+                                  {quizItem.updated_at && (
+                                    <span className="text-muted small">
+                                      {formatDateTime(
+                                        quizItem.updated_at,
+                                        isArabic ? "ar-EG" : "en-US",
+                                      )}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-muted">
+                                  {t("quizzes_page.no_updates_yet")}
+                                </span>
+                              )}
                             </td>
                             <td className="text-center">
                               {showTrash ? (
@@ -624,7 +651,7 @@ function AdminQuizzes() {
                       ) : (
                         <tr>
                           <td
-                            colSpan={6}
+                            colSpan={7}
                             className="text-center py-4 text-muted"
                           >
                             {t("quizzes_page.no_quizzes")}
