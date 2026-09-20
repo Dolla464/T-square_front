@@ -860,6 +860,17 @@
   background: #9a111b;
 }
 
+.btn-continue-improve {
+  background: #e3f2fd;
+  color: #0d47a1;
+  border: 1px solid #90caf9;
+}
+
+.btn-continue-improve:hover {
+  background: #bbdefb;
+  color: #0d47a1;
+}
+
 /* ── Score Display ── */
 .quiz-score-display {
   display: flex;

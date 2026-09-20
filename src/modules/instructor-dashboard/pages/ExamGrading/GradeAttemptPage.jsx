@@ -133,24 +133,35 @@ function GradeAttemptPage() {
 
   return (
     <div className="admin-content-page">
-      <div className="ac-header d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <Link
-            to="/instructor/exam-grading"
-            className="text-decoration-none text-muted small d-inline-block mb-2"
-          >
-            <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"} me-1`} />
-            {isArabic ? "العودة إلى قائمة التصحيح" : "Back to grading queue"}
-          </Link>
-          <h2 className="ac-title mb-1">{review.exam_title}</h2>
-          <p className="ac-subtitle text-muted mb-0">
-            {isArabic ? "الدرجة الحالية:" : "Current score:"}{" "}
-            <strong>
-              {formatExamScore(review.score ?? 0)} /{" "}
-              {formatExamScore(review.attempt_max_marks ?? review.total_marks ?? 0)}
-            </strong>
-          </p>
-        </div>
+      <div className="ac-header mb-4">
+        <Link
+          to="/instructor/exam-grading"
+          className="text-decoration-none text-muted small d-inline-block mb-2"
+        >
+          <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"} me-1`} />
+          {isArabic ? "العودة إلى قائمة التصحيح" : "Back to grading queue"}
+        </Link>
+        <h2 className="ac-title mb-1">{review.exam_title}</h2>
+        <p className="ac-subtitle text-muted mb-0">
+          {isArabic ? "الدرجة الحالية:" : "Current score:"}{" "}
+          <strong>
+            {formatExamScore(review.score ?? 0)} /{" "}
+            {formatExamScore(review.attempt_max_marks ?? review.total_marks ?? 0)}
+          </strong>
+        </p>
+      </div>
+
+      <div className="ac-table-card p-3 p-md-4">
+        <AttemptAnswerReview
+          review={review}
+          gradingMode
+          essayOnly
+          gradingValues={gradingValues}
+          onGradingChange={handleGradingChange}
+        />
+      </div>
+
+      <div className="d-flex justify-content-end mt-4">
         <button
           type="button"
           className="btn btn-danger"
@@ -164,15 +175,6 @@ function GradeAttemptPage() {
           )}
           {isArabic ? "اعتماد التصحيح" : "Finalize Grading"}
         </button>
-      </div>
-
-      <div className="ac-table-card p-3 p-md-4">
-        <AttemptAnswerReview
-          review={review}
-          gradingMode
-          gradingValues={gradingValues}
-          onGradingChange={handleGradingChange}
-        />
       </div>
     </div>
   );

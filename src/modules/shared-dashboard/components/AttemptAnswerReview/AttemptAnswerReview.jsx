@@ -30,6 +30,7 @@ function AttemptAnswerReview({
   review,
   compact = false,
   gradingMode = false,
+  essayOnly = false,
   gradingValues = {},
   onGradingChange,
 }) {
@@ -38,8 +39,12 @@ function AttemptAnswerReview({
 
   if (!review) return null;
 
-  const questions = Array.isArray(review.questions) ? review.questions : [];
+  const allQuestions = Array.isArray(review.questions) ? review.questions : [];
+  const questions = essayOnly
+    ? allQuestions.filter((question) => question.type === "essay")
+    : allQuestions;
   const summary = review.summary ?? {};
+  const showSummary = !essayOnly;
 
   return (
     <div
@@ -48,6 +53,7 @@ function AttemptAnswerReview({
       aria-label={t("attempt_review.region_label")}
       dir={isArabic ? "rtl" : "ltr"}
     >
+      {showSummary ? (
       <div
         className="attempt-review-summary"
         aria-live="polite"
@@ -74,6 +80,15 @@ function AttemptAnswerReview({
           </span>
         ) : null}
       </div>
+      ) : null}
+
+      {questions.length === 0 ? (
+        <p className="text-muted mb-0">
+          {isArabic
+            ? "لا توجد أسئلة مقالية للتصحيح."
+            : "No essay questions to grade."}
+        </p>
+      ) : null}
 
       <div className="attempt-review-questions">
         {questions.map((question, index) => {
