@@ -73,12 +73,12 @@ function NotificationsDropdown({ Tbtn = "" }) {
       className={`fw-bold notifications-nav-dropdown ${Tbtn}`}
       menuVariant="light"
     >
-        <div className="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
-          <strong>{t("notifications.title")}</strong>
+        <div className="px-3 py-2 border-bottom d-flex justify-content-between align-items-center notifications-dropdown-header">
+          <strong className="text-truncate">{t("notifications.title")}</strong>
           {unreadCount > 0 && (
             <button
               type="button"
-              className="btn btn-link btn-sm p-0"
+              className="btn btn-link btn-sm p-0 notifications-mark-all-read"
               onClick={handleMarkAllAsRead}
             >
               {t("notifications.markAllRead")}
@@ -106,10 +106,7 @@ function NotificationsDropdown({ Tbtn = "" }) {
         )}
 
         {!isLoading && !error && notifications.length > 0 && (
-          <div
-            className="py-2"
-            style={{ maxHeight: "400px", overflowY: "auto" }}
-          >
+          <div className="py-2 notifications-dropdown-list">
             {notifications.map((notification) => (
               <NavDropdown.Item
                 key={notification.id}
@@ -120,7 +117,7 @@ function NotificationsDropdown({ Tbtn = "" }) {
                 onClick={() => handleNotificationClick(notification)}
               >
                 <div className="d-flex justify-content-between align-items-start gap-2">
-                  <div className="flex-grow-1 text-start">
+                  <div className="flex-grow-1 text-start notifications-item-body">
                     <div className="fw-semibold small">
                       {notification.title}
                     </div>
