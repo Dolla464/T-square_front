@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import AttemptAnswerReview from "../../../shared-dashboard/components/AttemptAnswerReview/AttemptAnswerReview";
+import IntegrityEventsSection from "../../../shared-dashboard/components/AttemptAnswerReview/IntegrityEventsSection";
 import ForbiddenAccess from "../../../../components/shared/ForbiddenAccess";
 import { useAttemptReview } from "../../../shared-dashboard/hooks/useAttemptReview";
 import { formatExamScore } from "../../../shared-dashboard/utils/formatExamScore";
@@ -88,7 +89,10 @@ function AttemptReviewPage({ role = "student" }) {
           </p>
         </div>
       ) : review ? (
-        <AttemptAnswerReview review={review} />
+        <>
+          {role !== "student" ? <IntegrityEventsSection review={review} /> : null}
+          <AttemptAnswerReview review={review} />
+        </>
       ) : null}
 
       {role === "student" ? (

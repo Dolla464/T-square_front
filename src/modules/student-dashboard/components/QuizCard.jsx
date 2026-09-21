@@ -4,6 +4,14 @@ import { useNavigate } from "react-router-dom";
 import DetailModal from "../../../components/shared/DetailModal/DetailModal";
 import AttemptReviewPanel from "../../shared-dashboard/components/AttemptAnswerReview/AttemptReviewPanel";
 import { formatExamScore, formatExamScorePair } from "../../shared-dashboard/utils/formatExamScore";
+import {
+  isAwaitingGrading,
+  pickHighestGradedAttempt,
+  resolveGaugeAttempt,
+  isAttemptFailed,
+  getAttemptStatusBadgeClass,
+  UNDER_GRADING_BADGE_STYLE,
+} from "../../shared-dashboard/utils/examAttemptDisplay";
 import { useExamResults } from "../hooks/useExamResults";
 import { clearQuizAttemptCompleted } from "../utils/quizExamSession";
 import "../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
@@ -65,16 +73,12 @@ function QuizCard({ quiz, t }) {
     .map((attempt, idx) => ({ ...attempt, attempt_number: idx + 1 }))
     .reverse(); // الأحدث أولاً في العرض
 
-  // أعلى درجة
-  const highestAttempt = attempts.length
-    ? [...attempts].sort(
-        (a, b) => (parseFloat(b.score) || 0) - (parseFloat(a.score) || 0)
-      )[0]
-    : null;
+  const highestGradedAttempt = pickHighestGradedAttempt(attempts);
 
   // ── حساب الـ Gauge للمحاولة المعروضة (selected أو highest) ──────────
-  const gaugeAttempt = selectedAttempt ?? highestAttempt;
+  const gaugeAttempt = resolveGaugeAttempt(selectedAttempt, attempts);
   const reviewAttemptId = gaugeAttempt?.attempt_id ?? null;
+  const isGaugeAwaitingGrading = isAwaitingGrading(gaugeAttempt);
 
   const getAttemptPercentage = (attempt) => {
     if (!attempt) return 0;
@@ -90,16 +94,14 @@ function QuizCard({ quiz, t }) {
   const HALF_CIRC = Math.PI * 80;
   const filled = (gaugePercentage / 100) * HALF_CIRC;
 
-  const isGaugeFailed =
-    !gaugeAttempt ||
-    gaugeAttempt.status === "failed" ||
-    gaugeAttempt.is_passed === false;
+  const isGaugeFailed = isAttemptFailed(gaugeAttempt);
 
   const strokeColor = isGaugeFailed ? "#ef4444" : "#22c55e";
 
   // هل المحاولة المعروضة هي الأعلى درجة
   const isBestAttempt = (attempt) =>
-    highestAttempt && attempt?.attempt_id === highestAttempt.attempt_id;
+    highestGradedAttempt &&
+    attempt?.attempt_id === highestGradedAttempt.attempt_id;
 
   const isShowingBest =
     !selectedAttempt || isBestAttempt(selectedAttempt);
@@ -107,10 +109,6 @@ function QuizCard({ quiz, t }) {
   // ── دالة مساعدة: عرض الدرجة / المجموع (أو N/A) ───────────────────
   const formatScore = (attempt) =>
     formatExamScorePair(attempt.score, attempt.total_marks);
-
-  // ── تحديد حالة المحاولة ───────────────────────────────────────────
-  const isAttemptFailed = (attempt) =>
-    attempt.status === "failed" || attempt.is_passed === false;
 
   // ── الـ Render ─────────────────────────────────────────────────────
   return (
@@ -269,6 +267,26 @@ function QuizCard({ quiz, t }) {
                 </span>
 
                 {gaugeAttempt ? (
+                  isGaugeAwaitingGrading ? (
+                    <>
+                      <div
+                        className="quiz-modal-gauge-wrapper d-flex align-items-center justify-content-center"
+                        style={{ minHeight: "120px" }}
+                      >
+                        <i
+                          className="bi bi-hourglass-split"
+                          style={{ fontSize: "3rem", color: "#d97706" }}
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <span
+                        className="quiz-modal-gauge-status"
+                        style={UNDER_GRADING_BADGE_STYLE}
+                      >
+                        {t("quiz_results.under_grading")}
+                      </span>
+                    </>
+                  ) : (
                   <>
                     {/* SVG Semicircle Gauge */}
                     <div className="quiz-modal-gauge-wrapper">
@@ -324,6 +342,7 @@ function QuizCard({ quiz, t }) {
                       {isGaugeFailed ? t("quiz_results.failed") : t("quiz_results.passed")}
                     </span>
                   </>
+                  )
                 ) : (
                   <p className="text-muted py-2">{t("quiz_results.no_attempts")}</p>
                 )}
@@ -391,14 +410,14 @@ function QuizCard({ quiz, t }) {
                           {/* الدرجة + بادج الحالة */}
                           <div className="quiz-attempt-score-status">
                             <span className="quiz-attempt-score">
-                              {formatScore(attempt)}
+                              {isAwaitingGrading(attempt) ? "—" : formatScore(attempt)}
                             </span>
                             <span
-                              className={`quiz-attempt-badge ${
-                                failed ? "badge-failed" : "badge-passed"
-                              }`}
+                              className={`quiz-attempt-badge ${getAttemptStatusBadgeClass(attempt)}`}
                             >
-                              {failed
+                              {isAwaitingGrading(attempt)
+                                ? t("quiz_results.under_grading")
+                                : failed
                                 ? t("quiz_results.failed")
                                 : t("quiz_results.passed")}
                             </span>

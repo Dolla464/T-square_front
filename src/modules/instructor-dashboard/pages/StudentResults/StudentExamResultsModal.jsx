@@ -3,6 +3,14 @@ import { useTranslation } from "react-i18next";
 import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
 import AttemptReviewPanel from "../../../shared-dashboard/components/AttemptAnswerReview/AttemptReviewPanel";
 import { formatExamScore, formatExamScorePair } from "../../../shared-dashboard/utils/formatExamScore";
+import {
+  isAwaitingGrading,
+  pickHighestGradedAttempt,
+  resolveGaugeAttempt,
+  isAttemptFailed,
+  getAttemptStatusBadgeClass,
+  UNDER_GRADING_BADGE_STYLE,
+} from "../../../shared-dashboard/utils/examAttemptDisplay";
 import { useInstructorExamResults } from "../../hooks/useInstructorExamResults";
 import "../../../student-dashboard/styles/dashboardShared.css";
 import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
@@ -45,16 +53,19 @@ function StudentExamResultsModal({
       .reverse();
   }, [studentExamAttempts]);
 
-  const highestAttempt = useMemo(() => {
-    const raw = Array.isArray(studentExamAttempts) ? studentExamAttempts : [];
-    if (!raw.length) return null;
-    return [...raw].sort(
-      (a, b) => (parseFloat(b.score) || 0) - (parseFloat(a.score) || 0)
-    )[0];
-  }, [studentExamAttempts]);
+  const rawAttempts = useMemo(
+    () => (Array.isArray(studentExamAttempts) ? studentExamAttempts : []),
+    [studentExamAttempts],
+  );
 
-  const gaugeAttempt = selectedAttempt ?? highestAttempt;
+  const highestGradedAttempt = useMemo(
+    () => pickHighestGradedAttempt(rawAttempts),
+    [rawAttempts],
+  );
+
+  const gaugeAttempt = resolveGaugeAttempt(selectedAttempt, rawAttempts);
   const reviewAttemptId = gaugeAttempt?.attempt_id ?? null;
+  const isGaugeAwaitingGrading = isAwaitingGrading(gaugeAttempt);
 
   const getAttemptPercentage = (attempt) => {
     if (!attempt) return 0;
@@ -71,15 +82,13 @@ function StudentExamResultsModal({
   const HALF_CIRC = Math.PI * 80;
   const filled = (gaugePercentage / 100) * HALF_CIRC;
 
-  const isGaugeFailed =
-    !gaugeAttempt ||
-    gaugeAttempt.status === "failed" ||
-    gaugeAttempt.is_passed === false;
+  const isGaugeFailed = isAttemptFailed(gaugeAttempt);
 
   const strokeColor = isGaugeFailed ? "#ef4444" : "#22c55e";
 
   const isBestAttempt = (attempt) =>
-    highestAttempt && attempt?.attempt_id === highestAttempt.attempt_id;
+    highestGradedAttempt &&
+    attempt?.attempt_id === highestGradedAttempt.attempt_id;
 
   const isShowingBest =
     !selectedAttempt || isBestAttempt(selectedAttempt);
@@ -89,9 +98,6 @@ function StudentExamResultsModal({
       attempt.score,
       attempt.total_marks != null ? attempt.total_marks : totalMarks,
     );
-
-  const isAttemptFailed = (attempt) =>
-    attempt.status === "failed" || attempt.is_passed === false;
 
   return (
     <DetailModal
@@ -131,6 +137,26 @@ function StudentExamResultsModal({
               </span>
 
               {gaugeAttempt ? (
+                isGaugeAwaitingGrading ? (
+                  <>
+                    <div
+                      className="quiz-modal-gauge-wrapper d-flex align-items-center justify-content-center"
+                      style={{ minHeight: "120px" }}
+                    >
+                      <i
+                        className="bi bi-hourglass-split"
+                        style={{ fontSize: "3rem", color: "#d97706" }}
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <span
+                      className="quiz-modal-gauge-status"
+                      style={UNDER_GRADING_BADGE_STYLE}
+                    >
+                      {t("studentResults.underGrading", "Under Grading")}
+                    </span>
+                  </>
+                ) : (
                 <>
                   <div className="quiz-modal-gauge-wrapper">
                     <svg
@@ -208,6 +234,7 @@ function StudentExamResultsModal({
                       : t("studentResults.passed", "Passed")}
                   </span>
                 </>
+                )
               ) : (
                 <p className="text-muted py-2">
                   {t("studentResults.noAttempts", "No previous attempts found.")}
@@ -288,14 +315,14 @@ function StudentExamResultsModal({
 
                         <div className="quiz-attempt-score-status">
                           <span className="quiz-attempt-score">
-                            {formatScore(attempt)}
+                            {isAwaitingGrading(attempt) ? "—" : formatScore(attempt)}
                           </span>
                           <span
-                            className={`quiz-attempt-badge ${
-                              failed ? "badge-failed" : "badge-passed"
-                            }`}
+                            className={`quiz-attempt-badge ${getAttemptStatusBadgeClass(attempt)}`}
                           >
-                            {failed
+                            {isAwaitingGrading(attempt)
+                              ? t("studentResults.underGrading", "Under Grading")
+                              : failed
                               ? t("studentResults.failed", "Failed")
                               : t("studentResults.passed", "Passed")}
                           </span>

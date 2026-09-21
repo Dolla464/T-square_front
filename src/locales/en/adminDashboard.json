@@ -461,6 +461,7 @@
     "studentDetails": "Student Details",
     "passed": "Passed",
     "failed": "Failed",
+    "underGrading": "Under Grading",
     "noAttempts": "No previous attempts found.",
     "noAttemptsShort": "No attempts",
     "attemptsHistory": "Attempts History",

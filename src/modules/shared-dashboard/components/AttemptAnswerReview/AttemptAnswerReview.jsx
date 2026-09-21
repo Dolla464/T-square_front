@@ -13,6 +13,7 @@ const CHOICE_STATE_LABELS = {
 const RESULT_STATUS_LABELS = {
   correct: "question_correct",
   incorrect: "question_incorrect",
+  partial_credit: "partial_credit",
   unanswered: "unanswered",
   pending_grading: "pending_grading",
   graded: "question_graded",
@@ -21,6 +22,7 @@ const RESULT_STATUS_LABELS = {
 const RESULT_STATUS_CLASS = {
   correct: "attempt-review-status--correct",
   incorrect: "attempt-review-status--incorrect",
+  partial_credit: "attempt-review-status--partial",
   unanswered: "attempt-review-status--unanswered",
   pending_grading: "attempt-review-status--pending",
   graded: "attempt-review-status--correct",
@@ -72,11 +74,18 @@ function AttemptAnswerReview({
             count: summary.unanswered ?? 0,
           })}
         </span>
+        {(summary.partial_credit ?? 0) > 0 ? (
+          <span className="attempt-review-summary-item attempt-review-status--partial">
+            {t("attempt_review.summary_partial_credit", {
+              count: summary.partial_credit,
+            })}
+          </span>
+        ) : null}
         {(summary.pending_grading ?? 0) > 0 ? (
           <span className="attempt-review-summary-item attempt-review-status--pending">
-            {isArabic
-              ? `بانتظار التصحيح: ${summary.pending_grading}`
-              : `Pending grading: ${summary.pending_grading}`}
+            {t("attempt_review.summary_pending_grading", {
+              count: summary.pending_grading,
+            })}
           </span>
         ) : null}
       </div>
@@ -123,16 +132,7 @@ function AttemptAnswerReview({
                   {t(
                     `attempt_review.${RESULT_STATUS_LABELS[question.result_status] ?? "option"}`,
                     {
-                      defaultValue:
-                        question.result_status === "pending_grading"
-                          ? isArabic
-                            ? "بانتظار التصحيح"
-                            : "Pending grading"
-                          : question.result_status === "graded"
-                            ? isArabic
-                              ? "تم التصحيح"
-                              : "Graded"
-                            : question.result_status,
+                      defaultValue: question.result_status,
                     },
                   )}
                 </span>

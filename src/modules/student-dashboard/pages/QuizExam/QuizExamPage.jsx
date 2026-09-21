@@ -5,6 +5,7 @@ import { Helmet } from "react-helmet-async";
 import { toastCustom } from "../../../../components/shared/Toaster/toaster";
 import { showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { useExam, mapExamResults } from "../../hooks/useExam";
+import { useExamIntegrityMonitor } from "../../hooks/useExamIntegrityMonitor";
 import AttemptReviewPanel from "../../../shared-dashboard/components/AttemptAnswerReview/AttemptReviewPanel";
 import QuestionContent from "../../../shared-dashboard/components/QuestionContent/QuestionContent";
 import { invalidateAttemptReview } from "../../../shared-dashboard/hooks/attemptReviewCache";
@@ -149,7 +150,7 @@ const QuizTimer = React.memo(
 function QuizExamPage() {
   const { quizId } = useParams();
   const navigate = useNavigate();
-  const hasStarted = useRef(false);
+  const initRequestIdRef = useRef(0);
   const hasAutoSubmittedRef = useRef(false);
   const leaveDialogOpenRef = useRef(false);
   const attemptFinalizedRef = useRef(false);
@@ -192,6 +193,11 @@ function QuizExamPage() {
     !showResult &&
     !attemptFinalized;
 
+  useExamIntegrityMonitor({
+    attemptId: exam?.attempt_id,
+    enabled: isExamInProgress,
+  });
+
   const currentIndexRef = useRef(currentIndex);
   currentIndexRef.current = currentIndex;
 
@@ -218,36 +224,48 @@ function QuizExamPage() {
     setAttemptFinalized(false);
     attemptFinalizedRef.current = false;
     hasAutoSubmittedRef.current = false;
-    hasStarted.current = false;
+    initRequestIdRef.current += 1;
     setIsInitializing(true);
   }, [quizId]);
 
   useEffect(() => {
-    if (hasStarted.current) return;
-    hasStarted.current = true;
-
-    let cancelled = false;
+    const requestId = ++initRequestIdRef.current;
 
     const initExam = async () => {
       try {
+        let quiz = null;
+
+        try {
+          const res = await getStudentExams();
+          const quizzes = res.data?.data || [];
+          quiz = quizzes.find((q) => String(q.id) === String(quizId)) ?? null;
+        } catch (listError) {
+          console.error("Failed to load student exams before start", listError);
+        }
+
+        if (quiz?.has_ongoing_attempt) {
+          clearQuizAttemptCompleted(quizId);
+          if (requestId === initRequestIdRef.current) {
+            await startExam();
+          }
+          return;
+        }
+
         const completedAttemptId = getCompletedAttemptId(quizId);
 
         if (completedAttemptId) {
-          const res = await getStudentExams();
-          const quizzes = res.data?.data || [];
-          const quiz = quizzes.find((q) => String(q.id) === String(quizId));
           const canStartNewAttempt =
             quiz && !quiz.is_locked && !quiz.has_ongoing_attempt;
 
           if (canStartNewAttempt) {
             clearQuizAttemptCompleted(quizId);
-            if (!cancelled) {
+            if (requestId === initRequestIdRef.current) {
               await startExam();
             }
             return;
           }
 
-          if (!cancelled) {
+          if (requestId === initRequestIdRef.current) {
             navigate(
               `/student/quizzes/${quizId}/attempts/${completedAttemptId}/review`,
               { replace: true },
@@ -256,26 +274,21 @@ function QuizExamPage() {
           return;
         }
 
-        if (!cancelled) {
+        if (requestId === initRequestIdRef.current) {
           await startExam();
         }
       } finally {
-        if (!cancelled) {
+        if (requestId === initRequestIdRef.current) {
           setIsInitializing(false);
         }
       }
     };
 
     initExam();
-
-    return () => {
-      cancelled = true;
-      hasStarted.current = false;
-    };
   }, [quizId, startExam, navigate]);
 
   useEffect(() => {
-    if (!exam) return;
+    if (!exam || isInitializing || loading) return;
 
     if (exam.status !== "ongoing" && exam.results) {
       markQuizAttemptCompleted(quizId, exam.attempt_id);
@@ -287,6 +300,15 @@ function QuizExamPage() {
       setShowResult(true);
       sessionStorage.removeItem(`quiz_state_${quizId}`);
       return;
+    }
+
+    if (exam.status === "ongoing") {
+      setShowResult(false);
+      setScoreResult(null);
+      setSubmittedAttemptId(null);
+      setShowAnswerReview(false);
+      setAttemptFinalized(false);
+      attemptFinalizedRef.current = false;
     }
 
     const apiAnswers =
@@ -316,7 +338,7 @@ function QuizExamPage() {
 
     setCurrentIndex(0);
     setAnswers(apiAnswers);
-  }, [quizId, exam]);
+  }, [quizId, exam, isInitializing, loading]);
 
   useEffect(() => {
     if (exam && exam.attempt_id && exam.status === "ongoing") {

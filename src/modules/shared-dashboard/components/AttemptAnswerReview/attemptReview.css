@@ -1,3 +1,68 @@
+.integrity-events-section {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: #fafafa;
+}
+
+.integrity-events-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.integrity-events-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.integrity-events-summary span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.integrity-events-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.integrity-events-item {
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.5rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+}
+
+.integrity-events-item-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.integrity-events-item-meta {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.integrity-events-empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
 .attempt-review {
   margin-top: 1rem;
 }
@@ -78,6 +143,11 @@
 .attempt-review-status--pending {
   background: #fef3c7;
   color: #92400e;
+}
+
+.attempt-review-status--partial {
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 
 .attempt-review .quiz-option--correct,

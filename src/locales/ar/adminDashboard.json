@@ -461,6 +461,7 @@
     "studentDetails": "بيانات الطالب",
     "passed": "ناجح",
     "failed": "راسب",
+    "underGrading": "تحت التقييم",
     "noAttempts": "لا توجد محاولات سابقة.",
     "noAttemptsShort": "لا توجد محاولات",
     "attemptsHistory": "سجل المحاولات",

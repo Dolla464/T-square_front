@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   startExam as startExamApi,
   saveExamAnswer,
@@ -34,10 +34,18 @@ export const useExam = (examId) => {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    setExam(null);
+    setError(null);
+    setLoading(false);
+    setSubmitting(false);
+  }, [examId]);
+
   const startExam = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+      setExam(null);
       const res = await startExamApi(examId);
       setExam(res.data.data);
     } catch (err) {
