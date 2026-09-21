@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Spinner } from "react-bootstrap";
 import AttemptAnswerReview from "../../../shared-dashboard/components/AttemptAnswerReview/AttemptAnswerReview";
+import IntegrityEventsSection from "../../../shared-dashboard/components/AttemptAnswerReview/IntegrityEventsSection";
 import { useExamGrading } from "../../hooks/useExamGrading";
 import { formatExamScore } from "../../../shared-dashboard/utils/formatExamScore";
 import { toastError } from "../../../../components/shared/Toaster/toaster";
@@ -152,6 +153,7 @@ function GradeAttemptPage() {
       </div>
 
       <div className="ac-table-card p-3 p-md-4">
+        <IntegrityEventsSection review={review} />
         <AttemptAnswerReview
           review={review}
           gradingMode

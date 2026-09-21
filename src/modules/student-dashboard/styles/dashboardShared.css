@@ -1318,6 +1318,11 @@
   color: #991b1b;
 }
 
+.badge-under-grading {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
 /* RTL Adjustments */
 [dir="rtl"] .quiz-attempt-row {
   text-align: right;

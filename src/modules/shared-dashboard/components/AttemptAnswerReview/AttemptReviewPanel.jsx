@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import AttemptAnswerReview from "./AttemptAnswerReview";
+import IntegrityEventsSection from "./IntegrityEventsSection";
 import { useAttemptReview } from "../../hooks/useAttemptReview";
 import "./attemptReview.css";
 
@@ -61,6 +62,7 @@ function AttemptReviewPanel({
           </Link>
         </div>
       ) : null}
+      {role !== "student" ? <IntegrityEventsSection review={review} /> : null}
       <AttemptAnswerReview review={review} compact={compact} />
     </div>
   );

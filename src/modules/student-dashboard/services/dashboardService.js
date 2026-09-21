@@ -75,8 +75,26 @@ export const downloadStudentCertificate = async (
 // الكويزات و الاختبارات و الاجابات بتاعتهم
 export const getStudentExams = () => axiosClient.get("/exams");
 
-export const startExam = (examId) =>
-  axiosClient.post("/exams/start", { exam_id: examId });
+const startExamRequests = new Map();
+
+export const startExam = (examId) => {
+  const key = String(examId);
+  const inFlight = startExamRequests.get(key);
+
+  if (inFlight) {
+    return inFlight;
+  }
+
+  const request = axiosClient
+    .post("/exams/start", { exam_id: examId })
+    .finally(() => {
+      startExamRequests.delete(key);
+    });
+
+  startExamRequests.set(key, request);
+
+  return request;
+};
 
 export const saveExamAnswer = (payload) =>
   axiosClient.post("/exams/save-answer", payload);
@@ -87,6 +105,9 @@ export const submitExam = (attemptId) =>
 
 export const getExamTimeStatus = (attemptId) =>
   axiosClient.get(`/exams/attempts/${attemptId}/time-status`);
+
+export const recordIntegrityEvents = (attemptId, events) =>
+  axiosClient.post(`/exams/attempts/${attemptId}/integrity-events`, { events });
 
 /**
  * جلب بيانات ملف الطالب الشخصية
