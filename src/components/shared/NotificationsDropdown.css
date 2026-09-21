@@ -28,6 +28,50 @@
 .notifications-nav-dropdown .dropdown-menu {
   min-width: 320px;
   max-width: 360px;
+  overflow-x: hidden;
+}
+
+.notifications-nav-dropdown .notifications-dropdown-header {
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.notifications-nav-dropdown .btn-link.notifications-mark-all-read {
+  color: #be1522 !important;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.notifications-nav-dropdown .btn-link.notifications-mark-all-read:hover,
+.notifications-nav-dropdown .btn-link.notifications-mark-all-read:focus {
+  color: #9a111c !important;
+  text-decoration: none;
+}
+
+.notifications-nav-dropdown .notifications-dropdown-list {
+  max-height: 400px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.notifications-nav-dropdown .dropdown-menu .dropdown-item {
+  overflow-x: hidden;
+  white-space: normal;
+  max-width: 100%;
+}
+
+.notifications-nav-dropdown .dropdown-menu .dropdown-item > .d-flex {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.notifications-nav-dropdown .notifications-item-body {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .notifications-nav-dropdown .dropdown-menu .dropdown-item:focus,
