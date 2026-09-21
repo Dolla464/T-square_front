@@ -112,7 +112,7 @@ function NotificationsDropdown({ Tbtn = "" }) {
                 key={notification.id}
                 as="button"
                 className={`border-0 rounded-0 px-3 py-2 ${
-                  notification.is_read ? "" : "bg-light"
+                  notification.is_read ? "" : "notifications-item-unread"
                 }`}
                 onClick={() => handleNotificationClick(notification)}
               >

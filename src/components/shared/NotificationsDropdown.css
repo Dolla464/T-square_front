@@ -74,7 +74,16 @@
   word-break: break-word;
 }
 
-.notifications-nav-dropdown .dropdown-menu .dropdown-item:focus,
-.notifications-nav-dropdown .dropdown-menu .dropdown-item:hover {
-  background-color: rgba(197, 28, 36, 0.05);
+.notifications-nav-dropdown .dropdown-menu .dropdown-item.notifications-item-unread {
+  background-color: rgba(190, 22, 34, 0.08);
+}
+
+.notifications-nav-dropdown .dropdown-menu .dropdown-item.notifications-item-unread:hover,
+.notifications-nav-dropdown .dropdown-menu .dropdown-item.notifications-item-unread:focus {
+  background-color: rgba(190, 22, 34, 0.14);
+}
+
+.notifications-nav-dropdown .dropdown-menu .dropdown-item:not(.notifications-item-unread):focus,
+.notifications-nav-dropdown .dropdown-menu .dropdown-item:not(.notifications-item-unread):hover {
+  background-color: rgba(190, 22, 34, 0.05);
 }
