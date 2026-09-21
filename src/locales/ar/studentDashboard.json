@@ -161,7 +161,10 @@
     "event_tab_visible": "عودة للتاب",
     "event_window_blur": "فقدان تركيز النافذة",
     "event_window_resized": "تغيير حجم النافذة",
-    "client_hidden_duration_hint": "مدة الإخفاء المبلّغة من المتصفح: {{duration}}"
+    "client_hidden_duration_hint": "مدة الإخفاء المبلّغة من المتصفح: {{duration}}",
+    "toggle_show_details": "عرض تفاصيل الأحداث",
+    "toggle_hide_details": "إخفاء تفاصيل الأحداث",
+    "events_count": "{{count}} حدث"
   },
   "notifications": {
     "title": "الإشعارات",

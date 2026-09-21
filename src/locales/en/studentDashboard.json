@@ -162,7 +162,10 @@
     "event_tab_visible": "Tab Visible",
     "event_window_blur": "Window Blur",
     "event_window_resized": "Window Resized",
-    "client_hidden_duration_hint": "Client reported hidden duration: {{duration}}"
+    "client_hidden_duration_hint": "Client reported hidden duration: {{duration}}",
+    "toggle_show_details": "Show event details",
+    "toggle_hide_details": "Hide event details",
+    "events_count": "{{count}} events"
   },
   "notifications": {
     "title": "Notifications",
