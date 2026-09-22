@@ -3,6 +3,7 @@ import { Badge, NavDropdown, Spinner } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../../hooks/useNotifications";
+import NotificationDetails from "../../modules/shared-dashboard/components/NotificationDetails/NotificationDetails";
 import {
   getNotificationsPagePath,
   getNotificationTarget,
@@ -124,6 +125,11 @@ function NotificationsDropdown({ Tbtn = "" }) {
                     <div className="small text-muted">
                       {notification.message}
                     </div>
+                    <NotificationDetails
+                      notification={notification}
+                      variant="dropdown"
+                      maxItems={3}
+                    />
                     <div className="small text-secondary mt-1">
                       {formatTimeAgo(notification, locale)}
                     </div>

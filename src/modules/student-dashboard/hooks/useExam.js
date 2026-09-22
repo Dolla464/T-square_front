@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   startExam as startExamApi,
   saveExamAnswer,
@@ -33,12 +33,16 @@ export const useExam = (examId) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const saveInFlightRef = useRef(new Map());
+  const [isSavingAnswer, setIsSavingAnswer] = useState(false);
 
   useEffect(() => {
     setExam(null);
     setError(null);
     setLoading(false);
     setSubmitting(false);
+    setIsSavingAnswer(false);
+    saveInFlightRef.current.clear();
   }, [examId]);
 
   const startExam = useCallback(async () => {
@@ -92,6 +96,13 @@ export const useExam = (examId) => {
       return;
     }
 
+    const key = `${exam.attempt_id}:${questionId}`;
+    const inFlight = saveInFlightRef.current.get(key);
+
+    if (inFlight) {
+      return inFlight;
+    }
+
     const payload = {
       attempt_id: exam.attempt_id,
       question_id: questionId,
@@ -103,20 +114,33 @@ export const useExam = (examId) => {
       payload.choice_id = answerValue;
     }
 
-    try {
-      await saveExamAnswer(payload);
-    } catch (err) {
-      console.error("Failed to save answer", err);
-      if (err.response?.status !== 403) {
-        toastCustom({
-          message: getApiErrorMessage(err, "Failed to save answer"),
-          type: "error",
-          bsIcon: "bi-x-circle",
-          duration: 4000,
-        });
+    const request = (async () => {
+      setIsSavingAnswer(true);
+
+      try {
+        await saveExamAnswer(payload);
+      } catch (err) {
+        console.error("Failed to save answer", err);
+
+        if (err.response?.status !== 403) {
+          toastCustom({
+            message: getApiErrorMessage(err, "Failed to save answer"),
+            type: "error",
+            bsIcon: "bi-x-circle",
+            duration: 4000,
+          });
+        }
+
+        throw err;
+      } finally {
+        saveInFlightRef.current.delete(key);
+        setIsSavingAnswer(saveInFlightRef.current.size > 0);
       }
-      throw err;
-    }
+    })();
+
+    saveInFlightRef.current.set(key, request);
+
+    return request;
   }, [exam?.attempt_id]);
 
   const recoverClosedAttempt = useCallback(async (attemptId) => {
@@ -187,6 +211,7 @@ export const useExam = (examId) => {
     saveAnswer,
     submitExam,
     submitting,
+    isSavingAnswer,
     recoverClosedAttempt,
     syncExamTime,
   };

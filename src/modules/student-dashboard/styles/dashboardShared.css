@@ -1033,6 +1033,59 @@
   line-height: 1.4;
 }
 
+.notification-details--card {
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.notification-details-row {
+  display: grid;
+  grid-template-columns: minmax(88px, auto) 1fr;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0;
+}
+
+.notification-details-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #888;
+}
+
+.notification-details-label .bi {
+  font-size: 0.75rem;
+  color: #be1522;
+}
+
+.notification-details-value {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #444;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.notification-details-value--passed {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.notification-details-value--failed {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.notification-details-value--awaiting_grading {
+  color: #92400e;
+  font-weight: 600;
+}
+
 .notification-time {
   flex-shrink: 0;
   text-align: end;

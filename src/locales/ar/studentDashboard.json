@@ -173,7 +173,26 @@
     "empty": "لا توجد إشعارات حالياً",
     "emptyShort": "لا توجد إشعارات",
     "loading": "جاري التحميل...",
-    "loadError": "تعذر تحميل الإشعارات حالياً."
+    "loadError": "تعذر تحميل الإشعارات حالياً.",
+    "go": "ذهاب",
+    "details": {
+      "course": "الدورة",
+      "group": "المجموعة",
+      "student": "الطالب",
+      "exam": "الاختبار",
+      "startDate": "تاريخ البدء",
+      "score": "الدرجة",
+      "status": "الحالة",
+      "time": "الوقت",
+      "room": "القاعة",
+      "date": "التاريخ",
+      "reason": "السبب",
+      "oldSchedule": "الموعد السابق",
+      "newSchedule": "الموعد الجديد",
+      "status_passed": "ناجح",
+      "status_failed": "راسب",
+      "status_awaiting_grading": "قيد التقييم"
+    }
   },
   "attendance": {
     "title": "حضوري",
