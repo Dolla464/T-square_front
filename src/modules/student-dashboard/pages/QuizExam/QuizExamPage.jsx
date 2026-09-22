@@ -154,6 +154,7 @@ function QuizExamPage() {
   const hasAutoSubmittedRef = useRef(false);
   const leaveDialogOpenRef = useRef(false);
   const attemptFinalizedRef = useRef(false);
+  const navigationInFlightRef = useRef(false);
   const { i18n, t } = useTranslation("studentDashboard");
   const isArabic = i18n.language === "ar";
 
@@ -165,6 +166,7 @@ function QuizExamPage() {
     saveAnswer,
     submitExam,
     submitting,
+    isSavingAnswer,
     recoverClosedAttempt,
     syncExamTime,
   } = useExam(quizId);
@@ -184,7 +186,10 @@ function QuizExamPage() {
   const totalQuestions = questions.length;
   const isLastQuestion = currentIndex === totalQuestions - 1;
   const isInteractionLocked =
-    submitting || attemptFinalized || hasAutoSubmittedRef.current;
+    submitting ||
+    attemptFinalized ||
+    hasAutoSubmittedRef.current ||
+    isSavingAnswer;
   const shouldBlockNavigation =
     Boolean(exam?.attempt_id) && !attemptFinalized;
   const isExamInProgress =
@@ -652,6 +657,13 @@ function QuizExamPage() {
   );
 
   const handleNext = useCallback(async () => {
+    if (navigationInFlightRef.current) {
+      return;
+    }
+
+    navigationInFlightRef.current = true;
+
+    try {
     if (
       !exam?.attempt_id ||
       attemptFinalizedRef.current ||
@@ -749,6 +761,9 @@ function QuizExamPage() {
           : null,
       );
     }
+    } finally {
+      navigationInFlightRef.current = false;
+    }
   }, [
     answers,
     applySubmitResult,
@@ -766,6 +781,13 @@ function QuizExamPage() {
   ]);
 
   const handlePrevious = useCallback(async () => {
+    if (navigationInFlightRef.current) {
+      return;
+    }
+
+    navigationInFlightRef.current = true;
+
+    try {
     if (
       currentIndex === 0 ||
       !exam?.attempt_id ||
@@ -819,6 +841,9 @@ function QuizExamPage() {
           : updatedAnswers[prevQuestion.id] ?? null
         : null,
     );
+    } finally {
+      navigationInFlightRef.current = false;
+    }
   }, [
     answers,
     currentIndex,
