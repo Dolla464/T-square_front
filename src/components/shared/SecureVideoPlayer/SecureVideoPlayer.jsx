@@ -38,18 +38,34 @@ function SecureVideoPlayer({
 }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
+  const hasAutoRetriedRef = useRef(false);
+  const retryInFlightRef = useRef(false);
+  const onUnauthorizedRef = useRef(onUnauthorized);
+  const onUnavailableRef = useRef(onUnavailable);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState(null);
   const [streamUrl, setStreamUrl] = useState(null);
+  const [contentType, setContentType] = useState(null);
   const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
+    onUnauthorizedRef.current = onUnauthorized;
+  }, [onUnauthorized]);
+
+  useEffect(() => {
+    onUnavailableRef.current = onUnavailable;
+  }, [onUnavailable]);
+
+  useEffect(() => {
     let cancelled = false;
+    hasAutoRetriedRef.current = false;
+    retryInFlightRef.current = false;
 
     const authorize = async () => {
       setStatus("loading");
       setError(null);
       setStreamUrl(null);
+      setContentType(null);
 
       try {
         const axiosClient = (await import("../../../api/axios")).default;
@@ -59,7 +75,7 @@ function SecureVideoPlayer({
         if (cancelled) return;
 
         if (!payload?.stream_url) {
-          onUnavailable?.();
+          onUnavailableRef.current?.();
           setError(
             isArabic
               ? "لم يُرجع الخادم رابط تشغيل للفيديو."
@@ -69,16 +85,28 @@ function SecureVideoPlayer({
           return;
         }
 
+        if (payload.content_type !== "video/mp4") {
+          onUnavailableRef.current?.();
+          setError(
+            isArabic
+              ? "صيغة الفيديو غير مدعومة للتشغيل."
+              : "This video format is not supported for playback.",
+          );
+          setStatus("error");
+          return;
+        }
+
         setStreamUrl(normalizeStorageUrl(payload.stream_url));
+        setContentType(payload.content_type);
         setStatus("ready");
       } catch (requestError) {
         if (cancelled) return;
 
         const httpStatus = requestError?.response?.status;
         if (httpStatus === 403) {
-          onUnauthorized?.();
+          onUnauthorizedRef.current?.();
         } else if (httpStatus === 422) {
-          onUnavailable?.();
+          onUnavailableRef.current?.();
         }
 
         setError(resolvePlaybackError(httpStatus, isArabic));
@@ -91,10 +119,10 @@ function SecureVideoPlayer({
     return () => {
       cancelled = true;
     };
-  }, [lessonId, retryKey, isArabic, onUnauthorized, onUnavailable]);
+  }, [lessonId, retryKey, isArabic]);
 
   useEffect(() => {
-    if (status !== "ready" || !streamUrl || !videoRef.current) {
+    if (status !== "ready" || !streamUrl || !contentType || !videoRef.current) {
       return undefined;
     }
 
@@ -114,42 +142,58 @@ function SecureVideoPlayer({
 
     playerRef.current.src({
       src: streamUrl,
-      type: "video/mp4",
+      type: contentType,
     });
 
     const handleError = async () => {
+      if (hasAutoRetriedRef.current) {
+        setError(resolvePlaybackError(undefined, isArabic));
+        setStatus("error");
+        return;
+      }
+
+      if (retryInFlightRef.current) {
+        return;
+      }
+
+      hasAutoRetriedRef.current = true;
+      retryInFlightRef.current = true;
+
       try {
         const axiosClient = (await import("../../../api/axios")).default;
         const retryResponse = await axiosClient.post(`/student/lessons/${lessonId}/playback`);
         const retryPayload = retryResponse.data?.data;
         const retryStreamUrl = normalizeStorageUrl(retryPayload?.stream_url);
+        const retryContentType = retryPayload?.content_type;
 
-        if (!retryStreamUrl) {
-          throw new Error("Missing stream URL");
+        if (!retryStreamUrl || retryContentType !== "video/mp4") {
+          throw new Error("Missing or invalid playback data");
         }
 
         playerRef.current?.src({
           src: retryStreamUrl,
-          type: "video/mp4",
+          type: retryContentType,
         });
       } catch (retryError) {
         const httpStatus = retryError?.response?.status;
         if (httpStatus === 403) {
-          onUnauthorized?.();
+          onUnauthorizedRef.current?.();
         } else if (httpStatus === 422) {
-          onUnavailable?.();
+          onUnavailableRef.current?.();
         }
         setError(resolvePlaybackError(httpStatus, isArabic));
         setStatus("error");
+      } finally {
+        retryInFlightRef.current = false;
       }
     };
 
-    playerRef.current.one("error", handleError);
+    playerRef.current.on("error", handleError);
 
     return () => {
       playerRef.current?.off("error", handleError);
     };
-  }, [status, streamUrl, lessonId, isArabic, onUnauthorized, onUnavailable]);
+  }, [status, streamUrl, contentType, lessonId, isArabic]);
 
   useEffect(() => {
     return () => {

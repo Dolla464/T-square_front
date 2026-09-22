@@ -68,8 +68,6 @@ function LessonPlayer() {
           lessonId={lessonId}
           courseTitle={courseData.title}
           isArabic={isArabic}
-          onUnauthorized={() => {}}
-          onUnavailable={() => {}}
         />
       </div>
 
