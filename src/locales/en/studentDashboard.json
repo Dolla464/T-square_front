@@ -174,7 +174,26 @@
     "empty": "No notifications yet",
     "emptyShort": "No notifications",
     "loading": "Loading...",
-    "loadError": "Unable to load notifications right now."
+    "loadError": "Unable to load notifications right now.",
+    "go": "Go",
+    "details": {
+      "course": "Course",
+      "group": "Group",
+      "student": "Student",
+      "exam": "Exam",
+      "startDate": "Start date",
+      "score": "Score",
+      "status": "Status",
+      "time": "Time",
+      "room": "Room",
+      "date": "Date",
+      "reason": "Reason",
+      "oldSchedule": "Previous schedule",
+      "newSchedule": "New schedule",
+      "status_passed": "Passed",
+      "status_failed": "Failed",
+      "status_awaiting_grading": "Awaiting grading"
+    }
   },
   "attendance": {
     "title": "My Attendance",

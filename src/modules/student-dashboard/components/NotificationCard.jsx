@@ -2,13 +2,14 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { formatDateTime } from "../../../utils/formatDateTime";
 import { useNotifications } from "../../../hooks/useNotifications";
+import NotificationDetails from "../../shared-dashboard/components/NotificationDetails/NotificationDetails";
 import {
   NOTIFICATION_ICON_MAP,
   getNotificationTarget,
 } from "../../../utils/notifications";
 
 function NotificationCard({ notification }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation("studentDashboard");
   const navigate = useNavigate();
   const { markAsRead } = useNotifications();
   const isArabic = i18n.language?.startsWith("ar");
@@ -58,6 +59,7 @@ function NotificationCard({ notification }) {
       <div className="notification-content">
         <h4 className="notification-title">{title}</h4>
         <p className="notification-message">{message}</p>
+        <NotificationDetails notification={notification} variant="card" />
       </div>
       <div className="notification-time-action">
         <div className="notification-time">
@@ -70,7 +72,7 @@ function NotificationCard({ notification }) {
             onClick={handleNavigateClick}
             style={{ fontSize: "0.78rem" }}
           >
-            {isArabic ? "ذهاب" : "Go"}
+            {t("notifications.go")}
             <i className="bi bi-send"></i>
           </button>
         )}

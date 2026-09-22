@@ -74,6 +74,59 @@
   word-break: break-word;
 }
 
+.notifications-nav-dropdown .notification-details--dropdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: 100%;
+}
+
+.notifications-nav-dropdown .notification-details-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(190, 22, 34, 0.06);
+  border: 1px solid rgba(190, 22, 34, 0.12);
+  font-size: 0.68rem;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.notifications-nav-dropdown .notification-details-chip-label {
+  color: #888;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.notifications-nav-dropdown .notification-details-chip-value {
+  color: #444;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notifications-nav-dropdown .notification-details-chip--passed {
+  border-color: rgba(21, 128, 61, 0.25);
+  background: rgba(21, 128, 61, 0.08);
+}
+
+.notifications-nav-dropdown .notification-details-chip--failed {
+  border-color: rgba(185, 28, 28, 0.25);
+  background: rgba(185, 28, 28, 0.08);
+}
+
+.notifications-nav-dropdown .notification-details-chip--awaiting_grading {
+  border-color: rgba(146, 64, 14, 0.25);
+  background: rgba(254, 243, 199, 0.9);
+}
+
 .notifications-nav-dropdown .dropdown-menu .dropdown-item.notifications-item-unread {
   background-color: rgba(190, 22, 34, 0.08);
 }
