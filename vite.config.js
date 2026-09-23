@@ -197,6 +197,15 @@ export default defineConfig(({ mode }) => {
             if (id.includes("sweetalert2") || id.includes("react-hot-toast")) {
               return "ui-vendor";
             }
+            if (id.includes("@uppy")) {
+              return "uppy-vendor";
+            }
+            if (id.includes("video.js")) {
+              return "videojs-vendor";
+            }
+            if (id.includes("yet-another-react-lightbox")) {
+              return "lightbox-vendor";
+            }
             return "vendor";
           }
         },

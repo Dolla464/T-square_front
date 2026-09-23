@@ -6,7 +6,7 @@ import "./Courses.css";
 import { useState, useEffect } from "react";
 import { useCourses } from "../../hooks/useCourses";
 
-function Courses({ initialData = null }) {
+function Courses({ initialData = null, waitForHomeData = false }) {
   const { t } = useTranslation("courses");
   const { courses, categories, loading, loadInitialData, filterCourses, setInitialData } =
     useCourses();
@@ -19,6 +19,10 @@ function Courses({ initialData = null }) {
       (Array.isArray(initialData.categories) && initialData.categories.length > 0));
 
   useEffect(() => {
+    if (waitForHomeData) {
+      return;
+    }
+
     if (hasBundledData) {
       setInitialData({
         courses: initialData.items ?? [],
@@ -36,7 +40,13 @@ function Courses({ initialData = null }) {
       per_page: 6,
       type: "sub",
     });
-  }, [hasBundledData, initialData, loadInitialData, setInitialData]);
+  }, [
+    waitForHomeData,
+    hasBundledData,
+    initialData,
+    loadInitialData,
+    setInitialData,
+  ]);
 
   const handleFilter = (categoryId) => {
     setActiveCategory(categoryId);

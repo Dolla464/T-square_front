@@ -47,9 +47,12 @@ import ProtectedRoute from "./components/shared/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import "./components/shared/ConfirmDialog/confirmDialog.css";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
+import { ensureBootstrapCssLoaded } from "./bootstrap/loadBootstrapCss.js";
 
 // ── وحدة داشبورد الطالب ──
-import DashboardLayout from "./modules/student-dashboard/layouts/DashboardLayout";
+const DashboardLayout = lazy(
+  () => import("./modules/student-dashboard/layouts/DashboardLayout"),
+);
 const DashboardHome = lazy(
   () => import("./modules/student-dashboard/pages/DashboardHome/DashboardHome"),
 );
@@ -81,15 +84,16 @@ const LeaveReview = lazy(
 const NotificationsPage = lazy(
   () => import("./modules/shared-dashboard/Notifications/NotificationsPage"),
 );
-import QuizExamPage from "./modules/student-dashboard/pages/QuizExam/QuizExamPage";
+const QuizExamPage = lazy(
+  () => import("./modules/student-dashboard/pages/QuizExam/QuizExamPage"),
+);
 const AttemptReviewPage = lazy(
   () => import("./modules/student-dashboard/pages/AttemptReview/AttemptReviewPage"),
 );
 
 // ── وحدة داشبورد الأدمن ──
-import { AdminSettingsProvider } from "./modules/admin-dashboard/hooks/useAdminSettings";
-const AdminLayout = lazy(
-  () => import("./modules/admin-dashboard/layouts/AdminLayout"),
+const AdminRouteShell = lazy(
+  () => import("./modules/admin-dashboard/layouts/AdminRouteShell"),
 );
 const AdminOverview = lazy(
   () => import("./modules/admin-dashboard/pages/Overview/AdminOverview"),
@@ -294,6 +298,7 @@ function AppContent() {
   useEffect(() => {
     const dir = i18n.dir();
     const lang = i18n.language;
+    const bootstrapDirection = dir === "rtl" ? "rtl" : "ltr";
 
     // Update document attributes
     document.documentElement.dir = dir;
@@ -305,6 +310,8 @@ function AppContent() {
 
     // Persist language to localStorage
     localStorage.setItem("i18nextLng", lang);
+
+    void ensureBootstrapCssLoaded(bootstrapDirection);
   }, [i18n, i18n.language, t]);
 
   return (
@@ -429,14 +436,7 @@ function AppContent() {
               <>
                 {/* ADMIN */}
                 <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-                  <Route
-                    path="/admin"
-                    element={
-                      <AdminSettingsProvider>
-                        <AdminLayout />
-                      </AdminSettingsProvider>
-                    }
-                  >
+                  <Route path="/admin" element={<AdminRouteShell />}>
                     <Route index element={<AdminOverview />} />
                     <Route path="courses" element={<AdminCourses />} />
                     <Route
