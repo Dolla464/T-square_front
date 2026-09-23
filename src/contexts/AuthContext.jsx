@@ -9,7 +9,6 @@ import React, {
 import axiosClient, { initCsrf, resetSessionExpiredHandled } from "../api/axios";
 import { fetchCurrentUser } from "../services/auth";
 import { normalizeAuthUser } from "../utils/normalizeAuthUser";
-import Loading from "../Loading";
 
 const AuthContext = createContext();
 
@@ -20,7 +19,7 @@ const SESSION_KEEP_ALIVE_MS = 30 * 60 * 1000;
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [authInitializing, setAuthInitializing] = useState(true);
   const [userSynced, setUserSynced] = useState(false);
   const [isMaintenance, setIsMaintenance] = useState(false);
 
@@ -146,9 +145,9 @@ export const AuthProvider = ({ children }) => {
         setUserProfile(null);
         setUserSynced(true);
         sessionStorage.removeItem("user");
+      } finally {
+        setAuthInitializing(false);
       }
-
-      setLoading(false);
     };
 
     initializeAuth();
@@ -172,6 +171,7 @@ export const AuthProvider = ({ children }) => {
       persistUser(normalizedUser);
       setUser(normalizedUser);
       setUserSynced(true);
+      setAuthInitializing(false);
 
       try {
         await syncUserFromServer();
@@ -206,7 +206,6 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async () => {
     try {
-      setLoading(true);
       await initCsrf();
       await axiosClient.post("/logout");
     } catch (e) {
@@ -214,11 +213,11 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setUser(null);
       setUserProfile(null);
-      setUserSynced(false);
+      setUserSynced(true);
+      setAuthInitializing(false);
       clearLegacyAuthStorage();
       clearSensitiveSessionData();
       sessionStorage.removeItem("user");
-      setLoading(false);
     }
   }, [clearLegacyAuthStorage, clearSensitiveSessionData]);
 
@@ -269,7 +268,8 @@ export const AuthProvider = ({ children }) => {
       updateUser,
       fetchUserProfile,
       syncUserFromServer,
-      loading,
+      authInitializing,
+      loading: authInitializing,
       userSynced,
       isMaintenance,
       checkMaintenanceStatus,
@@ -284,7 +284,7 @@ export const AuthProvider = ({ children }) => {
       updateUser,
       fetchUserProfile,
       syncUserFromServer,
-      loading,
+      authInitializing,
       userSynced,
       isMaintenance,
       checkMaintenanceStatus,
@@ -292,9 +292,7 @@ export const AuthProvider = ({ children }) => {
   );
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {loading ? <Loading /> : children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 

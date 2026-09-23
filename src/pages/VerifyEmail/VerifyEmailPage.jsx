@@ -18,7 +18,7 @@ const VerifyEmailPage = () => {
   const expires = searchParams.get("expires");
   const signature = searchParams.get("signature");
   
-  const { user, loading: authLoading, updateUser } = useAuth();
+  const { user, authInitializing, userSynced, updateUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation("auth");
@@ -30,8 +30,7 @@ const VerifyEmailPage = () => {
   const verificationAttempted = useRef(false);
 
   useEffect(() => {
-    // Wait for auth to finish loading
-    if (authLoading) return;
+    if (authInitializing || !userSynced) return;
 
     // If not logged in, redirect to login with returnUrl
     if (!user) {
@@ -82,7 +81,7 @@ const VerifyEmailPage = () => {
       setStatus("error");
       setErrorMessage(isArabic ? "Ø±Ø§Ø¨Ø· Ø§Ù„ØªÙØ¹ÙŠÙ„ ØºÙŠØ± ØµØ§Ù„Ø­ Ø£Ùˆ ØºÙŠØ± Ù…ÙƒØªÙ…Ù„." : "Invalid or incomplete verification link.");
     }
-  }, [user, authLoading, id, hash, expires, signature, navigate, location, isArabic, updateUser]);
+  }, [user, authInitializing, userSynced, id, hash, expires, signature, navigate, location, isArabic, updateUser]);
 
   const handleResend = async () => {
     try {

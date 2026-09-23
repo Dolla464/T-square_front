@@ -246,7 +246,7 @@ const ReceptionistGroups = lazy(
 function AppContent() {
   const { t, i18n } = useTranslation("common");
   const location = useLocation();
-  const { user, isMaintenance, loading } = useAuth();
+  const { user, isMaintenance, authInitializing, userSynced } = useAuth();
 
   // تحديد الصفحات التي سيتم إخفاء النافبار والفوتر فيها
   const validRoutes = [
@@ -273,7 +273,9 @@ function AppContent() {
 
   // إذا كان الموقع قيد الصيانة والمستخدم ليس أدمن، نقوم بإخفاء الهيكل العام (Navbar/Footer) تلقائياً
   const isEffectiveMaintenance =
-    !loading && isMaintenance && user?.role !== "admin";
+    isMaintenance &&
+    user?.role !== "admin" &&
+    (!authInitializing || userSynced);
 
   const hideLayout =
     isEffectiveMaintenance ||
@@ -406,7 +408,7 @@ function AppContent() {
             <Route
               path="/login"
               element={
-                loading ? (
+                authInitializing || !userSynced ? (
                   <LoadingSpiner />
                 ) : user ? (
                   <Navigate to={getRouteByRole(user.role)} replace />
