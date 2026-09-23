@@ -26,34 +26,19 @@ import { ForbiddenProvider } from "./contexts/ForbiddenContext.jsx";
 // import { scan } from "react-scan";
 // scan();
 
+// Initialize i18n without blocking the first React render.
+void import("./i18n").catch((err) => {
+  console.error("Failed to initialize i18n:", err);
+});
 
-// Initialize i18n asynchronously to avoid blocking initial render
-import("./i18n")
-  .then(() => {
-    createRoot(document.getElementById("root")).render(
-      <AuthProvider>
-        <ForbiddenProvider>
-          <StrictMode>
-            <HelmetProvider>
-              <App />
-            </HelmetProvider>
-          </StrictMode>
-        </ForbiddenProvider>
-      </AuthProvider>,
-    );
-  })
-  .catch((err) => {
-    console.error("Failed to initialize i18n:", err);
-    // Fallback: render app anyway
-    createRoot(document.getElementById("root")).render(
-      <AuthProvider>
-        <ForbiddenProvider>
-          <StrictMode>
-            <HelmetProvider>
-              <App />
-            </HelmetProvider>
-          </StrictMode>
-        </ForbiddenProvider>
-      </AuthProvider>,
-    );
-  });
+createRoot(document.getElementById("root")).render(
+  <AuthProvider>
+    <ForbiddenProvider>
+      <StrictMode>
+        <HelmetProvider>
+          <App />
+        </HelmetProvider>
+      </StrictMode>
+    </ForbiddenProvider>
+  </AuthProvider>,
+);
