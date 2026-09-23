@@ -46,6 +46,8 @@ function ProfileAvatar({
         <img
           src={avatarUrl}
           alt={name || "avatar"}
+          width={size}
+          height={size}
           className={`w-100 h-100 ${imgClassName}`.trim()}
           style={{ objectFit: "cover" }}
           onError={handleImageError}

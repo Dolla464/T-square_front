@@ -53,7 +53,12 @@ function Discovery({ images = [] }) {
 
   return (
     <section className="discovery-section py-md-5 py-5">
-      <img src={wavesBg} className="discovery-waves" alt={t("alt.waves")} />
+      <img
+        src={wavesBg}
+        className="discovery-waves"
+        alt={t("alt.waves")}
+        loading="lazy"
+      />
 
       <Container className="discovery-container pt-1">
         <div className="position-relative">

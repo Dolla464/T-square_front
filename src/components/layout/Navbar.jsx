@@ -99,6 +99,9 @@ function AppNavbar({ isLoggedIn, userName }) {
         : logoWhite
       : logoDark;
 
+  const logoWidth = logo === logoDark ? 225 : 171;
+  const logoHeight = logo === logoDark ? 85 : 65;
+
   const Tbtn =
     isLoggedIn && !scrolled && mobileMenuOpen
       ? "dark"
@@ -128,7 +131,13 @@ function AppNavbar({ isLoggedIn, userName }) {
     >
       <Container>
         <Navbar.Brand as={Link} to="/">
-          <img src={logo} alt="Square Logo" height="60" />
+          <img
+            src={logo}
+            alt="Square Logo"
+            width={logoWidth}
+            height={logoHeight}
+            style={{ height: 60, width: "auto" }}
+          />
         </Navbar.Brand>
 
         <Navbar.Toggle
