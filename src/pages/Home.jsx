@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 const Home = () => {
   const { hero, about, discovery, courses, testimonials, loading, error } =
     useHomePage();
-  const homeDataReady = !loading && !error;
+  const homeFetchPending = loading && !error;
   const { i18n } = useTranslation("common");
   const isArabic = i18n.language === "ar";
 
@@ -39,12 +39,14 @@ const Home = () => {
       <CourseTicker />
       <About aboutImages={about.images} />
       <Features />
-      <Courses initialData={homeDataReady ? courses : null} />
+      <Courses
+        initialData={homeFetchPending ? null : courses}
+        waitForHomeData={homeFetchPending}
+      />
       <Discovery images={discovery.images} />
       <Testimonials
-        items={
-          homeDataReady && testimonials.length > 0 ? testimonials : null
-        }
+        items={homeFetchPending ? undefined : testimonials}
+        waitForHomeData={homeFetchPending}
       />
       <FAQ />
     </>
