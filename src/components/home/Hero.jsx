@@ -77,6 +77,8 @@ function Hero({ heroImage, heroSettings }) {
           src={heroImage}
           alt=""
           className="hero-bg-image"
+          width={1200}
+          height={800}
           fetchPriority="high"
           loading="eager"
           decoding="async"
