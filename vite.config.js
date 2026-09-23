@@ -15,6 +15,58 @@ function buildApiOrigin(mode) {
   }
 }
 
+function buildHeroMediaEndpoint(mode) {
+  const env = loadEnv(mode, process.cwd(), "");
+  const apiUrl = env.VITE_API_URL;
+
+  if (!apiUrl) {
+    return "/api/website-media/hero_image";
+  }
+
+  if (apiUrl.startsWith("/")) {
+    const base = apiUrl.replace(/\/$/, "");
+    return `${base}/website-media/hero_image`;
+  }
+
+  try {
+    const parsed = new URL(apiUrl, "http://localhost");
+    const basePath = parsed.pathname.replace(/\/$/, "");
+    return `${parsed.origin}${basePath}/website-media/hero_image`;
+  } catch {
+    return "/api/website-media/hero_image";
+  }
+}
+
+function buildHeroPreconnectOrigin(mode) {
+  const env = loadEnv(mode, process.cwd(), "");
+  const apiUrl = env.VITE_API_URL || "";
+
+  if (
+    apiUrl.startsWith("http://localhost") ||
+    apiUrl.startsWith("http://127.0.0.1")
+  ) {
+    if (env.VITE_DEV_API_PROXY) {
+      try {
+        return new URL(env.VITE_DEV_API_PROXY).origin;
+      } catch {
+        // fall through
+      }
+    }
+  }
+
+  return buildApiOrigin(mode);
+}
+
+function buildHeroPreconnectLink(mode) {
+  const origin = buildHeroPreconnectOrigin(mode);
+
+  if (!origin) {
+    return "";
+  }
+
+  return `<link rel="preconnect" href="${origin}" crossorigin />`;
+}
+
 function buildConnectSrc(mode) {
   const sources = new Set([
     "'self'",
@@ -96,10 +148,15 @@ function injectCsp(mode) {
   return {
     name: "inject-csp",
     transformIndexHtml(html) {
+      const heroMediaEndpoint = buildHeroMediaEndpoint(mode);
+      const heroPreconnectLink = buildHeroPreconnectLink(mode);
+
       return html
         .replace("__CSP_CONNECT_SRC__", connectSrc)
         .replace("__CSP_IMG_SRC__", imgSrc)
-        .replace("__CSP_MEDIA_SRC__", mediaSrc);
+        .replace("__CSP_MEDIA_SRC__", mediaSrc)
+        .replace("__HERO_PRECONNECT_LINK__", heroPreconnectLink)
+        .replaceAll("__HERO_MEDIA_ENDPOINT__", heroMediaEndpoint);
     },
   };
 }

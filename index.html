@@ -12,6 +12,7 @@
   <title>T-Square</title>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: __CSP_IMG_SRC__; media-src __CSP_MEDIA_SRC__; connect-src __CSP_CONNECT_SRC__; font-src 'self' data:; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self';" />
 
+  __HERO_PRECONNECT_LINK__
 
   <script type="application/ld+json">
   {
@@ -21,6 +22,82 @@
     "url": "https://tsquarecenter.com",
     "logo": "https://tsquarecenter.com/logo.png"
   }
+  </script>
+
+  <script>
+    (function () {
+      var endpoint = "__HERO_MEDIA_ENDPOINT__";
+      var PRELOAD_ATTR = "data-hero-preload";
+
+      function normalizeHeroUrl(url) {
+        if (!url || typeof url !== "string") return "";
+        return url.trim();
+      }
+
+      function shouldRewriteStorageToSameOrigin() {
+        var host = window.location.hostname;
+        return host === "localhost" || host === "127.0.0.1";
+      }
+
+      function resolvePreloadUrl(url) {
+        var normalized = normalizeHeroUrl(url);
+        if (!normalized) return "";
+
+        try {
+          var parsed = new URL(normalized);
+          var path = parsed.pathname || "";
+
+          if (
+            shouldRewriteStorageToSameOrigin() &&
+            (path.indexOf("/storage/") === 0 || path.indexOf("/public/") === 0) &&
+            parsed.origin !== window.location.origin
+          ) {
+            return (
+              window.location.origin +
+              path +
+              parsed.search +
+              parsed.hash
+            );
+          }
+        } catch (e) {}
+
+        return normalized;
+      }
+
+      function injectHeroPreload(url) {
+        var normalized = resolvePreloadUrl(url);
+        if (!normalized) return;
+
+        var existing = document.querySelector("link[" + PRELOAD_ATTR + "]");
+        if (existing) {
+          if (existing.getAttribute("href") === normalized) return;
+          existing.remove();
+        }
+
+        var link = document.createElement("link");
+        link.rel = "preload";
+        link.as = "image";
+        link.href = normalized;
+        link.setAttribute("fetchpriority", "high");
+        link.setAttribute(PRELOAD_ATTR, "true");
+        document.head.appendChild(link);
+      }
+
+      fetch(endpoint, {
+        credentials: "include",
+        headers: { Accept: "application/json" },
+      })
+        .then(function (response) {
+          return response.ok ? response.json() : null;
+        })
+        .then(function (body) {
+          var heroUrl = resolvePreloadUrl(body && body.data && body.data.hero_image);
+          if (!heroUrl) return;
+          window.__HERO_URL__ = heroUrl;
+          injectHeroPreload(heroUrl);
+        })
+        .catch(function () {});
+    })();
   </script>
 </head>
 
