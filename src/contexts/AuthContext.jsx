@@ -7,6 +7,7 @@ import React, {
   useCallback,
 } from "react";
 import axiosClient, { initCsrf, resetSessionExpiredHandled } from "../api/axios";
+import { clearStoredActivityLogToken } from "../modules/admin-dashboard/services/activityLogService";
 import { fetchCurrentUser } from "../services/auth";
 import { normalizeAuthUser } from "../utils/normalizeAuthUser";
 
@@ -217,6 +218,7 @@ export const AuthProvider = ({ children }) => {
       setAuthInitializing(false);
       clearLegacyAuthStorage();
       clearSensitiveSessionData();
+      clearStoredActivityLogToken();
       sessionStorage.removeItem("user");
     }
   }, [clearLegacyAuthStorage, clearSensitiveSessionData]);

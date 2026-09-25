@@ -17,6 +17,7 @@
     "reviews": "Reviews",
     "messages": "Messages",
     "Notification": "Notification",
+    "history": "History",
     "settings": "Settings",
     "attendance": "Attendance",
     "schedule": "Schedule",
@@ -29,6 +30,57 @@
     "learningGroups": "Learning Groups",
     "classManagement": "Class Management",
     "exams": "Exams"
+  },
+  "history": {
+    "title": "Activity History",
+    "subtitle": "Track all platform actions across admins, staff, students, and guests.",
+    "password_title": "Verify Admin Password",
+    "password_message": "Enter your admin password to access the activity history.",
+    "password_confirm": "Verify",
+    "verify_failed": "Password verification failed.",
+    "loading": "Loading activity logs...",
+    "empty": "No activity logs found.",
+    "guest_user": "Guest",
+    "view_details": "View",
+    "details_title": "Request Details",
+    "filters": {
+      "search": "Search user, path, IP...",
+      "all_roles": "All roles",
+      "all_methods": "All methods",
+      "date_from": "From date",
+      "date_to": "To date"
+    },
+    "stats": {
+      "all_time": "All time",
+      "this_page": "This page",
+      "total_logs": "Total Logs",
+      "successful": "Successful",
+      "errors": "Errors",
+      "guest_actions": "Guest Actions"
+    },
+    "empty_title": "No Activity Found",
+    "empty_filtered": "No logs match your current filters. Try adjusting your search.",
+    "roles": {
+      "admin": "Admin",
+      "instructor": "Instructor",
+      "receptionist": "Receptionist",
+      "student": "Student",
+      "guest": "Guest"
+    },
+    "columns": {
+      "datetime": "Date / Time",
+      "user": "User",
+      "action": "Action",
+      "method": "Method",
+      "path": "Path",
+      "ip": "IP",
+      "status": "Status",
+      "details": "Details"
+    },
+    "errors": {
+      "fetch_failed": "Failed to fetch activity logs.",
+      "access_denied": "Please verify your password to access history."
+    }
   },
   "profile_page": {
     "title": "Profile & Settings",

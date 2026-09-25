@@ -32,6 +32,7 @@ function DashboardSharedLayout({
   topbarCenter,
   userRoleName,
   pageTitle,
+  onPasswordProtectedNavigate,
 }) {
   const { t, i18n } = useTranslation([translationNs, "studentDashboard"]);
   const { user, logout, userProfile } = useAuth();
@@ -268,6 +269,38 @@ function DashboardSharedLayout({
                       </div>
                     )}
                   </div>
+                );
+              }
+
+              if (item.requiresPassword && onPasswordProtectedNavigate) {
+                const isActive =
+                  (item.end && location.pathname === item.path) ||
+                  (!item.end &&
+                    (location.pathname === item.path ||
+                      location.pathname.startsWith(`${item.path}/`)));
+
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={`sidebar-link text-decoration-none d-flex align-items-center justify-content-between border-0 bg-transparent w-100 ${isActive ? "sidebar-link-active" : ""}`}
+                    onClick={async () => {
+                      closeSidebarOnMobile();
+                      await onPasswordProtectedNavigate(item.path);
+                    }}
+                  >
+                    <div className="d-flex align-items-center">
+                      <i className={`bi ${item.icon} sidebar-link-icon`}></i>
+                      <span className="px-3 sidebar-link-label">
+                        {t(`${translationNs}:sidebar.${item.key}`)}
+                      </span>
+                    </div>
+                    {item.badge && (
+                      <span className="badge bg-danger rounded-pill ms-2">
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
                 );
               }
 

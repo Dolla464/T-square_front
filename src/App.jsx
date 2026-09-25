@@ -130,6 +130,9 @@ const AdminReviews = lazy(
 const AdminSettings = lazy(
   () => import("./modules/admin-dashboard/pages/Settings/AdminSettings"),
 );
+const AdminHistory = lazy(
+  () => import("./modules/admin-dashboard/pages/History/AdminHistory"),
+);
 const AdminGroups = lazy(
   () => import("./modules/admin-dashboard/pages/Groups/AdminGroups"),
 );
@@ -483,6 +486,7 @@ function AppContent() {
                       path="notifications"
                       element={<NotificationsPage />}
                     />
+                    <Route path="history" element={<AdminHistory />} />
                     <Route path="settings" element={<AdminSettings />} />
                   </Route>
                 </Route>

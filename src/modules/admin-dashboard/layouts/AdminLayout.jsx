@@ -1,12 +1,19 @@
+import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import DashboardSharedLayout from "../../shared-dashboard/components/DashboardLayout/DashboardSharedLayout";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import i18next from "i18next";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useAdminSettings } from "../hooks/useAdminSettings";
-import { useEffect } from "react";
 import { useUnreadCount } from "../../../hooks/useNotifications";
 import { formatNotificationBadge } from "../../../utils/notifications";
+import { showPasswordDialog } from "../../../components/shared/ConfirmDialog/confirmDialog";
+import { toastError } from "../../../components/shared/Toaster/toaster";
+import {
+  getStoredActivityLogToken,
+  storeActivityLogToken,
+  verifyActivityLogPassword,
+} from "../services/activityLogService";
 
 const ADMIN_NAV = [
   { key: "dashboard", path: "/admin", icon: "bi-grid-1x2", end: true },
@@ -55,12 +62,19 @@ const ADMIN_NAV = [
   { key: "tags", path: "/admin/tags", icon: "bi-tags" },
   { key: "solutions", path: "/admin/solutions", icon: "bi-laptop" },
   { key: "Notification", path: "/admin/notifications", icon: "bi-bell-fill" },
+  {
+    key: "history",
+    path: "/admin/history",
+    icon: "bi-clock-history",
+    requiresPassword: true,
+  },
   { key: "settings", path: "/admin/settings", icon: "bi-gear" },
 ];
 
 function AdminLayout() {
   const { t } = useTranslation("adminDashboard");
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const isArabic = i18next.language === "ar";
   const { unreadCount } = useUnreadCount();
@@ -125,12 +139,58 @@ function AdminLayout() {
         return isArabic ? "الإشعارات" : "Notifications";
       case "/admin/certificates":
         return isArabic ? "الشهادات" : "Certificates";
+      case "/admin/history":
+        return isArabic ? "سجل الحركات" : "Activity History";
       case "/admin/settings":
         return isArabic ? "الإعدادات" : "Settings";
       default:
         return "";
     }
   };
+
+  const handlePasswordProtectedNavigate = useCallback(
+    async (path) => {
+      if (getStoredActivityLogToken()) {
+        navigate(path);
+        return;
+      }
+
+      const password = await showPasswordDialog({
+        title: t("history.password_title", "Verify Admin Password"),
+        message: t(
+          "history.password_message",
+          "Enter your admin password to access the activity history.",
+        ),
+        confirmText: t("history.password_confirm", "Verify"),
+        icon: "question",
+        variant: "primary",
+      });
+
+      if (!password) {
+        return;
+      }
+
+      try {
+        const response = await verifyActivityLogPassword(password);
+        const token = response?.data?.token;
+        const expiresAt = response?.data?.expires_at;
+
+        if (!token || !expiresAt) {
+          throw new Error("Invalid verification response");
+        }
+
+        storeActivityLogToken(token, expiresAt);
+        navigate(path);
+      } catch (err) {
+        const message =
+          err?.response?.data?.errors?.password?.[0] ||
+          err?.response?.data?.message ||
+          t("history.verify_failed", "Password verification failed.");
+        toastError(message);
+      }
+    },
+    [navigate, t],
+  );
 
   const pageTitle = getPageTitle(location.pathname);
 
@@ -169,6 +229,7 @@ function AdminLayout() {
           topbarCenter={null}
           pageTitle={pageTitle}
           userRoleName={t("topbar.role", "Admin User")}
+          onPasswordProtectedNavigate={handlePasswordProtectedNavigate}
         />
       </div>
     </>

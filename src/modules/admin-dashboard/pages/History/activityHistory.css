@@ -1,0 +1,136 @@
+.history-stat-card {
+  height: auto !important;
+  min-height: 140px;
+}
+
+.history-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.history-stat-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.history-stat-value {
+  font-size: 1.75rem;
+  color: #111827;
+  letter-spacing: -0.025em;
+}
+
+.history-stat-label,
+.history-stat-meta {
+  font-size: 0.82rem;
+}
+
+.history-table-card {
+  transition: box-shadow 0.3s ease;
+}
+
+.history-table-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.history-filter-group .form-select,
+.history-filter-group .form-control {
+  min-width: 140px;
+}
+
+.history-table-wrap {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.history-row {
+  transition: background-color 0.2s ease;
+}
+
+.history-datetime {
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.history-user-name {
+  font-size: 0.9rem;
+}
+
+.history-description {
+  max-width: 220px;
+  color: #374151;
+}
+
+.history-path-code {
+  display: inline-block;
+  max-width: 240px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.history-method-badge,
+.history-role-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.history-details-btn {
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.history-details-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(211, 47, 47, 0.15);
+}
+
+.history-empty-state {
+  border-color: #eaeaea !important;
+}
+
+.activity-history-details pre {
+  max-height: 360px;
+  overflow: auto;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  font-size: 0.82rem;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #374151;
+}
+
+.history-details-meta p {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+@media (max-width: 991.98px) {
+  .history-filter-group {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .history-filter-group > :last-child:nth-child(odd) {
+    grid-column: span 2;
+  }
+
+  .history-path-code {
+    max-width: 160px;
+  }
+
+  .history-description {
+    max-width: 140px;
+  }
+}
