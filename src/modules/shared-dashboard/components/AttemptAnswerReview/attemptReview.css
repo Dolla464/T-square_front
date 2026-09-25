@@ -157,6 +157,23 @@
   margin-bottom: 0.75rem;
 }
 
+.attempt-review-question-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.attempt-review-question-timing {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: #f3f4f6;
+  white-space: nowrap;
+}
+
 .attempt-review-status {
   font-size: 0.8rem;
   font-weight: 700;

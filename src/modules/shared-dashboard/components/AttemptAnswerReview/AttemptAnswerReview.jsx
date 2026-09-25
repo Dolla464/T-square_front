@@ -19,6 +19,31 @@ const RESULT_STATUS_LABELS = {
   graded: "question_graded",
 };
 
+function formatQuestionDuration(totalSeconds, isArabic = false) {
+  const seconds = Math.max(0, Number(totalSeconds) || 0);
+
+  if (seconds < 60) {
+    return isArabic ? `${seconds} ث` : `${seconds}s`;
+  }
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainder = seconds % 60;
+  const parts = [];
+
+  if (hours > 0) {
+    parts.push(isArabic ? `${hours} س` : `${hours}h`);
+  }
+  if (minutes > 0) {
+    parts.push(isArabic ? `${minutes} د` : `${minutes}m`);
+  }
+  if (remainder > 0 || parts.length === 0) {
+    parts.push(isArabic ? `${remainder} ث` : `${remainder}s`);
+  }
+
+  return parts.join(isArabic ? " " : " ");
+}
+
 const RESULT_STATUS_CLASS = {
   correct: "attempt-review-status--correct",
   incorrect: "attempt-review-status--incorrect",
@@ -35,6 +60,7 @@ function AttemptAnswerReview({
   essayOnly = false,
   gradingValues = {},
   onGradingChange,
+  showQuestionTiming = false,
 }) {
   const { t, i18n } = useTranslation("studentDashboard");
   const isArabic = i18n.language?.startsWith("ar");
@@ -124,18 +150,36 @@ function AttemptAnswerReview({
                   ) : null}
                 </h3>
                 <QuestionContent question={question} className="mb-2" />
-                <span
-                  className={`attempt-review-status ${statusClass}`}
-                  id={`question-status-${question.id}-${index}`}
-                  aria-describedby={`question-title-${question.id}-${index}`}
-                >
-                  {t(
-                    `attempt_review.${RESULT_STATUS_LABELS[question.result_status] ?? "option"}`,
-                    {
-                      defaultValue: question.result_status,
-                    },
-                  )}
-                </span>
+                <div className="attempt-review-question-meta">
+                  <span
+                    className={`attempt-review-status ${statusClass}`}
+                    id={`question-status-${question.id}-${index}`}
+                    aria-describedby={`question-title-${question.id}-${index}`}
+                  >
+                    {t(
+                      `attempt_review.${RESULT_STATUS_LABELS[question.result_status] ?? "option"}`,
+                      {
+                        defaultValue: question.result_status,
+                      },
+                    )}
+                  </span>
+                  {showQuestionTiming ? (
+                    <span className="attempt-review-question-timing">
+                      {question.time_spent_seconds == null
+                        ? t("attempt_review.notRecorded", "Not recorded")
+                        : t("attempt_review.timeOnQuestion", {
+                            duration: formatQuestionDuration(
+                              question.time_spent_seconds,
+                              isArabic,
+                            ),
+                            defaultValue: `Time on question: ${formatQuestionDuration(
+                              question.time_spent_seconds,
+                              isArabic,
+                            )}`,
+                          })}
+                    </span>
+                  ) : null}
+                </div>
               </div>
 
               {isEssay ? (

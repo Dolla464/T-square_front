@@ -194,6 +194,14 @@ function AdminStudentAttendance({
     return isArabic ? cfg.labelAr : cfg.labelEn;
   };
 
+  const attendedByStudentId = useMemo(() => {
+    const map = new Map();
+    for (const student of groupSummary?.students ?? []) {
+      map.set(student.student_id, student.attended_sessions ?? 0);
+    }
+    return map;
+  }, [groupSummary]);
+
   const absentByStudentId = useMemo(() => {
     const map = new Map();
     for (const student of groupSummary?.students ?? []) {
@@ -374,6 +382,12 @@ function AdminStudentAttendance({
                               {formatSessionHeader(session)}
                             </th>
                           ))}
+                          <th className="matrix-summary-col text-center">
+                            {t("studentAttendance.totalPresent", "Total Present")}
+                          </th>
+                          <th className="matrix-summary-col text-center">
+                            {t("studentAttendance.totalAbsences", "Total Absences")}
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -412,6 +426,24 @@ function AdminStudentAttendance({
                                 </td>
                               );
                             })}
+                            <td className="matrix-summary-col matrix-summary-present text-center">
+                              {loadingSummary && !groupSummary ? (
+                                <Spinner animation="border" size="sm" variant="secondary" />
+                              ) : (
+                                <span className="matrix-summary-value">
+                                  {attendedByStudentId.get(student.student_id) ?? 0}
+                                </span>
+                              )}
+                            </td>
+                            <td className="matrix-summary-col matrix-summary-absent text-center">
+                              {loadingSummary && !groupSummary ? (
+                                <Spinner animation="border" size="sm" variant="secondary" />
+                              ) : (
+                                <span className="matrix-summary-value">
+                                  {absentByStudentId.get(student.student_id) ?? 0}
+                                </span>
+                              )}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -542,9 +574,6 @@ function AdminStudentAttendance({
                       <tr>
                         <th style={{ width: 60 }}>#</th>
                         <th>{t("studentAttendance.studentName", "Student Name")}</th>
-                        <th className="text-center" style={{ minWidth: 120 }}>
-                          {t("studentAttendance.totalAbsences", "Total Absences")}
-                        </th>
                         <th>{t("studentAttendance.attendanceStatus", "Attendance Status")}</th>
                         {canMarkAttendance && (
                           <th className="text-center" style={{ minWidth: 180 }}>
@@ -554,10 +583,7 @@ function AdminStudentAttendance({
                       </tr>
                     </thead>
                     <tbody>
-                      {students.map((student, idx) => {
-                        const totalAbsences = absentByStudentId.get(student.student_id) ?? 0;
-
-                        return (
+                      {students.map((student, idx) => (
                         <tr key={student.student_id}>
                           <td className="text-muted small">{idx + 1}</td>
                           <td>
@@ -571,19 +597,6 @@ function AdminStudentAttendance({
                             </button>
                             {student.email && (
                               <div className="text-muted small">{student.email}</div>
-                            )}
-                          </td>
-                          <td className="text-center">
-                            {loadingSummary && !groupSummary ? (
-                              <Spinner animation="border" size="sm" variant="secondary" />
-                            ) : (
-                              <span
-                                className={`fw-semibold ${
-                                  totalAbsences > 0 ? "text-danger" : "text-muted"
-                                }`}
-                              >
-                                {totalAbsences}
-                              </span>
                             )}
                           </td>
                           <td>
@@ -698,8 +711,7 @@ function AdminStudentAttendance({
                             </td>
                           )}
                         </tr>
-                        );
-                      })}
+                      ))}
                     </tbody>
                   </table>
                 </div>

@@ -99,6 +99,9 @@ export const startExam = (examId) => {
 export const saveExamAnswer = (payload) =>
   axiosClient.post("/exams/save-answer", payload);
 
+export const recordExamQuestionTime = (payload) =>
+  axiosClient.post("/exams/record-question-time", payload);
+
 // Submit uses the attempt_id (not exam_id) so backend can authorize ownership
 export const submitExam = (attemptId) =>
   axiosClient.post(`/exams/${attemptId}/submit`);

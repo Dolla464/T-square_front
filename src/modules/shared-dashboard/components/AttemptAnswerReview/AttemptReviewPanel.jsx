@@ -63,7 +63,11 @@ function AttemptReviewPanel({
         </div>
       ) : null}
       {role !== "student" ? <IntegrityEventsSection review={review} /> : null}
-      <AttemptAnswerReview review={review} compact={compact} />
+      <AttemptAnswerReview
+        review={review}
+        compact={compact}
+        showQuestionTiming={role !== "student"}
+      />
     </div>
   );
 }

@@ -60,6 +60,21 @@
   padding: 0.45rem 0.25rem;
 }
 
+.attendance-matrix-table .matrix-summary-col {
+  min-width: 100px;
+  text-align: center;
+  font-weight: 600;
+  background: #f8f9fa;
+}
+
+.attendance-matrix-table .matrix-summary-present .matrix-summary-value {
+  color: var(--bs-success);
+}
+
+.attendance-matrix-table .matrix-summary-absent .matrix-summary-value {
+  color: var(--bs-danger);
+}
+
 .attendance-matrix-icon {
   font-size: 1.05rem;
   line-height: 1;
