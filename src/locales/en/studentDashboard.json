@@ -143,6 +143,8 @@
     "summary_partial_credit": "Partial credit: {{count}}",
     "summary_pending_grading": "Pending grading: {{count}}",
     "summary_unanswered": "Unanswered: {{count}}",
+    "timeOnQuestion": "Time on question: {{duration}}",
+    "notRecorded": "Not recorded",
     "marks_earned": "Score: {{earned}} / {{total}}",
     "correct_answer": "Correct answer: {{text}}",
     "correct_answer_selected": "Your correct answer: {{text}}",

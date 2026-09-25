@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { simulateTimerDualEffect } from "./quizTimerAuditMirror.js";
+import {
+  applyServerRemainingSnap,
+  simulateTimerDualEffect,
+} from "./quizTimerAuditMirror.js";
 
 const TEN_MINUTE_MAX = 600;
 const BASE_NOW = Date.parse("2026-01-01T10:05:00Z");
@@ -81,6 +84,65 @@ describe("QuizTimer audit mirror — timeout via sync", () => {
     });
 
     expect(afterServerSnap).toBe(0);
+  });
+});
+
+describe("QuizTimer audit mirror — disabled toggle regression", () => {
+  it("does not reset local countdown when disabled toggles but remainingSeconds stays 600", () => {
+    const localTimeLeft = 540;
+    let previousRemainingSeconds = 600;
+
+    const afterDisable = applyServerRemainingSnap({
+      timeLeft: localTimeLeft,
+      remainingSeconds: 600,
+      previousRemainingSeconds,
+      disabled: true,
+    });
+    expect(afterDisable.timeLeft).toBe(540);
+
+    const afterReEnable = applyServerRemainingSnap({
+      timeLeft: afterDisable.timeLeft,
+      remainingSeconds: 600,
+      previousRemainingSeconds: afterDisable.previousRemainingSeconds,
+      disabled: false,
+    });
+
+    expect(afterReEnable.timeLeft).toBe(540);
+    expect(afterReEnable.previousRemainingSeconds).toBe(600);
+  });
+
+  it("does not reset when server repeats the same remainingSeconds value", () => {
+    const localTimeLeft = 540;
+    const first = applyServerRemainingSnap({
+      timeLeft: localTimeLeft,
+      remainingSeconds: 600,
+      previousRemainingSeconds: 600,
+      disabled: false,
+    });
+
+    const second = applyServerRemainingSnap({
+      timeLeft: first.timeLeft,
+      remainingSeconds: 600,
+      previousRemainingSeconds: first.previousRemainingSeconds,
+      disabled: false,
+    });
+
+    expect(second.timeLeft).toBe(540);
+  });
+});
+
+describe("QuizTimer audit mirror — genuine server sync", () => {
+  it("snaps to 487 when remainingSeconds changes from 600 to 487", () => {
+    const localTimeLeft = 540;
+    const result = applyServerRemainingSnap({
+      timeLeft: localTimeLeft,
+      remainingSeconds: 487,
+      previousRemainingSeconds: 600,
+      disabled: false,
+    });
+
+    expect(result.timeLeft).toBe(487);
+    expect(result.previousRemainingSeconds).toBe(487);
   });
 });
 

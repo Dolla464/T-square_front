@@ -120,3 +120,26 @@ export function simulateTimerDualEffect({
 
   return { afterIntervalInit, afterServerSnap };
 }
+
+/**
+ * Mirrors QuizTimer server-snap effect: only updates when remainingSeconds changes.
+ */
+export function applyServerRemainingSnap({
+  timeLeft,
+  remainingSeconds,
+  previousRemainingSeconds,
+  disabled = false,
+}) {
+  if (typeof remainingSeconds !== "number" || disabled) {
+    return { timeLeft, previousRemainingSeconds };
+  }
+
+  if (previousRemainingSeconds === remainingSeconds) {
+    return { timeLeft, previousRemainingSeconds };
+  }
+
+  return {
+    timeLeft: Math.max(0, remainingSeconds),
+    previousRemainingSeconds: remainingSeconds,
+  };
+}

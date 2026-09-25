@@ -142,6 +142,8 @@
     "summary_partial_credit": "درجة جزئية: {{count}}",
     "summary_pending_grading": "بانتظار التصحيح: {{count}}",
     "summary_unanswered": "لم يُجاب: {{count}}",
+    "timeOnQuestion": "الوقت على السؤال: {{duration}}",
+    "notRecorded": "غير مسجل",
     "marks_earned": "الدرجة: {{earned}} / {{total}}",
     "correct_answer": "الإجابة الصحيحة: {{text}}",
     "correct_answer_selected": "إجابتك الصحيحة: {{text}}",

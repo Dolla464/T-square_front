@@ -10,7 +10,10 @@ import AttemptReviewPanel from "../../../shared-dashboard/components/AttemptAnsw
 import QuestionContent from "../../../shared-dashboard/components/QuestionContent/QuestionContent";
 import { invalidateAttemptReview } from "../../../shared-dashboard/hooks/attemptReviewCache";
 import { formatExamScore } from "../../../shared-dashboard/utils/formatExamScore";
-import { getStudentExams } from "../../services/dashboardService";
+import {
+  getStudentExams,
+  recordExamQuestionTime,
+} from "../../services/dashboardService";
 import {
   getCompletedAttemptId,
   markQuizAttemptCompleted,
@@ -60,6 +63,7 @@ const QuizTimer = React.memo(
   const [timeLeft, setTimeLeft] = useState(null);
   const onTimeoutRef = useRef(onTimeout);
   const hasLoggedRenderRef = useRef(false);
+  const prevRemainingSecondsRef = useRef(remainingSeconds);
   onTimeoutRef.current = onTimeout;
 
   useEffect(() => {
@@ -165,21 +169,29 @@ const QuizTimer = React.memo(
   }, [deadlineAt, startedAt, durationMins, disabled, getEndTimeMs, remainingSeconds]);
 
   useEffect(() => {
-    if (typeof remainingSeconds === "number" && !disabled) {
-      const snapped = Math.max(0, remainingSeconds);
-      logTimeLeft({
-        source: "remaining_seconds_sync",
-        timeLeft: snapped,
-        remainingSeconds,
-        deadlineAt,
-        startedAt,
-        durationMins,
-        attemptId,
-        force: true,
-      });
-      setTimeLeft(snapped);
+    if (typeof remainingSeconds !== "number" || disabled) {
+      return;
     }
-  }, [remainingSeconds, disabled]);
+
+    if (prevRemainingSecondsRef.current === remainingSeconds) {
+      return;
+    }
+
+    prevRemainingSecondsRef.current = remainingSeconds;
+
+    const snapped = Math.max(0, remainingSeconds);
+    logTimeLeft({
+      source: "remaining_seconds_sync",
+      timeLeft: snapped,
+      remainingSeconds,
+      deadlineAt,
+      startedAt,
+      durationMins,
+      attemptId,
+      force: true,
+    });
+    setTimeLeft(snapped);
+  }, [remainingSeconds, deadlineAt, startedAt, durationMins, attemptId, disabled]);
 
   useEffect(() => {
     if (!onSync || disabled) return undefined;
@@ -303,6 +315,53 @@ function QuizExamPage() {
 
   const examAttemptIdRef = useRef(exam?.attempt_id);
   examAttemptIdRef.current = exam?.attempt_id;
+
+  const questionShownAtRef = useRef(null);
+
+  const flushQuestionTime = useCallback(() => {
+    const curQuestion = currentQuestionRef.current;
+    const attemptId = examAttemptIdRef.current;
+
+    if (!curQuestion || !attemptId || questionShownAtRef.current == null) {
+      return;
+    }
+
+    const elapsed = Math.round((Date.now() - questionShownAtRef.current) / 1000);
+
+    if (elapsed <= 0) {
+      questionShownAtRef.current = Date.now();
+      return;
+    }
+
+    questionShownAtRef.current = Date.now();
+
+    recordExamQuestionTime({
+      attempt_id: attemptId,
+      question_id: curQuestion.id,
+      time_spent_seconds: elapsed,
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (
+      !currentQuestion?.id ||
+      !exam?.attempt_id ||
+      exam?.status !== "ongoing" ||
+      attemptFinalized ||
+      showResult
+    ) {
+      questionShownAtRef.current = null;
+      return;
+    }
+
+    questionShownAtRef.current = Date.now();
+  }, [
+    currentQuestion?.id,
+    exam?.attempt_id,
+    exam?.status,
+    attemptFinalized,
+    showResult,
+  ]);
 
   useEffect(() => {
     setCurrentIndex(0);
@@ -547,6 +606,7 @@ function QuizExamPage() {
         return false;
       }
 
+      flushQuestionTime();
       hasAutoSubmittedRef.current = true;
 
       try {
@@ -618,7 +678,14 @@ function QuizExamPage() {
         return false;
       }
     },
-    [applySubmitResult, isArabic, saveAnswer, submitExam, syncClosedAttempt],
+    [
+      applySubmitResult,
+      flushQuestionTime,
+      isArabic,
+      saveAnswer,
+      submitExam,
+      syncClosedAttempt,
+    ],
   );
 
   finalizeAttemptRef.current = finalizeAttempt;
@@ -768,6 +835,8 @@ function QuizExamPage() {
       return;
     }
 
+    flushQuestionTime();
+
     let updatedAnswers = { ...answers };
 
     if (currentQuestion) {
@@ -856,6 +925,7 @@ function QuizExamPage() {
     currentIndex,
     currentQuestion,
     exam?.attempt_id,
+    flushQuestionTime,
     isArabic,
     isLastQuestion,
     persistCurrentAnswer,
@@ -882,6 +952,8 @@ function QuizExamPage() {
     ) {
       return;
     }
+
+    flushQuestionTime();
 
     let updatedAnswers = { ...answers };
 
@@ -935,6 +1007,7 @@ function QuizExamPage() {
     currentIndex,
     currentQuestion,
     exam?.attempt_id,
+    flushQuestionTime,
     persistCurrentAnswer,
     quizId,
     questions,
@@ -1265,7 +1338,7 @@ function QuizExamPage() {
               remainingSeconds={exam.remaining_seconds}
               onTimeout={handleAutoSubmit}
               onSync={handleTimerSync}
-              disabled={showResult || isInteractionLocked}
+              disabled={showResult || submitting || attemptFinalized}
             />
           )}
         </div>
