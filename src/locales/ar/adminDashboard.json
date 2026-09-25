@@ -17,6 +17,7 @@
     "reviews": "التقييمات",
     "messages": "الرسائل",
     "Notification": "الاشعارات",
+    "history": "سجل الحركات",
     "settings": "الإعدادات",
     "attendance": "الحضور",
     "schedule": "جدول المواعيد",
@@ -29,6 +30,57 @@
     "learningGroups": "المجموعات الدراسية",
     "classManagement": "إدارة الفصول",
     "exams": "الاختبارات"
+  },
+  "history": {
+    "title": "سجل الحركات",
+    "subtitle": "تتبع جميع حركات المنصة للأدمن والموظفين والطلاب والزوار.",
+    "password_title": "تأكيد كلمة مرور الأدمن",
+    "password_message": "أدخل كلمة مرور الأدمن للوصول إلى سجل الحركات.",
+    "password_confirm": "تأكيد",
+    "verify_failed": "فشل التحقق من كلمة المرور.",
+    "loading": "جاري تحميل سجل الحركات...",
+    "empty": "لا توجد حركات مسجلة.",
+    "guest_user": "زائر",
+    "view_details": "عرض",
+    "details_title": "تفاصيل الطلب",
+    "filters": {
+      "search": "بحث بالمستخدم أو المسار أو IP...",
+      "all_roles": "كل الأدوار",
+      "all_methods": "كل الطرق",
+      "date_from": "من تاريخ",
+      "date_to": "إلى تاريخ"
+    },
+    "stats": {
+      "all_time": "كل الأوقات",
+      "this_page": "هذه الصفحة",
+      "total_logs": "إجمالي السجلات",
+      "successful": "ناجحة",
+      "errors": "أخطاء",
+      "guest_actions": "حركات الزوار"
+    },
+    "empty_title": "لا توجد حركات",
+    "empty_filtered": "لا توجد سجلات تطابق الفلاتر الحالية. جرّب تعديل البحث.",
+    "roles": {
+      "admin": "أدمن",
+      "instructor": "مدرب",
+      "receptionist": "استقبال",
+      "student": "طالب",
+      "guest": "زائر"
+    },
+    "columns": {
+      "datetime": "التاريخ / الوقت",
+      "user": "المستخدم",
+      "action": "الحركة",
+      "method": "الطريقة",
+      "path": "المسار",
+      "ip": "IP",
+      "status": "الحالة",
+      "details": "التفاصيل"
+    },
+    "errors": {
+      "fetch_failed": "فشل تحميل سجل الحركات.",
+      "access_denied": "يرجى التحقق من كلمة المرور للوصول إلى السجل."
+    }
   },
   "profile_page": {
     "title": "الملف الشخصي والإعدادات",
