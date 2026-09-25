@@ -8,6 +8,10 @@ import {
 } from "../services/dashboardService";
 import { toastCustom } from "../../../components/shared/Toaster/toaster";
 import { getApiErrorMessage } from "../../../utils/apiErrors";
+import {
+  logStartResponse,
+  logTimeStatusResponse,
+} from "../utils/examTimerDiagnostic";
 
 export const mapExamResults = (results) => {
   if (!results) return null;
@@ -51,6 +55,7 @@ export const useExam = (examId) => {
       setError(null);
       setExam(null);
       const res = await startExamApi(examId);
+      logStartResponse(res.data?.data ?? res.data);
       setExam(res.data.data);
     } catch (err) {
       console.error(err);
@@ -72,6 +77,8 @@ export const useExam = (examId) => {
       if (!data) {
         return null;
       }
+
+      logTimeStatusResponse(data);
 
       setExam((prev) =>
         prev

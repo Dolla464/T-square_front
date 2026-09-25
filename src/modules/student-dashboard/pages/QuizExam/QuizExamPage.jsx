@@ -16,6 +16,13 @@ import {
   markQuizAttemptCompleted,
   clearQuizAttemptCompleted,
 } from "../../utils/quizExamSession";
+import {
+  logEndTime,
+  logTimeLeft,
+  logTimerInput,
+  logTimerRender,
+  observeEndTimeCalculation,
+} from "../../utils/examTimerDiagnostic";
 import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
 import "../../../shared-dashboard/components/QuestionContent/questionContent.css";
 import "../../styles/dashboardShared.css";
@@ -39,6 +46,9 @@ const isEssayQuestion = (question) => question?.type === "essay";
 
 const QuizTimer = React.memo(
   ({
+    attemptId,
+    status,
+    isTimedOut,
     deadlineAt,
     startedAt,
     durationMins,
@@ -49,7 +59,28 @@ const QuizTimer = React.memo(
   }) => {
   const [timeLeft, setTimeLeft] = useState(null);
   const onTimeoutRef = useRef(onTimeout);
+  const hasLoggedRenderRef = useRef(false);
   onTimeoutRef.current = onTimeout;
+
+  useEffect(() => {
+    logTimerInput({
+      attemptId,
+      status,
+      isTimedOut,
+      deadlineAt,
+      startedAt,
+      durationMins,
+      remainingSeconds,
+    });
+  }, [
+    attemptId,
+    status,
+    isTimedOut,
+    deadlineAt,
+    startedAt,
+    durationMins,
+    remainingSeconds,
+  ]);
 
   const getEndTimeMs = useCallback(() => {
     if (deadlineAt) {
@@ -85,6 +116,24 @@ const QuizTimer = React.memo(
     };
 
     const initialTime = calculateTimeLeft();
+    logEndTime(
+      observeEndTimeCalculation({
+        deadlineAt,
+        startedAt,
+        durationMins,
+        remainingSeconds,
+      }),
+    );
+    logTimeLeft({
+      source: "initialization",
+      timeLeft: initialTime,
+      remainingSeconds,
+      deadlineAt,
+      startedAt,
+      durationMins,
+      attemptId,
+      force: true,
+    });
     setTimeLeft(initialTime);
 
     if (initialTime <= 0) {
@@ -94,6 +143,15 @@ const QuizTimer = React.memo(
 
     const interval = setInterval(() => {
       const remaining = calculateTimeLeft();
+      logTimeLeft({
+        source: "deadline_countdown",
+        timeLeft: remaining,
+        remainingSeconds,
+        deadlineAt,
+        startedAt,
+        durationMins,
+        attemptId,
+      });
       setTimeLeft(remaining);
       if (remaining <= 0) {
         clearInterval(interval);
@@ -108,7 +166,18 @@ const QuizTimer = React.memo(
 
   useEffect(() => {
     if (typeof remainingSeconds === "number" && !disabled) {
-      setTimeLeft(Math.max(0, remainingSeconds));
+      const snapped = Math.max(0, remainingSeconds);
+      logTimeLeft({
+        source: "remaining_seconds_sync",
+        timeLeft: snapped,
+        remainingSeconds,
+        deadlineAt,
+        startedAt,
+        durationMins,
+        attemptId,
+        force: true,
+      });
+      setTimeLeft(snapped);
     }
   }, [remainingSeconds, disabled]);
 
@@ -129,6 +198,23 @@ const QuizTimer = React.memo(
       clearInterval(interval);
     };
   }, [onSync, disabled]);
+
+  useEffect(() => {
+    if (timeLeft === null) {
+      return;
+    }
+
+    const shouldLogRender =
+      !hasLoggedRenderRef.current ||
+      (typeof durationMins === "number" &&
+        durationMins > 0 &&
+        timeLeft > durationMins * 60);
+
+    if (shouldLogRender) {
+      logTimerRender({ timeLeft, attemptId });
+      hasLoggedRenderRef.current = true;
+    }
+  }, [timeLeft, durationMins, attemptId]);
 
   if (timeLeft === null) return null;
 
@@ -1170,6 +1256,9 @@ function QuizExamPage() {
             (exam.deadline_at ||
               (exam.duration && parseFloat(exam.duration) > 0)) && (
             <QuizTimer
+              attemptId={exam.attempt_id}
+              status={exam.status}
+              isTimedOut={exam.is_timed_out}
               deadlineAt={exam.deadline_at}
               startedAt={exam.started_at}
               durationMins={parseFloat(exam.duration)}
