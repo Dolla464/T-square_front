@@ -290,7 +290,6 @@ function AdminGroups({
   const [viewingItem, setViewingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [timeFilter, setTimeFilter] = useState("all");
-  const [courseFilter, setCourseFilter] = useState("all");
   const [instructorFilter, setInstructorFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [formData, setFormData] = useState(defaultFormData);
@@ -309,26 +308,38 @@ function AdminGroups({
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 500);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+      setCurrentPage(1);
+    }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  useEffect(() => {
-    getGroups({
+  const handleListFilterChange = (setter) => (event) => {
+    setter(event.target.value);
+    setCurrentPage(1);
+  };
+
+  const listParams = useMemo(
+    () => ({
       page: currentPage,
       search: debouncedSearch,
       time: timeFilter === "all" ? "" : timeFilter,
-      course_id: courseFilter === "all" ? "" : courseFilter,
       instructor_id: instructorFilter === "all" ? "" : instructorFilter,
-    });
-  }, [
-    getGroups,
-    currentPage,
-    debouncedSearch,
-    timeFilter,
-    courseFilter,
-    instructorFilter,
-  ]);
+      status: statusFilter === "all" ? "" : statusFilter,
+    }),
+    [
+      currentPage,
+      debouncedSearch,
+      timeFilter,
+      instructorFilter,
+      statusFilter,
+    ],
+  );
+
+  useEffect(() => {
+    getGroups(listParams);
+  }, [getGroups, listParams]);
 
   useEffect(() => {
     getCourses({ per_page: 100 });
@@ -365,40 +376,7 @@ function AdminGroups({
     };
   }, [formData.course_id, courses, getCourseById]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch, timeFilter, courseFilter, instructorFilter, statusFilter]);
-
   const handlePageChange = (page) => setCurrentPage(page);
-
-  const filteredGroups = useMemo(() => {
-    if (!groups) return [];
-    return groups.filter((group) => {
-      const matchCourse =
-        courseFilter === "all" ||
-        String(group.course_id) === String(courseFilter);
-      const matchInstructor =
-        instructorFilter === "all" ||
-        String(group.instructor_id) === String(instructorFilter);
-      const matchStatus =
-        statusFilter === "all" || group.status === statusFilter;
-
-      let matchTime = true;
-      if (group.created_at) {
-        if (timeFilter === "last_week") {
-          const lastWeek = new Date();
-          lastWeek.setDate(lastWeek.getDate() - 7);
-          matchTime = new Date(group.created_at) >= lastWeek;
-        } else if (timeFilter === "last_month") {
-          const lastMonth = new Date();
-          lastMonth.setMonth(lastMonth.getMonth() - 1);
-          matchTime = new Date(group.created_at) >= lastMonth;
-        }
-      }
-
-      return matchCourse && matchInstructor && matchStatus && matchTime;
-    });
-  }, [groups, courseFilter, instructorFilter, statusFilter, timeFilter]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
@@ -563,7 +541,7 @@ function AdminGroups({
     const ok = await showDeleteConfirm(group?.group_name || "");
     if (ok) {
       const success = await deleteGroup(groupId);
-      if (success) getGroups({ page: currentPage });
+      if (success) getGroups(listParams);
     }
   };
 
@@ -884,7 +862,7 @@ function AdminGroups({
         }
       }
 
-      getGroups({ page: currentPage });
+      getGroups(listParams);
       handleBack();
     } catch (err) {}
   };
@@ -953,7 +931,7 @@ function AdminGroups({
                     <select
                       className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${timeFilter !== "all" ? "border-danger bg-danger-subtle text-danger-emphasis" : "border-light bg-light text-muted"}`}
                       value={timeFilter}
-                      onChange={(e) => setTimeFilter(e.target.value)}
+                      onChange={handleListFilterChange(setTimeFilter)}
                     >
                       <option value="all">
                         {isArabic ? "كل الأوقات" : "All Time"}
@@ -969,7 +947,7 @@ function AdminGroups({
                     <select
                       className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${instructorFilter !== "all" ? "border-danger bg-danger-subtle text-danger-emphasis" : "border-light bg-light text-muted"}`}
                       value={instructorFilter}
-                      onChange={(e) => setInstructorFilter(e.target.value)}
+                      onChange={handleListFilterChange(setInstructorFilter)}
                     >
                       <option value="all">
                         {isArabic ? "كل المحاضرين" : "All Instructors"}
@@ -984,7 +962,7 @@ function AdminGroups({
                     <select
                       className={`form-select ac-form-select border-2 rounded-3 shadow-sm fw-medium transition-all ${statusFilter !== "all" ? "border-danger bg-danger-subtle text-danger-emphasis" : "border-light bg-light text-muted"}`}
                       value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
+                      onChange={handleListFilterChange(setStatusFilter)}
                     >
                       <option value="all">
                         {isArabic ? "كل الحالات" : "All Statuses"}
@@ -1043,8 +1021,8 @@ function AdminGroups({
                             </div>
                           </td>
                         </tr>
-                      ) : filteredGroups && filteredGroups.length > 0 ? (
-                        filteredGroups.map((group) => {
+                      ) : groups && groups.length > 0 ? (
+                        groups.map((group) => {
                           const next = getNextSessionDate(group.schedules);
                           return (
                             <tr key={group.id}>
