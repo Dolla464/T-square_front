@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import {
-  Badge,
   Card,
   Col,
   ProgressBar,
@@ -10,6 +9,7 @@ import {
   Spinner,
   Table,
 } from "react-bootstrap";
+import SessionStatusBadge from "../../../../components/shared/SessionStatusBadge/SessionStatusBadge";
 import { QRCodeSVG } from "qrcode.react";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
@@ -32,13 +32,6 @@ const STATUS_CONFIG = {
   absent: { bg: "#fce8e6", color: "#c5221f", icon: "bi-x-circle-fill" },
   late: { bg: "#fef7e0", color: "#b06000", icon: "bi-clock-fill" },
   not_marked: { bg: "#f1f3f4", color: "#3c4043", icon: "bi-dash-circle" },
-};
-
-const SESSION_STATUS = {
-  upcoming: "secondary",
-  active: "success",
-  completed: "danger",
-  cancelled: "dark",
 };
 
 function StatusBadge({ status, isArabic, compact = false }) {
@@ -427,9 +420,7 @@ function StudentAttendance() {
                             </span>
                           </div>
                           <div className="d-flex flex-column align-items-end gap-2">
-                            <Badge bg={SESSION_STATUS[session.status] ?? "secondary"}>
-                              {t(`attendance.sessionStatus.${session.status}`, session.status)}
-                            </Badge>
+                            <SessionStatusBadge status={session.status} isArabic={isArabic} />
                             <StatusBadge status={session.student_status} isArabic={isArabic} />
                           </div>
                         </div>
@@ -643,9 +634,7 @@ function StudentAttendance() {
                         </td>
                         <td>{item.room || "—"}</td>
                         <td>
-                          <Badge bg={SESSION_STATUS[item.status] ?? "secondary"}>
-                            {t(`attendance.sessionStatus.${item.status}`, item.status)}
-                          </Badge>
+                          <SessionStatusBadge status={item.status} isArabic={isArabic} />
                         </td>
                         <td>
                           <StatusBadge status={item.student_status} isArabic={isArabic} />
@@ -790,15 +779,11 @@ function StudentAttendance() {
                                   {session.start_time} – {session.end_time}
                                 </td>
                                 <td>
-                                  <Badge
-                                    bg={SESSION_STATUS[session.session_status] ?? "secondary"}
+                                  <SessionStatusBadge
+                                    status={session.session_status}
+                                    isArabic={isArabic}
                                     className="attendance-history-session-badge"
-                                  >
-                                    {t(
-                                      `attendance.sessionStatus.${session.session_status}`,
-                                      session.session_status,
-                                    )}
-                                  </Badge>
+                                  />
                                 </td>
                                 <td>
                                   <StatusBadge

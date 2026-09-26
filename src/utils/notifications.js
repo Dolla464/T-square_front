@@ -237,6 +237,16 @@ export function getNotificationDetailItems(notification, t, locale) {
   }
 
   if (type === "exam_result") {
+    pushDetailItem(items, {
+      key: "course",
+      label: t("notifications.details.course"),
+      value: notification.course_title,
+    });
+    pushDetailItem(items, {
+      key: "exam",
+      label: t("notifications.details.exam"),
+      value: notification.exam_title,
+    });
     pushExamResultDetails(items, notification, t);
   }
 
