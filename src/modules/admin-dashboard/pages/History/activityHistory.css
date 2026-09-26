@@ -1,3 +1,11 @@
+.history-page-header {
+  gap: 1rem;
+}
+
+.history-page-heading {
+  min-width: 0;
+}
+
 .history-stat-card {
   height: auto !important;
   min-height: 140px;
@@ -11,6 +19,7 @@
 .history-stat-icon {
   width: 40px;
   height: 40px;
+  flex-shrink: 0;
 }
 
 .history-stat-value {
@@ -32,14 +41,24 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
 }
 
+.history-filter-group {
+  min-width: 0;
+}
+
 .history-filter-group .form-select,
 .history-filter-group .form-control {
-  min-width: 140px;
+  min-width: 0;
+  flex: 1 1 140px;
 }
 
 .history-table-wrap {
   border-radius: 10px;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.history-table {
+  min-width: 960px;
 }
 
 .history-row {
@@ -53,6 +72,7 @@
 
 .history-user-name {
   font-size: 0.9rem;
+  word-break: break-word;
 }
 
 .history-description {
@@ -75,17 +95,25 @@
   vertical-align: middle;
 }
 
+.history-path-code--mobile {
+  max-width: 100%;
+  white-space: normal;
+  word-break: break-all;
+}
+
 .history-method-badge,
 .history-role-badge {
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .history-details-btn {
   font-size: 0.8rem;
   font-weight: 600;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .history-details-btn:hover:not(:disabled) {
@@ -97,8 +125,62 @@
   border-color: #eaeaea !important;
 }
 
+.history-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-mobile-card {
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-mobile-card-top,
+.history-mobile-user,
+.history-mobile-meta,
+.history-mobile-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.history-mobile-user {
+  justify-content: flex-start;
+}
+
+.history-mobile-meta {
+  align-items: flex-start;
+}
+
+.history-mobile-datetime {
+  font-size: 0.82rem;
+  color: #4b5563;
+  font-weight: 600;
+}
+
+.history-mobile-desc {
+  font-size: 0.88rem;
+  color: #374151;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.history-mobile-ip {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
 .activity-history-details pre {
-  max-height: 360px;
+  max-height: min(360px, 55vh);
   overflow: auto;
   background: #f8fafc;
   border: 1px solid #e5e7eb;
@@ -114,23 +196,82 @@
 .history-details-meta p {
   font-size: 0.9rem;
   color: #4b5563;
+  word-break: break-word;
 }
 
 @media (max-width: 991.98px) {
   .history-filter-group {
     display: grid !important;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
   }
 
-  .history-filter-group > :last-child:nth-child(odd) {
-    grid-column: span 2;
+  .history-filter-group > * {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
   }
 
-  .history-path-code {
-    max-width: 160px;
+  .history-stat-card {
+    min-height: 120px;
   }
 
-  .history-description {
-    max-width: 140px;
+  .history-stat-value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .history-table-card {
+    padding: 14px !important;
+  }
+
+  .history-page-header .ac-title {
+    font-size: 1.25rem;
+  }
+
+  .history-page-header .ac-subtitle {
+    font-size: 0.84rem;
+  }
+
+  .history-stat-meta {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .history-filter-group {
+    grid-template-columns: 1fr;
+  }
+
+  .history-stats-row {
+    --bs-gutter-y: 0.75rem;
+  }
+
+  .history-stat-card {
+    min-height: 108px;
+    padding: 12px !important;
+  }
+
+  .history-stat-value {
+    font-size: 1.35rem;
+  }
+
+  .history-mobile-card {
+    padding: 12px;
+  }
+
+  .history-mobile-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .history-mobile-footer .history-details-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .history-details-btn-text {
+    display: inline;
   }
 }

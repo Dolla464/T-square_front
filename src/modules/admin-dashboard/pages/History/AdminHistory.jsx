@@ -161,8 +161,8 @@ function AdminHistory() {
 
   return (
     <div className="admin-content-page" dir={isArabic ? "rtl" : "ltr"}>
-      <div className="ac-header d-flex justify-content-between align-items-center mb-4">
-        <div>
+      <div className="ac-header history-page-header d-flex justify-content-between align-items-start align-items-md-center mb-4">
+        <div className="history-page-heading">
           <h2 className="ac-title">{t("history.title", "Activity History")}</h2>
           <p className="ac-subtitle text-muted mb-0">
             {t(
@@ -173,8 +173,8 @@ function AdminHistory() {
         </div>
       </div>
 
-      <div className="row g-3 mb-4">
-        <div className="col-lg-3 col-6">
+      <div className="row g-3 mb-4 history-stats-row">
+        <div className="col-12 col-sm-6 col-lg-3">
           <div className="state p-3 d-flex flex-column justify-content-between history-stat-card">
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div
@@ -196,7 +196,7 @@ function AdminHistory() {
           </div>
         </div>
 
-        <div className="col-lg-3 col-6">
+        <div className="col-12 col-sm-6 col-lg-3">
           <div className="state p-3 d-flex flex-column justify-content-between history-stat-card">
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div
@@ -218,7 +218,7 @@ function AdminHistory() {
           </div>
         </div>
 
-        <div className="col-lg-3 col-6">
+        <div className="col-12 col-sm-6 col-lg-3">
           <div className="state p-3 d-flex flex-column justify-content-between history-stat-card">
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div
@@ -240,7 +240,7 @@ function AdminHistory() {
           </div>
         </div>
 
-        <div className="col-lg-3 col-6">
+        <div className="col-12 col-sm-6 col-lg-3">
           <div className="state p-3 d-flex flex-column justify-content-between history-stat-card">
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div
@@ -386,7 +386,57 @@ function AdminHistory() {
             </p>
           </div>
         ) : (
-          <div className="table-responsive history-table-wrap">
+          <>
+          <div className="history-mobile-list d-lg-none">
+            {logs.map((log) => (
+              <article key={log.id} className="history-mobile-card">
+                <div className="history-mobile-card-top">
+                  <span className="history-mobile-datetime">
+                    {formatDateTime(log.created_at)}
+                  </span>
+                  {getStatusBadge(log.response_status)}
+                </div>
+
+                <div className="history-mobile-user">
+                  <span className="history-user-name fw-medium">
+                    {log.user_name || t("history.guest_user", "Guest")}
+                  </span>
+                  {getRoleBadge(log.role)}
+                </div>
+
+                <p className="history-mobile-desc mb-0">
+                  {log.description || "—"}
+                </p>
+
+                <div className="history-mobile-meta">
+                  {getMethodBadge(log.http_method)}
+                  <code className="history-path-code history-path-code--mobile">
+                    {log.path}
+                  </code>
+                </div>
+
+                <div className="history-mobile-footer">
+                  <span className="history-mobile-ip">
+                    {log.ip_address || "—"}
+                  </span>
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    className="history-details-btn rounded-3"
+                    disabled={!log.request_data}
+                    onClick={() => setSelectedLog(log)}
+                  >
+                    <i className="bi bi-eye"></i>
+                    <span className="history-details-btn-text ms-1">
+                      {t("history.view_details", "View")}
+                    </span>
+                  </Button>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="table-responsive history-table-wrap d-none d-lg-block">
             <table className="table ac-table mb-0 align-middle history-table" dir="ltr">
               <thead>
                 <tr className="text-muted">
@@ -440,8 +490,10 @@ function AdminHistory() {
                           disabled={!log.request_data}
                           onClick={() => setSelectedLog(log)}
                         >
-                          <i className="bi bi-eye me-1"></i>
-                          {t("history.view_details", "View")}
+                          <i className="bi bi-eye me-lg-1"></i>
+                          <span className="d-none d-xl-inline">
+                            {t("history.view_details", "View")}
+                          </span>
                         </Button>
                       </td>
                     </tr>
@@ -450,6 +502,7 @@ function AdminHistory() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 

@@ -221,8 +221,13 @@ function DashboardProfile() {
 
   if (profileLoading) {
     return (
-      <div className="dash-profile p-5 text-center">
-        {isArabic ? "جاري التحميل..." : "Loading..."}
+      <div className="dash-profile dash-profile-loading">
+        <div className="spinner-border text-danger" role="status">
+          <span className="visually-hidden">
+            {isArabic ? "جاري التحميل..." : "Loading..."}
+          </span>
+        </div>
+        <span>{isArabic ? "جاري التحميل..." : "Loading..."}</span>
       </div>
     );
   }
@@ -300,7 +305,7 @@ function DashboardProfile() {
                   </div>
                 )}
               </div>
-              <div>
+              <div className="profile-head-info">
                 <div className="profile-name">
                   {displayName || user?.name}
                 </div>
