@@ -124,6 +124,13 @@
     "loading": "Loading results details...",
     "error": "An error occurred while loading results. Please try again."
   },
+  "quiz_exam": {
+    "final_exam_passed": "Final exam: Passed",
+    "enrollment_pending": "Course enrollment: Not completed yet",
+    "enrollment_pending_hint": "Your course will be marked completed when your learning group closes. You will then be asked to leave a review.",
+    "leave_review_for_certificate": "Leave Review to Get Certificate",
+    "exit": "Exit"
+  },
   "attempt_review": {
     "region_label": "Attempt answer review",
     "view_answers": "View Answers",

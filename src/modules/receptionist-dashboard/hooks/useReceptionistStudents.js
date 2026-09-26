@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toastSuccess, toastError } from "../../../components/shared/Toaster/toaster";
+import { getApiErrorMessage } from "../../../utils/apiErrors";
 
 import {
   getStudents as apiGetStudents,
@@ -24,9 +25,7 @@ export const useReceptionistStudents = () => {
   const [error, setError] = useState(null);
 
   const handleError = (err, key) => {
-    const msg =
-      err?.response?.data?.message ||
-      t(key, "Something went wrong");
+    const msg = getApiErrorMessage(err, t(key, "Something went wrong"));
 
     setError(msg);
     toastError(msg);
@@ -212,8 +211,7 @@ export const useReceptionistStudents = () => {
 
      toastSuccess(t("Status Updated Success"));
    } catch (err) {
-     const backendMessage = err.response?.data?.message;
-     handleError(err, backendMessage || "Failed to update course status.");
+     handleError(err, "errors.update_failed");
      throw err;
    }
  };
