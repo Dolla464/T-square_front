@@ -18,6 +18,7 @@ import {
   hasRealAvatar,
   resolveAvatarUrl,
 } from "../../../../utils/avatar";
+import { canEnableEnrollmentCompletion } from "../../../shared-dashboard/utils/enrollmentCompletion";
 
 /**
  * Default form data structure for creating or editing a student, ensuring all necessary fields are initialized to empty or default values to prevent uncontrolled input issues in the form components
@@ -52,7 +53,8 @@ function AdminStudents({
   useGroupsHook = useGroups,
   allowEmailEdit = true,
 }) {
-  const { selectionGroups, getGroupsSelection } = useGroupsHook();
+  const { selectionGroups, getGroupsSelection, getGroups } = useGroupsHook();
+  const [groupStatusById, setGroupStatusById] = useState({});
 
   const {
     students,
@@ -127,6 +129,31 @@ function AdminStudents({
   useEffect(() => {
     getGroupsSelection();
   }, [getGroupsSelection]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const groups = await getGroups({ per_page: 100 });
+        if (cancelled || !Array.isArray(groups)) {
+          return;
+        }
+
+        const nextMap = {};
+        groups.forEach((group) => {
+          nextMap[group.id] = group.status;
+        });
+        setGroupStatusById(nextMap);
+      } catch {
+        // Backend validation remains authoritative if the lookup fails.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [getGroups]);
 
   /**
    * Reset to first page whenever search term or filters change, to ensure we show results from the beginning of the list after applying new criteria
@@ -521,17 +548,49 @@ function AdminStudents({
   /**
    * Handle course status toggle for a student's enrolled course, with confirmation and error handling, and update local form state to reflect the change immediately in the UI after a successful API call
    */
+  const resolveCourseCompletionAllowed = (course) => {
+    if (course.is_completed) {
+      return true;
+    }
+
+    return canEnableEnrollmentCompletion(
+      course.group_id,
+      course.group_id ? groupStatusById[course.group_id] : null,
+    );
+  };
+
+  const completionBlockReason = (course) => {
+    if (course.is_completed) {
+      return null;
+    }
+
+    if (!course.group_id) {
+      return t("students_page.completion_requires_group");
+    }
+
+    return t("students_page.completion_requires_closed_group");
+  };
+
   const handleStatusToggle = async (studentId, courseId, currentStatus) => {
     const nextStatus = !currentStatus;
+    const course = formData.enrolled_courses?.find((item) => item.id === courseId);
 
-    // 1. إظهار ديالوج التأكيد المخصص بناءً على الحالة الجديدة
+    if (nextStatus && course && !resolveCourseCompletionAllowed(course)) {
+      toastError(completionBlockReason(course));
+      return;
+    }
+
+    const statusLabel = nextStatus
+      ? t("students_page.course_status_completed")
+      : t("students_page.course_status_in_progress");
+
     const ok = await showConfirmCustom({
-      title: isArabic ? "تغيير حالة المقرر" : "Change Course Status",
-      message: isArabic
-        ? `هل أنت متأكد من تحويل حالة المقرر إلى (${nextStatus ? "مكتمل" : "قيد التنفيذ"})؟`
-        : `Are you sure you want to change the course status to (${nextStatus ? "Completed" : "In Progress"})?`,
+      title: t("students_page.confirm_course_status_title"),
+      message: t("students_page.confirm_course_status_message", {
+        status: statusLabel,
+      }),
       icon: "warning",
-      confirmText: isArabic ? "تعديل" : "Confirm",
+      confirmText: t("groups_page.confirm"),
     });
 
     if (ok) {
@@ -1503,7 +1562,12 @@ function AdminStudents({
                             </tr>
                           </thead>
                           <tbody className="border-0">
-                            {formData.enrolled_courses?.map((course, index) => (
+                            {formData.enrolled_courses?.map((course, index) => {
+                              const completionAllowed =
+                                resolveCourseCompletionAllowed(course);
+                              const completionHint = completionBlockReason(course);
+
+                              return (
                               <tr
                                 key={index}
                                 style={{
@@ -1574,45 +1638,69 @@ function AdminStudents({
                                   {course.joined_at}
                                 </td>
                                 <td className="pe-4 py-3 text-center">
-                                  <button
-                                    type="button"
-                                    // تحويل الـ Badge لـ Button باستخدام كلاسات بوتستراب لتغيير الخلفية والألوان بدون inline style
-                                    className={`btn btn-sm rounded-pill fw-bold border-0 py-2 px-3 shadow-sm ${
-                                      course.is_completed
-                                        ? "bg-success-subtle text-success-emphasis"
-                                        : "bg-primary-subtle text-primary-emphasis"
-                                    }`}
-                                    style={{
-                                      fontSize: "0.75rem",
-                                      transition: "all 0.2s",
-                                      cursor: "pointer",
-                                    }}
-                                    // عند الضغط، نمرر المعرفات مع عكس الحالة الحالية للكورس لتحديث الباك والـ State
-                                    onClick={() =>
-                                      handleStatusToggle(
-                                        viewingItem.id,
-                                        course.id,
-                                        course.is_completed,
-                                      )
-                                    }
-                                  >
-                                    {course.is_completed ? (
-                                      <>
-                                        <i className="bi bi-check-circle-fill me-1"></i>
-                                        {isArabic ? "مكتمل" : "Completed"}
-                                      </>
-                                    ) : (
-                                      <>
-                                        <i className="bi bi-hourglass-split me-1"></i>
-                                        {isArabic
-                                          ? "قيد التنفيذ"
-                                          : "In Progress"}
-                                      </>
-                                    )}
-                                  </button>
+                                  <div className="d-flex flex-column align-items-center gap-1">
+                                    <button
+                                      type="button"
+                                      className={`btn btn-sm rounded-pill fw-bold border-0 py-2 px-3 shadow-sm ${
+                                        course.is_completed
+                                          ? "bg-success-subtle text-success-emphasis"
+                                          : "bg-primary-subtle text-primary-emphasis"
+                                      }`}
+                                      style={{
+                                        fontSize: "0.75rem",
+                                        transition: "all 0.2s",
+                                        cursor:
+                                          !course.is_completed &&
+                                          !completionAllowed
+                                            ? "not-allowed"
+                                            : "pointer",
+                                        opacity:
+                                          !course.is_completed &&
+                                          !completionAllowed
+                                            ? 0.65
+                                            : 1,
+                                      }}
+                                      title={
+                                        !course.is_completed &&
+                                        !completionAllowed
+                                          ? completionHint
+                                          : undefined
+                                      }
+                                      disabled={
+                                        !course.is_completed &&
+                                        !completionAllowed
+                                      }
+                                      onClick={() =>
+                                        handleStatusToggle(
+                                          viewingItem.id,
+                                          course.id,
+                                          course.is_completed,
+                                        )
+                                      }
+                                    >
+                                      {course.is_completed ? (
+                                        <>
+                                          <i className="bi bi-check-circle-fill me-1"></i>
+                                          {t("students_page.course_status_completed")}
+                                        </>
+                                      ) : (
+                                        <>
+                                          <i className="bi bi-hourglass-split me-1"></i>
+                                          {t("students_page.course_status_in_progress")}
+                                        </>
+                                      )}
+                                    </button>
+                                    {!course.is_completed &&
+                                    !completionAllowed ? (
+                                      <small className="text-muted px-2">
+                                        {completionHint}
+                                      </small>
+                                    ) : null}
+                                  </div>
                                 </td>
                               </tr>
-                            ))}
+                            );
+                            })}
                           </tbody>
                         </table>
                       </div>

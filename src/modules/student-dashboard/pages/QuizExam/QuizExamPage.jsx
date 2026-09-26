@@ -11,6 +11,7 @@ import QuestionContent from "../../../shared-dashboard/components/QuestionConten
 import { invalidateAttemptReview } from "../../../shared-dashboard/hooks/attemptReviewCache";
 import { formatExamScore } from "../../../shared-dashboard/utils/formatExamScore";
 import {
+  getCourseDetails,
   getStudentExams,
   recordExamQuestionTime,
 } from "../../services/dashboardService";
@@ -274,6 +275,7 @@ function QuizExamPage() {
   const [answers, setAnswers] = useState({});
   const [showResult, setShowResult] = useState(false);
   const [scoreResult, setScoreResult] = useState(null);
+  const [courseEnrollmentStatus, setCourseEnrollmentStatus] = useState(null);
   const [submittedAttemptId, setSubmittedAttemptId] = useState(null);
   const [showAnswerReview, setShowAnswerReview] = useState(false);
   const [attemptFinalized, setAttemptFinalized] = useState(false);
@@ -369,6 +371,7 @@ function QuizExamPage() {
     setAnswers({});
     setShowResult(false);
     setScoreResult(null);
+    setCourseEnrollmentStatus(null);
     setSubmittedAttemptId(null);
     setShowAnswerReview(false);
     setAttemptFinalized(false);
@@ -377,6 +380,39 @@ function QuizExamPage() {
     initRequestIdRef.current += 1;
     setIsInitializing(true);
   }, [quizId]);
+
+  useEffect(() => {
+    if (
+      !showResult ||
+      !scoreResult?.requires_review ||
+      !scoreResult?.course_id
+    ) {
+      setCourseEnrollmentStatus(null);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    getCourseDetails(scoreResult.course_id)
+      .then((res) => {
+        if (cancelled) {
+          return;
+        }
+
+        setCourseEnrollmentStatus(
+          res.data?.data?.enrollment?.status ?? null,
+        );
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCourseEnrollmentStatus(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showResult, scoreResult]);
 
   useEffect(() => {
     const requestId = ++initRequestIdRef.current;
@@ -1034,13 +1070,20 @@ function QuizExamPage() {
       duration: 4000,
     });
 
-    if (!isFailed && scoreResult?.requires_review && scoreResult?.course_id) {
+    const enrollmentCompleted = courseEnrollmentStatus === "completed";
+
+    if (
+      !isFailed &&
+      scoreResult?.requires_review &&
+      scoreResult?.course_id &&
+      enrollmentCompleted
+    ) {
       navigate(`/student/review/${scoreResult.course_id}`);
       return;
     }
 
     handleExit();
-  }, [scoreResult, isArabic, handleExit, navigate]);
+  }, [scoreResult, courseEnrollmentStatus, isArabic, handleExit, navigate]);
 
   if ((isInitializing || loading) && !showResult) {
     return (
@@ -1110,6 +1153,15 @@ function QuizExamPage() {
   if (showResult) {
     const pendingGrading = isAwaitingGrading(scoreResult?.status);
     const isFailed = isAttemptFailed(scoreResult?.status);
+    const enrollmentCompleted = courseEnrollmentStatus === "completed";
+    const reviewActionAvailable =
+      !isFailed &&
+      scoreResult?.requires_review &&
+      enrollmentCompleted;
+    const finalExamPassedPendingEnrollment =
+      !isFailed &&
+      scoreResult?.requires_review &&
+      courseEnrollmentStatus === "in_progress";
     const percentage = parseFloat(scoreResult?.percentage) || 0;
     const HALF_CIRC = Math.PI * 80;
     const filled = pendingGrading ? 0 : (percentage / 100) * HALF_CIRC;
@@ -1245,6 +1297,18 @@ function QuizExamPage() {
                     ? "مبروك! تجاوزت الحد الأدنى"
                     : "Passed — Above passing mark"}
               </p>
+
+              {finalExamPassedPendingEnrollment ? (
+                <div className="alert alert-info py-2 px-3 small text-start mt-3 mb-0">
+                  <div className="fw-semibold">
+                    {t("quiz_exam.final_exam_passed")}
+                  </div>
+                  <div>{t("quiz_exam.enrollment_pending")}</div>
+                  <div className="text-muted mt-1 mb-0">
+                    {t("quiz_exam.enrollment_pending_hint")}
+                  </div>
+                </div>
+              ) : null}
             </>
           ) : null}
 
@@ -1265,15 +1329,11 @@ function QuizExamPage() {
               onClick={handleFinishWithToast}
             >
               <i
-                className={`bi ${!pendingGrading && !isFailed && scoreResult?.requires_review ? "bi-star-fill" : "bi-arrow-left"} me-2`}
+                className={`bi ${!pendingGrading && reviewActionAvailable ? "bi-star-fill" : "bi-arrow-left"} me-2`}
               ></i>
-              {!pendingGrading && !isFailed && scoreResult?.requires_review
-                ? isArabic
-                  ? "اترك تقييم للحصول على الشهادة"
-                  : "Leave Review to Get Certificate"
-                : isArabic
-                  ? "خروج"
-                  : "Exit"}
+              {!pendingGrading && reviewActionAvailable
+                ? t("quiz_exam.leave_review_for_certificate")
+                : t("quiz_exam.exit")}
             </button>
           </div>
 

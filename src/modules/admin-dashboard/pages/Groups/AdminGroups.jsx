@@ -17,6 +17,9 @@ import { parseApiDateOnly } from "../../../../utils/formatDateTime";
 import { getCourseInstructors } from "../../../../utils/courseInstructors";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import SessionStatusBadge from "../../../../components/shared/SessionStatusBadge/SessionStatusBadge";
+import {
+  canSelectEnrollmentCompletedOption,
+} from "../../../shared-dashboard/utils/enrollmentCompletion";
 
 const DAY_NAMES_EN = [
   "Saturday",
@@ -110,25 +113,25 @@ const formatGroupSyncToast = (sync, isArabic, t) => {
 
   if (sync.enrollments_completed > 0) {
     parts.push(
-      isArabic
-        ? `${sync.enrollments_completed} طالب مكتمل`
-        : `${sync.enrollments_completed} student(s) marked completed`,
+      t("groups_page.sync_enrollments_completed", {
+        count: sync.enrollments_completed,
+      }),
     );
   }
 
   if (sync.enrollments_reopened > 0) {
     parts.push(
-      isArabic
-        ? `${sync.enrollments_reopened} طالب قيد الدراسة`
-        : `${sync.enrollments_reopened} student(s) marked in progress`,
+      t("groups_page.sync_enrollments_reopened", {
+        count: sync.enrollments_reopened,
+      }),
     );
   }
 
   if (sync.notifications_sent > 0) {
     parts.push(
-      isArabic
-        ? `${sync.notifications_sent} إشعار`
-        : `${sync.notifications_sent} notification(s) sent`,
+      t("groups_page.sync_notifications_sent", {
+        count: sync.notifications_sent,
+      }),
     );
   }
 
@@ -670,6 +673,20 @@ function AdminGroups({
   };
 
   const handleLocalStatusChange = (studentId, newStatus) => {
+    const groupStatus = formData.status || "active";
+    const student = formData.students.find((s) => s.id === studentId);
+
+    if (
+      newStatus === "completed" &&
+      !canSelectEnrollmentCompletedOption(
+        groupStatus,
+        !!student?.is_completed,
+      )
+    ) {
+      toastError(t("groups_page.completion_requires_closed_group"));
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       students: prev.students.map((s) =>
@@ -764,24 +781,20 @@ function AdminGroups({
 
     if (editingItem && nextStatus === "completed" && previousStatus !== "completed") {
       const ok = await showConfirmCustom({
-        title: isArabic ? "إغلاق المجموعة" : "Close Group",
-        message: isArabic
-          ? "سيتم تعليم جميع طلاب المجموعة كمكتملين وإشعارهم لعمل تقييم. الشهادة لن تُصدر إلا بعد التقييم."
-          : "All students in this group will be marked as completed and notified to leave a review. Certificates will only be issued after a review is submitted.",
+        title: t("groups_page.confirm_close_group_title"),
+        message: t("groups_page.confirm_close_group_message"),
         icon: "warning",
-        confirmText: isArabic ? "تأكيد" : "Confirm",
+        confirmText: t("groups_page.confirm"),
       });
       if (!ok) return;
     }
 
     if (editingItem && previousStatus === "completed" && nextStatus === "active") {
       const ok = await showConfirmCustom({
-        title: isArabic ? "إعادة فتح المجموعة" : "Reopen Group",
-        message: isArabic
-          ? "سيتم إرجاع جميع طلاب المجموعة إلى قيد الدراسة. تحذير: يشمل الطلاب الذين أكملوا عبر الامتحان النهائي."
-          : "All students in this group will be marked as in progress. Warning: this includes students who completed via the final exam.",
+        title: t("groups_page.confirm_reopen_group_title"),
+        message: t("groups_page.confirm_reopen_group_message"),
         icon: "warning",
-        confirmText: isArabic ? "تأكيد" : "Confirm",
+        confirmText: t("groups_page.confirm"),
       });
       if (!ok) return;
     }
@@ -1654,6 +1667,13 @@ function AdminGroups({
                       </div>
                     </div>
 
+                    {editingItem && formData.status !== "completed" ? (
+                      <div className="alert alert-info py-2 px-3 small mb-3 border-0 shadow-sm">
+                        <i className="bi bi-info-circle me-2"></i>
+                        {t("groups_page.completion_requires_closed_group")}
+                      </div>
+                    ) : null}
+
                     <div
                       className="card border-0 shadow-sm overflow-hidden"
                       style={{
@@ -1730,10 +1750,18 @@ function AdminGroups({
                                         }
                                       >
                                         <option value="progress">
-                                          {isArabic ? "قيد الدراسة" : "In Progress"}
+                                          {t("groups_page.student_status_in_progress")}
                                         </option>
-                                        <option value="completed">
-                                          {isArabic ? "مكتمل" : "Completed"}
+                                        <option
+                                          value="completed"
+                                          disabled={
+                                            !canSelectEnrollmentCompletedOption(
+                                              formData.status || "active",
+                                              !!student.is_completed,
+                                            )
+                                          }
+                                        >
+                                          {t("groups_page.student_status_completed")}
                                         </option>
                                       </select>
                                     ) : (

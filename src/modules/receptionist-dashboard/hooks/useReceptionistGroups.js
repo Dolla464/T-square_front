@@ -5,6 +5,7 @@ import {
   toastError,
   toastWarning,
 } from "../../../components/shared/Toaster/toaster";
+import { getApiErrorMessage } from "../../../utils/apiErrors";
 import {
   getLearningGroups as fetchGroups,
   getLearningGroupsSelection as fetchGroupsSelection,
@@ -146,8 +147,10 @@ export const useReceptionistGroups = () => {
       return response;
     } catch (err) {
       console.error("Error updating group:", err);
-      const errorMsg =
-        err.response?.data?.message || t("adminDashboard:errors.update_failed");
+      const errorMsg = getApiErrorMessage(
+        err,
+        t("adminDashboard:errors.update_failed"),
+      );
       setError(errorMsg);
       toastError(errorMsg);
       throw err;
