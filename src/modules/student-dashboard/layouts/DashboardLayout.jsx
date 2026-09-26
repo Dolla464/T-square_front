@@ -14,11 +14,15 @@ const STUDENT_NAV = [
     end: true,
   },
   {
+    key: "attendance",
+    path: "/student/attendance",
+    icon: "bi-calendar-check",
+  },
+  {
     key: "myLearning",
     icon: "bi-book",
     children: [
       { key: "quiz", path: "/student/quizzes", icon: "bi-pencil-square" },
-      { key: "attendance", path: "/student/attendance", icon: "bi-calendar-check" },
       { key: "certificates", path: "/student/certificates", icon: "bi-award-fill" },
     ],
   },
