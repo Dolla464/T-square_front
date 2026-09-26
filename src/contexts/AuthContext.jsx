@@ -92,32 +92,29 @@ export const AuthProvider = ({ children }) => {
   const isMaintenanceRef = React.useRef(false);
 
   const checkMaintenanceStatus = useCallback(async () => {
-    try {
-      const response = await axiosClient.get("/settings/maintenance_mode");
+    const response = await axiosClient.get("/settings/maintenance_mode", {
+      params: { _: Date.now() },
+    });
 
-      if (response?.data?.data) {
-        const maintenanceValue = response.data.data.value;
-
-        const isTrueMaintenance =
-          maintenanceValue === true ||
-          maintenanceValue === 1 ||
-          maintenanceValue === "1" ||
-          maintenanceValue === "true";
-
-        setIsMaintenance((prev) => {
-          if (prev === isTrueMaintenance) return prev;
-          return isTrueMaintenance;
-        });
-        isMaintenanceRef.current = isTrueMaintenance;
-
-        return isTrueMaintenance;
-      }
-
+    if (!response?.data?.data) {
       return false;
-    } catch (error) {
-      console.error("Failed to fetch maintenance status:", error);
-      return isMaintenanceRef.current;
     }
+
+    const maintenanceValue = response.data.data.value;
+
+    const isTrueMaintenance =
+      maintenanceValue === true ||
+      maintenanceValue === 1 ||
+      maintenanceValue === "1" ||
+      maintenanceValue === "true";
+
+    setIsMaintenance((prev) => {
+      if (prev === isTrueMaintenance) return prev;
+      return isTrueMaintenance;
+    });
+    isMaintenanceRef.current = isTrueMaintenance;
+
+    return isTrueMaintenance;
   }, []);
 
   useEffect(() => {

@@ -61,6 +61,28 @@ function isAllowedWhenForbidden(url = "") {
   return ALLOWED_WHEN_FORBIDDEN.some((path) => url.includes(path));
 }
 
+function getCachedSessionUserRole() {
+  try {
+    const raw = sessionStorage.getItem("user");
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw);
+    return parsed?.role ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function shouldSkipMaintenanceRedirect() {
+  if (window.location.pathname.startsWith("/admin")) {
+    return true;
+  }
+
+  return getCachedSessionUserRole() === "admin";
+}
+
 const resolveBaseUrl = () => resolveAxiosBaseUrl();
 
 const axiosClient = axios.create({
@@ -109,6 +131,7 @@ axiosClient.interceptors.response.use(
 
     if (error.response && status === 503) {
       if (
+        !shouldSkipMaintenanceRedirect() &&
         window.location.pathname !== "/maintenance" &&
         window.location.pathname !== "/login"
       ) {

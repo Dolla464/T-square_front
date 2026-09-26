@@ -281,8 +281,8 @@ function AppContent() {
   // إذا كان الموقع قيد الصيانة والمستخدم ليس أدمن، نقوم بإخفاء الهيكل العام (Navbar/Footer) تلقائياً
   const isEffectiveMaintenance =
     isMaintenance &&
-    user?.role !== "admin" &&
-    (!authInitializing || userSynced);
+    userSynced &&
+    user?.role !== "admin";
 
   const hideLayout =
     isEffectiveMaintenance ||
