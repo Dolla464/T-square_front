@@ -16,6 +16,7 @@ import { exportSchedule as defaultExportSchedule } from "../../services/adminSch
 import { parseApiDateOnly } from "../../../../utils/formatDateTime";
 import { getCourseInstructors } from "../../../../utils/courseInstructors";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
+import SessionStatusBadge from "../../../../components/shared/SessionStatusBadge/SessionStatusBadge";
 
 const DAY_NAMES_EN = [
   "Saturday",
@@ -212,33 +213,6 @@ function getNextSessionDate(schedules) {
 
 const fmt = (t) => (t ? String(t).slice(0, 5) : "—");
 
-const SESSION_STATUS_CONFIG = {
-  upcoming: {
-    bg: "bg-primary-subtle text-primary",
-    icon: "bi-clock",
-    labelEn: "Upcoming",
-    labelAr: "قادمة",
-  },
-  active: {
-    bg: "bg-success-subtle text-success",
-    icon: "bi-play-circle-fill",
-    labelEn: "Active",
-    labelAr: "نشطة",
-  },
-  completed: {
-    bg: "bg-secondary-subtle text-secondary",
-    icon: "bi-check-circle-fill",
-    labelEn: "Completed",
-    labelAr: "مكتملة",
-  },
-  cancelled: {
-    bg: "bg-danger-subtle text-danger",
-    icon: "bi-x-circle-fill",
-    labelEn: "Cancelled",
-    labelAr: "ملغاة",
-  },
-};
-
 const getEffectiveSession = (sess) => {
   const dateRaw = sess.override_date || sess.session_date || "";
   const effectiveDate = parseApiDateOnly(dateRaw);
@@ -263,24 +237,6 @@ const getDayNameFromDate = (dateStr, isArabic) => {
 
 function GroupStatusBadge({ status, isArabic }) {
   const cfg = GROUP_STATUS_CONFIG[status] ?? {
-    bg: "bg-light text-dark",
-    icon: "bi-circle",
-    labelEn: status,
-    labelAr: status,
-  };
-  return (
-    <span
-      className={`badge rounded-pill px-2 py-1 ${cfg.bg}`}
-      style={{ fontSize: "0.75rem" }}
-    >
-      <i className={`bi ${cfg.icon} me-1`}></i>
-      {isArabic ? cfg.labelAr : cfg.labelEn}
-    </span>
-  );
-}
-
-function SessionStatusBadge({ status, isArabic }) {
-  const cfg = SESSION_STATUS_CONFIG[status] ?? {
     bg: "bg-light text-dark",
     icon: "bi-circle",
     labelEn: status,

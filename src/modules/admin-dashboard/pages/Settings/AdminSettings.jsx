@@ -413,7 +413,7 @@ function AdminSettings() {
                     {/* زر التراجع (Undo / Cancel) */}
                     <button
                       type="button"
-                      className="btn btn-sm ac-draft-btn border px-3 py-1 rounded-3 fw-bold"
+                      className="btn btn-sm settings-btn-secondary px-3 py-1 rounded-3 fw-bold"
                       onClick={handleCancelGeneral}
                     >
                       <i className="bi bi-arrow-counterclockwise me-1"></i>
@@ -423,7 +423,7 @@ function AdminSettings() {
                     {/* زر حفظ التغييرات (Save) */}
                     <button
                       type="button"
-                      className="btn btn-sm btn-danger px-3 py-1 rounded-3 fw-bold"
+                      className="btn btn-sm settings-btn-primary px-3 py-1 rounded-3 fw-bold"
                       onClick={handleSaveGeneral}
                     >
                       <i className="bi bi-check-lg me-1"></i>
@@ -434,7 +434,7 @@ function AdminSettings() {
                   /* زر التعديل الافتراضي في حالة العرض فقط */
                   <button
                     type="button"
-                    className="btn btn-sm ac-btn-edit border-0 px-3 py-1 rounded-3 fw-bold"
+                    className="btn btn-sm settings-btn-edit px-3 py-1 rounded-3 fw-bold"
                     onClick={() => setIsEditingGeneral(true)}
                   >
                     <i className="bi bi-pencil me-1"></i>
@@ -928,7 +928,7 @@ function AdminSettings() {
             <div className="hero-card-footer">
               <button
                 type="button"
-                className="btn btn-sm ac-draft-btn border px-3 rounded-3 fw-bold"
+                className="btn btn-sm settings-btn-secondary px-3 rounded-3 fw-bold"
                 onClick={handleCancelHero}
                 disabled={uploading}
               >
@@ -937,7 +937,7 @@ function AdminSettings() {
               </button>
               <button
                 type="button"
-                className="btn btn-sm btn-danger px-4 rounded-3 fw-bold"
+                className="btn btn-sm settings-btn-primary px-4 rounded-3 fw-bold"
                 onClick={handleSaveHero}
                 disabled={uploading}
               >
@@ -1101,7 +1101,7 @@ function AdminSettings() {
                 />
                 <label
                   htmlFor="aboutUploadInput"
-                  className="btn ac-publish-btn text-white px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2"
+                  className="btn settings-btn-primary text-white px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2"
                 >
                   <i className="bi bi-plus-lg"></i>
                   {isArabic ? "صور الاستبدال" : "Replacement Images"}
@@ -1280,7 +1280,7 @@ function AdminSettings() {
                 />
                 <label
                   htmlFor="discoveryUploadInput"
-                  className="btn ac-publish-btn text-white px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2"
+                  className="btn settings-btn-primary text-white px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2"
                 >
                   <i className="bi bi-plus-lg"></i>
                   {isArabic ? "رفع وسائط المعرض" : "Upload Gallery Media"}

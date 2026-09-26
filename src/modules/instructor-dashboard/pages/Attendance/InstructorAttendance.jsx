@@ -14,6 +14,7 @@ import { useInstructorAttendance } from "../../hooks/useInstructorAttendance";
 import { useAttendanceRealtime } from "../../hooks/useAttendanceRealtime";
 import "../../../admin-dashboard/components/shared/AdminContentPage/AdminContentPage.css";
 import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
+import SessionStatusBadge from "../../../../components/shared/SessionStatusBadge/SessionStatusBadge";
 import { resolveAvatarUrl } from "../../../../utils/avatar";
 
 const RECENT_SCANS_LIMIT = 10;
@@ -66,12 +67,6 @@ const STATUS_CONFIG = {
     labelEn: "Not Marked",
     labelAr: "لم يسجَّل",
   },
-};
-
-const SESSION_STATUS_CONFIG = {
-  upcoming: { bg: "secondary", labelEn: "Upcoming", labelAr: "قادمة" },
-  active: { bg: "success", labelEn: "Active", labelAr: "نشطة" },
-  completed: { bg: "danger", labelEn: "Completed", labelAr: "منتهية" },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -339,7 +334,6 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
           <div className="row g-3 mb-4">
             {todaySessions.map((session) => {
               const isActive = activeSession?.session_id === session.session_id;
-              const ssCfg = SESSION_STATUS_CONFIG[session.status] ?? SESSION_STATUS_CONFIG.upcoming;
               const progressPct =
                 session.attendance?.total > 0
                   ? Math.round((session.attendance.present / session.attendance.total) * 100)
@@ -370,9 +364,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                           </h6>
                           <small className="text-muted">{session.course_title}</small>
                         </div>
-                        <Badge bg={ssCfg.bg} className="rounded-pill">
-                          {isArabic ? ssCfg.labelAr : ssCfg.labelEn}
-                        </Badge>
+                        <SessionStatusBadge status={session.status} isArabic={isArabic} />
                       </div>
 
                       {/* Time and room */}

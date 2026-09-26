@@ -626,4 +626,76 @@
   .hero-card-footer {
     flex-wrap: wrap;
   }
+
+  .admin-settings-page .settings-btn-primary,
+  .admin-settings-page .settings-btn-secondary,
+  .admin-settings-page .settings-btn-edit {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .general-settings-header .d-flex.gap-2 {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   أزرار الصفحة — متوافقة مع الهوية الحمراء للموقع (#be1522 / #d32f2f)
+   -------------------------------------------------------------------------- */
+
+.admin-settings-page .settings-btn-primary {
+  background-color: #d32f2f !important;
+  border: 1px solid #d32f2f !important;
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(211, 47, 47, 0.22);
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.admin-settings-page .settings-btn-primary:hover:not(:disabled) {
+  background-color: #b71c1c !important;
+  border-color: #b71c1c !important;
+  color: #fff !important;
+  transform: translateY(-1px);
+}
+
+.admin-settings-page .settings-btn-primary:disabled {
+  opacity: 0.65;
+}
+
+.admin-settings-page .settings-btn-secondary {
+  background-color: #fff !important;
+  border: 1px solid #d32f2f !important;
+  color: #d32f2f !important;
+  transition: all 0.2s ease;
+}
+
+.admin-settings-page .settings-btn-secondary:hover:not(:disabled) {
+  background-color: #fff1f2 !important;
+  color: #b71c1c !important;
+  border-color: #b71c1c !important;
+}
+
+.admin-settings-page .settings-btn-edit {
+  background-color: #fff1f2 !important;
+  border: 1px solid transparent !important;
+  color: #be1522 !important;
+  transition: all 0.2s ease;
+}
+
+.admin-settings-page .settings-btn-edit:hover {
+  background-color: #be1522 !important;
+  color: #fff !important;
+  border-color: #be1522 !important;
+}
+
+.admin-settings-page .form-check-input:checked {
+  background-color: #d32f2f;
+  border-color: #d32f2f;
+}
+
+.admin-settings-page .form-control:focus,
+.admin-settings-page .form-select:focus {
+  border-color: #be1522;
+  box-shadow: 0 0 0 0.2rem rgba(190, 21, 34, 0.15);
 }
