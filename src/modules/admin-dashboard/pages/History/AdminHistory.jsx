@@ -387,7 +387,7 @@ function AdminHistory() {
           </div>
         ) : (
           <>
-          <div className="history-mobile-list d-lg-none">
+          <div className="history-mobile-list d-xl-none">
             {logs.map((log) => (
               <article key={log.id} className="history-mobile-card">
                 <div className="history-mobile-card-top">
@@ -436,18 +436,19 @@ function AdminHistory() {
             ))}
           </div>
 
-          <div className="table-responsive history-table-wrap d-none d-lg-block">
+          <div className="history-table-scroll d-none d-xl-block">
+            <div className="history-table-wrap">
             <table className="table ac-table mb-0 align-middle history-table" dir="ltr">
               <thead>
                 <tr className="text-muted">
-                  <th>{t("history.columns.datetime", "Date / Time")}</th>
-                  <th>{t("history.columns.user", "User")}</th>
-                  <th>{t("history.columns.action", "Action")}</th>
-                  <th>{t("history.columns.method", "Method")}</th>
-                  <th>{t("history.columns.path", "Path")}</th>
-                  <th>{t("history.columns.ip", "IP")}</th>
-                  <th>{t("history.columns.status", "Status")}</th>
-                  <th className="text-center">{t("history.columns.details", "Details")}</th>
+                  <th className="history-col-datetime">{t("history.columns.datetime", "Date / Time")}</th>
+                  <th className="history-col-user">{t("history.columns.user", "User")}</th>
+                  <th className="history-col-action">{t("history.columns.action", "Action")}</th>
+                  <th className="history-col-method">{t("history.columns.method", "Method")}</th>
+                  <th className="history-col-path">{t("history.columns.path", "Path")}</th>
+                  <th className="history-col-ip">{t("history.columns.ip", "IP")}</th>
+                  <th className="history-col-status">{t("history.columns.status", "Status")}</th>
+                  <th className="history-col-details text-center">{t("history.columns.details", "Details")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -460,10 +461,10 @@ function AdminHistory() {
                 ) : (
                   logs.map((log) => (
                     <tr key={log.id} className="history-row ac-parent-row">
-                      <td className="text-nowrap history-datetime">
+                      <td className="history-col-datetime history-datetime">
                         {formatDateTime(log.created_at)}
                       </td>
-                      <td>
+                      <td className="history-col-user">
                         <div className="d-flex flex-column gap-1">
                           <span className="fw-medium text-dark history-user-name">
                             {log.user_name || t("history.guest_user", "Guest")}
@@ -471,27 +472,30 @@ function AdminHistory() {
                           {getRoleBadge(log.role)}
                         </div>
                       </td>
-                      <td>
+                      <td className="history-col-action">
                         <span className="history-description ac-truncate-text d-inline-block">
                           {log.description || "—"}
                         </span>
                       </td>
-                      <td>{getMethodBadge(log.http_method)}</td>
-                      <td>
-                        <code className="history-path-code">{log.path}</code>
+                      <td className="history-col-method">{getMethodBadge(log.http_method)}</td>
+                      <td className="history-col-path">
+                        <code className="history-path-code" title={log.path}>
+                          {log.path}
+                        </code>
                       </td>
-                      <td className="small text-muted">{log.ip_address || "—"}</td>
-                      <td>{getStatusBadge(log.response_status)}</td>
-                      <td className="text-center">
+                      <td className="history-col-ip small text-muted">{log.ip_address || "—"}</td>
+                      <td className="history-col-status">{getStatusBadge(log.response_status)}</td>
+                      <td className="history-col-details text-center">
                         <Button
                           variant="outline-danger"
                           size="sm"
-                          className="history-details-btn rounded-3 px-3"
+                          className="history-details-btn rounded-3"
                           disabled={!log.request_data}
                           onClick={() => setSelectedLog(log)}
+                          title={t("history.view_details", "View")}
                         >
-                          <i className="bi bi-eye me-lg-1"></i>
-                          <span className="d-none d-xl-inline">
+                          <i className="bi bi-eye"></i>
+                          <span className="history-details-btn-label ms-1">
                             {t("history.view_details", "View")}
                           </span>
                         </Button>
@@ -501,6 +505,7 @@ function AdminHistory() {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
           </>
         )}
