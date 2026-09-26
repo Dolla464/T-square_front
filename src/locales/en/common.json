@@ -29,6 +29,8 @@
     "title": "Site Under Maintenance!",
     "description": "We are currently upgrading and optimizing our platform to bring you the best possible educational experience. We will be back online shortly!",
     "adminAccess": "Admin Control Panel Access",
-    "refresh": "Refresh Page"
+    "refresh": "Refresh Page",
+    "stillInMaintenance": "The site is still under maintenance. Please try again later.",
+    "backOnline": "Maintenance is over. Redirecting you to the homepage..."
   }
 }

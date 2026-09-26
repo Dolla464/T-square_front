@@ -3,13 +3,18 @@ import { Container, Row, Col } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "./AllTeam.css";
-// import studentImg from "../../assets/student-avatar.jpg";
+import defaultTeamMemberImage from "../../assets/TEAM/default-member.jpg";
 import i18n from "../../i18n";
 import { useInstructors } from "../../hooks/useInstructors";
+import { hasRealAvatar, resolveAvatarUrl } from "../../utils/avatar";
 import CtaEnroll from "../shared/ctaEnroll/CtaEnroll";
 import TestimonialsSection from "../shared/TestimonialsSection/TestimonialsSection";
 
-// مكون فرعي عشان نعرض الكارت بتاع كل عضو بشكل نضيف بدون ما نزحم الكود الرئيسي
+function getTeamMemberImage(member) {
+  const image = member?.image;
+  if (!hasRealAvatar(image)) return defaultTeamMemberImage;
+  return resolveAvatarUrl(image);
+}
 
 function AllTeam() {
   const { t } = useTranslation(["team", "navbar", "cta", "testimonials"]);
@@ -72,10 +77,13 @@ function AllTeam() {
                   <div className="team-card">
                     <div className="member-img-wrapper">
                       <img
-                        //نغير الصوره لما تكون متوفره فالداتا بيز 
-                        src={member.image}
+                        src={getTeamMemberImage(member)}
                         alt={member.fullname || "Instructor"}
                         className="member-img"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = defaultTeamMemberImage;
+                        }}
                       />
                     </div>
                     <div className="member-info text-center">

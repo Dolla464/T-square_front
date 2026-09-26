@@ -1,32 +1,74 @@
-import React, { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Container, Card, Button } from "react-bootstrap";
+import React, { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Container, Card, Button, Spinner } from "react-bootstrap";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
+import {
+  toastInfo,
+  toastSuccess,
+} from "../../components/shared/Toaster/toaster";
 import tsquareLogo from "../../assets/logo-dark.webp";
 import "../Login/Login.css";
 import "../NotFound/NotFoundPage.css";
 import "./MaintenancePage.css";
 
 const MaintenancePage = () => {
-  const { checkMaintenanceStatus, isMaintenance } = useAuth();
-  const navigate = useNavigate();
+  const { checkMaintenanceStatus } = useAuth();
   const { t, i18n } = useTranslation("common");
   const isArabic = i18n.language === "ar";
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    // 1. أول ما الصفحة تفتح، تشيك على السيرفر للتأكيد اللحظي
-    if (typeof checkMaintenanceStatus === "function") {
-      checkMaintenanceStatus();
-    }
+  const redirectToHome = useCallback(() => {
+    window.location.assign("/");
   }, []);
 
+  const verifyMaintenanceStatus = useCallback(
+    async ({ showFeedback = false } = {}) => {
+      if (showFeedback) {
+        setIsRefreshing(true);
+      }
+
+      try {
+        const stillInMaintenance = await checkMaintenanceStatus();
+
+        if (stillInMaintenance === false) {
+          if (showFeedback) {
+            toastSuccess(
+              t("maintenance.backOnline", {
+                defaultValue:
+                  "Maintenance is over. Redirecting you to the homepage...",
+              }),
+            );
+          }
+
+          redirectToHome();
+          return;
+        }
+
+        if (showFeedback) {
+          toastInfo(
+            t("maintenance.stillInMaintenance", {
+              defaultValue:
+                "The site is still under maintenance. Please try again later.",
+            }),
+          );
+        }
+      } catch {
+        if (showFeedback) {
+          window.location.reload();
+        }
+      } finally {
+        if (showFeedback) {
+          setIsRefreshing(false);
+        }
+      }
+    },
+    [checkMaintenanceStatus, redirectToHome, t],
+  );
+
   useEffect(() => {
-    // 2. المراقبة الذكية: لو وضع الصيانة أصبح "مغلق" (false)، حوّل فوراً للهوم
-    if (isMaintenance === false) {
-      navigate("/");
-    }
-  }, [isMaintenance, navigate]);
+    verifyMaintenanceStatus();
+  }, [verifyMaintenanceStatus]);
 
   return (
     <div
@@ -77,7 +119,9 @@ const MaintenancePage = () => {
                 <Button
                   variant="danger"
                   className="w-100 fw-bold py-2 login-btn"
-                  onClick={() => navigate("/login")}
+                  onClick={() => {
+                    window.location.assign("/login");
+                  }}
                 >
                   {t("maintenance.adminAccess", {
                     defaultValue: "Admin Control Panel Access",
@@ -88,15 +132,20 @@ const MaintenancePage = () => {
                 <Button
                   variant="outline-secondary"
                   className="w-100 fw-bold py-2 btn-back"
-                  onClick={async () => {
-                    // يفحص حالة الصيانة برمجياً وينتظر تحديث الـ Context State
-                    await checkMaintenanceStatus();
-                    // تم حذف window.location.reload() لعدم تصفير الـ React State
-                  }}
+                  disabled={isRefreshing}
+                  onClick={() => verifyMaintenanceStatus({ showFeedback: true })}
                 >
-                  <i
-                    className={`bi bi-arrow-clockwise ${isArabic ? "ms-1" : "me-1"}`}
-                  ></i>
+                  {isRefreshing ? (
+                    <Spinner
+                      animation="border"
+                      size="sm"
+                      className={isArabic ? "ms-1" : "me-1"}
+                    />
+                  ) : (
+                    <i
+                      className={`bi bi-arrow-clockwise ${isArabic ? "ms-1" : "me-1"}`}
+                    ></i>
+                  )}
                   {t("maintenance.refresh", { defaultValue: "Refresh Page" })}
                 </Button>
               </div>
