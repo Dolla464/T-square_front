@@ -124,6 +124,7 @@ export const useStudentAttendance = () => {
       } catch (err) {
         const msg = err?.response?.data?.message || "Check-in failed.";
         setCheckInError(msg);
+        toastError(msg);
         throw err;
       } finally {
         setCheckInLoading(false);

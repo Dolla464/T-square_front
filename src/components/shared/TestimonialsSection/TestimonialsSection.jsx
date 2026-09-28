@@ -146,12 +146,6 @@ function TestimonialsSection({
           </div>
         )}
 
-        {error && (
-          <div className="text-center py-5 text-danger">
-            <p>{t("errorLoading") || "Failed to load testimonials."}</p>
-          </div>
-        )}
-
         {!loading && !error && !hasAnyReviews && (
           <div className="text-center py-5 text-muted">
             <p>{t("empty") || "No reviews yet."}</p>

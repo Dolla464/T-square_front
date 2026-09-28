@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import toast from "react-hot-toast";
+import { toastError } from "../../../components/shared/Toaster/toaster";
 import { useTranslation } from "react-i18next";
 import { getTags as fetchTags } from "../services/tagsService";
 
@@ -22,7 +22,7 @@ export const useTags = () => {
       // eslint-disable-next-line
       const errorMsg = err.response?.data?.message || t("adminDashboard:errors.fetch_failed", "Failed to fetch tags");
       setError(errorMsg);
-      toast.error(errorMsg);
+      toastError(errorMsg);
     } finally {
       setLoading(false);
     }

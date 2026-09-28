@@ -31,7 +31,8 @@ function AppNavbar({ isLoggedIn, userName }) {
     const confirmed = await showLogoutConfirm();
     if (!confirmed) return;
 
-    logout();
+    navigate("/", { replace: true });
+    await logout();
     toastCustom({
       message:
         i18n.language === "ar"
@@ -41,7 +42,6 @@ function AppNavbar({ isLoggedIn, userName }) {
       bsIcon: "bi-box-arrow-right",
       duration: 3000,
     });
-    navigate("/");
   };
 
   useEffect(() => {

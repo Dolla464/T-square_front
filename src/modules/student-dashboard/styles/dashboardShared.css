@@ -27,20 +27,66 @@
 .activation-banner {
   background-color: #fff8e1;
   border: 1.5px solid #ffc107;
-  color: #856404;
-  padding: 12px 18px;
+  color: #5c4200;
+  padding: 14px 18px;
   border-radius: 12px;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   font-size: 0.92rem;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.1);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.12);
 }
 
 .activation-banner i {
-  font-size: 1.3rem;
-  color: #ffc107;
+  font-size: 1.25rem;
+  color: #e65100;
+}
+
+.activation-banner-message {
+  color: #5c4200;
+  line-height: 1.5;
+}
+
+.activation-resend-btn {
+  background-color: #be1522;
+  border: 1px solid #a01220;
+  color: #fff !important;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+
+.activation-resend-btn:hover:not(:disabled) {
+  background-color: #9a1119;
+  border-color: #7d0e15;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(190, 21, 34, 0.35);
+  transform: translateY(-1px);
+}
+
+.activation-resend-btn:active:not(:disabled) {
+  background-color: #7d0e15;
+  border-color: #6b0c12;
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(190, 21, 34, 0.25);
+}
+
+.activation-resend-btn:disabled {
+  background-color: #d48a90;
+  border-color: #c97a80;
+  color: #fff !important;
+  opacity: 0.85;
+  cursor: not-allowed;
 }
 
 [dir="rtl"] .activation-banner {

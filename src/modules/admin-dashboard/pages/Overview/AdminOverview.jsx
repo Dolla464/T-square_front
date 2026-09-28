@@ -1,5 +1,5 @@
 import React from "react";
-import { Spinner, Alert } from "react-bootstrap";
+import { Spinner } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
@@ -232,12 +232,6 @@ function AdminOverview() {
           <p className="ac-subtitle text-muted mb-0">{t("subtitle")}</p>
         </div>
       </div>
-
-      {statsError && (
-        <Alert variant="danger" className="mb-4">
-          {statsError}
-        </Alert>
-      )}
 
       <div className="row g-3 mb-4">
         {statsLoading ? (

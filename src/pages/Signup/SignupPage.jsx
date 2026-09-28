@@ -1,4 +1,4 @@
-import { Container, Card, Form, Button, Nav, Alert, Spinner } from "react-bootstrap";
+import { Container, Card, Form, Button, Nav, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import tsquareLogo from "../../assets/logo-dark.webp";
@@ -28,7 +28,7 @@ function SignupPage() {
     },
   });
 
-  const { executeRegister, loading, error: apiError, successMsg } = useRegister();
+  const { executeRegister, loading } = useRegister();
 
   const onSubmit = async (data) => {
     try {
@@ -58,9 +58,6 @@ function SignupPage() {
               {t("signup_form.title")}
             </Card.Title>
 
-            {apiError && <Alert variant="danger">{apiError}</Alert>}
-            {successMsg && <Alert variant="success">{successMsg}</Alert>}
-            
             <Form onSubmit={handleSubmit(onSubmit)}>
               {/* حقل الاسم */}
               <Form.Group className="mb-3 signup-form-group">

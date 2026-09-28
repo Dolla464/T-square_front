@@ -5,7 +5,6 @@ import {
   Form,
   Row,
   Spinner,
-  Alert,
 } from "react-bootstrap";
 import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
 import { useAdminSchedule } from "../../hooks/useAdminSchedule";
@@ -183,16 +182,6 @@ function ScheduleFilters({
 // ── Session Table ─────────────────────────────────────────────────────────────
 
 function ScheduleTable({ sessions, loading, error, onReschedule, onCancel, readOnly = false }) {
-  if (error) {
-    return (
-      <div className="p-3">
-        <Alert variant="danger" className="mb-0">
-          <i className="bi bi-exclamation-triangle-fill me-2"></i>{error}
-        </Alert>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="text-center py-5">

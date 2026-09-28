@@ -10,11 +10,14 @@ import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { showLogoutConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
-import { toastCustom } from "../../../../components/shared/Toaster/toaster";
+import {
+  toastCustom,
+  toastSuccess,
+  toastError,
+} from "../../../../components/shared/Toaster/toaster";
 import logoDark from "../../../../assets/logo-dark.webp";
 import "./DashboardSharedLayout.css";
 import { resendVerificationNotification } from "../../../../services/register";
-import toast from "react-hot-toast";
 import { Alert, Spinner } from "react-bootstrap";
 import { useUnreadCount } from "../../../../hooks/useNotifications";
 import { formatNotificationBadge } from "../../../../utils/notifications";
@@ -145,14 +148,14 @@ function DashboardSharedLayout({
   const handleLogout = async () => {
     const confirmed = await showLogoutConfirm();
     if (!confirmed) return;
-    logout();
+    navigate("/", { replace: true });
+    await logout();
     toastCustom({
       message: isArabic ? "تم تسجيل الخروج بنجاح" : "Logged out successfully",
       type: "info",
       bsIcon: "bi-box-arrow-right",
       duration: 3000,
     });
-    navigate("/");
   };
   const [isResending, setIsResending] = useState(false);
 
@@ -160,12 +163,12 @@ function DashboardSharedLayout({
     try {
       setIsResending(true);
       await resendVerificationNotification();
-      toast.success(
+      toastSuccess(
         t("verification_link_sent") ||
           "تم إرسال رابط تفعيل جديد إلى بريدك الإلكتروني.",
       );
     } catch (error) {
-      toast.error(
+      toastError(
         error.response?.data?.message ||
           t("resend_failed") ||
           "حدث خطأ أثناء محاولة إرسال الرابط. يرجى المحاولة لاحقاً.",
@@ -481,7 +484,7 @@ function DashboardSharedLayout({
               <Alert className="activation-banner d-flex justify-content-between">
                 <div className="d-flex align-items-center gap-2">
                   <i className="bi bi-exclamation-circle-fill"></i>
-                  <span>
+                  <span className="activation-banner-message">
                     {isArabic
                       ? `الحساب غير مفعل - برجاء مراجعة البريد الإلكتروني: ${user?.email}`
                       : `Account not activated - please check your email: ${user?.email}`}
@@ -489,7 +492,7 @@ function DashboardSharedLayout({
                 </div>
                 <button
                   type="button"
-                  className="mt-2 fw-bold mb-1 btn ac-publish-btn text-white px-3 py-2"
+                  className="btn activation-resend-btn"
                   onClick={handleResend}
                   disabled={isResending}
                 >
@@ -506,7 +509,10 @@ function DashboardSharedLayout({
                       {t("sending") || "جاري الإرسال..."}
                     </>
                   ) : (
-                    "Send verification link again" || "إعادة إرسال رابط التفعيل"
+                    t("resend_verification_link") ||
+                      (isArabic
+                        ? "إعادة إرسال رابط التفعيل"
+                        : "Send verification link again")
                   )}
                 </button>
               </Alert>

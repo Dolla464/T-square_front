@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import {
   Container,
@@ -6,7 +6,6 @@ import {
   Form,
   Button,
   Nav,
-  Alert,
   Spinner,
   InputGroup,
 } from "react-bootstrap";
@@ -20,6 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "../../utils/validationSchemas";
 import { useAuth } from "../../contexts/AuthContext";
 import { getRouteByRole } from "../../config/routes";
+import { toastWarning } from "../../components/shared/Toaster/toaster";
 
 function LoginPage() {
   const { t, i18n } = useTranslation("auth");
@@ -28,9 +28,17 @@ function LoginPage() {
   const location = useLocation();
   const sessionExpired = location.state?.sessionExpired === true;
   const { user } = useAuth();
-  const { executeLogin, loading, error: apiError } = useLogin();
+  const { executeLogin, loading } = useLogin();
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const sessionExpiredNotified = useRef(false);
+
+  useEffect(() => {
+    if (sessionExpired && !sessionExpiredNotified.current) {
+      sessionExpiredNotified.current = true;
+      toastWarning(tCommon("sessionExpired.loginAlert"));
+    }
+  }, [sessionExpired, tCommon]);
 
   if (user) {
     return <Navigate to={getRouteByRole(user.role)} replace />;
@@ -86,18 +94,6 @@ function LoginPage() {
             <Card.Title className="fw-bold fs-4 mb-4 text-dark login-title">
               {t("login_form.title")}
             </Card.Title>
-
-            {sessionExpired && (
-              <Alert variant="warning">{tCommon("sessionExpired.loginAlert")}</Alert>
-            )}
-
-            {apiError && (
-              <Alert variant="danger">
-                {isArabic
-                  ? "البريد الإلكتروني أو كلمة المرور غير صحيحة"
-                  : "Invalid email or password"}
-              </Alert>
-            )}
 
             <Form onSubmit={handleSubmit(onSubmit)}>
               {/* حقل الإيميل */}

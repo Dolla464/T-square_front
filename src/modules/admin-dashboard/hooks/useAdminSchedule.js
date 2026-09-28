@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import toast from "react-hot-toast";
+import { toastSuccess, toastError } from "../../../components/shared/Toaster/toaster";
 import {
   getScheduleSessions,
   rescheduleSession as apiReschedule,
@@ -100,7 +100,7 @@ export const useAdminSchedule = () => {
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to load schedule.";
       setError(msg);
-      toast.error(msg);
+      toastError(msg);
     } finally {
       setLoading(false);
     }
@@ -202,12 +202,12 @@ export const useAdminSchedule = () => {
     setActionLoading(true);
     try {
       await apiReschedule(sessionId, data);
-      toast.success("Session rescheduled successfully. Notifications sent.");
+      toastSuccess("Session rescheduled successfully. Notifications sent.");
       closeRescheduleModal();
       fetchSessions();
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to reschedule session.";
-      toast.error(msg);
+      toastError(msg);
     } finally {
       setActionLoading(false);
     }
@@ -226,12 +226,12 @@ export const useAdminSchedule = () => {
     setActionLoading(true);
     try {
       await apiCancel(sessionId, reason);
-      toast.success("Session cancelled. Notifications sent.");
+      toastSuccess("Session cancelled. Notifications sent.");
       closeCancelModal();
       fetchSessions();
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to cancel session.";
-      toast.error(msg);
+      toastError(msg);
     } finally {
       setActionLoading(false);
     }
@@ -248,7 +248,7 @@ export const useAdminSchedule = () => {
     try {
       await apiExport(exportFilters, format);
     } catch {
-      toast.error("Export failed. Please try again.");
+      toastError("Export failed. Please try again.");
     }
   }, [filters, viewMode]);
 

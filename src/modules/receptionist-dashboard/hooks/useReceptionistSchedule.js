@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import toast from "react-hot-toast";
+import { toastError } from "../../../components/shared/Toaster/toaster";
 import {
   getScheduleSessions,
   exportSchedule as apiExport,
@@ -82,7 +82,7 @@ export const useReceptionistSchedule = () => {
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to load schedule.";
       setError(msg);
-      toast.error(msg);
+      toastError(msg);
     } finally {
       setLoading(false);
     }
@@ -171,7 +171,7 @@ export const useReceptionistSchedule = () => {
     try {
       await apiExport(exportFilters, format);
     } catch {
-      toast.error("Export failed. Please try again.");
+      toastError("Export failed. Please try again.");
     }
   }, [filters, viewMode]);
 

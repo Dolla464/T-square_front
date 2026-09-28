@@ -4,7 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { verifyEmail, resendVerificationNotification } from "../../services/register";
 import { useTranslation } from "react-i18next";
 import { Container, Card, Button, Spinner } from "react-bootstrap";
-import toast from "react-hot-toast";
+import { toastSuccess, toastError } from "../../components/shared/Toaster/toaster";
 import { safeReturnUrl } from "../../utils/safeReturnUrl";
 import tsquareLogo from "../../assets/logo-dark.webp"; 
 import "../Login/Login.css"; // Reuse login wrapper styling
@@ -34,7 +34,7 @@ const VerifyEmailPage = () => {
 
     // If not logged in, redirect to login with returnUrl
     if (!user) {
-      toast.error(isArabic ? "Ø§Ù„Ø±Ø¬Ø§Ø¡ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø£ÙˆÙ„Ø§Ù‹ Ù„ØªÙØ¹ÙŠÙ„ Ø­Ø³Ø§Ø¨Ùƒ" : "Please login first to verify your account");
+      toastError(isArabic ? "الرجاء تسجيل الدخول أولاً لتفعيل حسابك" : "Please login first to verify your account");
       navigate("/login", { state: { returnUrl: safeReturnUrl(location.pathname + location.search) } });
       return;
     }
@@ -57,7 +57,7 @@ const VerifyEmailPage = () => {
         updateUser({ ...user, is_verified: true });
         
         setStatus("success");
-        toast.success(isArabic ? "ØªÙ… ØªÙØ¹ÙŠÙ„ Ø­Ø³Ø§Ø¨Ùƒ Ø¨Ù†Ø¬Ø§Ø­!" : "Account verified successfully!");
+        toastSuccess(isArabic ? "تم تفعيل حسابك بنجاح!" : "Account verified successfully!");
         
         // Redirect to dashboard after a short delay
         setTimeout(() => {
@@ -87,11 +87,11 @@ const VerifyEmailPage = () => {
     try {
       setIsResending(true);
       await resendVerificationNotification();
-      toast.success(isArabic ? "ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø±Ø§Ø¨Ø· ØªÙØ¹ÙŠÙ„ Ø¬Ø¯ÙŠØ¯ Ø¥Ù„Ù‰ Ø¨Ø±ÙŠØ¯Ùƒ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ." : "A new verification link has been sent to your email.");
+      toastSuccess(isArabic ? "تم إرسال رابط تفعيل جديد إلى بريدك الإلكتروني." : "A new verification link has been sent to your email.");
     } catch (error) {
-      toast.error(
+      toastError(
         error.response?.data?.message || 
-        (isArabic ? "Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ù…Ø­Ø§ÙˆÙ„Ø© Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø±Ø§Ø¨Ø·. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù„Ø§Ø­Ù‚Ø§Ù‹." : "An error occurred while resending the link. Please try again later.")
+        (isArabic ? "حدث خطأ أثناء محاولة إرسال الرابط. يرجى المحاولة لاحقاً." : "An error occurred while resending the link. Please try again later.")
       );
     } finally {
       setIsResending(false);

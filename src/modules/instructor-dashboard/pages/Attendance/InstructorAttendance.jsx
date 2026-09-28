@@ -1,13 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
-import {
-  Spinner,
-  Badge,
-  ProgressBar,
-  Toast,
-  ToastContainer,
-} from "react-bootstrap";
+import { Spinner, Badge, ProgressBar } from "react-bootstrap";
+import { toastCustom } from "../../../../components/shared/Toaster/toaster";
 import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
 import { QRCodeSVG } from "qrcode.react";
 import { useInstructorAttendance } from "../../hooks/useInstructorAttendance";
@@ -18,6 +13,36 @@ import SessionStatusBadge from "../../../../components/shared/SessionStatusBadge
 import { resolveAvatarUrl } from "../../../../utils/avatar";
 
 const RECENT_SCANS_LIMIT = 10;
+
+const showScanToast = (isArabic, { name, status, isDuplicate }) => {
+  if (isDuplicate) {
+    toastCustom({
+      message: isArabic
+        ? `${name} — مسجل بالفعل حاضراً`
+        : `${name} — Already marked present`,
+      type: "warning",
+      bsIcon: "bi-qr-code-scan",
+    });
+    return;
+  }
+
+  let type = "success";
+  let statusLabel = isArabic ? "حاضر" : "Present";
+
+  if (status === "late") {
+    type = "warning";
+    statusLabel = isArabic ? "متأخر" : "Late";
+  } else if (status === "absent") {
+    type = "error";
+    statusLabel = isArabic ? "غائب" : "Absent";
+  }
+
+  toastCustom({
+    message: `${name} — ${statusLabel}`,
+    type,
+    bsIcon: "bi-qr-code-scan",
+  });
+};
 
 function SectionTitle({ icon, title, badge }) {
   return (
@@ -112,8 +137,6 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [showQrModal, setShowQrModal] = useState(false);
-  const [toastMessage, setToastMessage] = useState(null); // { name, status }
-
   // ── Real-time polling ──────────────────────────────────────────────────────
 
   const handleStudentScanned = useCallback((record) => {
@@ -129,8 +152,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
     const isAlreadyMarked = ["present", "late"].includes(student.status);
 
     if (isAlreadyMarked) {
-      // Show warning toast for duplicate scan
-      setToastMessage({
+      showScanToast(isArabic, {
         name: record.student_name,
         status: record.status,
         isDuplicate: true,
@@ -144,16 +166,13 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
         return [record, ...filtered].slice(0, RECENT_SCANS_LIMIT);
       });
 
-      // Show success toast
-      setToastMessage({
+      showScanToast(isArabic, {
         name: record.student_name,
         status: record.status,
         isDuplicate: false,
       });
     }
-
-    setTimeout(() => setToastMessage(null), 3000);
-  }, [students, applyScannedRecord, setRecentScans]);
+  }, [students, applyScannedRecord, setRecentScans, isArabic]);
 
   const { isPolling } = useAttendanceRealtime(
     activeSession?.session_id ?? null,
@@ -213,45 +232,6 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
 
   return (
     <div className="admin-content-page" dir={isArabic ? "rtl" : "ltr"}>
-
-      {/* ── TOAST NOTIFICATIONS ── */}
-      <ToastContainer position="top-end" className="p-3" style={{ zIndex: 1100 }}>
-        <Toast
-          show={!!toastMessage}
-          onClose={() => setToastMessage(null)}
-          bg={
-            toastMessage?.isDuplicate
-              ? "warning"
-              : toastMessage?.status === "present"
-                ? "success"
-                : toastMessage?.status === "late"
-                  ? "warning"
-                  : "secondary"
-          }
-          delay={3000}
-          autohide
-        >
-          <Toast.Header>
-            <i className="bi bi-qr-code-scan me-2"></i>
-            <strong className="me-auto">
-              {toastMessage?.isDuplicate
-                ? (isArabic ? "مسح مكرر" : "Duplicate Scan")
-                : (isArabic ? "مسح جديد" : "New Scan")}
-            </strong>
-          </Toast.Header>
-          <Toast.Body className={toastMessage?.isDuplicate ? "text-dark" : "text-white"}>
-            <strong>{toastMessage?.name}</strong>
-            {" — "}
-            {toastMessage?.isDuplicate
-              ? (isArabic ? "مسجل بالفعل حاضراً" : "Already marked present")
-              : toastMessage?.status === "present"
-                ? (isArabic ? "حاضر" : "Present")
-                : toastMessage?.status === "late"
-                  ? (isArabic ? "متأخر" : "Late")
-                  : (isArabic ? "غائب" : "Absent")}
-          </Toast.Body>
-        </Toast>
-      </ToastContainer>
 
       {/* ── PAGE HEADER ── */}
       <div className="ac-header d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">

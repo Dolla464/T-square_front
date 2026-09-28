@@ -591,13 +591,6 @@ function CurriculumTab({
                             </div>
                           )}
 
-                          {/* Upload error notice */}
-                          {!isReadOnly && uploadError && (
-                            <div className="alert alert-danger py-1 px-2 mb-0 small rounded-3">
-                              <i className="bi bi-exclamation-triangle me-1"></i>
-                              {uploadError}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>

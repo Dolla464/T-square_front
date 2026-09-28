@@ -33,6 +33,7 @@ export const useLeaveReview = (courseId) => {
         err?.response?.data?.message ||
         (isArabic ? "تعذر تحميل بيانات التقييم" : "Failed to load review data");
       setError(message);
+      toastError(message);
     } finally {
       setLoading(false);
     }

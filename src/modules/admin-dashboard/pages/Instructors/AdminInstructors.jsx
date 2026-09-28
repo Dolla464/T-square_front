@@ -11,7 +11,7 @@ import {
   hasRealAvatar,
   resolveAvatarUrl,
 } from "../../../../utils/avatar";
-// import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
+import { toastWarning } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 
 const defaultFormData = {
@@ -277,7 +277,7 @@ function AdminInstructors() {
 
     // التحقق الأساسي من صحة البيانات قبل الإرسال (Frontend Validation)
     if (formData.full_name.length < 10) {
-      alert(
+      toastWarning(
         isArabic
           ? "يجب أن يكون الاسم الكامل 10 أحرف على الأقل"
           : "Full name must be at least 10 characters",
@@ -286,7 +286,7 @@ function AdminInstructors() {
     }
 
     if (!editingItem && formData.password.length < 8) {
-      alert(
+      toastWarning(
         isArabic
           ? "يجب أن تكون كلمة المرور 8 أحرف على الأقل"
           : "Password must be at least 8 characters",
@@ -295,7 +295,7 @@ function AdminInstructors() {
     }
 
     if (!editingItem && formData.password !== formData.password_confirmation) {
-      alert(
+      toastWarning(
         isArabic
           ? "تأكيد كلمة المرور غير متطابق"
           : "Password confirmation does not match",
@@ -305,7 +305,7 @@ function AdminInstructors() {
 
     if (editingItem && formData.password) {
       if (formData.password.length < 8) {
-        alert(
+        toastWarning(
           isArabic
             ? "يجب أن تكون كلمة المرور 8 أحرف على الأقل"
             : "Password must be at least 8 characters",
@@ -314,7 +314,7 @@ function AdminInstructors() {
       }
 
       if (formData.password !== formData.password_confirmation) {
-        alert(
+        toastWarning(
           isArabic
             ? "تأكيد كلمة المرور غير متطابق"
             : "Password confirmation does not match",
@@ -324,7 +324,7 @@ function AdminInstructors() {
     }
 
     if (formData.bio.length < 20) {
-      alert(
+      toastWarning(
         isArabic
           ? "يجب أن تكون النبذة التعريفية 20 حرفاً على الأقل"
           : "Biography must be at least 20 characters",

@@ -1,4 +1,4 @@
-import { Container, Card, Form, Button, Alert, Spinner } from "react-bootstrap";
+import { Container, Card, Form, Button, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import tsquareLogo from "../../assets/logo-dark.webp";
@@ -24,7 +24,7 @@ function ForgotPassword() {
     },
   });
 
-  const { executeForgotPassword, loading, error: apiError, successMsg } = useForgotPassword();
+  const { executeForgotPassword, loading } = useForgotPassword();
 
   const onSubmit = async (data) => {
     try {
@@ -54,27 +54,6 @@ function ForgotPassword() {
             <Card.Title className="fw-bold fs-4 mb-4 text-dark forgot-title">
               {t("forgot_form.reset_password")}
             </Card.Title>
-
-            {apiError && (
-              <Alert variant={apiError.type === 'throttle' ? 'warning' : 'danger'} className="d-flex align-items-center gap-2">
-                <i className={`bi ${apiError.type === 'throttle' ? 'bi-hourglass-split' : 'bi-exclamation-triangle-fill'}`}></i>
-                <div>
-                  {apiError.type === 'throttle'
-                    ? (isArabic ? 'لقد أرسلت طلبًا مؤخرًا. يرجى الانتظار قليلاً قبل المحاولة مرة أخرى.' : 'You recently sent a request. Please wait a moment before trying again.')
-                    : (isArabic ? 'البريد الإلكتروني غير صحيح أو غير مسجل' : 'Invalid or unregistered email')}
-                </div>
-              </Alert>
-            )}
-            {successMsg && (
-              <Alert variant="success" className="d-flex align-items-center gap-2">
-                <i className="bi bi-check-circle-fill"></i>
-                <div>
-                  {isArabic 
-                    ? "تم إرسال رابط إعادة تعيين كلمة المرور بنجاح. يرجى التحقق من بريدك الإلكتروني (بما في ذلك البريد العشوائي)." 
-                    : "Password reset link sent successfully. Please check your email (including spam folder)."}
-                </div>
-              </Alert>
-            )}
 
             <Form onSubmit={handleSubmit(onSubmit)}>
               {/* حقل الإيميل */}

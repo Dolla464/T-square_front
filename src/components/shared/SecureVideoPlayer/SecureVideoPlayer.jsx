@@ -3,7 +3,13 @@ import videojs from "video.js";
 import "video.js/dist/video-js.css";
 import { normalizeStorageUrl } from "../../../utils/resolveApiOrigin";
 import WatermarkOverlay from "./WatermarkOverlay";
+import { toastError } from "../Toaster/toaster";
 import "./SecureVideoPlayer.css";
+
+const reportPlaybackError = (setErrorState, message) => {
+  setErrorState(message);
+  toastError(message);
+};
 
 function resolvePlaybackError(status, isArabic) {
   if (status === 403) {
@@ -76,7 +82,8 @@ function SecureVideoPlayer({
 
         if (!payload?.stream_url) {
           onUnavailableRef.current?.();
-          setError(
+          reportPlaybackError(
+            setError,
             isArabic
               ? "لم يُرجع الخادم رابط تشغيل للفيديو."
               : "The server did not return a playback URL.",
@@ -87,7 +94,8 @@ function SecureVideoPlayer({
 
         if (payload.content_type !== "video/mp4") {
           onUnavailableRef.current?.();
-          setError(
+          reportPlaybackError(
+            setError,
             isArabic
               ? "صيغة الفيديو غير مدعومة للتشغيل."
               : "This video format is not supported for playback.",
@@ -109,7 +117,10 @@ function SecureVideoPlayer({
           onUnavailableRef.current?.();
         }
 
-        setError(resolvePlaybackError(httpStatus, isArabic));
+        reportPlaybackError(
+          setError,
+          resolvePlaybackError(httpStatus, isArabic),
+        );
         setStatus("error");
       }
     };
@@ -147,7 +158,10 @@ function SecureVideoPlayer({
 
     const handleError = async () => {
       if (hasAutoRetriedRef.current) {
-        setError(resolvePlaybackError(undefined, isArabic));
+        reportPlaybackError(
+          setError,
+          resolvePlaybackError(undefined, isArabic),
+        );
         setStatus("error");
         return;
       }
@@ -181,7 +195,10 @@ function SecureVideoPlayer({
         } else if (httpStatus === 422) {
           onUnavailableRef.current?.();
         }
-        setError(resolvePlaybackError(httpStatus, isArabic));
+        reportPlaybackError(
+          setError,
+          resolvePlaybackError(httpStatus, isArabic),
+        );
         setStatus("error");
       } finally {
         retryInFlightRef.current = false;

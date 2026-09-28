@@ -23,7 +23,7 @@ function LeaveReview() {
   const { courseId } = useParams();
   const isArabic = i18next.language === "ar";
 
-  const { eligibility, loading, submitting, error, submitReview } =
+  const { eligibility, loading, submitting, submitReview } =
     useLeaveReview(courseId);
 
   const [ratings, setRatings] = useState({});
@@ -280,12 +280,6 @@ function LeaveReview() {
       </section>
 
       <div className="container-fluid px-3 px-lg-4 mt-4">
-        {error && (
-          <div className="alert alert-danger" role="alert">
-            {error}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="lr-body">
           <div className="lr-columns-grid">
             {SHARED_REVIEW_GROUPS.map(renderQuestionGroup)}

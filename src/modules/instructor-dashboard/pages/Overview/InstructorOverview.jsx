@@ -137,10 +137,6 @@ function GroupDetailsModal({ show, groupId, onHide }) {
         </div>
       )}
 
-      {error && !loading && (
-        <Alert variant="danger">{error}</Alert>
-      )}
-
       {!loading && details && (
         <>
           {/* Chart + quick stats */}
@@ -385,10 +381,6 @@ function InstructorOverview() {
                 </div>
               )}
 
-              {groupsError && !groupsLoading && (
-                <Alert variant="danger">{groupsError}</Alert>
-              )}
-
               {!groupsLoading && !groupsError && groups.length === 0 && (
                 <div className="text-center py-5 text-muted">
                   <div
@@ -517,10 +509,6 @@ function InstructorOverview() {
                     </div>
                     <div className="text-muted small">{t("completedGroups.loading", "Loading completed groups…")}</div>
                   </div>
-                )}
-
-                {completedError && !completedLoading && (
-                  <Alert variant="danger">{completedError}</Alert>
                 )}
 
                 {!completedLoading && !completedError && completedGroups.length === 0 && (

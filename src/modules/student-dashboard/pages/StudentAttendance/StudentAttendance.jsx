@@ -164,7 +164,6 @@ function StudentAttendance() {
     historyLoading,
     checkInLoading,
     checkInSuccess,
-    checkInError,
     loadToday,
     loadQrCode,
     handleCheckIn,
@@ -575,12 +574,6 @@ function StudentAttendance() {
                           </div>
                         ) : (
                           <div className="w-100">
-                            {checkInError && (
-                              <div className="alert alert-danger py-2 mb-3 small" role="alert" style={{ borderRadius: "10px" }}>
-                                <i className="bi bi-exclamation-triangle me-1" />
-                                {checkInError}
-                              </div>
-                            )}
                             <QrScannerWidget
                               onScan={handleCheckIn}
                               onError={handleCameraError}

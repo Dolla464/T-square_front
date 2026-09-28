@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useGoogleStorageAccounts } from "../../hooks/useGoogleStorageAccounts";
 import { showConfirmCustom, showDeleteConfirm, showInputDialog } from "../../../../components/shared/ConfirmDialog/confirmDialog";
-import { toastError } from "../../../../components/shared/Toaster/toaster";
+import { toastError, toastSuccess } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import "./GoogleStorageAccounts.css";
 
@@ -38,12 +38,20 @@ function GoogleStorageAccounts() {
 
     if (connected === "1") {
       fetchAccounts();
+      toastSuccess(
+        isArabic ? "تم ربط الحساب بنجاح." : "Account connected successfully.",
+      );
     }
 
     if (error) {
       fetchAccounts();
+      toastError(
+        isArabic
+          ? "تعذر إكمال ربط Google. حاول مرة أخرى."
+          : "Google connection could not be completed. Please try again.",
+      );
     }
-  }, [searchParams, fetchAccounts]);
+  }, [searchParams, fetchAccounts, isArabic]);
 
   const handleCreate = async () => {
     const name = await showInputDialog({
@@ -132,20 +140,6 @@ function GoogleStorageAccounts() {
       <div className="ac-table-card">
         <div className="ac-table-container">
           <div className="ac-rounded-table p-3 p-md-0">
-            {searchParams.get("connected") === "1" && (
-              <div className="alert alert-success mx-3 mt-3 mb-0">
-                {isArabic ? "تم ربط الحساب بنجاح." : "Account connected successfully."}
-              </div>
-            )}
-
-            {searchParams.get("error") && (
-              <div className="alert alert-danger mx-3 mt-3 mb-0">
-                {isArabic
-                  ? "تعذر إكمال ربط Google. حاول مرة أخرى."
-                  : "Google connection could not be completed. Please try again."}
-              </div>
-            )}
-
             <div className="ac-google-storage-table-wrap">
               <table className="table ac-table ac-google-storage-table mb-0 align-middle">
                 <thead>

@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { loginService } from '../services/login';
 import { useAuth } from '../contexts/AuthContext';
-import { toastWelcome } from '../components/shared/Toaster/toaster';
+import { toastWelcome, toastError } from '../components/shared/Toaster/toaster';
 import { getRouteByRole } from '../config/routes';
 import { safeReturnUrl } from '../utils/safeReturnUrl';
 
 export const useLogin = () => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,7 +19,6 @@ export const useLogin = () => {
 
   const executeLogin = async (credentials, rememberMe = false) => {
     setLoading(true);
-    setError(null);
 
     try {
       const response = await loginService(credentials);
@@ -42,13 +40,20 @@ export const useLogin = () => {
 
       return actualData;
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
-      setError(errorMessage);
+      const isArabic =
+        document.documentElement.lang === 'ar' ||
+        localStorage.getItem('i18nextLng')?.startsWith('ar');
+      const errorMessage =
+        err.response?.data?.message ||
+        (isArabic
+          ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+          : 'Invalid email or password');
+      toastError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  return { executeLogin, loading, error };
+  return { executeLogin, loading };
 };

@@ -5,6 +5,10 @@ import {
   createSection,
 } from "../utils/courseHelpers";
 import { useLessonVideoUpload } from "./useLessonVideoUpload";
+import {
+  toastWarning,
+  toastError,
+} from "../../../../../components/shared/Toaster/toaster";
 
 /**
  * Encapsulates all form state and mutation handlers for the Course form.
@@ -65,7 +69,7 @@ export const useCourseFormLogic = () => {
     if (!selectedFile) return;
     const allowed = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
     if (!allowed.includes(selectedFile.type)) {
-      alert("Invalid file type. Please use PNG, JPEG or WEBP.");
+      toastWarning("Invalid file type. Please use PNG, JPEG or WEBP.");
       return;
     }
     if (type === "thumbnail") setThumbnailFile(selectedFile);
@@ -159,6 +163,7 @@ export const useCourseFormLogic = () => {
     (sectionId, lessonId, message) => {
       handleLessonChange(sectionId, lessonId, "isUploading", false);
       handleLessonChange(sectionId, lessonId, "uploadError", message);
+      toastError(message);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],

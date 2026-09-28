@@ -20,7 +20,6 @@ function NotificationsDropdown({ Tbtn = "" }) {
     notifications,
     unreadCount,
     isLoading,
-    error,
     markAsRead,
     markAllAsRead,
     setDropdownOpen,
@@ -94,19 +93,13 @@ function NotificationsDropdown({ Tbtn = "" }) {
           </div>
         )}
 
-        {!isLoading && error && (
-          <div className="px-3 py-4 text-center text-danger">
-            {t("notifications.loadError")}
-          </div>
-        )}
-
-        {!isLoading && !error && notifications.length === 0 && (
+        {!isLoading && notifications.length === 0 && (
           <div className="px-3 py-4 text-center text-muted">
             {t("notifications.emptyShort")}
           </div>
         )}
 
-        {!isLoading && !error && notifications.length > 0 && (
+        {!isLoading && notifications.length > 0 && (
           <div className="py-2 notifications-dropdown-list">
             {notifications.map((notification) => (
               <NavDropdown.Item

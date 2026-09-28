@@ -1,22 +1,33 @@
 import { useState } from 'react';
 import { forgotPasswordService } from '../services/forgotPassword';
+import {
+  toastSuccess,
+  toastError,
+  toastWarning,
+} from '../components/shared/Toaster/toaster';
 
 export const useForgotPassword = () => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMsg, setSuccessMsg] = useState(null);
 
   const executeForgotPassword = async (email) => {
     setLoading(true);
-    setError(null);
-    setSuccessMsg(null);
     try {
-      const data = await forgotPasswordService(email);
-      setSuccessMsg(data.status || 'Email sent successfully.');
-      return data;
+      await forgotPasswordService(email);
+      const isArabic =
+        document.documentElement.lang === 'ar' ||
+        localStorage.getItem('i18nextLng')?.startsWith('ar');
+      toastSuccess(
+        isArabic
+          ? 'تم إرسال رابط إعادة تعيين كلمة المرور بنجاح. يرجى التحقق من بريدك الإلكتروني (بما في ذلك البريد العشوائي).'
+          : 'Password reset link sent successfully. Please check your email (including spam folder).',
+      );
+      return true;
     } catch (err) {
       const responseData = err.response?.data;
       const message = responseData?.message || responseData?.error || '';
+      const isArabic =
+        document.documentElement.lang === 'ar' ||
+        localStorage.getItem('i18nextLng')?.startsWith('ar');
 
       const isThrottle = 
         message.toLowerCase().includes('wait') ||
@@ -25,9 +36,17 @@ export const useForgotPassword = () => {
         err.response?.status === 429;
 
       if (isThrottle) {
-        setError({ type: 'throttle', message });
+        toastWarning(
+          isArabic
+            ? 'لقد أرسلت طلبًا مؤخرًا. يرجى الانتظار قليلاً قبل المحاولة مرة أخرى.'
+            : 'You recently sent a request. Please wait a moment before trying again.',
+        );
       } else {
-        setError({ type: 'invalid', message: message || 'Failed to send password reset email.' });
+        toastError(
+          isArabic
+            ? 'البريد الإلكتروني غير صحيح أو غير مسجل'
+            : message || 'Invalid or unregistered email',
+        );
       }
       throw err;
     } finally {
@@ -35,5 +54,5 @@ export const useForgotPassword = () => {
     }
   };
 
-  return { executeForgotPassword, loading, error, successMsg };
+  return { executeForgotPassword, loading };
 };
