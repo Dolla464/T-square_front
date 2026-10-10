@@ -144,3 +144,69 @@
   width: calc(100% - 4rem) !important;
   border-radius: 8px !important;
 }
+
+/* ── نافذة اختيار نوع الحضور ── */
+.tsq-swal-popup--attendance .swal-inner--attendance {
+  padding-bottom: 0.25rem;
+}
+
+.tsq-swal-attendance-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  text-align: start;
+}
+
+.tsq-swal-attendance-option {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 0.9rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.tsq-swal-attendance-option:hover {
+  border-color: #f3b4ba;
+  background: #fff8f9;
+}
+
+.tsq-swal-attendance-option:has(input:checked) {
+  border-color: #be1522;
+  background: #fff0f2;
+  box-shadow: 0 0 0 3px rgba(190, 21, 34, 0.1);
+}
+
+.tsq-swal-attendance-option .form-check-input {
+  accent-color: #be1522;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tsq-swal-attendance-option-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+
+.tsq-swal-attendance-option:has(input:checked) .tsq-swal-attendance-option-label {
+  color: #be1522;
+}
+
+.tsq-swal-popup--attendance .swal2-validation-message {
+  background: #fff0f2 !important;
+  color: #be1522 !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  margin: 0.75rem auto 0 !important;
+  width: calc(100% - 4rem) !important;
+  border-radius: 8px !important;
+}

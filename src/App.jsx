@@ -33,6 +33,10 @@ const VerifyEmailPage = lazy(
 );
 const NotFoundPage = lazy(() => import("./pages/NotFound/NotFoundPage"));
 
+const ArabicRenderingDiagnostic = import.meta.env.DEV
+  ? lazy(() => import("./pages/dev/ArabicRenderingDiagnostic.jsx"))
+  : null;
+
 // استيراد ملفات البوتستراب
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
@@ -64,13 +68,29 @@ const DashboardQuizzes = lazy(
   () =>
     import("./modules/student-dashboard/pages/DashboardQuizzes/DashboardQuizzes"),
 );
+const DashboardExamResults = lazy(
+  () =>
+    import("./modules/student-dashboard/pages/DashboardExamResults/DashboardExamResults"),
+);
+const ExamResultDetailsPage = lazy(
+  () =>
+    import("./modules/student-dashboard/pages/ExamResultDetails/ExamResultDetailsPage"),
+);
 const DashboardProfile = lazy(
   () =>
     import("./modules/student-dashboard/pages/DashboardProfile/DashboardProfile"),
 );
-const StudentAttendance = lazy(
+const AttendanceToday = lazy(
   () =>
-    import("./modules/student-dashboard/pages/StudentAttendance/StudentAttendance"),
+    import("./modules/student-dashboard/pages/StudentAttendance/AttendanceToday"),
+);
+const AttendanceSchedule = lazy(
+  () =>
+    import("./modules/student-dashboard/pages/StudentAttendance/AttendanceSchedule"),
+);
+const AttendanceHistory = lazy(
+  () =>
+    import("./modules/student-dashboard/pages/StudentAttendance/AttendanceHistory"),
 );
 const CourseDetails = lazy(
   () => import("./modules/student-dashboard/pages/CourseDetails/CourseDetails"),
@@ -88,7 +108,8 @@ const QuizExamPage = lazy(
   () => import("./modules/student-dashboard/pages/QuizExam/QuizExamPage"),
 );
 const AttemptReviewPage = lazy(
-  () => import("./modules/student-dashboard/pages/AttemptReview/AttemptReviewPage"),
+  () =>
+    import("./modules/student-dashboard/pages/AttemptReview/AttemptReviewPage"),
 );
 
 // ── وحدة داشبورد الأدمن ──
@@ -102,7 +123,8 @@ const AdminCourses = lazy(
   () => import("./modules/admin-dashboard/pages/Courses/AdminCourses"),
 );
 const GoogleStorageAccounts = lazy(
-  () => import("./modules/admin-dashboard/pages/GoogleStorageAccounts/GoogleStorageAccounts"),
+  () =>
+    import("./modules/admin-dashboard/pages/GoogleStorageAccounts/GoogleStorageAccounts"),
 );
 const AdminSolutions = lazy(
   () => import("./modules/admin-dashboard/pages/Solutions/AdminSolutions"),
@@ -217,8 +239,7 @@ const InstructorProfile = lazy(
     import("./modules/instructor-dashboard/pages/Profile/InstructorProfile"),
 );
 const ReceptionistLayout = lazy(
-  () =>
-    import("./modules/receptionist-dashboard/layouts/ReceptionistLayout"),
+  () => import("./modules/receptionist-dashboard/layouts/ReceptionistLayout"),
 );
 const ReceptionistDashboard = lazy(
   () =>
@@ -280,9 +301,7 @@ function AppContent() {
 
   // إذا كان الموقع قيد الصيانة والمستخدم ليس أدمن، نقوم بإخفاء الهيكل العام (Navbar/Footer) تلقائياً
   const isEffectiveMaintenance =
-    isMaintenance &&
-    userSynced &&
-    user?.role !== "admin";
+    isMaintenance && userSynced && user?.role !== "admin";
 
   const hideLayout =
     isEffectiveMaintenance ||
@@ -475,7 +494,10 @@ function AppContent() {
                     <Route path="students" element={<AdminStudents />} />
                     <Route path="instructors" element={<AdminInstructors />} />
                     <Route path="orders" element={<AdminOrders />} />
-                    <Route path="orders/create" element={<AdminCreateOrder />} />
+                    <Route
+                      path="orders/create"
+                      element={<AdminCreateOrder />}
+                    />
                     <Route
                       path="certificates"
                       element={<AdminCertificates />}
@@ -501,10 +523,7 @@ function AppContent() {
                       path="attendance"
                       element={<InstructorAttendance />}
                     />
-                    <Route
-                      path="schedule"
-                      element={<InstructorSchedule />}
-                    />
+                    <Route path="schedule" element={<InstructorSchedule />} />
                     <Route path="quizzes" element={<InstructorQuizzes />} />
                     <Route
                       path="quizzes/view-exam/:id"
@@ -605,13 +624,17 @@ function AppContent() {
                       element={<DashboardCertificates />}
                     />
                     <Route path="quizzes" element={<DashboardQuizzes />} />
+                    <Route path="exam-results/:quizId" element={<ExamResultDetailsPage />} />
+                    <Route path="exam-results" element={<DashboardExamResults />} />
                     <Route
                       path="quizzes/:quizId/attempts/:attemptId/review"
                       element={<AttemptReviewPage role="student" />}
                     />
                     <Route path="quizzes/:quizId" element={<QuizExamPage />} />
                     <Route path="profile" element={<DashboardProfile />} />
-                    <Route path="attendance" element={<StudentAttendance />} />
+                    <Route path="attendance" element={<AttendanceToday />} />
+                    <Route path="attendance/schedule" element={<AttendanceSchedule />} />
+                    <Route path="attendance/history" element={<AttendanceHistory />} />
                     <Route
                       path="notifications"
                       element={<NotificationsPage />}
@@ -627,6 +650,13 @@ function AppContent() {
                     <Route path="review/:courseId" element={<LeaveReview />} />
                   </Route>
                 </Route>
+
+                {import.meta.env.DEV && ArabicRenderingDiagnostic ? (
+                  <Route
+                    path="/__dev__/arabic-rendering"
+                    element={<ArabicRenderingDiagnostic />}
+                  />
+                ) : null}
 
                 {/* 404 NotFound */}
                 <Route path="*" element={<NotFoundPage />} />

@@ -18,12 +18,16 @@ import {
   mapItemToFormData,
   buildFormData,
   formatDateForMySQL,
+  validateAttendanceTypes,
 } from "./utils/courseHelpers";
+import { toastError } from "../../../../components/shared/Toaster/toaster";
 import CourseFilters from "./components/CourseFilters";
 import CourseTable from "./components/CourseTable";
 import CourseForm from "./components/CourseForm";
 import AdminPagination from "../../components/shared/AdminPagination";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 function AdminCourses() {
   // ─── API hooks ─────────────────────────────────────────────────────────────
@@ -47,7 +51,7 @@ function AdminCourses() {
 
   // ─── i18n ──────────────────────────────────────────────────────────────────
   const { t, i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
   const [searchParams, setSearchParams] = useSearchParams();
 
   // ─── View state ────────────────────────────────────────────────────────────
@@ -264,25 +268,15 @@ function AdminCourses() {
     const ok = await showConfirmCustom({
       title:
         newStatus === "published"
-          ? isArabic
-            ? "نشر الكورس"
-            : "Publish Course"
-          : isArabic
-            ? "تحويل الكورس إلى مسودة"
-            : "Move Course to Draft",
-
+          ? t("courses_page.publish_title")
+          : t("courses_page.draft_title"),
       message:
         newStatus === "draft"
-          ? isArabic
-            ? "هل تريد تحويل هذا الكورس إلى مسودة وإخفاءه عن المستخدمين؟"
-            : "Do you want to move this course to draft and hide it from users?"
-          : isArabic
-            ? "سيتم نشر الكورس وسيصبح متاحاً للمستخدمين."
-            : "The course will be published and visible to users.",
-
+          ? t("courses_page.draft_message")
+          : t("courses_page.publish_message"),
       icon: newStatus === "draft" ? "warning" : "info",
       variant: newStatus === "draft" ? "danger" : "primary",
-      confirmText: isArabic ? "استمرار" : "Proceed",
+      confirmText: t("courses_page.proceed"),
     });
 
     if (!ok) return;
@@ -303,6 +297,12 @@ function AdminCourses() {
     if (e) e.preventDefault();
 
     const { formData, thumbnailFile, coverFile } = formLogic;
+
+    const attendanceValidationError = validateAttendanceTypes(formData.attendance_types);
+    if (attendanceValidationError) {
+      toastError(t(`content.form.validation.${attendanceValidationError}`));
+      return;
+    }
 
     // Build the previews array from the curriculum, then filter out incomplete entries
     const previews = formData.curriculum
@@ -376,7 +376,7 @@ function AdminCourses() {
       discount_price: formData.discount_price,
       duration_weeks: formData.duration_weeks,
       duration_hours: formData.duration_hours,
-      attendance_type: formData.attendance_type?.toLowerCase(),
+      attendance_types: formData.attendance_types,
       status: forceStatus || formData.status || "draft",
       is_featured: formData.is_featured,
       is_free: formData.is_free,
@@ -462,13 +462,11 @@ function AdminCourses() {
             <div>
               <h2 className="ac-title">
                 {showTrash
-                  ? isArabic
-                    ? "الكورسات المحذوفة (الأرشيف)"
-                    : "Archived Courses (Trash)"
-                  : t("courses_page.title", "Courses")}
+                  ? t("courses_page.trash_title")
+                  : t("courses_page.title")}
               </h2>
               <p className="ac-subtitle text-muted mb-0">
-                {t("courses_page.subtitle", "Manage all courses")}
+                {t("courses_page.subtitle")}
               </p>
             </div>
             <div className="d-flex gap-2">
@@ -479,7 +477,7 @@ function AdminCourses() {
                 >
                   <i className="bi bi-plus-lg me-0 me-md-1"></i>
                   <span className="d-none d-md-inline">
-                    {t("courses_page.add_course", "Add Course")}
+                    {t("content.add_course")}
                   </span>
                 </button>
               )}
@@ -502,12 +500,8 @@ function AdminCourses() {
                 ></i>
                 <span className="d-none d-md-inline">
                   {showTrash
-                    ? isArabic
-                      ? "العودة للكورسات النشطة"
-                      : "Back to Active Courses"
-                    : isArabic
-                      ? "سلة المحذوفات"
-                      : "Trash"}
+                    ? t("courses_page.back_to_active")
+                    : t("courses_page.trash")}
                 </span>
               </button>
             </div>
@@ -515,7 +509,7 @@ function AdminCourses() {
 
           <div className="ac-table-card">
             <div className="ac-table-container">
-              <div className="ac-rounded-table p-3 p-md-0" dir="ltr">
+              <div className="ac-rounded-table p-3 p-md-0" dir={isArabic ? "rtl" : "ltr"}>
                 <CourseFilters
                   searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
@@ -527,14 +521,12 @@ function AdminCourses() {
                   showTrash={showTrash}
                   trashPeriod={trashPeriod}
                   setTrashPeriod={setTrashPeriod}
-                  isArabic={isArabic}
                   t={t}
                 />
                 <CourseTable
                   filteredCourses={filteredCourses}
                   loading={loading}
                   showTrash={showTrash}
-                  isArabic={isArabic}
                   t={t}
                   handleView={handleView}
                   handleEdit={handleEdit}
@@ -609,21 +601,15 @@ function AdminCourses() {
               role="status"
               style={{ width: "3rem", height: "3rem" }}
             >
-              <span className="visually-hidden">Loading...</span>
+              <span className="visually-hidden">{t("courses_page.loading")}</span>
             </div>
             <h5 className="fw-bold text-dark mb-1">
               {editingItem
-                ? isArabic
-                  ? "جاري تحديث الكورس..."
-                  : "Updating course..."
-                : isArabic
-                  ? "جاري إنشاء الكورس..."
-                  : "Creating course..."}
+                ? t("courses_page.updating")
+                : t("courses_page.creating")}
             </h5>
             <p className="text-muted small mb-0">
-              {isArabic
-                ? "يرجى عدم إغلاق أو تحديث الصفحة"
-                : "Please do not close or refresh the page"}
+              {t("courses_page.do_not_close")}
             </p>
           </div>
         </div>

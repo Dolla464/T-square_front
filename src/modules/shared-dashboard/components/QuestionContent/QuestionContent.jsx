@@ -1,4 +1,7 @@
-import { resolveQuestionImageUrl } from "../../utils/questionFormHelpers";
+import {
+  normalizeQuestionTextForDisplay,
+  resolveQuestionImageUrl,
+} from "../../utils/questionFormHelpers";
 import "./questionContent.css";
 
 const DEFAULT_LANGUAGE = "code";
@@ -6,7 +9,8 @@ const DEFAULT_LANGUAGE = "code";
 function QuestionContent({ question, className = "" }) {
   if (!question) return null;
 
-  const text = question.question_text || question.question || null;
+  const rawText = question.question_text || question.question || null;
+  const text = rawText ? normalizeQuestionTextForDisplay(rawText) : null;
   const imageUrl = resolveQuestionImageUrl(question);
   const code = question.question_code || null;
   const language = question.question_code_language || DEFAULT_LANGUAGE;
@@ -16,7 +20,11 @@ function QuestionContent({ question, className = "" }) {
 
   return (
     <div className={`question-content ${className}`.trim()}>
-      {text ? <p className="question-content-text">{text}</p> : null}
+      {text ? (
+        <p dir="auto" className="question-content-text">
+          {text}
+        </p>
+      ) : null}
 
       {imageUrl ? (
         <figure className="question-content-image-wrap">

@@ -16,6 +16,7 @@ import {
   NOTIFICATIONS_PER_PAGE,
   parseUnreadCount,
 } from "../utils/notifications";
+import { toastError } from "../components/shared/Toaster/toaster";
 
 const NotificationsContext = createContext(null);
 
@@ -69,6 +70,11 @@ export function NotificationsProvider({ children }) {
       } catch (err) {
         console.error("Failed to load notifications", err);
         setError(err);
+        if (!silent) {
+          toastError(
+            err?.response?.data?.message || "Failed to load notifications.",
+          );
+        }
       } finally {
         if (!silent) setIsLoading(false);
       }

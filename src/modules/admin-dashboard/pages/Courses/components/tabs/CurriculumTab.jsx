@@ -20,7 +20,6 @@ function CurriculumTab({
   getAbortController,
   onDraftCreated,
   isReadOnly,
-  isArabic,
   t,
 }) {
   /**
@@ -218,7 +217,7 @@ function CurriculumTab({
                               >
                                 {lesson.title || (
                                   <span className="text-muted">
-                                    {isArabic ? "بدون عنوان" : "No title"}
+                                    {t("courses_page.lesson_no_title")}
                                   </span>
                                 )}
                               </p>
@@ -226,7 +225,7 @@ function CurriculumTab({
                               <input
                                 type="text"
                                 className="form-control p-3 bg-white border-0 rounded-3 fw-bold text-dark"
-                                placeholder={isArabic ? "عنوان الدرس" : "Lesson Title"}
+                                placeholder={t("courses_page.lesson_title_placeholder")}
                                 value={lesson.title}
                                 onChange={(e) =>
                                   handleLessonChange(
@@ -259,9 +258,7 @@ function CurriculumTab({
                                 className="form-control p-3 bg-white border-0 rounded-3 text-dark"
                                 rows="2"
                                 placeholder={
-                                  isArabic
-                                    ? "وصف الدرس (اختياري)"
-                                    : "Lesson description (optional)"
+                                  t("courses_page.lesson_description_optional")
                                 }
                                 value={lesson.description}
                                 onChange={(e) =>
@@ -280,7 +277,7 @@ function CurriculumTab({
                           <div className="col-md-4">
                             <div className="input-group">
                               <span className="input-group-text bg-white border-0 text-muted small">
-                                {isArabic ? "الترتيب" : "Sort"}
+                                {t("courses_page.sort_order")}
                               </span>
                               <input
                                 type="number"
@@ -304,7 +301,7 @@ function CurriculumTab({
                           <div className="col-md-8">
                             <div className="input-group">
                               <span className="input-group-text bg-white border-0 text-muted small">
-                                {isArabic ? "المصدر" : "Provider"}
+                                {t("courses_page.provider")}
                               </span>
                               <select
                                 className="form-select ac-form-select p-3 bg-white border-0 rounded-end-3 fw-medium text-dark"
@@ -343,7 +340,7 @@ function CurriculumTab({
                               <input
                                 type="url"
                                 className="form-control p-3 bg-white border-0 rounded-3"
-                                placeholder={isArabic ? "رابط الفيديو" : "Video URL"}
+                                placeholder={t("courses_page.video_url_placeholder")}
                                 value={lesson.video || ""}
                                 onChange={(e) =>
                                   handleLessonChange(
@@ -369,7 +366,7 @@ function CurriculumTab({
                               <div className="video-uppy-overlay d-flex flex-column align-items-center justify-content-center px-4">
                                 <div className="spinner-border text-danger spinner-border-sm mb-2" role="status" />
                                 <span className="small fw-bold text-white">
-                                  {isArabic ? "جاري حساب التحقق..." : "Computing checksum..."}
+                                  {t("courses_page.computing_checksum")}
                                 </span>
                                 <span className="small text-white-50">{uploadProgress}%</span>
                               </div>
@@ -398,7 +395,7 @@ function CurriculumTab({
                                     courseId={courseId}
                                     previewIndex={previewIndex}
                                     formData={formData}
-                                    isArabic={isArabic}
+                                    t={t}
                                     ensureCourseDraft={ensureCourseDraft}
                                     onDraftCreated={onDraftCreated}
                                     getAbortController={getAbortController}
@@ -427,7 +424,7 @@ function CurriculumTab({
                                     }}
                                   >
                                     <span className="small text-white-50">
-                                      {isArabic ? "لا يوجد فيديو" : "No video"}
+                                      {t("courses_page.no_video")}
                                     </span>
                                   </div>
                                 );
@@ -452,14 +449,14 @@ function CurriculumTab({
                                     <button
                                       type="button"
                                       className="video-change-btn"
-                                      title={isArabic ? "تغيير الفيديو" : "Change video"}
+                                      title={t("courses_page.change_video")}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handleCancelUpload(section.id, lesson.id);
                                       }}
                                     >
                                       <i className="bi bi-cloud-arrow-up-fill" />
-                                      {isArabic ? "تغيير" : "Change"}
+                                      {t("courses_page.change")}
                                     </button>
                                   )}
 
@@ -471,7 +468,7 @@ function CurriculumTab({
                                         type="button"
                                         className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
                                         style={{ width: "42px", height: "42px", transition: "transform 0.2s ease" }}
-                                        title={isArabic ? "معاينة الفيديو" : "Preview video"}
+                                        title={t("courses_page.preview_video")}
                                         onClick={() => {
                                           if (isLinkProvider) {
                                             if (lesson.video && typeof lesson.video === "string" && lesson.video.startsWith("http")) {
@@ -494,7 +491,7 @@ function CurriculumTab({
                                         type="button"
                                         className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0"
                                         style={{ width: "42px", height: "42px", transition: "transform 0.2s ease" }}
-                                        title={isArabic ? "مسح بيانات الدرس" : "Clear Lesson Data"}
+                                        title={t("courses_page.clear_lesson_data")}
                                         onClick={() => removeLesson(section.id, lesson.id)}
                                         onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.15)"}
                                         onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
@@ -581,7 +578,7 @@ function CurriculumTab({
                           {(hasPersistedVideo && !isUploading) && (
                             <div className="d-flex align-items-center justify-content-between mt-1 px-1 text-muted" style={{ fontSize: "0.75rem" }}>
                               <span className="fw-semibold text-secondary">
-                                {isYoutube ? (isArabic ? "يوتيوب" : "YouTube") : isVimeo ? "Vimeo" : isExternal ? (isArabic ? "رابط خارجي" : "External") : (isArabic ? "مرفوع" : "Uploaded")}
+                                {isYoutube ? t("courses_page.provider_youtube") : isVimeo ? "Vimeo" : isExternal ? t("courses_page.provider_external") : t("courses_page.provider_uploaded")}
                               </span>
                               {(lesson.durationFormatted || lesson.duration) && (
                                 <span className="fw-semibold text-dark-emphasis">
@@ -591,13 +588,6 @@ function CurriculumTab({
                             </div>
                           )}
 
-                          {/* Upload error notice */}
-                          {!isReadOnly && uploadError && (
-                            <div className="alert alert-danger py-1 px-2 mb-0 small rounded-3">
-                              <i className="bi bi-exclamation-triangle me-1"></i>
-                              {uploadError}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>

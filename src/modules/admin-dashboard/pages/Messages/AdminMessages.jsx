@@ -9,10 +9,12 @@ import MessageCard from "./MessageCard";
 import { toastError } from "../../../../components/shared/Toaster/toaster";
 import { openExternalUrl } from "../../../../utils/openExternalUrl";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 function AdminMessages() {
-  const { i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const { t, i18n } = useTranslation("adminDashboard");
+  const isArabic = isArabicLocale(i18n.language);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -102,11 +104,7 @@ T-Square Team.
     if (phone) {
       handleWhatsapp(phone, name, content);
     } else {
-      toastError(
-        isArabic
-          ? "عذراً، لا يوجد رقم هاتف مسجل لهذه الرسالة!"
-          : "Sorry, no phone number registered for this message!"
-      );
+      toastError(t("messages_page.no_phone_error"));
     }
   };
 
@@ -116,12 +114,10 @@ T-Square Team.
       <div className="ac-header d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="ac-title">
-            {isArabic ? "رسائل الاتصال" : "Contact Messages"}
+            {t("messages_page.title")}
           </h2>
           <p className="ac-subtitle text-muted mb-0">
-            {isArabic
-              ? "مراجعة وإدارة رسائل العملاء والطلاب الواردة عبر نموذج تواصل معنا"
-              : "Review and manage customer and student messages received via the contact form"}
+            {t("messages_page.subtitle")}
           </p>
         </div>
       </div>
@@ -143,7 +139,7 @@ T-Square Team.
                 ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
                 : "border-light bg-light text-muted"
             }`}
-            placeholder={isArabic ? "بحث في الرسائل..." : "Search messages..."}
+            placeholder={t("messages_page.search_placeholder")}
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -164,15 +160,15 @@ T-Square Team.
             setCurrentPage(1); // تصفير الصفحة عند تغيير الفلتر الزمني
           }}
         >
-          <option value="all">{isArabic ? "كل الأوقات" : "All time"}</option>
+          <option value="all">{t("messages_page.all_time")}</option>
           <option value="last_week">
-            {isArabic ? "الأسبوع الماضي" : "Last week"}
+            {t("messages_page.last_week")}
           </option>
           <option value="last_month">
-            {isArabic ? "الشهر الماضي" : "Last month"}
+            {t("messages_page.last_month")}
           </option>
           <option value="last_3_months">
-            {isArabic ? "آخر ٣ أشهر" : "Last 3 months"}
+            {t("messages_page.last_3_months")}
           </option>
         </select>
       </div>
@@ -184,19 +180,17 @@ T-Square Team.
             <span className="visually-hidden">Loading...</span>
           </Spinner>
           <p className="mt-2 text-muted fw-semibold">
-            {isArabic ? "جاري تحميل الرسائل..." : "Loading messages..."}
+            {t("messages_page.loading")}
           </p>
         </div>
       ) : messages.length === 0 ? (
         <div className="text-center py-5 bg-white border rounded-4 shadow-sm">
           <i className="bi bi-chat-left-text-fill text-muted fs-1 mb-3 d-block"></i>
           <h5 className="fw-bold text-dark">
-            {isArabic ? "لا توجد رسائل واردة" : "No Messages Received"}
+            {t("messages_page.empty_title")}
           </h5>
           <p className="text-muted small px-3">
-            {isArabic
-              ? "لم يتم استقبال أي رسائل اتصال تطابق بحثك حالياً."
-              : "No contact messages match your search criteria at the moment."}
+            {t("messages_page.empty_subtitle")}
           </p>
         </div>
       ) : (
@@ -225,7 +219,7 @@ T-Square Team.
       <DetailModal
         show={showViewModal}
         onHide={() => setShowViewModal(false)}
-        title={isArabic ? "تفاصيل الرسالة" : "Message Details"}
+        title={t("messages_page.details_title")}
         dir={isArabic ? "rtl" : "ltr"}
       >
         {selectedMessage && (
@@ -233,7 +227,7 @@ T-Square Team.
             <div className="cert-info-list p-3 bg-light rounded-3 mt-3">
               <div className="info-item d-flex justify-content-between mb-2">
                 <span className="text-muted">
-                  {isArabic ? "الاسم الكامل:" : "Full Name:"}
+                  {t("messages_page.full_name")}
                 </span>
                 <span className="fw-medium text-dark">
                   {selectedMessage.name}
@@ -242,7 +236,7 @@ T-Square Team.
 
               <div className="info-item d-flex align-items-center justify-content-between mb-2">
                 <span className="text-muted">
-                  {isArabic ? "البريد الإلكتروني:" : "Email Address:"}
+                  {t("messages_page.email")}
                 </span>
                 <span className="fw-medium text-dark text-end ms-2">
                   {selectedMessage.email}
@@ -251,7 +245,7 @@ T-Square Team.
               
               <div className="info-item d-flex justify-content-between mb-2">
                 <span className="text-muted">
-                  {isArabic ? "رقم الهاتف:" : "Phone Number:"}
+                  {t("messages_page.phone")}
                 </span>
                 <span className="fw-medium text-dark">
                   {selectedMessage.phone || "-"}
@@ -260,7 +254,7 @@ T-Square Team.
 
               <div className="info-item d-flex justify-content-between mt-3">
                 <span className="text-muted">
-                  {isArabic ? "تاريخ الإرسال:" : "Sent Date:"}
+                  {t("messages_page.sent_date")}
                 </span>
                 <span className="fw-medium small text-muted">
                   {selectedMessage.created_at}
@@ -269,7 +263,7 @@ T-Square Team.
 
               <div className="info-item d-flex justify-content-between mb-2">
                 <span className="text-muted">
-                  {isArabic ? "الموضوع:" : "Subject:"}
+                  {t("messages_page.subject")}
                 </span>
                 <span className="fw-bold text-danger">
                   {selectedMessage.title || selectedMessage.subject}
@@ -278,7 +272,7 @@ T-Square Team.
 
               <div className="info-item d-flex flex-column  mt-1 mb-3">
                 <span className="text-center fw-bold mb-3">
-                  {isArabic ? "نص الرسالة" : "Message Body"}
+                  {t("messages_page.message_body")}
                 </span>
                 <p
                   className="mb-0 bg-white p-3 rounded-3 border small text-secondary"
@@ -310,7 +304,7 @@ T-Square Team.
                   style={{ backgroundColor: "#25D366", color: "#ffffff" }}
                 >
                   <i className="bi bi-whatsapp"></i>
-                  {isArabic ? "تواصل واتساب" : "Contact WhatsApp"}
+                  {t("messages_page.contact_whatsapp")}
                 </Button>
               )}
             </div>

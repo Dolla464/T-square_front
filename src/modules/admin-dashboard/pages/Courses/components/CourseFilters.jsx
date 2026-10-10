@@ -11,12 +11,10 @@ function CourseFilters({
   showTrash,
   trashPeriod,
   setTrashPeriod,
-  isArabic,
   t,
 }) {
   return (
     <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
-      {/* Search input */}
       <div className="ac-search-input-wrapper position-relative ">
         <i
           className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${
@@ -37,44 +35,35 @@ function CourseFilters({
         />
       </div>
 
-      {/* Filter dropdowns */}
       <div className="d-flex gap-md-3">
         {showTrash ? (
-          /* Trash mode – period filter only */
           <select
-            className={`form-select ac-form-select  bg-light border-0 rounded-3 text-muted`}
+            className="form-select ac-form-select bg-light border-0 rounded-3 text-muted"
             value={trashPeriod}
             onChange={(e) => setTrashPeriod(e.target.value)}
           >
-            <option value="">{isArabic ? "كل الفترات" : "All Time"}</option>
-            <option value="today">{isArabic ? "اليوم" : "Today"}</option>
-            <option value="last_month">
-              {isArabic ? "الشهر الماضي" : "Last Month"}
-            </option>
-            <option value="last_year">
-              {isArabic ? "السنة الماضية" : "Last Year"}
-            </option>
+            <option value="">{t("courses_page.all_periods")}</option>
+            <option value="today">{t("courses_page.today")}</option>
+            <option value="last_month">{t("courses_page.last_month")}</option>
+            <option value="last_year">{t("courses_page.last_year")}</option>
           </select>
         ) : (
-          /* Active mode – status + category */
           <>
             <select
               className={selectClass(selectedStatus !== "all")}
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
             >
-              <option value="all">All Statuses</option>
-              <option value="published">Published</option>
-              <option value="draft">Draft</option>
+              <option value="all">{t("courses_page.all_statuses")}</option>
+              <option value="published">{t("content.status.published")}</option>
+              <option value="draft">{t("content.status.draft")}</option>
             </select>
             <select
               className={selectClass(selectedCategory !== "all")}
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
-              <option value="all">
-                All Categories
-              </option>
+              <option value="all">{t("courses_page.all_categories")}</option>
               {categories.map(
                 (cat) =>
                   cat.children &&

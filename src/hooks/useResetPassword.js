@@ -1,21 +1,17 @@
 import { useState } from "react";
 import { resetPasswordService } from "../services/resetPassword";
+import { toastError } from "../components/shared/Toaster/toaster";
 
 /**
  * هوك لإدارة عملية إعادة تعيين كلمة المرور
  */
 export const useResetPassword = () => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
 
   const executeResetPassword = async (resetData) => {
     setLoading(true);
-    setError(null);
-    setSuccess(false);
     try {
       const data = await resetPasswordService(resetData);
-      setSuccess(true);
       return data;
     } catch (err) {
       const responseData = err.response?.data;
@@ -30,12 +26,12 @@ export const useResetPassword = () => {
         message = Array.isArray(firstError) ? firstError[0] : firstError;
       }
       
-      setError(message);
+      toastError(message);
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  return { executeResetPassword, loading, error, success };
+  return { executeResetPassword, loading };
 };

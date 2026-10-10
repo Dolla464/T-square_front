@@ -1,4 +1,4 @@
-import { Container, Card, Form, Button, Nav, Alert, Spinner } from "react-bootstrap";
+import { Container, Card, Form, Button, Nav, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import tsquareLogo from "../../assets/logo-dark.webp";
@@ -7,10 +7,12 @@ import { useRegister } from "../../hooks/useRegister";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema } from "../../utils/validationSchemas";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function SignupPage() {
   const { t, i18n } = useTranslation("auth");
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
   
   const {
     register,
@@ -28,7 +30,7 @@ function SignupPage() {
     },
   });
 
-  const { executeRegister, loading, error: apiError, successMsg } = useRegister();
+  const { executeRegister, loading } = useRegister();
 
   const onSubmit = async (data) => {
     try {
@@ -49,7 +51,7 @@ function SignupPage() {
                 src={tsquareLogo}
                 alt="T-Square Logo"
                 className="signup-logo mb-3"
-                title="Back to Home"
+                title={t("back_to_home")}
               />
             </Link>
 
@@ -58,9 +60,6 @@ function SignupPage() {
               {t("signup_form.title")}
             </Card.Title>
 
-            {apiError && <Alert variant="danger">{apiError}</Alert>}
-            {successMsg && <Alert variant="success">{successMsg}</Alert>}
-            
             <Form onSubmit={handleSubmit(onSubmit)}>
               {/* حقل الاسم */}
               <Form.Group className="mb-3 signup-form-group">
@@ -137,11 +136,11 @@ function SignupPage() {
               {/* حقل تأكيد الباسورد */}
               <Form.Group className="mb-4 signup-form-group">
                 <Form.Label className="signup-label">
-                  {isArabic ? "تأكيد كلمة المرور" : "Confirm Password"}
+                  {t("signup_form.confirm_password_label")}
                 </Form.Label>
                 <Form.Control
                   type="password"
-                  placeholder={isArabic ? "أعد إدخال كلمة المرور" : "Confirm your password"}
+                  placeholder={t("signup_form.confirm_password_placeholder")}
                   className={`signup-input ${errors.password_confirmation ? "is-invalid" : ""}`}
                   {...register("password_confirmation")}
                 />

@@ -1,0 +1,128 @@
+/* Orders filters — override generic ac-filters-bar mobile grid rules */
+.orders-filters-bar {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.orders-filters-bar .orders-search-wrapper {
+  width: 100% !important;
+}
+
+.orders-select-filters,
+.orders-date-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.orders-select-filters .form-select,
+.orders-date-filters .form-control {
+  width: 100%;
+  min-width: 0;
+}
+
+.orders-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.orders-date-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  line-height: 1.2;
+}
+
+/* Mobile / tablet: search row, filters row, dates row */
+@media (max-width: 991.98px) {
+  .orders-filters-bar {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "search"
+      "selects"
+      "dates";
+  }
+
+  .orders-search-row {
+    grid-area: search;
+  }
+
+  .orders-select-row {
+    grid-area: selects;
+  }
+
+  .orders-date-row {
+    grid-area: dates;
+  }
+
+  /* Cancel global ac-filters-bar rules that target last-child */
+  .orders-filters-bar > .orders-date-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .orders-filters-bar > .orders-date-row > :last-child:nth-child(odd) {
+    grid-column: auto !important;
+  }
+}
+
+/* Large screens: single aligned row */
+@media (min-width: 992px) {
+  .orders-filters-bar {
+    grid-template-columns:
+      minmax(220px, 1.6fr)
+      minmax(150px, 1fr)
+      minmax(150px, 1fr)
+      minmax(130px, 0.85fr)
+      minmax(130px, 0.85fr);
+    grid-template-areas: "search status attendance date-from date-to";
+    align-items: end;
+    gap: 0.75rem;
+  }
+
+  .orders-search-row {
+    grid-area: search;
+  }
+
+  .orders-select-row {
+    display: contents;
+  }
+
+  .orders-date-row {
+    display: contents;
+  }
+
+  .orders-select-row .form-select:first-of-type {
+    grid-area: status;
+  }
+
+  .orders-select-row .form-select:last-of-type {
+    grid-area: attendance;
+  }
+
+  .orders-date-row .orders-date-field:first-of-type {
+    grid-area: date-from;
+  }
+
+  .orders-date-row .orders-date-field:last-of-type {
+    grid-area: date-to;
+  }
+}
+
+@media (min-width: 1200px) {
+  .orders-filters-bar {
+    grid-template-columns:
+      minmax(260px, 1.8fr)
+      minmax(160px, 1fr)
+      minmax(160px, 1fr)
+      minmax(140px, 0.9fr)
+      minmax(140px, 0.9fr);
+    gap: 1rem;
+  }
+}

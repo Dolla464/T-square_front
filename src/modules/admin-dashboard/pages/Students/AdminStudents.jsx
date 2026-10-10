@@ -14,11 +14,16 @@ import { useGroups } from "../../hooks/useGroups";
 import { useStudents } from "../../hooks/useStudents";
 import { openExternalUrl } from "../../../../utils/openExternalUrl";
 import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 import {
   hasRealAvatar,
   resolveAvatarUrl,
 } from "../../../../utils/avatar";
-import { canEnableEnrollmentCompletion } from "../../../shared-dashboard/utils/enrollmentCompletion";
+import {
+  canEnableEnrollmentCompletion,
+  getCompletionBlockReason,
+} from "../../../shared-dashboard/utils/enrollmentCompletion";
 
 /**
  * Default form data structure for creating or editing a student, ensuring all necessary fields are initialized to empty or default values to prevent uncontrolled input issues in the form components
@@ -91,7 +96,7 @@ function AdminStudents({
   const [lightboxIndex, setLightboxIndex] = useState(-1);
 
   const { t, i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
 
   /**
    * Debounce the search term input to avoid making API calls on every keystroke, updating the debounced value 500ms after the user stops typing
@@ -364,9 +369,7 @@ function AdminStudents({
   const handleSubmitWrapper = async (e) => {
     e.preventDefault();
     if (formData.full_name.length < 5) {
-      toastError(
-        isArabic ? "الاسم الكامل قصير جداً" : "Full name is too short",
-      );
+      toastError(t("students_page.name_too_short"));
       return;
     }
 
@@ -378,17 +381,11 @@ function AdminStudents({
       if (allowEmailEdit) {
         const email = String(formData.email || "").trim();
         if (!email) {
-          toastError(
-            isArabic ? "البريد الإلكتروني مطلوب" : "Email is required",
-          );
+          toastError(t("students_page.email_required"));
           return;
         }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          toastError(
-            isArabic
-              ? "يرجى إدخال بريد إلكتروني صالح"
-              : "Please enter a valid email address",
-          );
+          toastError(t("students_page.email_invalid"));
           return;
         }
       }
@@ -461,13 +458,16 @@ function AdminStudents({
    */
   const handleStatusUpdate = async (id, newStatus) => {
     const ok = await showConfirmCustom({
-      title: isArabic ? "تغيير حالة الطالب" : "Change Student Status",
-      message: isArabic
-        ? `هل أنت متأكد من تغيير حالة الطالب إلى (${newStatus === "active" ? "نشط" : "غير نشط"})؟`
-        : `Are you sure you want to change the student status to ${newStatus}?`,
+      title: t("students_page.change_status_title"),
+      message: t("students_page.change_status_message", {
+        status:
+          newStatus === "active"
+            ? t("students_page.active_status")
+            : t("students_page.inactive_status"),
+      }),
       icon: "question",
       variant: "primary",
-      confirmText: isArabic ? "نعم، قم بالتغيير" : "Yes, Change it",
+      confirmText: t("students_page.change_status_confirm"),
     });
 
     if (ok) {
@@ -485,22 +485,14 @@ function AdminStudents({
   const handleVerifyUpdate = async (studentId, currentIsVerified) => {
     const ok = await showConfirmCustom({
       title: currentIsVerified
-        ? isArabic
-          ? "إلغاء توثيق الحساب"
-          : "Unverify Account"
-        : isArabic
-          ? "توثيق الحساب"
-          : "Verify Account",
+        ? t("students_page.unverify_title")
+        : t("students_page.verify_title"),
       message: currentIsVerified
-        ? isArabic
-          ? "هل تريد إلغاء توثيق بريد هذا الطالب؟"
-          : "Do you want to unverify this student's email?"
-        : isArabic
-          ? "سيتم اعتبار بريد الطالب موثقاً وفعالاً."
-          : "The student's email will be marked as verified.",
+        ? t("students_page.unverify_message")
+        : t("students_page.verify_message"),
       icon: currentIsVerified ? "warning" : "info",
       variant: currentIsVerified ? "danger" : "primary",
-      confirmText: isArabic ? "استمرار" : "Proceed",
+      confirmText: t("reviews_page.proceed"),
     });
 
     if (ok) {
@@ -518,12 +510,10 @@ function AdminStudents({
    */
   const handleCourseGroupChange = async (courseId, newGroupId) => {
     const ok = await showConfirmCustom({
-      title: isArabic ? "تغيير المجموعة" : "Change Group",
-      message: isArabic
-        ? "هل أنت متأكد من تغيير مجموعة الطالب لهذا الكورس؟"
-        : "Are you sure you want to change the student's group for this course?",
+      title: t("students_page.change_group_title"),
+      message: t("students_page.change_group_message"),
       icon: "warning",
-      confirmText: isArabic ? "تغيير" : "Update",
+      confirmText: t("students_page.change_group_confirm"),
     });
 
     if (ok) {
@@ -554,22 +544,13 @@ function AdminStudents({
     }
 
     return canEnableEnrollmentCompletion(
+      course.attendance_type,
       course.group_id,
       course.group_id ? groupStatusById[course.group_id] : null,
     );
   };
 
-  const completionBlockReason = (course) => {
-    if (course.is_completed) {
-      return null;
-    }
-
-    if (!course.group_id) {
-      return t("students_page.completion_requires_group");
-    }
-
-    return t("students_page.completion_requires_closed_group");
-  };
+  const completionBlockReason = (course) => getCompletionBlockReason(course, t);
 
   const handleStatusToggle = async (studentId, courseId, currentStatus) => {
     const nextStatus = !currentStatus;
@@ -636,14 +617,14 @@ function AdminStudents({
             >
               <i className="bi bi-plus-lg me-0 me-md-1"></i>
               <span className="d-none d-md-inline">
-                {isArabic ? "إضافة طالب" : "Add Student"}
+                {t("students_page.add_student").trim()}
               </span>
             </button>
           </div>
 
           <div className="ac-table-card">
             <div className="ac-table-container">
-              <div className="ac-rounded-table p-3 p-md-0" dir="ltr">
+              <div className="ac-rounded-table p-3 p-md-0" dir={isArabic ? "rtl" : "ltr"}>
                 {/* أدوات البحث والفلترة */}
                 <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
                   {/* 1. شريط البحث (Search Input) */}
@@ -714,7 +695,7 @@ function AdminStudents({
                       onChange={(e) => setSelectedGroup(e.target.value)}
                     >
                       <option value="all">
-                        {isArabic ? "كل المجموعات" : "All Groups"}
+                        {t("students_page.all_groups")}
                       </option>
                       {selectionGroups &&
                         selectionGroups.map((group) => (
@@ -773,7 +754,7 @@ function AdminStudents({
                 <div className="ac-students-table-wrap">
                   <table
                     className="table ac-table ac-students-table mb-0 align-middle"
-                    dir="ltr"
+                    dir={isArabic ? "rtl" : "ltr"}
                   >
                     <thead>
                       <tr>
@@ -781,7 +762,7 @@ function AdminStudents({
                           {t("students_page.table_enrollment")}
                         </th>
                         <th className="text-center col-avatar">
-                          {isArabic ? "الصورة" : "Image"}
+                          {t("students_page.table_image")}
                         </th>
                         <th className="text-center col-name">
                           {t("students_page.table_name")}
@@ -790,7 +771,7 @@ function AdminStudents({
                           {t("students_page.table_email")}
                         </th>
                         <th className="text-center col-group">
-                          {isArabic ? "المجموعة" : "Group"}
+                          {t("students_page.table_group")}
                         </th>
                         <th className="text-center col-created-by">
                           {t("students_page.table_created_by")}
@@ -1202,7 +1183,7 @@ function AdminStudents({
                   </div>
                   <div className="col-md-4">
                     <label className="form-label fw-bold text-dark">
-                      {isArabic ? "نوع الطالب" : "Gender"}
+                      {t("students_page.gender")}
                     </label>
                     <select
                       name="gender"
@@ -1212,11 +1193,11 @@ function AdminStudents({
                       disabled={!!viewingItem}
                     >
                       <option value="">
-                        {isArabic ? "اختيار نوع الطالب" : "Gender"}
+                        {t("students_page.select_gender")}
                       </option>
-                      <option value="male">{isArabic ? "ذكر" : "Male"}</option>
+                      <option value="male">{t("students_page.male_option")}</option>
                       <option value="female">
-                        {isArabic ? "انثي" : "Female"}
+                        {t("students_page.female_option")}
                       </option>
                     </select>
                   </div>
@@ -1351,7 +1332,7 @@ function AdminStudents({
                   <div className="row mb-4">
                     <div className="col-12">
                       <label className="form-label fw-bold text-dark">
-                        {isArabic ? "صورة الطالب" : "Student Avatar"}
+                        {t("students_page.student_avatar")}
                       </label>
                       <input
                         type="file"
@@ -1404,7 +1385,7 @@ function AdminStudents({
                   <div className="row mb-4">
                     <div className="col-12">
                       <label className="form-label fw-bold text-dark">
-                        {isArabic ? "اسم المجموعه" : "Group Name"}
+                        {t("students_page.group_name_label")}
                       </label>
                       <select
                         name="group_id"
@@ -1538,26 +1519,26 @@ function AdminStudents({
                       }}
                     >
                       <div className="table-responsive">
-                        <table className="table mb-0 align-middle">
+                        <table className="table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
                           <thead>
                             <tr>
                               <th className="ps-4 py-3 border-0 text-secondary text-uppercase small fw-bold">
-                                {isArabic ? "الكورس" : "Course"}
+                                {t("students_page.table_course")}
                               </th>
                               <th className="py-3 border-0 text-secondary text-uppercase small fw-bold">
-                                {isArabic ? "المحاضر" : "Instructor"}
+                                {t("students_page.table_instructor")}
                               </th>
                               <th
                                 className="py-3 border-0 text-secondary text-uppercase small fw-bold text-center"
                                 style={{ minWidth: "100px" }}
                               >
-                                {isArabic ? "المجموعة" : "Group"}
+                                {t("students_page.table_group")}
                               </th>
                               <th className="py-3 border-0 text-secondary text-uppercase small fw-bold text-center">
-                                {isArabic ? "التاريخ" : "Date"}
+                                {t("students_page.table_date")}
                               </th>
                               <th className="pe-4 py-3 border-0 text-secondary text-uppercase small fw-bold text-center">
-                                {isArabic ? "الحالة" : "Status"}
+                                {t("students_page.table_status")}
                               </th>
                             </tr>
                           </thead>
@@ -1616,9 +1597,7 @@ function AdminStudents({
                                         value=""
                                         disabled={course.group_id}
                                       >
-                                        {isArabic
-                                          ? "⚠️ اختر مجموعة للطالب"
-                                          : "⚠️ Select a Group"}
+                                        {t("students_page.select_group_warning")}
                                       </option>
 
                                       {course.available_groups?.map((group) => (

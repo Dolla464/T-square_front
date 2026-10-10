@@ -3,6 +3,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { formatInstructorNames, getCourseInstructors } from "../../../utils/courseInstructors";
+import { isArabicLocale } from "../../../utils/isArabicLocale";
+
 
 /**
  * مكون كارد مشترك للكورسات والكويزات في الداشبورد
@@ -15,7 +17,7 @@ import { formatInstructorNames, getCourseInstructors } from "../../../utils/cour
 function DashboardCard({ item, type, t }) {
   const navigate = useNavigate();
   const { i18n } = useTranslation("studentDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
   const isCourse = type === "course";
   const isQuiz = type === "quiz";
 

@@ -9,12 +9,13 @@ import { formatExamScore } from "../../../shared-dashboard/utils/formatExamScore
 import { buildStudentResultsBackUrl } from "../../../shared-dashboard/utils/studentResultsUrlState";
 import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
 import "../../styles/dashboardShared.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
 function AttemptReviewPage({ role = "student" }) {
   const { attemptId, groupId, studentId, examId } = useParams();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation("studentDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
 
   const { data: review, loading, error, forbidden, notFound } = useAttemptReview({
     role,
@@ -26,7 +27,7 @@ function AttemptReviewPage({ role = "student" }) {
 
   const handleBack = () => {
     if (role === "student") {
-      navigate("/student/quizzes");
+      navigate("/student/exam-results");
       return;
     }
     navigate(
@@ -44,7 +45,7 @@ function AttemptReviewPage({ role = "student" }) {
         <button type="button" className="topbar-back-btn mb-2" onClick={handleBack}>
           <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`} />
           {role === "student"
-            ? t("attempt_review.back_to_quizzes")
+            ? t("attempt_review.back_to_exam_results")
             : t("attempt_review.back_to_results")}
         </button>
 
@@ -72,9 +73,9 @@ function AttemptReviewPage({ role = "student" }) {
         </div>
       ) : forbidden ? (
         <ForbiddenAccess
-          backTo={role === "student" ? "/student/quizzes" : undefined}
+          backTo={role === "student" ? "/student/exam-results" : undefined}
           backLabel={
-            role === "student" ? t("attempt_review.back_to_quizzes") : undefined
+            role === "student" ? t("attempt_review.back_to_exam_results") : undefined
           }
         />
       ) : error ? (

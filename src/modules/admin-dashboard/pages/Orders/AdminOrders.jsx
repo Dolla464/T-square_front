@@ -5,13 +5,22 @@ import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import { Button } from "react-bootstrap";
 import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
 import AdminPagination from "../../components/shared/AdminPagination";
-import { showPaymentStatusConfirm, showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
+import {
+  showConfirmCustom,
+  showAttendanceTypePicker,
+} from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastError } from "../../../../components/shared/Toaster/toaster";
 import { useOrders } from "../../hooks/useOrders";
 import ExportBar from "../../components/shared/ExportBar";
-import { dateInputClass } from "../../components/shared/adminUiStyles";
+import { dateInputClass, selectClass } from "../../components/shared/adminUiStyles";
+import { VALID_ATTENDANCE_TYPES } from "../../../../utils/attendanceTypes";
+
+const ORDER_STATUS_OPTIONS = ["pending", "completed", "cancelled", "refunded"];
 
 import "../Reviews/review.css";
+import "./AdminOrders.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 function AdminOrders({
   useOrdersHook = useOrders,
@@ -21,7 +30,7 @@ function AdminOrders({
   showStats = true,
 }) {
   const { t, i18n } = useTranslation("orderPayments");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
   const navigate = useNavigate();
 
   const {
@@ -40,6 +49,7 @@ function AdminOrders({
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [attendanceTypeFilter, setAttendanceTypeFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -63,10 +73,11 @@ function AdminOrders({
       page,
       search: debouncedSearch,
       status: statusFilter === "all" ? "" : statusFilter,
+      attendance_type: attendanceTypeFilter === "all" ? "" : attendanceTypeFilter,
       date_from: dateFrom,
       date_to: dateTo,
     }),
-    [currentPage, debouncedSearch, statusFilter, dateFrom, dateTo]
+    [currentPage, debouncedSearch, statusFilter, attendanceTypeFilter, dateFrom, dateTo]
   );
 
   useEffect(() => {
@@ -81,7 +92,7 @@ function AdminOrders({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, statusFilter, dateFrom, dateTo]);
+  }, [debouncedSearch, statusFilter, attendanceTypeFilter, dateFrom, dateTo]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -99,19 +110,86 @@ function AdminOrders({
     }
   };
 
-  const handleStatusChange = async (id, currentStatus) => {
-    const newStatus = await showPaymentStatusConfirm(currentStatus);
-    if (newStatus) {
-      const success = await updateOrderStatus(id, newStatus);
-      if (success) {
-        getOrders(buildFilterParams());
-      }
+  const getCourseAttendanceTypes = (item) => {
+    const nestedTypes = item?.["enrollments.course.attendance_types"];
+    if (Array.isArray(nestedTypes) && nestedTypes.length > 0) {
+      return nestedTypes;
+    }
+
+    const course = item?.course || item?.enrollments?.course;
+    if (Array.isArray(course?.attendance_types) && course.attendance_types.length > 0) {
+      return course.attendance_types;
+    }
+
+    return [];
+  };
+
+  const getAttendanceTypeLabel = (type) => {
+    if (!type) return "—";
+    return t(`attendanceTypes.${type}`, { defaultValue: type });
+  };
+
+  const resolveCompletionAttendanceType = async (item) => {
+    const supportedTypes = getCourseAttendanceTypes(item);
+    const existingRaw = item["enrollments.attendance_type"];
+    const normalizedExisting = existingRaw
+      ? String(existingRaw).trim().toLowerCase()
+      : null;
+
+    if (normalizedExisting && supportedTypes.includes(normalizedExisting)) {
+      return normalizedExisting;
+    }
+
+    return showAttendanceTypePicker(supportedTypes);
+  };
+
+  const handleStatusSelectChange = async (item, event) => {
+    const currentStatus = item.status || "pending";
+    const newStatus = event.target.value;
+
+    if (newStatus === currentStatus) return;
+
+    event.target.value = currentStatus;
+
+    let attendanceType;
+    if (newStatus === "completed" && currentStatus !== "completed") {
+      attendanceType = await resolveCompletionAttendanceType(item);
+      if (!attendanceType) return;
+    }
+
+    const confirmed = await showConfirmCustom({
+      title: t("changeStatusTitle"),
+      message: attendanceType
+        ? t("changeStatusMessageWithAttendance", {
+            from: getStatusText(currentStatus),
+            to: getStatusText(newStatus),
+            attendanceType: getAttendanceTypeLabel(attendanceType),
+          })
+        : t("changeStatusMessage", {
+            from: getStatusText(currentStatus),
+            to: getStatusText(newStatus),
+          }),
+      confirmText: t("changeStatusConfirm"),
+      cancelText: t("changeStatusCancel"),
+      icon: "question",
+      variant: "primary",
+    });
+
+    if (!confirmed) return;
+
+    const payload = attendanceType
+      ? { status: newStatus, attendance_type: attendanceType }
+      : { status: newStatus };
+
+    const success = await updateOrderStatus(item.id, payload);
+    if (success) {
+      getOrders(buildFilterParams());
     }
   };
 
   const handleDelete = async (id) => {
     const order = orders.find((r) => r.id === id);
-    const orderName = order?.["student.full_name"] || order?.billing_name || (isArabic ? "هذا الطلب" : "this order");
+    const orderName = order?.["student.full_name"] || order?.billing_name || t("thisOrder");
     const confirmed = await showConfirmCustom({
       title: t("deleteOrderTitle"),
       message: t("deleteOrderMessage", { name: orderName }),
@@ -147,16 +225,6 @@ function AdminOrders({
     }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "completed": return "bi-check-circle-fill";
-      case "pending": return "bi-clock-fill";
-      case "cancelled": return "bi-x-circle-fill";
-      case "refunded": return "bi-arrow-counterclockwise";
-      default: return "bi-info-circle-fill";
-    }
-  };
-
   const formatOrderDate = (value) => {
     if (!value) return "—";
     return new Date(value).toLocaleString(isArabic ? "ar-EG" : "en-GB", {
@@ -167,11 +235,32 @@ function AdminOrders({
 
   const getStatusText = (status) => {
     switch (status) {
-      case "completed": return isArabic ? "مكتمل" : "Completed";
-      case "pending": return isArabic ? "قيد الانتظار" : "Pending";
-      case "cancelled": return isArabic ? "ملغي" : "Cancelled";
-      case "refunded": return isArabic ? "مسترجع" : "Refunded";
-      default: return status;
+      case "completed":
+        return t("completed");
+      case "pending":
+        return t("pending");
+      case "cancelled":
+        return t("cancelled");
+      case "refunded":
+        return t("refunded");
+      default:
+        return status;
+    }
+  };
+
+  const getStatusSelectClass = (status) => {
+    const base = "form-select form-select-sm ac-form-select border-2 rounded-3 shadow-sm fw-semibold text-center";
+    switch (status) {
+      case "completed":
+        return `${base} border-success bg-success-subtle text-success`;
+      case "pending":
+        return `${base} border-warning bg-warning-subtle text-warning`;
+      case "cancelled":
+        return `${base} border-danger bg-danger-subtle text-danger`;
+      case "refunded":
+        return `${base} border-secondary bg-secondary-subtle text-secondary`;
+      default:
+        return selectClass(false);
     }
   };
 
@@ -304,8 +393,8 @@ function AdminOrders({
       <div className="ac-table-card">
         <div className="ac-table-container">
           <div className="ac-rounded-table p-3 p-md-0">
-            <div className="ac-filters-bar d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-5 ">
-              <div className="ac-search-input-wrapper position-relative ">
+            <div className="ac-filters-bar orders-filters-bar mb-4">
+              <div className="orders-search-row ac-search-input-wrapper position-relative orders-search-wrapper">
                 <i
                   className={`bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 pe-none ${searchTerm ? "text-danger fw-bold" : "text-muted"}`}
                   style={{ zIndex: 3 }}
@@ -313,15 +402,13 @@ function AdminOrders({
                 <input
                   type="text"
                   className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium" : "border-light bg-light text-muted"}`}
-
                   placeholder={t("search")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
 
-              <section className="d-flex flex-column flex-md-row gap-2 gap-md-3 w-100">
-
+              <div className="orders-select-row orders-select-filters">
                 <select
                   className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${statusFilter !== "all"
                     ? "border-danger bg-danger-subtle text-danger-emphasis"
@@ -329,72 +416,90 @@ function AdminOrders({
                     }`}
                   onChange={(e) => setStatusFilter(e.target.value)}
                   value={statusFilter}
+                  aria-label={t("allPayments")}
                 >
                   <option value="all">{t("allPayments")}</option>
                   <option value="completed">{t("completed")}</option>
                   <option value="pending">{t("pending")}</option>
                   <option value="refunded">{t("refunded")}</option>
-                  <option value="cancelled">{isArabic ? "ملغي" : "Cancelled"}</option>
+                  <option value="cancelled">{t("cancelled")}</option>
                 </select>
-                
-                <input
-                  type="date"
-                  className={`w-100 w-md-auto ${dateInputClass(dateFrom)} ${isDateRangeInvalid ? "border-danger" : ""}`}
-                  style={{ minWidth: "11rem", flex: "0 0 auto" }}
-                  title={t("dateFrom")}
-                  aria-label={t("dateFrom")}
-                  value={dateFrom}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value && dateTo && value > dateTo) {
-                      toastError(t("invalidDateRange"));
-                      return;
-                    }
-                    setDateFrom(value);
-                  }}
-                />
-                <input
-                  type="date"
-                  className={`w-100 w-md-auto ${dateInputClass(dateTo)} ${isDateRangeInvalid ? "border-danger" : ""}`}
-                  style={{ minWidth: "11rem", flex: "0 0 auto" }}
-                  title={t("dateTo")}
-                  aria-label={t("dateTo")}
-                  value={dateTo}
-                  min={dateFrom || undefined}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value && dateFrom && value < dateFrom) {
-                      toastError(t("invalidDateRange"));
-                      return;
-                    }
-                    setDateTo(value);
-                  }}
-                />
-              </section>
-            </div>
 
-            {/* <div className="d-flex flex-nowrap align-items-center gap-2 gap-md-3 orders-date-filters">
-              
-            </div> */}
+                <select
+                  className={`form-select ac-form-select py-2 border-2 rounded-3 shadow-sm fw-medium transition-all ${attendanceTypeFilter !== "all"
+                    ? "border-danger bg-danger-subtle text-danger-emphasis"
+                    : "border-light bg-light text-muted"
+                    }`}
+                  onChange={(e) => setAttendanceTypeFilter(e.target.value)}
+                  value={attendanceTypeFilter}
+                  aria-label={t("allAttendanceTypes")}
+                >
+                  <option value="all">{t("allAttendanceTypes")}</option>
+                  {VALID_ATTENDANCE_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {t(`attendanceTypes.${type}`)}
+                    </option>
+                  ))}
+                  <option value="unassigned">{t("attendanceTypeUnassigned")}</option>
+                </select>
+              </div>
+
+              <div className="orders-date-row orders-date-filters">
+                <label className="orders-date-field">
+                  <span className="orders-date-label">{t("dateFrom")}</span>
+                  <input
+                    type="date"
+                    className={`form-control ${dateInputClass(dateFrom)} ${isDateRangeInvalid ? "border-danger" : ""}`}
+                    value={dateFrom}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value && dateTo && value > dateTo) {
+                        toastError(t("invalidDateRange"));
+                        return;
+                      }
+                      setDateFrom(value);
+                    }}
+                  />
+                </label>
+                <label className="orders-date-field">
+                  <span className="orders-date-label">{t("dateTo")}</span>
+                  <input
+                    type="date"
+                    className={`form-control ${dateInputClass(dateTo)} ${isDateRangeInvalid ? "border-danger" : ""}`}
+                    value={dateTo}
+                    min={dateFrom || undefined}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value && dateFrom && value < dateFrom) {
+                        toastError(t("invalidDateRange"));
+                        return;
+                      }
+                      setDateTo(value);
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
           </div>
 
           <div className="table-responsive">
-            <table className="table ac-table mb-0 align-middle" dir="ltr">
+            <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
               <thead className="ac-table">
                 <tr className="text-muted">
                   <th>{t("orderId")}</th>
                   <th className="text-center">{t("student")}</th>
                   <th className="text-center">{t("course")}</th>
                   <th className="text-center">{t("amount")}</th>
+                  <th className="text-center">{t("attendanceType")}</th>
                   <th className="text-center">{t("status")}</th>
-                  <th className="text-center">{isArabic ? "الإجراءات" : "Actions"}</th>
+                  <th className="text-center">{t("actions")}</th>
                 </tr>
               </thead>
 
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-5">
+                    <td colSpan="7" className="text-center py-5">
                       <div className="spinner-border text-danger" role="status">
                         <span className="visually-hidden">Loading...</span>
                       </div>
@@ -425,25 +530,32 @@ function AdminOrders({
                         )}
                       </td>
 
+                      <td className="text-center fw-medium text-dark">
+                        {getAttendanceTypeLabel(item["enrollments.attendance_type"])}
+                      </td>
+
                       <td className="text-center">
-                        <span
-                          className={`badge rounded-pill cp ${getStatusBadge(item.status || "pending")}`}
-                          style={{
-                            cursor: "pointer",
-                            padding: "8px 16px",
-                          }}
-                          onClick={() => handleStatusChange(item.id, item.status || "pending")}
+                        <select
+                          key={`${item.id}-${item.status || "pending"}`}
+                          className={getStatusSelectClass(item.status || "pending")}
+                          defaultValue={item.status || "pending"}
+                          onChange={(event) => handleStatusSelectChange(item, event)}
+                          aria-label={t("status")}
+                          style={{ minWidth: "9.5rem", cursor: "pointer" }}
                         >
-                          <i className={`bi ${getStatusIcon(item.status || "pending")} me-1`}></i>
-                          {getStatusText(item.status || "pending")}
-                        </span>
+                          {ORDER_STATUS_OPTIONS.map((status) => (
+                            <option key={status} value={status}>
+                              {getStatusText(status)}
+                            </option>
+                          ))}
+                        </select>
                       </td>
 
                       <td className="text-center">
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm ac-btn-view border-0"
-                            title={isArabic ? "عرض التفاصيل" : "View Details"}
+                            title={t("viewDetails")}
                             onClick={() => handleView(item.id)}
                           >
                             <i className="bi bi-eye fs-6"></i>
@@ -451,7 +563,7 @@ function AdminOrders({
                           {canDelete && deleteOrder && (
                           <button
                             className="btn btn-sm ac-btn-deleteTable border-0"
-                            title={isArabic ? "حذف" : "Delete"}
+                            title={t("delete")}
                             onClick={() => handleDelete(item.id)}
                           >
                             <i className="bi bi-trash fs-6"></i>
@@ -463,10 +575,10 @@ function AdminOrders({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="text-center py-5 text-secondary fw-bold">
+                    <td colSpan="7" className="text-center py-5 text-secondary fw-bold">
                       <div className="d-flex flex-column align-items-center justify-content-center">
                         <i className="bi bi-inbox fs-1 text-muted mb-2"></i>
-                        {isArabic ? "لا توجد طلبات دفع" : "No payment orders found"}
+                        {t("noOrders")}
                       </div>
                     </td>
                   </tr>
@@ -489,30 +601,30 @@ function AdminOrders({
       <DetailModal
         show={showViewModal}
         onHide={() => setShowViewModal(false)}
-        title={isArabic ? "تفاصيل الطلب" : "Order Details"}
+        title={t("orderDetails")}
         dir={isArabic ? "rtl" : "ltr"}
       >
         {selectedOrder && (
           <div className="cert-modal-content">
             <div className="cert-info-list p-3 bg-light rounded-3 mt-3">
               <div className="info-item d-flex justify-content-between mb-2">
-                <span className="text-muted">{isArabic ? "رقم الطلب:" : "Order ID:"}</span>
+                <span className="text-muted">{t("orderIdLabel")}</span>
                 <span className="fw-bold text-dark">#{selectedOrder.id}</span>
               </div>
               <div className="info-item d-flex justify-content-between mb-2">
-                <span className="text-muted">{isArabic ? "اسم الطالب:" : "Student Name:"}</span>
+                <span className="text-muted">{t("studentName")}</span>
                 <span className="fw-medium">{selectedOrder["student.full_name"] || selectedOrder.billing_name}</span>
               </div>
               <div className="info-item d-flex justify-content-between mb-2">
-                <span className="text-muted">{isArabic ? "البريد الإلكتروني:" : "Email:"}</span>
+                <span className="text-muted">{t("email")}</span>
                 <span className="fw-medium text-muted">{selectedOrder["student.user.email"] || "N/A"}</span>
               </div>
               <div className="info-item d-flex align-items-center justify-content-between mb-2">
-                <span className="text-muted">{isArabic ? "الكورس:" : "Course:"}</span>
+                <span className="text-muted">{t("course")}:</span>
                 <span className="fw-medium text-end ms-2" style={{ maxWidth: "200px" }}>{selectedOrder["enrollments.course.title"] || "N/A"}</span>
               </div>
               <div className="info-item d-flex justify-content-between mb-2">
-                <span className="text-muted">{isArabic ? "المبلغ:" : "Amount:"}</span>
+                <span className="text-muted">{t("amount")}:</span>
                 {isFreeOrder(selectedOrder.total_amount) ? (
                   <span className="badge bg-info-subtle text-info px-3 py-2">{t("freeOrder")}</span>
                 ) : (
@@ -523,6 +635,13 @@ function AdminOrders({
               <div className="info-item d-flex justify-content-between mb-2">
                 <span className="text-muted">{t("createdAt")}</span>
                 <span className="fw-medium">{formatOrderDate(selectedOrder.created_at)}</span>
+              </div>
+
+              <div className="info-item d-flex justify-content-between mb-2">
+                <span className="text-muted">{t("attendanceType")}</span>
+                <span className="fw-medium">
+                  {getAttendanceTypeLabel(selectedOrder["enrollments.attendance_type"])}
+                </span>
               </div>
 
               <div className="info-item d-flex justify-content-between align-items-center mb-2">
@@ -544,7 +663,7 @@ function AdminOrders({
               onClick={() => setShowViewModal(false)}
               style={{ backgroundColor: "#1a1a1a" }}
             >
-              {isArabic ? "إغلاق" : "Close"}
+              {t("close")}
             </Button>
           </div>
         )}

@@ -1,0 +1,169 @@
+.ar-diag-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px 14px 48px;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #111;
+  background: #f3f4f6;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.ar-diag-page *,
+.ar-diag-page *::before,
+.ar-diag-page *::after {
+  box-sizing: border-box;
+}
+
+.ar-diag-banner {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.ar-diag-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.ar-diag-env {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 20px;
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.ar-diag-env dt {
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.ar-diag-env dd {
+  margin: 2px 0 0;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+}
+
+.ar-diag-section {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 20px;
+}
+
+.ar-diag-section h2 {
+  font-size: 1rem;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.ar-diag-variant {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.ar-diag-variant:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.ar-diag-variant-label {
+  font-weight: 600;
+  font-size: 12px;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.ar-diag-sample {
+  font-size: 1.05rem;
+  line-height: 1.55;
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.ar-diag-sample--multiline {
+  white-space: pre-wrap;
+}
+
+.ar-diag-computed {
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  color: #4b5563;
+  background: #f3f4f6;
+  padding: 8px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.ar-diag-computed div {
+  margin: 2px 0;
+}
+
+.ar-diag-unicode {
+  font-size: 11px;
+  font-family: ui-monospace, monospace;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  word-break: break-word;
+}
+
+.ar-diag-unicode h3 {
+  font-size: 12px;
+  margin: 0 0 8px;
+}
+
+.ar-diag-guide {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 13px;
+}
+
+.ar-diag-guide h2 {
+  font-size: 1rem;
+  margin: 0 0 10px;
+}
+
+.ar-diag-guide ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.ar-diag-guide li {
+  margin-bottom: 8px;
+}
+
+.ar-diag-paste textarea {
+  width: 100%;
+  min-height: 88px;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+  direction: auto;
+}
+
+.ar-diag-string-e .ar-diag-sample {
+  margin-bottom: 6px;
+}

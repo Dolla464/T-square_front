@@ -26,15 +26,23 @@
 }
 
 /* Badge (Hybrid, Online, Offline) */
-.course-badge {
+.course-badges {
   position: absolute;
   top: 15px;
   left: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 1;
+}
+
+.course-badge {
   padding: 5px 15px;
   border-radius: 5px;
   color: #fff;
   font-size: 0.8rem;
   font-weight: 600;
+  width: fit-content;
 }
 
 /* الألوان بناءً على نوع الكورس */

@@ -21,7 +21,13 @@
   },
 
   "notFound": {
-    "title": "Resource not found"
+    "title": "Resource not found",
+    "page_title": "Page Not Found!",
+    "message": "Sorry, the page you are looking for does not exist or has been moved.",
+    "go_to_dashboard": "Go to Dashboard",
+    "go_to_home": "Go to Home Page",
+    "go_back": "Go Back",
+    "back_to_home": "Back to Home"
   },
 
   "maintenance": {

@@ -10,10 +10,12 @@ import { getCompletedLearningGroupsSelection } from "../../services/learningGrou
 import { showConfirmCustom, showDeleteConfirm, showReviewPendingConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 
 import "./review.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 function AdminReviews() {
-  const { i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const { t, i18n } = useTranslation("adminDashboard");
+  const isArabic = isArabicLocale(i18n.language);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,9 +27,7 @@ function AdminReviews() {
   const [selectedReview, setSelectedReview] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
 
-  const notReviewedMessage = isArabic
-    ? "لم يقم الطالب بعمل تقييم"
-    : "Student has not reviewed";
+  const notReviewedMessage = t("reviews_page.not_reviewed_message");
 
   // حماية السيرفر من إرسال طلبات مكثفة أثناء الكتابة السريعة (Debounce)
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -131,6 +131,19 @@ function AdminReviews() {
     }
   };
 
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "pending":
+        return t("reviews_page.pending_status");
+      case "accepted":
+        return t("reviews_page.status_accepted");
+      case "rejected":
+        return t("reviews_page.status_rejected");
+      default:
+        return status;
+    }
+  };
+
   // 3. تعديل منطق تغيير الحالة ليتناسب مع الانتقال بين الحالات (accepted, pending, rejected)
   const handleStatusChange = async (id, currentStatus) => {
     let newStatus = "";
@@ -143,24 +156,16 @@ function AdminReviews() {
       newStatus = currentStatus === "accepted" ? "rejected" : "accepted";
       const ok = await showConfirmCustom({
         title: newStatus === "accepted"
-          ? isArabic
-            ? "قبول ونشر التقييم"
-            : "Accept and Publish Review"
-          : isArabic
-            ? "رفض وإخفاء التقييم"
-            : "Reject and Hide Review",
+          ? t("reviews_page.confirm_accept_title")
+          : t("reviews_page.confirm_reject_title"),
 
         message: newStatus === "rejected"
-          ? isArabic
-            ? "هل تريد رفض وإخفاء هذا التقييم؟"
-            : "Do you want to reject and hide this review?"
-          : isArabic
-            ? "سيتم قبول التقييم ونشره ليصبح مرئياً للمستخدمين."
-            : "The review will be accepted and published to be visible to users.",
+          ? t("reviews_page.confirm_reject_message")
+          : t("reviews_page.confirm_accept_message"),
 
         icon: newStatus === "rejected" ? "warning" : "info",
         variant: newStatus === "rejected" ? "danger" : "primary",
-        confirmText: isArabic ? "استمرار" : "Proceed",
+        confirmText: t("reviews_page.proceed"),
       });
 
       if (!ok) return;
@@ -177,7 +182,7 @@ function AdminReviews() {
   const handleDelete = async (id) => {
     const review = reviews.find((r) => r.id === id);
     const confirmed = await showDeleteConfirm(
-      review?.student_name || (isArabic ? "هذا التقييم" : "this review"),
+      review?.student_name || t("reviews_page.this_review"),
     );
 
     if (confirmed) {
@@ -190,12 +195,10 @@ function AdminReviews() {
       <div className="ac-header d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="ac-title">
-            {isArabic ? "تقييمات الطلاب" : "Student Reviews"}
+            {t("reviews_page.title")}
           </h2>
           <p className="ac-subtitle text-muted mb-0">
-            {isArabic
-              ? "إدارة ومراجعة تقييمات الطلاب للكورسات والمحاضرين"
-              : "Manage and review student feedback for courses and instructors"}
+            {t("reviews_page.subtitle")}
           </p>
         </div>
       </div>
@@ -211,11 +214,8 @@ function AdminReviews() {
               >
                 <i className="bi bi-chat-left-text fs-5"></i>
               </div>
-              {/* <span className="fw-semibold" style={{ color: "#22c55e", fontSize: "0.85rem" }}>
-                <i className="bi bi-arrow-up-right me-1"></i>+64
-              </span> */}
               <span className="fw-semibold text-muted" style={{ fontSize: "0.85rem" }}>
-                {isArabic ? "كل الأوقات" : "All Time"}
+                {t("reviews_page.stats.all_time")}
               </span>
             </div>
             <div>
@@ -223,7 +223,7 @@ function AdminReviews() {
                 {stats?.total_reviews || 0}
               </h3>
               <span className="text-muted" style={{ fontSize: "0.82rem" }}>
-                {isArabic ? "إجمالي التقييمات" : "Total Reviews"}
+                {t("reviews_page.stats.total_reviews")}
               </span>
             </div>
           </div>
@@ -257,7 +257,7 @@ function AdminReviews() {
                 {stats?.average_rating || 0}
               </h3>
               <span className="text-muted" style={{ fontSize: "0.82rem" }}>
-                {isArabic ? "متوسط التقييم" : "Avg Rating"}
+                {t("reviews_page.stats.average_rating")}
               </span>
             </div>
           </div>
@@ -274,7 +274,7 @@ function AdminReviews() {
                 <i className="bi bi-clock-history fs-5"></i>
               </div>
               <span className="fw-semibold text-warning" style={{ fontSize: "0.85rem" }}>
-                {isArabic ? "قيد الانتظار" : "Awaiting"}
+                {t("reviews_page.stats.awaiting")}
               </span>
             </div>
             <div>
@@ -282,7 +282,7 @@ function AdminReviews() {
                 {stats?.pending_count || 0}
               </h3>
               <span className="text-muted" style={{ fontSize: "0.82rem" }}>
-                {isArabic ? "بانتظار المراجعة" : "Pending Review"}
+                {t("reviews_page.stats.pending_reviews")}
               </span>
             </div>
           </div>
@@ -299,7 +299,7 @@ function AdminReviews() {
                 <i className="bi bi-shield-x fs-5"></i>
               </div>
               <span className="fw-semibold text-muted" style={{ fontSize: "0.85rem" }}>
-                {isArabic ? "كل الأوقات" : "All Time"}
+                {t("reviews_page.stats.all_time")}
               </span>
             </div>
             <div>
@@ -307,14 +307,14 @@ function AdminReviews() {
                 {stats?.rejected_count || 0}
               </h3>
               <span className="text-muted" style={{ fontSize: "0.82rem" }}>
-                {isArabic ? "مرفوضة" : "Rejected"}
+                {t("reviews_page.stats.rejected_reviews")}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="ac-rounded-table p-3 p-md-0" dir="ltr">
+      <div className="ac-rounded-table p-3 p-md-0" dir={isArabic ? "rtl" : "ltr"}>
         <div className="review-table-container">
           <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3">
             <div className="ac-search-input-wrapper position-relative">
@@ -325,9 +325,7 @@ function AdminReviews() {
               <input
                 type="text"
                 className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium" : "border-light bg-light text-muted"}`}
-                placeholder={
-                  isArabic ? "بحث في التقييمات..." : "Search reviews..."
-                }
+                placeholder={t("reviews_page.search_placeholder")}
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -350,7 +348,7 @@ function AdminReviews() {
                 style={{ minWidth: "150px" }}
               >
                 <option value="all">
-                  {isArabic ? "جميع المجموعات" : "All Groups"}
+                  {t("reviews_page.all_groups")}
                 </option>
                 {completedGroups.map((group) => (
                   <option key={group.id} value={group.id}>
@@ -364,11 +362,11 @@ function AdminReviews() {
                 onChange={(e) => setRatingFilter(e.target.value)}
               >
                 <option value="all">
-                  {isArabic ? "جميع التقييمات" : "All Ratings"}
+                  {t("reviews_page.all_ratings")}
                 </option>
                 {[5, 4, 3, 2, 1].map((num) => (
                   <option key={num} value={num}>
-                    {num} {isArabic ? "نجوم" : "Stars"}
+                    {num} {t("reviews_page.stars")}
                   </option>
                 ))}
               </select>
@@ -383,26 +381,26 @@ function AdminReviews() {
                   setCurrentPage(1);
                 }}
               >
-                <option value="all">{isArabic ? "جميع الحالات" : "All Status"}</option>
-                <option value="accepted">{isArabic ? "مقبولة" : "Accepted"}</option>
-                <option value="pending">{isArabic ? "قيد الانتظار" : "Pending"}</option>
-                <option value="rejected">{isArabic ? "مرفوضة" : "Rejected"}</option>
-                <option value="not_reviewed">{isArabic ? "لم يقيّم" : "Not Reviewed"}</option>
+                <option value="all">{t("reviews_page.all_statuses")}</option>
+                <option value="accepted">{t("reviews_page.active_status")}</option>
+                <option value="pending">{t("reviews_page.pending_status")}</option>
+                <option value="rejected">{t("reviews_page.rejected_status")}</option>
+                <option value="not_reviewed">{t("reviews_page.not_reviewed_status")}</option>
               </select>
             </div>
           </div>
 
           <div className="table-responsive">
-            <table className="table ac-table mb-0 align-middle" dir="ltr">
+            <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
               <thead className="ac-table">
                 <tr className="text-muted">
-                  <th>{isArabic ? "الطالب" : "Student"}</th>
-                  <th>{isArabic ? "الكورس" : "Course"}</th>
-                  <th>{isArabic ? "التقييم" : "Rating"}</th>
-                  <th>{isArabic ? "التعليق" : "Comment"}</th>
-                  <th>{isArabic ? "الحالة" : "Status"}</th>
+                  <th>{t("reviews_page.table_student")}</th>
+                  <th>{t("reviews_page.table_course")}</th>
+                  <th>{t("reviews_page.table_rating")}</th>
+                  <th>{t("reviews_page.table_comment")}</th>
+                  <th>{t("reviews_page.table_status")}</th>
                   <th className="text-center">
-                    {isArabic ? "إجراءات" : "Actions"}
+                    {t("reviews_page.table_actions")}
                   </th>
                 </tr>
               </thead>
@@ -439,7 +437,7 @@ function AdminReviews() {
                           </td>
                           <td>
                             <span className="badge rounded-pill bg-secondary-subtle text-secondary px-3 py-2">
-                              {isArabic ? "لم يقيّم" : "Not Reviewed"}
+                              {t("reviews_page.not_reviewed_status")}
                             </span>
                           </td>
                           <td className="text-center text-muted">—</td>
@@ -478,9 +476,7 @@ function AdminReviews() {
                           className={`text-secondary ac-truncate-text ${item.overall_comment ? "review-comment-expandable" : ""}`}
                           title={
                             item.overall_comment
-                              ? isArabic
-                                ? "اضغط لعرض التعليق كاملاً"
-                                : "Click to show full comment"
+                              ? t("reviews_page.click_full_comment")
                               : undefined
                           }
                           onClick={(event) => openCommentPopup(event, item.overall_comment)}
@@ -499,18 +495,14 @@ function AdminReviews() {
                             <i
                               className={`bi ${item.review_status === "accepted" ? "bi-patch-check-fill" : item.review_status === "pending" ? "bi-exclamation-triangle-fill" : "bi-shield-exclamation"} me-1`}
                             ></i>
-                            {item.review_status == "pending"
-                              ? isArabic ? "قيد الانتظار" : "Pending"
-                              : item.review_status == "accepted"
-                                ? isArabic ? "مقبول" : "Accepted"
-                                : isArabic ? "مرفوض" : "Rejected"}
+                            {getStatusLabel(item.review_status)}
                           </span>
                         </td>
                         <td className="text-center">
                           <div className="d-flex justify-content-center gap-2">
                             <button
                               className="btn btn-sm ac-btn-view border-0"
-                              title="View"
+                              title={t("reviews_page.view_review")}
                               onClick={() => handleView(item.id)}
                             >
                               <i className="bi bi-eye fs-6"></i>
@@ -518,7 +510,7 @@ function AdminReviews() {
 
                             <button
                               className="btn btn-sm ac-btn-deleteTable border-0"
-                              title="Delete"
+                              title={t("reviews_page.delete_review")}
                               onClick={() => handleDelete(item.id)}
                             >
                               <i className="bi bi-trash fs-6"></i>
@@ -534,7 +526,7 @@ function AdminReviews() {
                       colSpan="6"
                       className="text-center py-4 text-secondary fw-bold"
                     >
-                      {isArabic ? "لا توجد بيانات" : "No data found"}
+                      {t("reviews_page.no_data")}
                     </td>
                   </tr>
                 )}
@@ -552,7 +544,7 @@ function AdminReviews() {
       <DetailModal
         show={showViewModal}
         onHide={() => setShowViewModal(false)}
-        title={isArabic ? "تفاصيل التقييم" : "Review Details"}
+        title={t("reviews_page.view_details")}
         dir={isArabic ? "rtl" : "ltr"}
       >
           {selectedReview && (
@@ -560,7 +552,7 @@ function AdminReviews() {
               <div className="cert-info-list p-3 bg-light rounded-3 mt-3">
                 <div className="info-item d-flex justify-content-between mb-2">
                   <span className="text-muted">
-                    {isArabic ? "اسم الطالب:" : "Student Name:"}
+                    {t("reviews_page.fields.student")}
                   </span>
                   <span className="fw-medium">
                     {selectedReview.student_name}
@@ -568,7 +560,7 @@ function AdminReviews() {
                 </div>
                 <div className="info-item d-flex align-items-center justify-content-between mb-2">
                   <span className="text-muted">
-                    {isArabic ? "اسم الكورس:" : "Course Title:"}
+                    {t("reviews_page.fields.course")}
                   </span>
                   <span
                     className="fw-medium text-end ms-2"
@@ -579,7 +571,7 @@ function AdminReviews() {
                 </div>
                 <div className="info-item d-flex justify-content-between mb-2">
                   <span className="text-muted">
-                    {isArabic ? "المحتوى:" : "Content Rating:"}
+                    {t("reviews_page.fields.content_rating")}
                   </span>
                   <span className="fw-medium text-warning">
                     {selectedReview.content_rating} / 5
@@ -587,7 +579,7 @@ function AdminReviews() {
                 </div>
                 <div className="info-item d-flex justify-content-between mb-2">
                   <span className="text-muted">
-                    {isArabic ? "المحاضر:" : "Instructor Rating:"}
+                    {t("reviews_page.fields.instructor_rating")}
                   </span>
                   <span className="fw-medium text-warning">
                     {selectedReview.instructor_rating} / 5
@@ -595,7 +587,7 @@ function AdminReviews() {
                 </div>
                 <div className="info-item d-flex justify-content-between mb-2">
                   <span className="text-muted">
-                    {isArabic ? "المركز:" : "Center Rating:"}
+                    {t("reviews_page.fields.center_rating")}
                   </span>
                   <span className="fw-medium text-warning">
                     {selectedReview.center_rating} / 5
@@ -603,7 +595,7 @@ function AdminReviews() {
                 </div>
                 <div className="info-item d-flex justify-content-between mb-2">
                   <span className="text-muted">
-                    {isArabic ? "التقييم الإجمالي:" : "Overall Rating:"}
+                    {t("reviews_page.fields.overall_rating")}
                   </span>
                   <span className="fw-bold text-danger">
                     {selectedReview.rating} / 5
@@ -611,7 +603,7 @@ function AdminReviews() {
                 </div>
                 <div className="info-item d-flex justify-content-between mb-2">
                   <span className="text-muted">
-                    {isArabic ? "الحالة الحالية:" : "Current Status:"}
+                    {t("reviews_page.fields.current_status")}
                   </span>
                   <span
                     className={`badge rounded-pill ${selectedReview.review_status === "accepted"
@@ -621,17 +613,12 @@ function AdminReviews() {
                         : "bg-warning-subtle text-warning-emphasis"
                       }`}
                   >
-                    {selectedReview.review_status === "pending" &&
-                      (isArabic ? "قيد الانتظار" : "Pending")}
-                    {selectedReview.review_status === "accepted" &&
-                      (isArabic ? "مقبول" : "Accepted")}
-                    {selectedReview.review_status === "rejected" &&
-                      (isArabic ? "مرفوض" : "Rejected")}
+                    {getStatusLabel(selectedReview.review_status)}
                   </span>
                 </div>
                 <div className="info-item d-flex flex-column mt-3">
                   <span className="text-muted mb-1">
-                    {isArabic ? "التعليق:" : "Comment:"}
+                    {t("reviews_page.fields.comment")}
                   </span>
                   <p
                     className="mb-0 bg-white p-3 rounded-3 border small text-dark"
@@ -642,7 +629,7 @@ function AdminReviews() {
                 </div>
                 <div className="info-item d-flex justify-content-between mt-3">
                   <span className="text-muted">
-                    {isArabic ? "تاريخ التقييم:" : "Review Date:"}
+                    {t("reviews_page.fields.date")}
                   </span>
                   <span className="fw-medium small">
                     {selectedReview.created_at}
@@ -655,7 +642,7 @@ function AdminReviews() {
                 onClick={() => setShowViewModal(false)}
                 style={{ backgroundColor: "#1a1a1a" }}
               >
-                {isArabic ? "إغلاق" : "Close"}
+                {t("reviews_page.close")}
               </Button>
             </div>
           )}

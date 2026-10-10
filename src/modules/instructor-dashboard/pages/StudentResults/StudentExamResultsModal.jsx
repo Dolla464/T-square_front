@@ -14,6 +14,8 @@ import {
 import { useInstructorExamResults } from "../../hooks/useInstructorExamResults";
 import "../../../student-dashboard/styles/dashboardShared.css";
 import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 function StudentExamResultsModal({
   show,
@@ -27,7 +29,7 @@ function StudentExamResultsModal({
   role = "instructor",
 }) {
   const { t, i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
 
   const { studentExamAttempts, loadingStudentAttempts, loadStudentExamAttempts } =
     useInstructorExamResults();

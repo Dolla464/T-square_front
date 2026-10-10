@@ -6,12 +6,14 @@ import axiosClient from "../../api/axios";
 import { useState } from "react";
 import { formatCoursePrice } from "../../utils/coursePrice";
 import { safeReturnUrl } from "../../utils/safeReturnUrl";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 const CourseSidebar = ({ course }) => {
   const { t, i18n } = useTranslation("coursesDetails");
   const { t: tCourses } = useTranslation("courses");
   const { user } = useAuth();
-  const isArabic = i18n?.language === "ar";
+  const isArabic = isArabicLocale(i18n?.language);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -29,6 +31,7 @@ const CourseSidebar = ({ course }) => {
     }
 
     let isEnrolled = false;
+    let isPending = false;
 
     try {
       setIsChecking(true);
@@ -37,6 +40,7 @@ const CourseSidebar = ({ course }) => {
       );
       if (response.data && response.data.status === "success") {
         isEnrolled = response.data.data.is_enrolled;
+        isPending = response.data.data.is_pending === true;
       }
     } catch (error) {
       console.error("Error during check:", error);
@@ -44,8 +48,7 @@ const CourseSidebar = ({ course }) => {
       setIsChecking(false);
     }
 
-    // Ø§Ù„ØªÙˆØ¬ÙŠÙ‡ Ù„ØµÙØ­Ø© Ø§Ù„Ø¯ÙØ¹ Ø¨Ø¹Ø¯ Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„ÙØ­Øµ
-    if (isEnrolled) {
+    if (isEnrolled || isPending) {
       navigate(`/student/course/${course.id}`);
     } else {
       navigate(`/payment/${course.slug}`, {

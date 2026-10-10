@@ -14,6 +14,8 @@
   "search": "Search students...",
   "allStudents": "All Students",
   "allPayments": "All Payments",
+  "allAttendanceTypes": "All Attendance Types",
+  "attendanceTypeUnassigned": "Not assigned",
   "dateFrom": "Start date",
   "dateTo": "End date",
   "selectedPeriod": "Selected period",
@@ -63,5 +65,33 @@
 
   "deleteOrderTitle": "Confirm Order Deletion",
   "deleteOrderMessage": "Are you sure you want to delete order \"{{name}}\"? The student will be unenrolled from the course and removed from their group. Existing certificates and exam results will remain saved. This cannot be undone.",
-  "deleteOrderConfirm": "Yes, Delete Order"
+  "deleteOrderConfirm": "Yes, Delete Order",
+
+  "attendanceType": "Attendance Type",
+  "selectAttendanceType": "Select attendance type...",
+  "attendanceTypeRequired": "Please select an attendance type.",
+  "attendanceTypeUnavailable": "No attendance types are available for this course.",
+  "selectAttendanceTypeHint": "Choose how the student will attend this course.",
+  "attendanceTypes": {
+    "online": "Online",
+    "offline": "Offline",
+    "hybrid": "Hybrid"
+  },
+
+  "changeStatusTitle": "Change Order Status",
+  "changeStatusMessage": "Change this order status from \"{{from}}\" to \"{{to}}\"?",
+  "changeStatusMessageWithAttendance": "Change this order status from \"{{from}}\" to \"{{to}}\" with attendance type \"{{attendanceType}}\"?",
+  "changeStatusConfirm": "Confirm",
+  "changeStatusCancel": "Cancel",
+
+  "actions": "Actions",
+  "viewDetails": "View Details",
+  "delete": "Delete",
+  "noOrders": "No payment orders found",
+  "orderDetails": "Order Details",
+  "orderIdLabel": "Order ID:",
+  "studentName": "Student Name:",
+  "email": "Email:",
+  "close": "Close",
+  "thisOrder": "this order"
 }

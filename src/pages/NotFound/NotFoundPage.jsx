@@ -6,12 +6,14 @@ import { useTranslation } from "react-i18next";
 import tsquareLogo from "../../assets/logo-dark.webp";
 import "../Login/Login.css";
 import "./NotFoundPage.css";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 const NotFoundPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { i18n } = useTranslation("common");
-  const isArabic = i18n.language === "ar";
+  const { t, i18n } = useTranslation("common");
+  const isArabic = isArabicLocale(i18n.language);
 
   const handleGoBack = () => {
     if (window.history.length > 1) {
@@ -26,13 +28,12 @@ const NotFoundPage = () => {
       <Container className="d-flex justify-content-center align-items-center h-100">
         <Card className="login-card notfound-card shadow border-0 p-4">
           <Card.Body className="text-center p-0">
-            {/* اللوجو */}
             <Link to="/">
               <img
                 src={tsquareLogo}
                 alt="T-Square Logo"
                 className="login-logo mb-4"
-                title={isArabic ? "العودة للرئيسية" : "Back to Home"}
+                title={t("notFound.back_to_home")}
               />
             </Link>
 
@@ -42,13 +43,11 @@ const NotFoundPage = () => {
               </div>
               
               <h4 className="fw-bold text-dark mb-2">
-                {isArabic ? "الصفحة غير موجودة!" : "Page Not Found!"}
+                {t("notFound.page_title")}
               </h4>
               
               <p className="text-muted mb-4">
-                {isArabic 
-                  ? "عذراً، الرابط الذي تحاول الوصول إليه غير موجود أو تم نقله." 
-                  : "Sorry, the page you are looking for does not exist or has been moved."}
+                {t("notFound.message")}
               </p>
 
               <div className="d-flex flex-column gap-2">
@@ -57,9 +56,7 @@ const NotFoundPage = () => {
                   className="w-100 fw-bold py-2 login-btn"
                   onClick={() => navigate(user ? (user.role === "admin" ? "/admin" : "/student/dashboard") : "/")}
                 >
-                  {user 
-                    ? (isArabic ? "الذهاب للوحة التحكم" : "Go to Dashboard")
-                    : (isArabic ? "العودة للرئيسية" : "Go to Home Page")}
+                  {user ? t("notFound.go_to_dashboard") : t("notFound.go_to_home")}
                 </Button>
                 
                 <Button 
@@ -67,7 +64,7 @@ const NotFoundPage = () => {
                   className="w-100 fw-bold py-2 btn-back"
                   onClick={handleGoBack}
                 >
-                  {isArabic ? "العودة للصفحة السابقة" : "Go Back"}
+                  {t("notFound.go_back")}
                 </Button>
               </div>
             </div>

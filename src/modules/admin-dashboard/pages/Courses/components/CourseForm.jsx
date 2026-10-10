@@ -100,7 +100,7 @@ function CourseForm({
                 className="btn btn-danger px-4 ac-publish-btn"
                 onClick={(e) => handleSubmitWrapper(e, formData.status)}
               >
-                {isArabic ? "تعديل الكورس" : "Update Course"}
+                {t("courses_page.update_course")}
               </button>
             ) : (
               <>
@@ -109,10 +109,10 @@ function CourseForm({
                   onClick={(e) => handleSubmitWrapper(e, "published")}
                 >
                   <span className="d-none d-sm-inline">
-                    {isArabic ? "نشر الكورس" : "Publish Course"}
+                    {t("courses_page.publish")}
                   </span>
                   <span className="d-sm-none">
-                    {isArabic ? "نشر" : "Publish"}
+                    {t("courses_page.publish_short")}
                   </span>
                 </button>
                 <button
@@ -120,10 +120,10 @@ function CourseForm({
                   onClick={(e) => handleSubmitWrapper(e, "draft")}
                 >
                   <span className="d-none d-sm-inline">
-                    {isArabic ? "حفظ كمسودة" : "Save as Draft"}
+                    {t("courses_page.save_draft")}
                   </span>
                   <span className="d-sm-none">
-                    {isArabic ? "مسودة" : "Draft"}
+                    {t("courses_page.draft_short")}
                   </span>
                 </button>
               </>
@@ -155,13 +155,13 @@ function CourseForm({
                   className={`ac-tab-btn ${activeTab === "lessons" ? "active" : ""}`}
                   onClick={() => setActiveTab("lessons")}
                 >
-                  {isArabic ? "الدروس" : "Lessons"}
+                  {t("courses_page.lessons_tab")}
                 </button>
                 <button
                   className={`ac-tab-btn ${activeTab === "pricing" ? "active" : ""}`}
                   onClick={() => setActiveTab("pricing")}
                 >
-                  {isArabic ? "التسعير" : "Pricing"}
+                  {t("courses_page.pricing_tab")}
                 </button>
                 <button
                   className={`ac-tab-btn ${activeTab === "settings" ? "active" : ""}`}
@@ -193,7 +193,6 @@ function CourseForm({
             availableTags={availableTags}
             viewingItem={viewingItem}
             isReadOnly={isReadOnly}
-            isArabic={isArabic}
             t={t}
           />
         )}
@@ -219,7 +218,6 @@ function CourseForm({
             getAbortController={getAbortController}
             onDraftCreated={onDraftCreated}
             isReadOnly={isReadOnly}
-            isArabic={isArabic}
             t={t}
           />
         )}
@@ -228,7 +226,7 @@ function CourseForm({
           <LessonsTab
             courseId={courseId}
             isReadOnly={isReadOnly}
-            isArabic={isArabic}
+            t={t}
             {...courseLessonsProps}
           />
         )}
@@ -238,7 +236,6 @@ function CourseForm({
             formData={formData}
             handleChange={handleChange}
             isReadOnly={isReadOnly}
-            isArabic={isArabic}
             t={t}
           />
         )}
@@ -248,7 +245,6 @@ function CourseForm({
             formData={formData}
             handleChange={handleChange}
             isReadOnly={isReadOnly}
-            isArabic={isArabic}
             t={t}
             storageAccounts={storageAccounts}
           />
@@ -265,7 +261,7 @@ function CourseForm({
               className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
             ></i>
             <span className="d-none d-sm-inline">
-              {isArabic ? "السابق" : "Previous"}
+              {t("courses_page.previous")}
             </span>
           </button>
 
@@ -286,7 +282,7 @@ function CourseForm({
             onClick={goToNextTab}
           >
             <span className="d-none d-sm-inline">
-              {isArabic ? "التالي" : "Next"}
+              {t("courses_page.next")}
             </span>
             <i
               className={`bi ${isArabic ? "bi-arrow-left" : "bi-arrow-right"}`}

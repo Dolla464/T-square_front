@@ -6,10 +6,12 @@ import "./About.css";
 import about1 from "../../assets/about1.webp";
 import about2 from "../../assets/about2.webp";
 import about3 from "../../assets/about3.webp";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function About({ aboutImages }) {
   const { t, i18n } = useTranslation("home");
-  const isAr = i18n.language === "ar";
+  const isAr = isArabicLocale(i18n.language);
 
   // 2. التحقق من الصور: لو الأدمن رفع الـ 3 صور كاملين نقرأ منهم ديناميكياً، وإلا نثبت الـ Fallback
   const hasUploadedImages = aboutImages && aboutImages.length >= 3;

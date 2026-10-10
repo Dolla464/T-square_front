@@ -8,10 +8,12 @@ import ContactForm from "../shared/ContactForm/ContactForm";
 import CtaEnroll from "../shared/ctaEnroll/CtaEnroll";
 import TestimonialsSection from "../shared/TestimonialsSection/TestimonialsSection";
 import "./AllContact.css";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function AllContact() {
   const { t } = useTranslation(["contact", "cta", "testimonials", "navbar"]);
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
   const {
     whatsapp,
     contact_email,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form } from "react-bootstrap";
 import { Link, Navigate, useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -13,6 +13,8 @@ import { formatCoursePrice } from "../../utils/coursePrice";
 import { openExternalUrl } from "../../utils/openExternalUrl";
 import { formatInstructorNames, getCourseInstructors } from "../../utils/courseInstructors";
 import LoadingSpiner from "../../LoadingSpiner";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function AllPayment() {
   const { slug } = useParams();
@@ -20,7 +22,7 @@ function AllPayment() {
   const isAlreadyEnrolled = location.state?.isEnrolled || false;
   const { courseData, loading, error } = useCourseSlug(slug);
   const { t } = useTranslation(["payment", "navbar", "courses"]);
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
   const { user } = useAuth();
   const { createEnrollment } = usePayment();
 
@@ -37,7 +39,14 @@ function AllPayment() {
   const [submitted, setSubmitted] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [responseMessage, setResponseMessage] = useState("");
-  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    if (!loading && error) {
+      toastError(
+        error || (isArabic ? "تعذّر تحميل بيانات الكورس" : "Failed to load course data"),
+      );
+    }
+  }, [loading, error, isArabic]);
 
   // ── Early returns AFTER all hooks ──
   if (!slug) {
@@ -51,7 +60,9 @@ function AllPayment() {
   if (error || !courseData) {
     return (
       <div className="payment-page d-flex flex-column align-items-center justify-content-center" style={{ minHeight: "60vh" }}>
-        <p className="text-danger mb-3">{error || (isArabic ? "تعذّر تحميل بيانات الكورس" : "Failed to load course data")}</p>
+        <p className="text-muted mb-3">
+          {isArabic ? "تعذّر تحميل بيانات الكورس" : "Failed to load course data"}
+        </p>
         <Link to="/courses" className="btn btn-outline-danger">
           {isArabic ? "العودة للكورسات" : "Back to Courses"}
         </Link>
@@ -90,9 +101,8 @@ function AllPayment() {
       });
 
       toastSuccess(t("successMessage"));
-
-      setIsError(false);
       setResponseMessage(response.data.message);
+      setSubmitted(true);
 
       const whatsappConfirm = await showConfirmCustom({
         title: t("whatsappTitle"),
@@ -118,10 +128,7 @@ function AllPayment() {
         : (serverMessage || t("errorMessage"));
 
       toastError(errorMessage);
-      setIsError(true);
-      setResponseMessage(errorMessage);
     }
-    setSubmitted(true);
   };
 
   // Build formatted data string for clipboard / WhatsApp
@@ -297,25 +304,11 @@ function AllPayment() {
                   {submitted ? (
                     <div className="payment-success-card">
                       <div className="payment-success-icon">
-                        <i
-                          className={`bi ${
-                            isError
-                              ? "bi-x-circle-fill text-danger"
-                              : "bi-check-circle-fill text-success"
-                          }`}
-                        ></i>
+                        <i className="bi bi-check-circle-fill text-success"></i>
                       </div>
-                      {isError && (
-                        <>
-                          <h4>{t("payment:submitSection.paymenterror")}</h4>
-                          <p>{responseMessage}</p>
-                        </>
-                      )}
-
-                      {!isError && (
-                        <>
-                          <h4> {t("payment:submitSection.successTitle")}</h4>
-                          <div className="payment-success-info">
+                      <>
+                        <h4> {t("payment:submitSection.successTitle")}</h4>
+                        <div className="payment-success-info">
                             <div className="success-info-item">
                               <i className="bi bi-envelope"></i>
                               <span>
@@ -346,8 +339,7 @@ function AllPayment() {
                               </button>
                             </div>
                           </div>
-                        </>
-                      )}
+                      </>
                       <Link to="/courses" className="btn-back-courses">
                         {t("payment:submitSection.backToCourses")}
                       </Link>

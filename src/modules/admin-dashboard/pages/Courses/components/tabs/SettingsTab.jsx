@@ -2,152 +2,126 @@ function SettingsTab({
   formData,
   handleChange,
   isReadOnly,
-  isArabic,
   t,
   storageAccounts = [],
 }) {
   return (
-    <div className="ac-tab-content settings-info">
-      <h5 className="fw-bold mb-4">{isArabic ? "الإعدادات" : "Settings"}</h5>
+    <div className="ac-tab-content">
+      <h5 className="fw-bold mb-4">{t("courses_page.settings_title")}</h5>
 
-      <div className="row mb-4">
-        {/* Course language */}
-        <div className="col-md-6 mb-3">
+      <div className="row">
+        <div className="col-md-6 mb-4">
           <label className="form-label fw-bold text-dark">
-            {isArabic ? "لغة الكورس" : "Course Language"}
+            {t("courses_page.course_language")}
           </label>
           <select
-            className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
             name="language"
-            value={formData.language}
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+            value={formData.language || ""}
             onChange={handleChange}
             disabled={isReadOnly}
           >
-            <option value="">{isArabic ? "اختر اللغة" : "Select language"}</option>
-            <option value="ar">{isArabic ? "العربية" : "Arabic"}</option>
-            <option value="en">{isArabic ? "الإنجليزية" : "English"}</option>
+            <option value="">{t("courses_page.select_language")}</option>
+            <option value="ar">{t("courses_page.language_ar")}</option>
+            <option value="en">{t("courses_page.language_en")}</option>
           </select>
         </div>
-        {/* Google Drive link */}
-        <div className="col-md-6 mb-3">
+
+        <div className="col-md-6 mb-4">
           <label className="form-label fw-bold text-dark">
-            {isArabic ? "رابط جوجل درايف" : "Google Drive Link"}
+            {t("courses_page.google_drive_link")}
           </label>
           <input
-            type="url"
-            className="form-control p-3 bg-light border-0 rounded-3"
+            type="text"
             name="google_drive_link"
-            placeholder="https://drive.google.com/..."
-            value={formData.google_drive_link}
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+            value={formData.google_drive_link || ""}
             onChange={handleChange}
             disabled={isReadOnly}
           />
         </div>
-        <div className="col-md-6 mb-3">
+
+        <div className="col-md-6 mb-4">
           <label className="form-label fw-bold text-dark">
-            {isArabic ? "حساب Google Storage" : "Google Storage Account"}
+            {t("courses_page.google_storage_account")}
           </label>
           <select
-            className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
             name="google_storage_account_id"
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
             value={formData.google_storage_account_id || ""}
             onChange={handleChange}
             disabled={isReadOnly}
           >
-            <option value="">{isArabic ? "بدون" : "None"}</option>
+            <option value="">{t("courses_page.none")}</option>
             {storageAccounts.map((account) => (
               <option key={account.id} value={account.id}>
-                {account.name} {account.email ? `(${account.email})` : ""}
+                {account.name}
               </option>
             ))}
           </select>
         </div>
-        <div className="col-md-6 mb-3">
+
+        <div className="col-md-6 mb-4">
           <label className="form-label fw-bold text-dark">
-            {isArabic ? "Google Drive Folder ID" : "Google Drive Folder ID"}
+            {t("courses_page.google_drive_folder_id")}
           </label>
           <input
             type="text"
-            className="form-control p-3 bg-light border-0 rounded-3"
             name="google_drive_folder_id"
-            placeholder={isArabic ? "اختياري للتنظيم فقط" : "Optional, organizational only"}
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+            placeholder={t("courses_page.folder_id_placeholder")}
             value={formData.google_drive_folder_id || ""}
             onChange={handleChange}
             disabled={isReadOnly}
           />
         </div>
-        {/* Duration – weeks */}
-        <div className="col-md-6 mb-3">
+
+        <div className="col-md-6 mb-4">
           <label className="form-label fw-bold text-dark">
-            {isArabic ? "المدة (بالأسابيع)" : "Duration (Weeks)"}
+            {t("courses_page.duration_weeks")}
           </label>
           <input
             type="number"
-            className="form-control p-3 bg-light border-0 rounded-3"
             name="duration_weeks"
-            value={formData.duration_weeks}
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+            value={formData.duration_weeks || ""}
             onChange={handleChange}
-            min="0"
             disabled={isReadOnly}
           />
         </div>
 
-        {/* Duration – hours */}
-        <div className="col-md-6 mb-3">
+        <div className="col-md-6 mb-4">
           <label className="form-label fw-bold text-dark">
-            {isArabic ? "المدة (بالساعات)" : "Duration (Hours)"}
+            {t("courses_page.duration_hours")}
           </label>
           <input
             type="number"
-            className="form-control p-3 bg-light border-0 rounded-3"
             name="duration_hours"
-            value={formData.duration_hours}
+            className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
+            value={formData.duration_hours || ""}
             onChange={handleChange}
-            min="0"
             disabled={isReadOnly}
           />
         </div>
-
-
       </div>
 
-      {/* Free course toggle */}
       <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
         <div>
-          <strong className="d-block mb-1">{isArabic ? "كورس مجاني" : "Free Course"}</strong>
-          <small className="text-muted">{isArabic ? "اجعل هذا الكورس متاحًا مجانًا" : "Make this course available for free"}</small>
+          <strong className="d-block mb-1">{t("courses_page.free_course")}</strong>
+          <small className="text-muted">{t("courses_page.free_course_hint")}</small>
         </div>
         <div className="form-check form-switch m-0">
           <input
-            className="form-check-input form-check-inputS"
+            className="form-check-input"
             type="checkbox"
             role="switch"
-            checked={formData.is_free}
-            onChange={handleChange}
             name="is_free"
-            disabled={isReadOnly}
-          />
-        </div>
-      </div>
-
-      {/* Featured course toggle */}
-      <div className="p-3 mb-4 bg-light rounded-3 d-flex justify-content-between align-items-center">
-        <div>
-          <strong className="d-block mb-1">
-            {t("content.form.settings.featured_title")}
-          </strong>
-          <small className="text-muted">
-            {t("content.form.settings.featured_desc")}
-          </small>
-        </div>
-        <div className="form-check form-switch m-0">
-          <input
-            className="form-check-input form-check-inputS"
-            type="checkbox"
-            role="switch"
-            checked={formData.is_featured}
-            onChange={handleChange}
-            name="is_featured"
+            checked={!!formData.is_free}
+            onChange={(e) =>
+              handleChange({
+                target: { name: "is_free", value: e.target.checked, type: "checkbox" },
+              })
+            }
             disabled={isReadOnly}
           />
         </div>

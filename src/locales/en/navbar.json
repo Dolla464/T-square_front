@@ -5,5 +5,8 @@
   "team": "Team",
   "contact": "Contact us",
   "about": "About us",
-  "consultations": "Consultations"
+  "consultations": "Consultations",
+  "dashboard_instructor": "Instructor Dashboard",
+  "dashboard_receptionist": "Receptionist Dashboard",
+  "dashboard_admin": "Admin Dashboard"
 }

@@ -20,11 +20,31 @@ export const QUESTION_CODE_LANGUAGES = [
   { value: "cpp", label: "C++" },
 ];
 
+const ARABIC_SCRIPT =
+  /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+
+export function questionTextContainsArabic(text) {
+  return typeof text === "string" && ARABIC_SCRIPT.test(text);
+}
+
+/** Display: Latin trailing ? → Arabic ؟ when the question contains Arabic script. */
+export function normalizeQuestionTextForDisplay(text) {
+  if (!text || typeof text !== "string") return text;
+  if (!questionTextContainsArabic(text)) return text;
+  if (!/\?+$/.test(text)) return text;
+  return text.replace(/\?+$/, "؟");
+}
+
 export function formatQuestionTextForPayload(questionText) {
   const trimmed = questionText.trim();
   if (!trimmed) return null;
 
-  return trimmed.endsWith("?") ? trimmed : `${trimmed}?`;
+  if (trimmed.endsWith("?") || trimmed.endsWith("؟")) {
+    return trimmed;
+  }
+
+  const mark = questionTextContainsArabic(trimmed) ? "؟" : "?";
+  return `${trimmed}${mark}`;
 }
 
 export function resolveQuestionImageUrl(question) {

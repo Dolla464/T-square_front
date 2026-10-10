@@ -9,6 +9,8 @@ import { useInstructors } from "../../hooks/useInstructors";
 import { hasRealAvatar, resolveAvatarUrl } from "../../utils/avatar";
 import CtaEnroll from "../shared/ctaEnroll/CtaEnroll";
 import TestimonialsSection from "../shared/TestimonialsSection/TestimonialsSection";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function getTeamMemberImage(member) {
   const image = member?.image;
@@ -18,7 +20,7 @@ function getTeamMemberImage(member) {
 
 function AllTeam() {
   const { t } = useTranslation(["team", "navbar", "cta", "testimonials"]);
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
   const { instructors, loading, error } = useInstructors();
 
   return (

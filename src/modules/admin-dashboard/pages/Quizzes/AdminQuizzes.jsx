@@ -12,6 +12,8 @@ import { useQuizzes } from "../../hooks/useQuizzes";
 import { useAdminCourses } from "../../hooks/useAdminCourses";
 import { useNavigate, useParams } from "react-router-dom";
 import { formatDateTime } from "../../../../utils/formatDateTime";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 /**
  * Default form data structure for creating or editing a quiz
@@ -64,7 +66,7 @@ function AdminQuizzes() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { t, i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -201,13 +203,11 @@ function AdminQuizzes() {
    */
   const handleRestore = async (id, title) => {
     const ok = await showConfirmCustom({
-      title: isArabic ? "استعادة الاختبار" : "Restore Quiz",
-      message: isArabic
-        ? `هل أنت متأكد من استعادة الاختبار (${title}) إلى قائمة الاختبارات النشطة؟`
-        : `Are you sure you want to restore the quiz "${title}" to active quizzes?`,
+      title: t("quizzes_page.restore_title"),
+      message: t("quizzes_page.restore_message", { title }),
       icon: "question",
       variant: "primary",
-      confirmText: isArabic ? "استعادة" : "Restore",
+      confirmText: t("quizzes_page.restore"),
     });
 
     if (ok) {
@@ -230,13 +230,11 @@ function AdminQuizzes() {
    */
   const handleForceDelete = async (id, title) => {
     const ok = await showConfirmCustom({
-      title: isArabic ? "حذف نهائي للاختبار" : "Permanently Delete Quiz",
-      message: isArabic
-        ? `هل أنت متأكد من حذف الاختبار (${title}) نهائياً؟ لا يمكن استعادة هذا الاختبار بعد الحذف.`
-        : `Are you sure you want to permanently delete the quiz "${title}"? This action cannot be undone.`,
+      title: t("quizzes_page.force_delete_title"),
+      message: t("quizzes_page.force_delete_message", { title }),
       icon: "warning",
       variant: "danger",
-      confirmText: isArabic ? "حذف نهائي" : "Delete Permanently",
+      confirmText: t("quizzes_page.force_delete"),
     });
 
     if (ok) {
@@ -262,13 +260,16 @@ function AdminQuizzes() {
 
     const nextStatus = currentStatus === "active" ? "inactive" : "active";
     const ok = await showConfirmCustom({
-      title: isArabic ? "تغيير حالة الاختبار" : "Change Quiz Status",
-      message: isArabic
-        ? `هل أنت متأكد من تغيير حالة الاختبار إلى (${nextStatus === "active" ? "نشط" : "غير نشط"})؟`
-        : `Are you sure you want to change this quiz status to ${nextStatus}?`,
+      title: t("quizzes_page.change_status_title"),
+      message: t("quizzes_page.change_status_message", {
+        status:
+          nextStatus === "active"
+            ? t("quizzes_page.active_status")
+            : t("quizzes_page.inactive_status"),
+      }),
       icon: "question",
       variant: "primary",
-      confirmText: isArabic ? "نعم، قم بالتغيير" : "Yes, Change it",
+      confirmText: t("quizzes_page.change_status_confirm"),
     });
 
     if (ok) {
@@ -298,13 +299,11 @@ function AdminQuizzes() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.title || formData.title.trim().length < 3) {
-      toastError(
-        isArabic ? "عنوان الاختبار قصير جداً" : "Quiz title is too short",
-      );
+      toastError(t("quizzes_page.title_too_short"));
       return;
     }
     if (!formData.course_id) {
-      toastError(isArabic ? "برجاء اختيار الكورس" : "Please select a course");
+      toastError(t("quizzes_page.course_required"));
       return;
     }
 
@@ -399,7 +398,7 @@ function AdminQuizzes() {
 
           <div className="ac-table-card">
             <div className="ac-table-container">
-              <div className="ac-rounded-table p-3 p-md-0">
+              <div className="ac-rounded-table p-3 p-md-0" dir={isArabic ? "rtl" : "ltr"}>
                 {/* Search & Filter Controls */}
                 <div className="ac-filters-bar d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
                   {/* Search Bar */}
@@ -471,6 +470,7 @@ function AdminQuizzes() {
 
                   <table
                     className={`table ac-table mb-0 align-middle${showTrash ? " table-secondary" : ""}`}
+                    dir={isArabic ? "rtl" : "ltr"}
                   >
                     <thead>
                       <tr>
@@ -525,7 +525,7 @@ function AdminQuizzes() {
                               {quizItem.questions_count}
                             </td>
                             <td className="text-center text-muted">
-                              {quizItem.duration} {isArabic ? "دقيقة" : "mins"}
+                              {quizItem.duration} {t("quizzes_page.minutes_short")}
                             </td>
                             <td className="text-center">
                               {quizItem.updated_by_name || quizItem.updated_at ? (
@@ -769,15 +769,13 @@ function AdminQuizzes() {
 
                   <div className="col-md-4 mb-3 mb-md-0">
                     <label className="form-label fw-bold text-dark">
-                      {isArabic ? "أقصى عدد للمحاولات" : "Max attempts"}
+                      {t("quizzes_page.max_attempts")}
                     </label>
                     <input
                       type="number"
                       name="max_attempts"
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                      placeholder={
-                        isArabic ? "أقصى عدد للمحاولات" : "Max attempts"
-                      }
+                      placeholder={t("quizzes_page.max_attempts")}
                       value={formData.max_attempts}
                       onChange={handleChange}
                       min="1"
@@ -786,19 +784,13 @@ function AdminQuizzes() {
 
                   <div className="col-md-4 mb-3 mb-md-0">
                     <label className="form-label fw-bold text-dark">
-                      {isArabic
-                        ? "عدد الأسئلة في كل محاولة"
-                        : "Questions Number (questions per attempt)"}
+                      {t("quizzes_page.questions_per_attempt")}
                     </label>
                     <input
                       type="number"
                       name="questions_per_attempt"
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                      placeholder={
-                        isArabic
-                          ? "عدد الأسئلة في كل محاولة"
-                          : "Questions Number"
-                      }
+                      placeholder={t("quizzes_page.questions_per_attempt_placeholder")}
                       value={formData.questions_per_attempt}
                       onChange={handleChange}
                       min="1"
@@ -810,13 +802,13 @@ function AdminQuizzes() {
                 <div className="row mb-4">
                   <div className="col-md-6">
                     <label className="form-label fw-bold text-dark">
-                      {isArabic ? "الدرجة الكلية" : "Total marks"}
+                      {t("quizzes_page.total_marks")}
                     </label>
                     <input
                       type="number"
                       name="total_marks"
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                      placeholder={isArabic ? "الدرجة الكلية" : "Total marks"}
+                      placeholder={t("quizzes_page.total_marks")}
                       value={formData.total_marks}
                       onChange={handleChange}
                       min="1"
@@ -825,15 +817,13 @@ function AdminQuizzes() {
 
                   <div className="col-md-6">
                     <label className="form-label fw-bold text-dark">
-                      {isArabic ? "الدرجة المطلوبة للنجاح" : "Pass mark"}
+                      {t("quizzes_page.pass_mark")}
                     </label>
                     <input
                       type="number"
                       name="passing_mark"
                       className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                      placeholder={
-                        isArabic ? "الدرجة المطلوبة للنجاح" : "Pass mark"
-                      }
+                      placeholder={t("quizzes_page.pass_mark")}
                       value={formData.passing_mark}
                       onChange={handleChange}
                       min="1"
@@ -850,12 +840,10 @@ function AdminQuizzes() {
                       style={{ cursor: "pointer" }}
                     >
                       <strong className="d-block mb-1">
-                        {isArabic ? "اختبار نهائي" : "Final Exam"}
+                        {t("quizzes_page.final_exam")}
                       </strong>
                       <small className="text-muted">
-                        {isArabic
-                          ? "اجعل هذا الاختبار اختباراً نهائياً"
-                          : "Make this exam a final exam"}
+                        {t("quizzes_page.final_exam_hint")}
                       </small>
                     </label>
                   </div>
@@ -880,12 +868,10 @@ function AdminQuizzes() {
                       style={{ cursor: "pointer" }}
                     >
                       <strong className="d-block mb-1">
-                        {isArabic ? "نشط" : "Active"}
+                        {t("quizzes_page.active_status")}
                       </strong>
                       <small className="text-muted">
-                        {isArabic
-                          ? "تفعيل أو تعطيل الاختبار"
-                          : "Enable or disable the quiz"}
+                        {t("quizzes_page.active_hint")}
                       </small>
                     </label>
                   </div>
@@ -909,13 +895,13 @@ function AdminQuizzes() {
                     className="btn btn-secondary px-4 py-2 rounded-3"
                     onClick={handleBack}
                   >
-                    {isArabic ? "إلغاء" : "Cancel"}
+                    {t("quizzes_page.cancel")}
                   </button>
                   <button
                     type="submit"
                     className="btn btn-danger px-4 py-2 rounded-3"
                   >
-                    {isArabic ? "حفظ" : "Save"}
+                    {t("quizzes_page.save")}
                   </button>
                 </div>
               </div>

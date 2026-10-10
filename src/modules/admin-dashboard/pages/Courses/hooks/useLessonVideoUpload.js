@@ -1,10 +1,12 @@
 import { useState, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { createCourseDraft } from "../../../services/coursesServices";
 
 /**
  * Tracks per-lesson upload UI state and provides draft / validation helpers.
  */
 export const useLessonVideoUpload = () => {
+  const { t } = useTranslation("adminDashboard");
   const [uploads, setUploads] = useState({});
   const abortControllersRef = useRef({});
 
@@ -50,24 +52,21 @@ export const useLessonVideoUpload = () => {
     });
   }, [cancelUpload]);
 
-  const validateBasicInfo = useCallback((formData, isArabic) => {
-    if (!formData.title?.trim()) {
-      return isArabic
-        ? "يرجى إدخال عنوان الكورس في البيانات الأساسية أولاً"
-        : "Please enter the course title in Basic Info first";
-    }
-    if (!formData.category_id) {
-      return isArabic
-        ? "يرجى اختيار التصنيف في البيانات الأساسية أولاً"
-        : "Please select a category in Basic Info first";
-    }
-    if (!formData.instructor_ids?.length) {
-      return isArabic
-        ? "يرجى اختيار المدرب في البيانات الأساسية أولاً"
-        : "Please select an instructor in Basic Info first";
-    }
-    return null;
-  }, []);
+  const validateBasicInfo = useCallback(
+    (formData) => {
+      if (!formData.title?.trim()) {
+        return t("courses_page.validation_title_required");
+      }
+      if (!formData.category_id) {
+        return t("courses_page.validation_category_required");
+      }
+      if (!formData.instructor_ids?.length) {
+        return t("courses_page.validation_instructor_required");
+      }
+      return null;
+    },
+    [t],
+  );
 
   const buildDraftPayload = useCallback((formData) => ({
     title: formData.title?.trim(),
@@ -82,10 +81,10 @@ export const useLessonVideoUpload = () => {
   }), []);
 
   const ensureCourseDraft = useCallback(
-    async (formData, courseId, isArabic) => {
+    async (formData, courseId) => {
       if (courseId) return courseId;
 
-      const validationError = validateBasicInfo(formData, isArabic);
+      const validationError = validateBasicInfo(formData);
       if (validationError) {
         throw new Error(validationError);
       }
@@ -94,14 +93,12 @@ export const useLessonVideoUpload = () => {
       const created = response?.data ?? response;
 
       if (!created?.id) {
-        throw new Error(
-          isArabic ? "فشل حفظ مسودة الكورس" : "Failed to save course draft",
-        );
+        throw new Error(t("courses_page.draft_save_failed"));
       }
 
       return created;
     },
-    [validateBasicInfo, buildDraftPayload],
+    [validateBasicInfo, buildDraftPayload, t],
   );
 
   return {

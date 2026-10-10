@@ -8,6 +8,8 @@ import {
   toastDismiss,
 } from "../../../components/shared/Toaster/toaster";
 import { showDeleteConfirm } from "../../../components/shared/ConfirmDialog/confirmDialog";
+import { isArabicLocale } from "../../../utils/isArabicLocale";
+
 import {
   getDiscoveryMedia as apiGetDiscoveryMedia,
   getWebsiteMedia as apiGetWebsiteMedia,
@@ -27,7 +29,7 @@ let settingsCache = null;
 // 2. تغيير اسم الهوك الداخلي ليصبح مسئولاً عن بناء الـ State
 export const useAdminSettingsState = () => {
   const { t, i18n } = useTranslation(["adminDashboard"]);
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
   const [siteLogo, setSiteLogo] = useState(
     () => settingsCache?.siteLogo || null,
   );

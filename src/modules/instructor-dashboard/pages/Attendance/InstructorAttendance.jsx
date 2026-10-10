@@ -1,13 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
-import {
-  Spinner,
-  Badge,
-  ProgressBar,
-  Toast,
-  ToastContainer,
-} from "react-bootstrap";
+import { Spinner, Badge, ProgressBar } from "react-bootstrap";
+import { toastCustom } from "../../../../components/shared/Toaster/toaster";
 import DetailModal from "../../../../components/shared/DetailModal/DetailModal";
 import { QRCodeSVG } from "qrcode.react";
 import { useInstructorAttendance } from "../../hooks/useInstructorAttendance";
@@ -16,8 +11,38 @@ import "../../../admin-dashboard/components/shared/AdminContentPage/AdminContent
 import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
 import SessionStatusBadge from "../../../../components/shared/SessionStatusBadge/SessionStatusBadge";
 import { resolveAvatarUrl } from "../../../../utils/avatar";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 const RECENT_SCANS_LIMIT = 10;
+
+const showScanToast = (t, { name, status, isDuplicate }) => {
+  if (isDuplicate) {
+    toastCustom({
+      message: t("attendance_page.scanToast.alreadyMarked", { name }),
+      type: "warning",
+      bsIcon: "bi-qr-code-scan",
+    });
+    return;
+  }
+
+  let type = "success";
+  let statusKey = "present";
+
+  if (status === "late") {
+    type = "warning";
+    statusKey = "late";
+  } else if (status === "absent") {
+    type = "error";
+    statusKey = "absent";
+  }
+
+  toastCustom({
+    message: `${name} — ${t(`attendance_page.scanToast.${statusKey}`)}`,
+    type,
+    bsIcon: "bi-qr-code-scan",
+  });
+};
 
 function SectionTitle({ icon, title, badge }) {
   return (
@@ -43,35 +68,27 @@ const STATUS_CONFIG = {
     bg: "#d1e7dd",
     color: "#0f5132",
     icon: "bi-check-circle-fill",
-    labelEn: "Present",
-    labelAr: "حاضر",
   },
   absent: {
     bg: "#f8d7da",
     color: "#842029",
     icon: "bi-x-circle-fill",
-    labelEn: "Absent",
-    labelAr: "غائب",
   },
   late: {
     bg: "#fff3cd",
     color: "#664d03",
     icon: "bi-clock-fill",
-    labelEn: "Late",
-    labelAr: "متأخر",
   },
   not_marked: {
     bg: "#e2e3e5",
     color: "#41464b",
     icon: "bi-dash-circle",
-    labelEn: "Not Marked",
-    labelAr: "لم يسجَّل",
   },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function StatusBadge({ status, isArabic }) {
+function StatusBadge({ status, t }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.not_marked;
   return (
     <span
@@ -79,7 +96,7 @@ function StatusBadge({ status, isArabic }) {
       style={{ backgroundColor: cfg.bg, color: cfg.color, fontSize: "0.8rem" }}
     >
       <i className={`bi ${cfg.icon} me-1`}></i>
-      {isArabic ? cfg.labelAr : cfg.labelEn}
+      {t(`attendance_page.statusLabels.${status}`, status)}
     </span>
   );
 }
@@ -87,8 +104,8 @@ function StatusBadge({ status, isArabic }) {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, getRecordsFn }) {
-  const { i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const { t, i18n } = useTranslation("instructorDashboard");
+  const isArabic = isArabicLocale(i18n.language);
 
   const {
     todaySessions,
@@ -112,8 +129,6 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [showQrModal, setShowQrModal] = useState(false);
-  const [toastMessage, setToastMessage] = useState(null); // { name, status }
-
   // ── Real-time polling ──────────────────────────────────────────────────────
 
   const handleStudentScanned = useCallback((record) => {
@@ -129,8 +144,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
     const isAlreadyMarked = ["present", "late"].includes(student.status);
 
     if (isAlreadyMarked) {
-      // Show warning toast for duplicate scan
-      setToastMessage({
+      showScanToast(t, {
         name: record.student_name,
         status: record.status,
         isDuplicate: true,
@@ -144,16 +158,13 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
         return [record, ...filtered].slice(0, RECENT_SCANS_LIMIT);
       });
 
-      // Show success toast
-      setToastMessage({
+      showScanToast(t, {
         name: record.student_name,
         status: record.status,
         isDuplicate: false,
       });
     }
-
-    setTimeout(() => setToastMessage(null), 3000);
-  }, [students, applyScannedRecord, setRecentScans]);
+  }, [students, applyScannedRecord, setRecentScans, t]);
 
   const { isPolling } = useAttendanceRealtime(
     activeSession?.session_id ?? null,
@@ -214,55 +225,16 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
   return (
     <div className="admin-content-page" dir={isArabic ? "rtl" : "ltr"}>
 
-      {/* ── TOAST NOTIFICATIONS ── */}
-      <ToastContainer position="top-end" className="p-3" style={{ zIndex: 1100 }}>
-        <Toast
-          show={!!toastMessage}
-          onClose={() => setToastMessage(null)}
-          bg={
-            toastMessage?.isDuplicate
-              ? "warning"
-              : toastMessage?.status === "present"
-                ? "success"
-                : toastMessage?.status === "late"
-                  ? "warning"
-                  : "secondary"
-          }
-          delay={3000}
-          autohide
-        >
-          <Toast.Header>
-            <i className="bi bi-qr-code-scan me-2"></i>
-            <strong className="me-auto">
-              {toastMessage?.isDuplicate
-                ? (isArabic ? "مسح مكرر" : "Duplicate Scan")
-                : (isArabic ? "مسح جديد" : "New Scan")}
-            </strong>
-          </Toast.Header>
-          <Toast.Body className={toastMessage?.isDuplicate ? "text-dark" : "text-white"}>
-            <strong>{toastMessage?.name}</strong>
-            {" — "}
-            {toastMessage?.isDuplicate
-              ? (isArabic ? "مسجل بالفعل حاضراً" : "Already marked present")
-              : toastMessage?.status === "present"
-                ? (isArabic ? "حاضر" : "Present")
-                : toastMessage?.status === "late"
-                  ? (isArabic ? "متأخر" : "Late")
-                  : (isArabic ? "غائب" : "Absent")}
-          </Toast.Body>
-        </Toast>
-      </ToastContainer>
-
       {/* ── PAGE HEADER ── */}
       <div className="ac-header d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
         <div>
           <h2 className="ac-title d-flex align-items-center gap-2">
-            {isArabic ? "الحضور والغياب" : "Attendance"}
+            {t("attendance_page.title")}
 
           </h2>
           {isPolling && (
             <small className=" text-muted  mt-1">
-              {isArabic ? "تحديث تلقائي كل 5 ثواني" : "Auto-updating every 5s"}
+              {t("attendance_page.autoUpdating")}
               {/* <Spinner
                   animation="border"
                   variant="danger"
@@ -289,7 +261,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
             ) : (
               <i className="bi bi-arrow-clockwise"></i>
             )}
-            {isArabic ? "تحديث" : "Refresh"}
+            {t("attendance_page.refresh")}
           </button>
 
           {activeSession && (
@@ -300,7 +272,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
               disabled={activeSession.status !== "active"}
             >
               <i className="bi bi-qr-code"></i>
-              {isArabic ? "عرض رمز QR" : "Show QR Code"}
+              {t("attendance_page.showQrCode")}
             </button>
           )}
         </div>
@@ -312,7 +284,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
           <div className="spinner-border text-danger mb-2" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
-          <div className="text-muted small">{isArabic ? "جاري تحميل الجلسات..." : "Loading sessions…"}</div>
+          <div className="text-muted small">{t("attendance_page.loadingSessions")}</div>
         </div>
       ) : todaySessions.length === 0 ? (
         <div className="text-center py-5 text-muted border rounded-4 bg-white shadow-sm my-3">
@@ -323,10 +295,10 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
             <i className="bi bi-calendar-x" style={{ fontSize: "2rem" }}></i>
           </div>
           <h5 className="fw-bold text-dark mb-1">
-            {isArabic ? "لا توجد جلسات اليوم" : "No Sessions Today"}
+            {t("attendance_page.noSessionsTitle")}
           </h5>
           <p className="small text-muted mb-0">
-            {isArabic ? "لا توجد جلسات مجدولة اليوم" : "No sessions scheduled for today"}
+            {t("attendance_page.noSessionsSubtitle")}
           </p>
         </div>
       ) : (
@@ -385,7 +357,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                       <div>
                         <div className="d-flex justify-content-between mb-1" style={{ fontSize: "0.8rem" }}>
                           <span className="text-muted">
-                            {isArabic ? "الحضور" : "Attendance"}
+                            {t("attendance_page.attendance")}
                           </span>
                           <span className="fw-bold text-dark">
                             {session.attendance?.present ?? 0} / {session.attendance?.total ?? 0}
@@ -439,7 +411,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                       </span>
                     </div>
                     <small className="text-muted">
-                      {isArabic ? "حاضر" : "Present"}
+                      {t("attendance_page.present")}
                     </small>
                   </div>
 
@@ -450,7 +422,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                     disabled={activeSession.status !== "active"}
                   >
                     <i className="bi bi-qr-code me-1"></i>
-                    {isArabic ? "رمز QR" : "QR Code"}
+                    {t("attendance_page.qrCode")}
                   </button>
                 </div>
               </div>
@@ -463,7 +435,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
               <div className="d-flex justify-content-between align-items-center mb-3 px-1">
                 <SectionTitle
                   icon="bi-activity"
-                  title={isArabic ? "آخر عمليات المسح" : "Recent Scans"}
+                  title={t("attendance_page.recentScans")}
                   badge={
                     <Badge bg="danger" className="rounded-pill" style={{ fontSize: "0.75rem" }}>
                       {recentScans.length}
@@ -474,7 +446,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                   <span className="text-muted small d-flex align-items-center gap-1">
                     <Spinner animation="border" size="sm" variant="secondary"
                       style={{ width: "0.65rem", height: "0.65rem", borderWidth: "2px" }} />
-                    {isArabic ? "يتحدث كل 5 ثواني" : "Updating every 5s"}
+                    {t("attendance_page.updatingEvery")}
                   </span>
                 )}
               </div>
@@ -484,24 +456,22 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                   <div className="text-center py-4 text-muted">
                     <i className="bi bi-hourglass-split fs-3 d-block mb-2 opacity-50"></i>
                     <small>
-                      {isArabic
-                        ? "لا توجد عمليات مسح بعد. ستظهر هنا فور وصولها."
-                        : "No scans yet. New scans will appear here in real time."}
+                      {t("attendance_page.noScansYet")}
                     </small>
                   </div>
                 ) : (
                   <div className="table-responsive">
-                    <table className="table ac-table mb-0 align-middle" dir="ltr">
+                    <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
                       <thead>
                         <tr>
                           <th>
-                            {isArabic ? "الطالب" : "Student"}
+                            {t("attendance_page.student")}
                           </th>
                           <th className="text-center">
-                            {isArabic ? "الحالة" : "Status"}
+                            {t("attendance_page.status")}
                           </th>
                           <th className="text-center">
-                            {isArabic ? "وقت المسح" : "Scanned At"}
+                            {t("attendance_page.scannedAt")}
                           </th>
                         </tr>
                       </thead>
@@ -516,7 +486,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                               {scan.student_name}
                             </td>
                             <td className="py-3 text-center">
-                              <StatusBadge status={scan.status} isArabic={isArabic} />
+                              <StatusBadge status={scan.status} t={t} />
                             </td>
                             <td className="py-3 pe-4 text-center text-muted small">
                               {scan.marked_at
@@ -542,11 +512,11 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
               <div className="d-flex justify-content-between align-items-center mb-3 px-1 flex-wrap gap-2">
                 <SectionTitle
                   icon="bi-people"
-                  title={isArabic ? "قائمة الطلاب" : "Student List"}
+                  title={t("attendance_page.studentList")}
                   badge={
                     notMarkedCount > 0 && (
                       <Badge bg="secondary" className="rounded-pill" style={{ fontSize: "0.75rem" }}>
-                        {notMarkedCount} {isArabic ? "لم يسجَّل" : "unmarked"}
+                        {notMarkedCount} {t("attendance_page.unmarked")}
                       </Badge>
                     )
                   }
@@ -559,7 +529,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                   disabled={detailLoading || notMarkedCount === 0 || activeSession.status !== "active"}
                 >
                   <i className="bi bi-check-all me-1"></i>
-                  {isArabic ? "تحضير الكل" : "Mark All Present"}
+                  {t("attendance_page.markAllPresent")}
                 </button>
               </div>
 
@@ -569,24 +539,24 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                     <div className="spinner-border text-danger mb-2" role="status">
                       <span className="visually-hidden">Loading...</span>
                     </div>
-                    <div className="text-muted small">{isArabic ? "جاري تحميل قائمة الطلاب..." : "Loading student list…"}</div>
+                    <div className="text-muted small">{t("attendance_page.loadingStudents")}</div>
                   </div>
                 ) : (
                   <div className="table-responsive">
-                    <table className="table ac-table mb-0 align-middle" dir="ltr">
+                    <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
                       <thead>
                         <tr>
                           <th>
-                            {isArabic ? "الطالب" : "Student"}
+                            {t("attendance_page.student")}
                           </th>
                           <th className="text-center">
-                            {isArabic ? "الحالة" : "Status"}
+                            {t("attendance_page.status")}
                           </th>
                           <th className="text-center">
-                            {isArabic ? "وقت التسجيل" : "Marked At"}
+                            {t("attendance_page.markedAt")}
                           </th>
                           <th className="text-center">
-                            {isArabic ? "إجراءات" : "Actions"}
+                            {t("attendance_page.actions")}
                           </th>
                         </tr>
                       </thead>
@@ -594,7 +564,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                         {students.length === 0 ? (
                           <tr>
                             <td colSpan={4} className="text-center py-4 text-muted">
-                              {isArabic ? "لا يوجد طلاب في هذه الجلسة" : "No students in this session"}
+                              {t("attendance_page.noStudentsInSession")}
                             </td>
                           </tr>
                         ) : (
@@ -627,7 +597,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
 
                                 {/* Status badge */}
                                 <td className="py-3 text-center">
-                                  <StatusBadge status={student.status} isArabic={isArabic} />
+                                  <StatusBadge status={student.status} t={t} />
                                 </td>
 
                                 {/* Marked at */}
@@ -646,7 +616,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                                     {/* Mark Present */}
                                     <button
                                       className="btn btn-sm border-0 fw-medium"
-                                      title={isArabic ? "تحضير" : "Mark Present"}
+                                      title={t("attendance_page.markPresent")}
                                       disabled={student.status === "present" || updatingIds?.has(student.student_id)}
                                       style={{
                                         minHeight: "44px",
@@ -667,7 +637,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                                     {/* Mark Late */}
                                     <button
                                       className="btn btn-sm border-0 fw-medium"
-                                      title={isArabic ? "متأخر" : "Mark Late"}
+                                      title={t("attendance_page.markLate")}
                                       disabled={student.status === "late" || updatingIds?.has(student.student_id)}
                                       style={{
                                         minHeight: "44px",
@@ -688,7 +658,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
                                     {/* Mark Absent */}
                                     <button
                                       className="btn btn-sm border-0 fw-medium"
-                                      title={isArabic ? "غائب" : "Mark Absent"}
+                                      title={t("attendance_page.markAbsent")}
                                       disabled={student.status === "absent" || updatingIds?.has(student.student_id)}
                                       style={{
                                         minHeight: "44px",
@@ -730,13 +700,13 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
         title={
           <>
             <i className="bi bi-qr-code me-2 text-danger"></i>
-            {isArabic ? "رمز الحضور" : "Attendance QR Code"}
+            {t("attendance_page.attendanceQrTitle")}
           </>
         }
         bodyClassName="text-center pb-4 pt-0"
         footer={
           <button type="button" className="btn btn-secondary rounded-3 px-4" onClick={handleCloseQr}>
-            {isArabic ? "إغلاق" : "Close"}
+            {t("attendance_page.close")}
           </button>
         }
         footerClassName="border-0 pt-0 justify-content-center"
@@ -747,7 +717,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
               <span className="visually-hidden">Loading...</span>
             </div>
             <p className="text-muted mt-2 mb-0 small">
-              {isArabic ? "جاري التحميل..." : "Loading QR code..."}
+              {t("attendance_page.loadingQr")}
             </p>
           </div>
         ) : qrCode ? (
@@ -760,9 +730,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
             </div>
             <p className="text-muted small mb-0">
               <i className="bi bi-info-circle me-1"></i>
-              {isArabic
-                ? "اعرض هذا الرمز للطلاب ليسجلوا حضورهم"
-                : "Show this code to students to scan and record attendance"}
+              {t("attendance_page.qrHint")}
             </p>
             <div
               className="mt-3 p-2 rounded-3 text-break"
@@ -775,9 +743,7 @@ function InstructorAttendance({ useAttendanceHook = useInstructorAttendance, get
           <div className="py-3">
             <i className="bi bi-exclamation-triangle-fill fs-3 text-warning d-block mb-2"></i>
             <p className="text-muted mb-0">
-              {isArabic
-                ? "لا يتوفر رمز QR. تأكد أن الجلسة نشطة."
-                : "QR code not available. Make sure the session is active."}
+              {t("attendance_page.qrUnavailable")}
             </p>
           </div>
         )}

@@ -1,8 +1,10 @@
 import { useTranslation } from "react-i18next";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 function MessageCard({ message, onView, onWhatsapp }) {
-  const { i18n } = useTranslation();
-  const isArabic = i18n.language?.startsWith("ar");
+  const { t, i18n } = useTranslation("adminDashboard");
+  const isArabic = isArabicLocale(i18n.language);
 
   return (
     <div
@@ -49,7 +51,7 @@ function MessageCard({ message, onView, onWhatsapp }) {
               height: "36px",
               borderRadius: "8px",
             }}
-            title={isArabic ? "عرض التفاصيل" : "View Details"}
+            title={t("messages_page.view_details")}
             onClick={() => onView(message.id)}
           >
             <i className="bi bi-eye fs-6"></i>

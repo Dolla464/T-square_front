@@ -8,6 +8,171 @@
   gap: 22px;
 }
 
+.attendance-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.attendance-hero-card {
+  border: 1px solid #fde2e2;
+  background: linear-gradient(180deg, #fff 0%, #fffafa 100%);
+}
+
+.attendance-hero-label {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #be1522;
+  margin-bottom: 0.35rem;
+}
+
+.attendance-hero-status {
+  color: #4b5563;
+  font-size: 0.92rem;
+  margin-bottom: 0;
+}
+
+.attendance-check-in-btn {
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.attendance-qr-panel {
+  min-height: 280px;
+}
+
+.attendance-scan-link {
+  color: #be1522;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.attendance-others-toggle {
+  color: #374151;
+  font-weight: 600;
+}
+
+.attendance-history-link {
+  display: inline-flex;
+  align-items: center;
+  color: #be1522;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.attendance-history-link:hover {
+  color: #991019;
+}
+
+.student-session-card-compact {
+  padding: 0.95rem 1rem;
+}
+
+.attendance-group-chips {
+  display: flex;
+  gap: 0.65rem;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.attendance-group-chip {
+  flex: 0 0 auto;
+  min-width: 180px;
+  max-width: 240px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.85rem 1rem;
+  text-align: start;
+  transition: all 0.2s ease;
+}
+
+.attendance-group-chip.active {
+  border-color: #be1522;
+  background: #fff9f9;
+  box-shadow: 0 4px 12px rgba(190, 21, 34, 0.08);
+}
+
+.attendance-group-chip-title {
+  display: block;
+  font-weight: 700;
+  color: #111827;
+  font-size: 0.88rem;
+}
+
+.attendance-group-chip-meta {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.attendance-schedule-group + .attendance-schedule-group {
+  margin-top: 0.75rem;
+}
+
+.attendance-schedule-group-collapsible .ac-rounded-table {
+  padding: 0;
+}
+
+.attendance-schedule-group-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: none;
+  background: #fff;
+  text-align: start;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.attendance-schedule-group-toggle:hover {
+  background: #fff1f2;
+}
+
+.attendance-schedule-group-table .table-responsive {
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+}
+
+.attendance-schedule-group-toggle-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.attendance-schedule-group-toggle-label > span:first-child {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.attendance-schedule-group-count {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.attendance-schedule-group-chevron {
+  font-size: 0.9rem;
+  color: #6b7280;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.attendance-schedule-group-toggle.is-expanded .attendance-schedule-group-chevron {
+  transform: rotate(180deg);
+}
+
 .student-attendance-page .card {
   border-radius: 14px;
   background: #fff;
@@ -51,8 +216,8 @@
   margin: 0 auto;
 }
 
-/* ── Table Styling ── */
-.student-attendance-page .table th {
+/* ── Table Styling (history tab only; schedule uses platform ac-table) ── */
+.student-attendance-page .attendance-history-table th {
   font-weight: 600;
   color: #4b5563;
   background-color: #f9fafb;
@@ -60,7 +225,7 @@
   padding: 12px 16px;
 }
 
-.student-attendance-page .table td {
+.student-attendance-page .attendance-history-table td {
   padding: 14px 16px;
   color: #1f2937;
   border-bottom: 1px solid #f3f4f6;

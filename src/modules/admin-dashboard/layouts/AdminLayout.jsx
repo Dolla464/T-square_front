@@ -9,6 +9,8 @@ import { useUnreadCount } from "../../../hooks/useNotifications";
 import { formatNotificationBadge } from "../../../utils/notifications";
 import { showPasswordDialog } from "../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastError } from "../../../components/shared/Toaster/toaster";
+import { isArabicLocale } from "../../../utils/isArabicLocale";
+
 import {
   getStoredActivityLogToken,
   storeActivityLogToken,
@@ -34,25 +36,25 @@ const ADMIN_NAV = [
     key: "studentsInfo",
     icon: "bi-person-vcard",
     children: [
-      { key: "students", path: "/admin/students", icon: "bi-people" },
-      { key: "certificates", path: "/admin/certificates", icon: "bi-award" },
-      { key: "reviews", path: "/admin/reviews", icon: "bi-chat-square-text" },
+      { key: "students", path: "/admin/students", icon: "bi-people-fill" },
+      { key: "certificates", path: "/admin/certificates", icon: "bi-award-fill" },
+      { key: "reviews", path: "/admin/reviews", icon: "bi-star-fill" },
     ],
   },
   {
     key: "groups",
     icon: "bi-collection",
     children: [
-      { key: "learningGroups", path: "/admin/groups", icon: "bi-people" },
+      { key: "learningGroups", path: "/admin/groups", icon: "bi-diagram-3-fill" },
       {
         key: "studentAttendance",
         path: "/admin/student-attendance",
-        icon: "bi-clipboard-check",
+        icon: "bi-clipboard-data-fill",
       },
       {
         key: "studentResults",
         path: "/admin/student-results",
-        icon: "bi-bar-chart-line",
+        icon: "bi-bar-chart-line-fill",
       },
     ],
   },
@@ -76,7 +78,7 @@ function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const isArabic = i18next.language === "ar";
+  const isArabic = isArabicLocale(i18next.language);
   const { unreadCount } = useUnreadCount();
 
   const { generalSettings, fetchMediaSettings } = useAdminSettings();
@@ -97,52 +99,50 @@ function AdminLayout() {
     return item;
   });
 
-  const HomePageTitle = isArabic
-    ? `مرحبا ${user.name}`
-    : `Welcome Back ${user.name}`;
-
   const getPageTitle = (path) => {
     switch (path) {
       case "/admin":
-        return HomePageTitle;
+        return t("topbar.welcome_back", { name: user.name });
       case "/admin/categories":
-        return isArabic ? "التصنيفات" : "Categories";
+        return t("categories_page.title");
       case "/admin/tags":
-        return isArabic ? "التاجات" : "Site Tags";
+        return t("tags_page.title");
       case "/admin/quizzes":
-        return isArabic ? "الاختبارات" : "Quizzes";
+        return t("quizzes_page.title");
       case "/admin/schedule":
-        return isArabic ? "الجدول الزمني" : "Schedule";
+        return t("schedule_page.title");
       case "/admin/student-attendance":
-        return isArabic ? "حضور الطلاب" : "Students Attendance";
+        return t("sidebar.studentAttendance");
+      case "/admin/attendance-devices":
+        return t("sidebar.attendanceDevices");
       case "/admin/student-results":
-        return isArabic ? "نتائج الطلاب" : "Students Results";
+        return t("studentResults.title");
       case "/admin/groups":
-        return isArabic ? "المجموعات" : "Groups";
+        return t("sidebar.learningGroups");
       case "/admin/courses":
-        return isArabic ? "الكورسات" : "Courses";
+        return t("courses_page.title");
       case "/admin/google-storage-accounts":
-        return isArabic ? "حسابات Google Storage" : "Google Storage Accounts";
+        return t("google_storage_page.title");
       case "/admin/solutions":
-        return isArabic ? "الحلول البرمجية" : "Solutions";
+        return t("sidebar.solutions");
       case "/admin/students":
-        return isArabic ? "الطلاب" : "Students";
+        return t("students_page.title");
       case "/admin/instructors":
-        return isArabic ? "المدربين" : "Instructors";
+        return t("instructors_page.title");
       case "/admin/orders":
-        return isArabic ? "الطلبات / المدفوعات" : "Orders / Payments";
+        return t("sidebar.orders");
       case "/admin/messages":
-        return isArabic ? "الرسائل" : "Messages";
+        return t("sidebar.messages");
       case "/admin/reviews":
-        return isArabic ? "التقييمات" : "Reviews";
+        return t("reviews_page.title");
       case "/admin/notifications":
-        return isArabic ? "الإشعارات" : "Notifications";
+        return t("sidebar.Notification");
       case "/admin/certificates":
-        return isArabic ? "الشهادات" : "Certificates";
+        return t("certificates_page.title");
       case "/admin/history":
-        return isArabic ? "سجل الحركات" : "Activity History";
+        return t("history.title");
       case "/admin/settings":
-        return isArabic ? "الإعدادات" : "Settings";
+        return t("sidebar.settings");
       default:
         return "";
     }

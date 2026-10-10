@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toastError, toastSuccess } from "../../../components/shared/Toaster/toaster";
+import { isArabicLocale } from "../../../utils/isArabicLocale";
+
 import {
   getTodaySchedule,
   getSessionDetails,
@@ -178,7 +180,7 @@ export const useReceptionistAttendance = (recentScansLimit = 10) => {
       try {
         await apiMarkAttendance(activeSession?.session_id, studentId, status);
         toastSuccess(
-          i18n.language?.startsWith("ar")
+          isArabicLocale(i18n.language)
             ? "تم تحديث حالة الحضور بنجاح"
             : "Attendance updated."
         );
@@ -212,7 +214,7 @@ export const useReceptionistAttendance = (recentScansLimit = 10) => {
         });
         const msg =
           err?.response?.data?.message ||
-          (i18n.language?.startsWith("ar")
+          (isArabicLocale(i18n.language)
             ? "فشل تحديث حالة الحضور"
             : "Failed to mark attendance.");
         toastError(msg);
@@ -273,7 +275,7 @@ export const useReceptionistAttendance = (recentScansLimit = 10) => {
         )
       );
       toastSuccess(
-        i18n.language?.startsWith("ar")
+        isArabicLocale(i18n.language)
           ? "تم تسجيل حضور جميع الطلاب بنجاح"
           : "All students marked as present."
       );
@@ -291,7 +293,7 @@ export const useReceptionistAttendance = (recentScansLimit = 10) => {
         return updated;
       });
       toastError(
-        i18n.language?.startsWith("ar")
+        isArabicLocale(i18n.language)
           ? "فشل تسجيل حضور بعض الطلاب"
           : "Failed to mark all students present."
       );

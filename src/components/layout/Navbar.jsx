@@ -10,7 +10,6 @@ import "./Navbar.css";
 
 import logoWhite from "../../assets/logo-white.webp";
 import logoDark from "../../assets/logo-dark.webp";
-import { isArabic } from "../../i18n";
 import SearchDropdown from "../search/SearchDropdown";
 import NotificationsDropdown from "../shared/NotificationsDropdown";
 import {
@@ -18,6 +17,8 @@ import {
   getProfileDisplayName,
 } from "../../utils/avatar";
 import ProfileAvatar from "../shared/ProfileAvatar/ProfileAvatar";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function AppNavbar({ isLoggedIn, userName }) {
   const { t, i18n } = useTranslation(["navbar", "common", "user"]);
@@ -26,22 +27,20 @@ function AppNavbar({ isLoggedIn, userName }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, userProfile } = useAuth();
+  const isArabic = isArabicLocale(i18n.language);
 
   const handleLogout = async () => {
     const confirmed = await showLogoutConfirm();
     if (!confirmed) return;
 
-    logout();
+    navigate("/", { replace: true });
+    await logout();
     toastCustom({
-      message:
-        i18n.language === "ar"
-          ? "تم تسجيل الخروج بنجاح"
-          : "Logged out successfully",
+      message: t("user:logout_success"),
       type: "info",
       bsIcon: "bi-box-arrow-right",
       duration: 3000,
     });
-    navigate("/");
   };
 
   useEffect(() => {
@@ -57,11 +56,11 @@ function AppNavbar({ isLoggedIn, userName }) {
 
   const toggleLanguage = () => {
     if (mobileMenuOpen) setMobileMenuOpen(false);
-    const newLang = i18n.language === "ar" ? "en" : "ar";
+    const newLang = isArabic ? "en" : "ar";
     i18n.changeLanguage(newLang);
     localStorage.setItem("i18nextLng", newLang);
 
-    const newDir = newLang === "ar" ? "rtl" : "ltr";
+    const newDir = isArabicLocale(newLang) ? "rtl" : "ltr";
     document.documentElement.dir = newDir;
     document.documentElement.lang = newLang;
     document.body.dir = newDir;
@@ -187,7 +186,7 @@ function AppNavbar({ isLoggedIn, userName }) {
             >
               <HiOutlineGlobeAlt size={20} className="me-1" />
               <span className="fw-semibold fs-6">
-                {i18n.language === "ar" ? "EN" : "AR"}
+                {isArabic ? "EN" : "AR"}
               </span>
             </div>
 
@@ -242,15 +241,15 @@ function AppNavbar({ isLoggedIn, userName }) {
                     </NavDropdown.Item>
                   ) : user.role === "instructor" ? (
                     <NavDropdown.Item as={Link} to="/instructor">
-                      {isArabic() ? "لوحة التحكم" : "Instructor Dashboard"}
+                      {t("navbar:dashboard_instructor")}
                     </NavDropdown.Item>
                   ) : user.role === "receptionist" ? (
                     <NavDropdown.Item as={Link} to="/receptionist">
-                      {isArabic() ? "لوحة التحكم" : "Receptionist Dashboard"}
+                      {t("navbar:dashboard_receptionist")}
                     </NavDropdown.Item>
                   ) : (
                     <NavDropdown.Item as={Link} to="/admin">
-                      {isArabic() ? "لوحة التحكم" : "Admin Dashboard"}
+                      {t("navbar:dashboard_admin")}
                     </NavDropdown.Item>
                   )}
                   <NavDropdown.Divider />

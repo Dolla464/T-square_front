@@ -1,4 +1,95 @@
 import Swal from "sweetalert2";
+import i18n from "../../../i18n";
+
+const VALID_ATTENDANCE_TYPES = ["online", "offline", "hybrid"];
+
+const getAttendanceTypeLabel = (type) =>
+  i18n.t(`attendanceTypes.${type}`, { ns: "orderPayments", defaultValue: type });
+
+const normalizeSupportedAttendanceTypes = (attendanceTypes) => {
+  if (!Array.isArray(attendanceTypes)) return [];
+  return attendanceTypes
+    .map((type) => String(type).trim().toLowerCase())
+    .filter((type) => VALID_ATTENDANCE_TYPES.includes(type));
+};
+
+const showAttendanceTypePicker = async (attendanceTypes) => {
+  const rtl = isRTL();
+  const options = normalizeSupportedAttendanceTypes(attendanceTypes);
+
+  const dangerColor = CONFIRM_COLORS.danger.bg;
+
+  if (options.length === 0) {
+    await Swal.fire({
+      html: `
+        <div class="swal-inner" dir="${rtl ? "rtl" : "ltr"}">
+          ${ICONS_HTML.warning}
+          <h2 class="swal-custom-title">${rtl ? "تنبيه" : "Notice"}</h2>
+          <p class="swal-custom-msg">${escapeHtml(i18n.t("attendanceTypeUnavailable", { ns: "orderPayments" }))}</p>
+        </div>
+      `,
+      showConfirmButton: true,
+      confirmButtonText: rtl ? "حسناً" : "OK",
+      confirmButtonColor: dangerColor,
+      customClass: {
+        popup: "tsq-swal-popup",
+        actions: "tsq-swal-actions",
+        confirmButton: "tsq-swal-confirm",
+      },
+    });
+    return null;
+  }
+
+  const optionsHtml = options
+    .map(
+      (type) => `
+        <label class="tsq-swal-attendance-option">
+          <input type="radio" name="payment_attendance_type" value="${escapeHtml(type)}" class="form-check-input mt-0" />
+          <span class="tsq-swal-attendance-option-label">${escapeHtml(getAttendanceTypeLabel(type))}</span>
+        </label>
+      `,
+    )
+    .join("");
+
+  const result = await Swal.fire({
+    html: `
+      <div class="swal-inner swal-inner--attendance" dir="${rtl ? "rtl" : "ltr"}">
+        ${ICONS_HTML.question}
+        <h2 class="swal-custom-title">${escapeHtml(i18n.t("selectAttendanceType", { ns: "orderPayments" }))}</h2>
+        <p class="swal-custom-msg">${escapeHtml(i18n.t("selectAttendanceTypeHint", { ns: "orderPayments" }))}</p>
+        <div class="tsq-swal-attendance-options">${optionsHtml}</div>
+      </div>
+    `,
+    showConfirmButton: true,
+    showCancelButton: true,
+    confirmButtonText: i18n.t("changeStatusConfirm", { ns: "orderPayments", defaultValue: rtl ? "تأكيد" : "Confirm" }),
+    cancelButtonText: i18n.t("changeStatusCancel", { ns: "orderPayments", defaultValue: rtl ? "إلغاء" : "Cancel" }),
+    confirmButtonColor: dangerColor,
+    cancelButtonColor: "#e5e7eb",
+    allowOutsideClick: false,
+    allowEscapeKey: true,
+    target: document.body,
+    focusConfirm: false,
+    customClass: {
+      popup: "tsq-swal-popup tsq-swal-popup--attendance",
+      actions: "tsq-swal-actions",
+      confirmButton: "tsq-swal-confirm",
+      cancelButton: "tsq-swal-cancel",
+    },
+    preConfirm: () => {
+      const selected = document.querySelector('input[name="payment_attendance_type"]:checked');
+      if (!selected) {
+        Swal.showValidationMessage(
+          i18n.t("attendanceTypeRequired", { ns: "orderPayments" }),
+        );
+        return false;
+      }
+      return selected.value;
+    },
+  });
+
+  return result.isConfirmed ? result.value : null;
+};
 
 // ================================================================
 // دالة مساعدة لمعرفة اتجاه اللغة الحالية
@@ -310,8 +401,18 @@ export const showPasswordDialog = async ({
   return result.isConfirmed ? result.value : null;
 };
 
+const resolvePaymentStatusSelection = async (statusId, currentStatus, attendanceTypes) => {
+  if (statusId === "completed" && currentStatus !== "completed") {
+    const attendanceType = await showAttendanceTypePicker(attendanceTypes);
+    if (!attendanceType) return null;
+    return { status: "completed", attendance_type: attendanceType };
+  }
+
+  return { status: statusId };
+};
+
 /** نافذة تأكيد خاصة بحالة الدفع (تظهر زرين للاختيار وزر كبير للإلغاء) */
-export const showPaymentStatusConfirm = async (currentStatus) => {
+export const showPaymentStatusConfirm = async (currentStatus, attendanceTypes = []) => {
   const rtl = isRTL();
 
   const statuses = {
@@ -354,13 +455,13 @@ export const showPaymentStatusConfirm = async (currentStatus) => {
         cancelButton: "tsq-swal-cancel w-100 mt-2 py-2 fw-bold",
       },
       didOpen: () => {
-        document.getElementById("btn-status-1").addEventListener("click", () => {
+        document.getElementById("btn-status-1").addEventListener("click", async () => {
           Swal.close();
-          resolve(options[0].id);
+          resolve(await resolvePaymentStatusSelection(options[0].id, currentStatus, attendanceTypes));
         });
-        document.getElementById("btn-status-2").addEventListener("click", () => {
+        document.getElementById("btn-status-2").addEventListener("click", async () => {
           Swal.close();
-          resolve(options[1].id);
+          resolve(await resolvePaymentStatusSelection(options[1].id, currentStatus, attendanceTypes));
         });
       }
     }).then((result) => {
@@ -369,6 +470,12 @@ export const showPaymentStatusConfirm = async (currentStatus) => {
       }
     });
   });
+};
+
+export {
+  normalizeSupportedAttendanceTypes,
+  resolvePaymentStatusSelection,
+  showAttendanceTypePicker,
 };
 
 /** نافذة مخصصة للتقييمات المعلقة (قبول، رفض، إلغاء) */

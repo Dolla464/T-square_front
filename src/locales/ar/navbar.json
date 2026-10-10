@@ -5,5 +5,8 @@
   "team": "الفريق",
   "contact": "تواصل معنا",
   "about": "من نحن",
-  "consultations": "استشارات"
+  "consultations": "استشارات",
+  "dashboard_instructor": "لوحة التحكم",
+  "dashboard_receptionist": "لوحة التحكم",
+  "dashboard_admin": "لوحة التحكم"
 }

@@ -17,6 +17,8 @@ import { parseApiDateOnly } from "../../../../utils/formatDateTime";
 import { getCourseInstructors } from "../../../../utils/courseInstructors";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import SessionStatusBadge from "../../../../components/shared/SessionStatusBadge/SessionStatusBadge";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 import {
   canSelectEnrollmentCompletedOption,
 } from "../../../shared-dashboard/utils/enrollmentCompletion";
@@ -137,9 +139,9 @@ const formatGroupSyncToast = (sync, isArabic, t) => {
 
   if (sync.skipped_student_ids?.length > 0) {
     parts.push(
-      isArabic
-        ? `${sync.skipped_student_ids.length} طالب غير مشترك في الكورس`
-        : `${sync.skipped_student_ids.length} student(s) skipped (not enrolled in course)`,
+      t("groups_page.skipped_students", {
+        count: sync.skipped_student_ids.length,
+      }),
     );
   }
 
@@ -238,12 +240,10 @@ const getDayNameFromDate = (dateStr, isArabic) => {
   return isArabic ? DAY_NAMES_AR[idx] : DAY_NAMES_EN[idx];
 };
 
-function GroupStatusBadge({ status, isArabic }) {
+function GroupStatusBadge({ status, t }) {
   const cfg = GROUP_STATUS_CONFIG[status] ?? {
     bg: "bg-light text-dark",
     icon: "bi-circle",
-    labelEn: status,
-    labelAr: status,
   };
   return (
     <span
@@ -251,7 +251,7 @@ function GroupStatusBadge({ status, isArabic }) {
       style={{ fontSize: "0.75rem" }}
     >
       <i className={`bi ${cfg.icon} me-1`}></i>
-      {isArabic ? cfg.labelAr : cfg.labelEn}
+      {t(`groups_page.status_${status}`, status)}
     </span>
   );
 }
@@ -282,7 +282,7 @@ function AdminGroups({
   const { instructors, getInstructors } = useInstructorsHook();
 
   const { t, i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [showForm, setShowForm] = useState(false);
@@ -497,7 +497,7 @@ function AdminGroups({
     } catch (err) {
       toastError(
         err?.response?.data?.message ||
-          (isArabic ? "فشل تحميل جدول المواعيد" : "Failed to load group schedule")
+          t("groups_page.toast_load_schedule_failed")
       );
       setGroupSessions([]);
     } finally {
@@ -513,7 +513,7 @@ function AdminGroups({
     } catch (err) {
       toastError(
         err?.response?.data?.message ||
-          (isArabic ? "فشل التصدير" : "Export failed. Please try again.")
+          t("groups_page.toast_export_failed")
       );
     } finally {
       setScheduleExportLoading(false);
@@ -529,7 +529,7 @@ function AdminGroups({
     } catch (err) {
       toastError(
         err?.response?.data?.message ||
-          (isArabic ? "فشل التصدير" : "Export failed. Please try again.")
+          t("groups_page.toast_export_failed")
       );
     } finally {
       setStudentsExportLoading(false);
@@ -682,21 +682,15 @@ function AdminGroups({
     const errors = formData.schedules.map((s) => {
       const err = {};
       if (!s.start_time) {
-        err.start_time = isArabic
-          ? "وقت البدء مطلوب"
-          : "Start time is required";
+        err.start_time = t("groups_page.errors.start_time_required");
         valid = false;
       }
       if (!s.end_time) {
-        err.end_time = isArabic
-          ? "وقت الانتهاء مطلوب"
-          : "End time is required";
+        err.end_time = t("groups_page.errors.end_time_required");
         valid = false;
       }
       if (s.start_time && s.end_time && s.end_time <= s.start_time) {
-        err.end_time = isArabic
-          ? "يجب أن يكون وقت الانتهاء بعد وقت البدء"
-          : "End time must be after start time";
+        err.end_time = t("groups_page.errors.end_after_start");
         valid = false;
       }
       return err;
@@ -711,17 +705,17 @@ function AdminGroups({
     e.preventDefault();
 
     if (!formData.group_name) {
-      toastError(isArabic ? "يجب إدخال اسم المجموعة" : "Group name is required");
+      toastError(t("groups_page.errors.group_name_required"));
       return;
     }
 
     if (!formData.course_id) {
-      toastError(isArabic ? "يجب اختيار الدورة" : "Course is required");
+      toastError(t("groups_page.errors.course_required"));
       return;
     }
 
     if (!formData.course_instructor_id) {
-      toastError(isArabic ? "يجب اختيار المحاضر" : "Instructor is required");
+      toastError(t("groups_page.errors.instructor_required"));
       return;
     }
 
@@ -744,11 +738,7 @@ function AdminGroups({
     }
 
     if (!formData.schedules || formData.schedules.length === 0) {
-      toastError(
-        isArabic
-          ? "يجب إضافة جدول أسبوعي واحد على الأقل"
-          : "At least one weekly schedule is required",
-      );
+      toastError(t("groups_page.errors.schedule_required"));
       return;
     }
 
@@ -845,12 +835,10 @@ function AdminGroups({
 
         if (nextStatus === "completed") {
           const ok = await showConfirmCustom({
-            title: isArabic ? "إنشاء مجموعة مغلقة" : "Create Closed Group",
-            message: isArabic
-              ? "المجموعة ستُنشأ بحالة مكتملة. أي طلاب يُضافون لاحقاً سيُعلَّمون مكتملين عند الإغلاق."
-              : "The group will be created as completed. Students added later will be marked completed when the group is closed.",
+            title: t("groups_page.confirm_closed_group_title"),
+            message: t("groups_page.confirm_closed_group_message"),
             icon: "warning",
-            confirmText: isArabic ? "تأكيد" : "Confirm",
+            confirmText: t("groups_page.confirm"),
           });
           if (!ok) return;
         }
@@ -884,12 +872,10 @@ function AdminGroups({
           <div className="ac-header d-flex justify-content-between align-items-center mb-4">
             <div>
               <h2 className="ac-title">
-                {isArabic ? "المجموعات الدراسيه" : "Learning Groups"}
+                {t("sidebar.learningGroups")}
               </h2>
               <p className="ac-subtitle text-muted mb-0">
-                {isArabic
-                  ? "ادارة جميع المجموعات الدراسيه "
-                  : "Manage all learning groups"}
+                {t("groups_page.subtitle")}
               </p>
             </div>
             <button
@@ -898,7 +884,7 @@ function AdminGroups({
             >
               <i className="bi bi-plus-lg me-0 me-md-1"></i>
               <span className="d-none d-md-inline">
-                {isArabic ? "اضافه مجموعه" : "Add Group"}
+                {t("groups_page.add_group")}
               </span>
             </button>
           </div>
@@ -916,11 +902,7 @@ function AdminGroups({
                     <input
                       type="text"
                       className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium" : "border-light bg-light text-muted"}`}
-                      placeholder={
-                        isArabic
-                          ? "بحث عن مجموعة دراسية..."
-                          : "Search By Group Name or Course Name..."
-                      }
+                      placeholder={t("groups_page.search_placeholder")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       style={{ zIndex: 1, position: "relative" }}
@@ -934,13 +916,13 @@ function AdminGroups({
                       onChange={handleListFilterChange(setTimeFilter)}
                     >
                       <option value="all">
-                        {isArabic ? "كل الأوقات" : "All Time"}
+                        {t("quizzes_page.all_time")}
                       </option>
                       <option value="last_week">
-                        {isArabic ? "آخر أسبوع" : "Last Week"}
+                        {t("quizzes_page.last_week")}
                       </option>
                       <option value="last_month">
-                        {isArabic ? "آخر شهر" : "Last Month"}
+                        {t("quizzes_page.last_month")}
                       </option>
                     </select>
 
@@ -950,7 +932,7 @@ function AdminGroups({
                       onChange={handleListFilterChange(setInstructorFilter)}
                     >
                       <option value="all">
-                        {isArabic ? "كل المحاضرين" : "All Instructors"}
+                        {t("schedule_page.filter_all_instructors")}
                       </option>
                       {instructors?.map((inst) => (
                         <option key={inst.id} value={inst.id}>
@@ -965,16 +947,16 @@ function AdminGroups({
                       onChange={handleListFilterChange(setStatusFilter)}
                     >
                       <option value="all">
-                        {isArabic ? "كل الحالات" : "All Statuses"}
+                        {t("schedule_page.filter_all_statuses")}
                       </option>
                       <option value="active">
-                        {isArabic ? "نشطة" : "Active"}
+                        {t("groups_page.status_active")}
                       </option>
                       <option value="completed">
-                        {isArabic ? "مكتملة" : "Completed"}
+                        {t("groups_page.status_completed")}
                       </option>
                       <option value="cancelled">
-                        {isArabic ? "ملغاة" : "Cancelled"}
+                        {t("groups_page.status_cancelled")}
                       </option>
                     </select>
                   </div>
@@ -982,30 +964,30 @@ function AdminGroups({
 
                 {/* ── Table ── */}
                 <div className="table-responsive">
-                  <table className="table ac-table mb-0 align-middle" dir="ltr">
+                  <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
                     <thead>
                       <tr>
-                        <th>{isArabic ? "اسم المجموعة" : "Group Name"}</th>
+                        <th>{t("groups_page.group_name")}</th>
                         <th className="text-center">
-                          {isArabic ? "عنوان الدورة" : "Course Title"}
+                          {t("groups_page.col_course_title")}
                         </th>
                         <th className="text-center">
-                          {isArabic ? "اسم المحاضر" : "Instructor Name"}
+                          {t("groups_page.col_instructor_name")}
                         </th>
                         <th className="text-center">
-                          {isArabic ? "الجلسة القادمة" : "Next Session"}
+                          {t("groups_page.col_next_session")}
                         </th>
                         <th className="text-center">
-                          {isArabic ? "عدد الطلاب" : "Students"}
+                          {t("groups_page.col_students")}
                         </th>
                         <th className="text-center">
-                          {isArabic ? "الحالة" : "Status"}
+                          {t("groups_page.col_status")}
                         </th>
                         <th className="text-center">
-                          {isArabic ? "تاريخ الإنشاء" : "Created At"}
+                          {t("groups_page.col_created_at")}
                         </th>
                         <th className="text-center">
-                          {isArabic ? "الإجراءات" : "Actions"}
+                          {t("groups_page.col_actions")}
                         </th>
                       </tr>
                     </thead>
@@ -1051,7 +1033,7 @@ function AdminGroups({
                                   </span>
                                 ) : (
                                   <span className="text-muted small">
-                                    {isArabic ? "لا يوجد جدول" : "No schedule"}
+                                    {t("groups_page.no_schedule")}
                                   </span>
                                 )}
                               </td>
@@ -1061,7 +1043,7 @@ function AdminGroups({
                               <td className="text-center">
                                 <GroupStatusBadge
                                   status={group.status || "active"}
-                                  isArabic={isArabic}
+                                  t={t}
                                 />
                               </td>
                               <td className="text-center text-secondary">
@@ -1071,21 +1053,21 @@ function AdminGroups({
                                 <div className="d-flex justify-content-center gap-2">
                                   <button
                                     className="btn btn-sm ac-btn-view border-0"
-                                    title="View"
+                                    title={t("groups_page.view")}
                                     onClick={() => handleView(group.id)}
                                   >
                                     <i className="bi bi-eye fs-6"></i>
                                   </button>
                                   <button
                                     className="btn btn-sm ac-btn-edit border-0"
-                                    title="Edit"
+                                    title={t("groups_page.edit")}
                                     onClick={() => handleEdit(group.id)}
                                   >
                                     <i className="bi bi-pencil-square fs-6"></i>
                                   </button>
                                   <button
                                     className="btn btn-sm ac-btn-deleteTable border-0"
-                                    title="Delete"
+                                    title={t("groups_page.delete")}
                                     onClick={() => handleDelete(group.id)}
                                   >
                                     <i className="bi bi-trash fs-6"></i>
@@ -1101,7 +1083,7 @@ function AdminGroups({
                             colSpan={8}
                             className="text-center py-4 text-muted"
                           >
-                            {isArabic ? "لا توجد مجموعات" : "No groups found"}
+                            {t("groups_page.no_groups")}
                           </td>
                         </tr>
                       )}
@@ -1129,16 +1111,10 @@ function AdminGroups({
               ></i>
               <span className="ms-2 me-2 fs-5 fw-bold text-dark">
                 {viewingItem
-                  ? isArabic
-                    ? "عرض بيانات المجموعة"
-                    : "View Group"
+                  ? t("groups_page.view_group")
                   : editingItem
-                    ? isArabic
-                      ? "تعديل بيانات المجموعة"
-                      : "Edit Group"
-                    : isArabic
-                      ? "إضافة مجموعة جديدة"
-                      : "Add New Group"}
+                    ? t("groups_page.edit_group")
+                    : t("groups_page.add_new_group")}
               </span>
             </button>
             {viewingItem && (
@@ -1148,7 +1124,7 @@ function AdminGroups({
                 onClick={handleOpenScheduleModal}
               >
                 <i className="bi bi-calendar-week me-1"></i>
-                {isArabic ? "عرض جدول المواعيد" : "Show Group Schedule"}
+                {t("groups_page.show_schedule")}
               </button>
             )}
           </div>
@@ -1159,14 +1135,14 @@ function AdminGroups({
               {/* ── Group Name ── */}
               <div className="mb-4">
                 <label className="form-label fw-bold text-dark">
-                  {isArabic ? "اسم المجموعة" : "Group Name"}
+                  {t("groups_page.group_name")}
                 </label>
                 <input
                   type="text"
                   name="group_name"
                   className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
                   placeholder={
-                    isArabic ? "أدخل اسم المجموعة" : "Enter group name"
+                    t("groups_page.group_name_placeholder")
                   }
                   value={formData.group_name || ""}
                   onChange={handleChange}
@@ -1177,13 +1153,13 @@ function AdminGroups({
               {/* ── Group Status ── */}
               <div className="mb-4">
                 <label className="form-label fw-bold text-dark">
-                  {isArabic ? "حالة المجموعة" : "Group Status"}
+                  {t("groups_page.group_status")}
                 </label>
                 {viewingItem ? (
                   <div className="mt-1">
                     <GroupStatusBadge
                       status={formData.status || "active"}
-                      isArabic={isArabic}
+                      t={t}
                     />
                   </div>
                 ) : (
@@ -1194,13 +1170,13 @@ function AdminGroups({
                     onChange={handleChange}
                   >
                     <option value="active">
-                      {isArabic ? "نشطة" : "Active"}
+                      {t("groups_page.status_active")}
                     </option>
                     <option value="completed">
-                      {isArabic ? "مكتملة" : "Completed"}
+                      {t("groups_page.status_completed")}
                     </option>
                     <option value="cancelled">
-                      {isArabic ? "ملغاة" : "Cancelled"}
+                      {t("groups_page.status_cancelled")}
                     </option>
                   </select>
                 )}
@@ -1210,7 +1186,7 @@ function AdminGroups({
               <div className="row mb-4">
                 <div className="col-md-6 mb-3 mb-md-0">
                   <label className="form-label fw-bold text-dark">
-                    {isArabic ? "عنوان الدورة" : "Course Title"}
+                    {t("groups_page.col_course_title")}
                   </label>
                   <select
                     name="course_id"
@@ -1226,7 +1202,7 @@ function AdminGroups({
                     ) : (
                       <>
                         <option value="">
-                          {isArabic ? "اختر دورة" : "Select course"}
+                          {t("groups_page.select_course")}
                         </option>
                         {courses?.map((course) => (
                           <option key={course.id} value={course.id}>
@@ -1239,7 +1215,7 @@ function AdminGroups({
                 </div>
                 <div className="col-md-6">
                   <label className="form-label fw-bold text-dark">
-                    {isArabic ? "المحاضر" : "Instructor"}
+                    {t("groups_page.instructor")}
                   </label>
                   {viewingItem ? (
                     <p className="form-control-plaintext fw-medium ps-1 mb-0">
@@ -1255,12 +1231,8 @@ function AdminGroups({
                     >
                       <option value="">
                         {formData.course_id
-                          ? isArabic
-                            ? "اختر محاضر الدورة"
-                            : "Select course instructor"
-                          : isArabic
-                            ? "اختر الدورة أولاً"
-                            : "Select a course first"}
+                          ? t("groups_page.select_course_instructor")
+                          : t("groups_page.select_course_first")}
                       </option>
                       {courseInstructorOptions.map((instructor) => {
                         const optionId = getCourseInstructorOptionId(instructor);
@@ -1316,7 +1288,7 @@ function AdminGroups({
                     <div className="col-sm-6">
                       <label className="form-label fw-bold text-dark">
                         <i className="bi bi-calendar-date me-2 text-danger"></i>
-                        {isArabic ? "تاريخ بدء المجموعة" : "Group Start Date"}
+                        {t("groups_page.group_start_date")}
                         {isDerivedHistoricalGroup(formData) && (
                           <span className="badge bg-secondary-subtle text-secondary-emphasis ms-2">
                             {t("groups_page.historical_badge")}
@@ -1330,7 +1302,7 @@ function AdminGroups({
                     <div className="col-sm-6">
                       <label className="form-label fw-bold text-dark">
                         <i className="bi bi-calendar-check me-2 text-danger"></i>
-                        {isArabic ? "تاريخ انتهاء المجموعة" : "Group End Date"}
+                        {t("groups_page.group_end_date")}
                       </label>
                       <p className="form-control-plaintext fw-medium ps-1 mb-0">
                         {formData.end_date || "—"}
@@ -1341,7 +1313,7 @@ function AdminGroups({
                   <>
                     <label className="form-label fw-bold text-dark">
                       <i className="bi bi-calendar-date me-2 text-danger"></i>
-                      {isArabic ? "تاريخ بدء المجموعة" : "Group Start Date"}
+                      {t("groups_page.group_start_date")}
                     </label>
                     <input
                       type="date"
@@ -1353,9 +1325,7 @@ function AdminGroups({
                       onChange={handleChange}
                     />
                     <small className="text-muted">
-                      {isArabic
-                        ? "تاريخ الانتهاء يُحسب تلقائياً من مدة الدورة"
-                        : "End date is automatically calculated from the course duration"}
+                      {t("groups_page.end_date_hint")}
                     </small>
                   </>
                 )}
@@ -1368,7 +1338,7 @@ function AdminGroups({
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <label className="form-label fw-bold text-dark mb-0">
                     <i className="bi bi-clock me-2 text-danger"></i>
-                    {isArabic ? "الجدول الأسبوعي" : "Weekly Schedule"}
+                    {t("groups_page.weekly_schedule")}
                   </label>
                   {!viewingItem && (
                     <button
@@ -1377,7 +1347,7 @@ function AdminGroups({
                       onClick={addSchedule}
                     >
                       <i className="bi bi-plus-circle me-1"></i>
-                      {isArabic ? "إضافة يوم" : "Add Day"}
+                      {t("groups_page.add_day")}
                     </button>
                   )}
                 </div>
@@ -1422,7 +1392,7 @@ function AdminGroups({
 
                 {viewingItem && formData.schedules.length === 0 && (
                   <p className="text-muted fst-italic">
-                    {isArabic ? "لا يوجد جدول أسبوعي" : "No schedule defined"}
+                    {t("groups_page.no_weekly_schedule")}
                   </p>
                 )}
 
@@ -1435,9 +1405,7 @@ function AdminGroups({
                         style={{ borderColor: "#dee2e6", background: "#fafafa" }}
                       >
                         <i className="bi bi-calendar-plus fs-2 d-block mb-2 text-danger opacity-50"></i>
-                        {isArabic
-                          ? 'اضغط "إضافة يوم" لتحديد أيام الجلسات الأسبوعية'
-                          : 'Click "Add Day" to define weekly session days'}
+                        {t("groups_page.add_day_hint")}
                       </div>
                     )}
 
@@ -1453,13 +1421,13 @@ function AdminGroups({
                           <div className="d-flex align-items-center justify-content-between mb-3">
                             <span className="fw-bold text-danger small">
                               <i className="bi bi-calendar-week me-1"></i>
-                              {isArabic ? `يوم ${i + 1}` : `Day ${i + 1}`}
+                              {t("groups_page.day_n", { n: i + 1 })}
                             </span>
                             <button
                               type="button"
                               className="btn btn-sm btn-link text-danger p-0"
                               onClick={() => removeSchedule(i)}
-                              title={isArabic ? "حذف هذا اليوم" : "Remove day"}
+                              title={t("groups_page.remove_day")}
                             >
                               <i className="bi bi-trash fs-5"></i>
                             </button>
@@ -1469,7 +1437,7 @@ function AdminGroups({
                             {/* Day of week */}
                             <div className="col-sm-3">
                               <label className="form-label small fw-medium text-dark mb-1">
-                                {isArabic ? "اليوم" : "Day"}
+                                {t("groups_page.day")}
                               </label>
                               <select
                                 className="form-select bg-light border-0 rounded-3"
@@ -1493,7 +1461,7 @@ function AdminGroups({
                             {/* Start time */}
                             <div className="col-sm-3">
                               <label className="form-label small fw-medium text-dark mb-1">
-                                {isArabic ? "وقت البدء" : "Start Time"}
+                                {t("groups_page.start_time")}
                               </label>
                               <input
                                 type="time"
@@ -1517,7 +1485,7 @@ function AdminGroups({
                             {/* End time */}
                             <div className="col-sm-3">
                               <label className="form-label small fw-medium text-dark mb-1">
-                                {isArabic ? "وقت الانتهاء" : "End Time"}
+                                {t("groups_page.end_time")}
                               </label>
                               <input
                                 type="time"
@@ -1541,14 +1509,12 @@ function AdminGroups({
                             {/* Room */}
                             <div className="col-sm-3">
                               <label className="form-label small fw-medium text-dark mb-1">
-                                {isArabic
-                                  ? "القاعة (اختياري)"
-                                  : "Room (optional)"}
+                                {t("groups_page.room_optional")}
                               </label>
                               <input
                                 type="text"
                                 className="form-control bg-light border-0 rounded-3"
-                                placeholder={isArabic ? "مثال: A-101" : "e.g. A-101"}
+                                placeholder={t("groups_page.room_placeholder")}
                                 value={s.room || ""}
                                 onChange={(e) =>
                                   handleScheduleChange(i, "room", e.target.value)
@@ -1568,7 +1534,7 @@ function AdminGroups({
                 <div className="row mb-4">
                   <div className="col-12">
                     <label className="form-label fw-bold text-dark mb-3">
-                      {isArabic ? "إحصائيات المجموعة" : "Group Statistics"}
+                      {t("groups_page.group_statistics")}
                     </label>
                     <div className="d-flex align-items-center p-3 bg-light rounded-3 border">
                       <div
@@ -1582,7 +1548,7 @@ function AdminGroups({
                           {formData.students_count || 0}
                         </h6>
                         <small className="text-muted">
-                          {isArabic ? "طالب مسجل" : "Enrolled Students"}
+                          {t("groups_page.enrolled_students")}
                         </small>
                       </div>
                     </div>
@@ -1604,14 +1570,10 @@ function AdminGroups({
                         </div>
                         <div>
                           <h5 className="fw-bold mb-0 text-dark">
-                            {isArabic
-                              ? "الطلاب الحاليين بالمجموعة"
-                              : "Current Group Students"}
+                            {t("groups_page.current_students_title")}
                           </h5>
                           <p className="text-muted small mb-0">
-                            {isArabic
-                              ? "قائمة بالطلاب المسجلين في هذه المجموعة حالياً"
-                              : "List of students currently enrolled in this group"}
+                            {t("groups_page.current_students_subtitle")}
                           </p>
                         </div>
                       </div>
@@ -1660,24 +1622,24 @@ function AdminGroups({
                       }}
                     >
                       <div className="table-responsive">
-                        <table className="table mb-0 align-middle">
+                        <table className="table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
                           <thead>
                             <tr>
                               <th className="ps-4 py-3 border-0 text-secondary small fw-bold">
-                                {isArabic ? "الطالب" : "Student"}
+                                {t("groups_page.student")}
                               </th>
                               <th className="py-3 border-0 text-secondary small fw-bold">
-                                {isArabic ? "البريد الإلكتروني" : "Email"}
+                                {t("students_page.table_email")}
                               </th>
                               <th className="py-3 border-0 text-secondary small fw-bold text-center">
-                                {isArabic ? "رقم الهاتف" : "Phone"}
+                                {t("students_page.table_phone")}
                               </th>
                               <th className="py-3 border-0 text-secondary small fw-bold text-center">
-                                {isArabic ? "الحالة" : "Status"}
+                                {t("groups_page.col_status")}
                               </th>
                               {editingItem && (
                                 <th className="py-3 border-0 text-secondary small fw-bold text-center">
-                                  {isArabic ? "إجراء" : "Action"}
+                                  {t("groups_page.action")}
                                 </th>
                               )}
                             </tr>
@@ -1759,12 +1721,8 @@ function AdminGroups({
                                           className={`bi ${student.is_completed ? "bi-check-circle-fill" : "bi-hourglass-split"} me-1`}
                                         ></i>
                                         {student.is_completed
-                                          ? isArabic
-                                            ? "مكتمل"
-                                            : "Completed"
-                                          : isArabic
-                                            ? "قيد الدراسة"
-                                            : "In Progress"}
+                                          ? t("groups_page.student_status_completed")
+                                          : t("groups_page.student_status_in_progress")}
                                       </span>
                                     )}
                                   </td>
@@ -1773,11 +1731,7 @@ function AdminGroups({
                                       <button
                                         type="button"
                                         className="btn btn-sm ac-btn-deleteTable border-0"
-                                        title={
-                                          isArabic
-                                            ? "إزالة مؤقتة من المجموعة"
-                                            : "Remove locally"
-                                        }
+                                        title={t("groups_page.remove_local")}
                                         onClick={() =>
                                           handleRemoveStudentLocal(student.id)
                                         }
@@ -1794,9 +1748,7 @@ function AdminGroups({
                                   colSpan={editingItem ? 5 : 4}
                                   className="text-center py-4 text-muted"
                                 >
-                                  {isArabic
-                                    ? "لا يوجد طلاب في المجموعة، اضغط تحديث لحفظ التغيير"
-                                    : "No students in this group. Click update to save."}
+                                  {t("groups_page.no_students_in_group")}
                                 </td>
                               </tr>
                             )}
@@ -1824,14 +1776,10 @@ function AdminGroups({
                           </div>
                           <div>
                             <h5 className="fw-bold mb-0 text-dark">
-                              {isArabic
-                                ? "طلاب متاحين للإضافة للمجموعة"
-                                : "Available Students to Add"}
+                              {t("groups_page.available_students_title")}
                             </h5>
                             <p className="text-muted small mb-0">
-                              {isArabic
-                                ? "الطلاب المسجلون في الدورة وغير منضمين لأي مجموعة"
-                                : "Students enrolled in the course but not assigned to any group"}
+                              {t("groups_page.available_students_subtitle")}
                             </p>
                           </div>
                         </div>
@@ -1860,7 +1808,7 @@ function AdminGroups({
                             htmlFor="selectAllStudents"
                             style={{ cursor: "pointer" }}
                           >
-                            {isArabic ? "تحديد الكل" : "Select All"}
+                            {t("groups_page.select_all")}
                           </label>
                         </div>
                       </div>
@@ -1874,7 +1822,7 @@ function AdminGroups({
                         }}
                       >
                         <div className="table-responsive">
-                          <table className="table mb-0 align-middle table-hover">
+                          <table className="table mb-0 align-middle table-hover" dir={isArabic ? "rtl" : "ltr"}>
                             <thead>
                               <tr>
                                 <th
@@ -1882,13 +1830,13 @@ function AdminGroups({
                                   style={{ width: "50px" }}
                                 ></th>
                                 <th className="py-3 border-0 text-secondary small fw-bold">
-                                  {isArabic ? "الطالب" : "Student"}
+                                  {t("groups_page.student")}
                                 </th>
                                 <th className="py-3 border-0 text-secondary small fw-bold">
-                                  {isArabic ? "البريد الإلكتروني" : "Email"}
+                                  {t("students_page.table_email")}
                                 </th>
                                 <th className="pe-4 py-3 border-0 text-secondary small fw-bold text-center">
-                                  {isArabic ? "رقم الهاتف" : "Phone"}
+                                  {t("students_page.table_phone")}
                                 </th>
                               </tr>
                             </thead>
@@ -1946,12 +1894,8 @@ function AdminGroups({
                     onClick={handleSubmitWrapper}
                   >
                     {editingItem
-                      ? isArabic
-                        ? "تحديث المجموعة"
-                        : "Update Group"
-                      : isArabic
-                        ? "إنشاء مجموعة"
-                        : "Create Group"}
+                      ? t("groups_page.update_group")
+                      : t("groups_page.create_group")}
                   </button>
                 </div>
               )}
@@ -1969,8 +1913,8 @@ function AdminGroups({
         title={
           <>
             <i className="bi bi-calendar-week me-2 text-danger"></i>
-            {formData.group_name || (isArabic ? "المجموعة" : "Group")} —{" "}
-            {isArabic ? "جدول مواعيد المجموعة" : "Group Schedule"}
+            {formData.group_name || t("groups_page.group_label")} —{" "}
+            {t("groups_page.group_schedule")}
           </>
         }
         footer={
@@ -1980,7 +1924,7 @@ function AdminGroups({
               className="btn ac-draft-btn border px-3 py-2 rounded-3"
               onClick={handleCloseScheduleModal}
             >
-              {isArabic ? "إغلاق" : "Close"}
+              {t("groups_page.close")}
             </button>
             <button
               type="button"
@@ -1993,7 +1937,7 @@ function AdminGroups({
               ) : (
                 <i className="bi bi-file-earmark-pdf me-1"></i>
               )}
-              {isArabic ? "تصدير PDF" : "Export PDF"}
+              {t("groups_page.export_pdf")}
             </button>
           </>
         }
@@ -2002,29 +1946,27 @@ function AdminGroups({
             <div className="text-center py-5">
               <Spinner animation="border" variant="danger" />
               <div className="text-muted mt-3 small">
-                {isArabic ? "جاري تحميل الجدول…" : "Loading schedule…"}
+                {t("groups_page.loading_schedule")}
               </div>
             </div>
           ) : groupSessions.length === 0 ? (
             <div className="text-center py-5 text-muted">
               <i className="bi bi-calendar-x" style={{ fontSize: "3rem" }}></i>
               <p className="mt-3 fw-semibold mb-0">
-                {isArabic
-                  ? "لا توجد جلسات مجدولة"
-                  : "No scheduled sessions"}
+                {t("groups_page.no_scheduled_sessions")}
               </p>
             </div>
           ) : (
             <div className="table-responsive ac-table-wrapper">
-              <table className="table ac-table align-middle mb-0">
+              <table className="table ac-table align-middle mb-0" dir={isArabic ? "rtl" : "ltr"}>
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>{isArabic ? "اليوم" : "Day"}</th>
-                    <th>{isArabic ? "التاريخ" : "Date"}</th>
-                    <th>{isArabic ? "الوقت" : "Time"}</th>
-                    <th>{isArabic ? "القاعة" : "Room"}</th>
-                    <th>{isArabic ? "الحالة" : "Status"}</th>
+                    <th>{t("groups_page.day")}</th>
+                    <th>{t("groups_page.col_date")}</th>
+                    <th>{t("groups_page.col_time")}</th>
+                    <th>{t("groups_page.col_room")}</th>
+                    <th>{t("groups_page.col_status")}</th>
                   </tr>
                 </thead>
                 <tbody>

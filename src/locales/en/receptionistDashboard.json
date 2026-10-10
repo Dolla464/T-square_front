@@ -10,6 +10,10 @@
     "Notification": "Notifications"
   },
   "topbar": {
-    "role": "Receptionist"
+    "role": "Receptionist",
+    "welcome_back": "Welcome Back {{name}}"
+  },
+  "orders_page": {
+    "create_title": "Create Order"
   }
 }

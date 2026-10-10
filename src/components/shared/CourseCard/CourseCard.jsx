@@ -1,8 +1,25 @@
-import React from "react";
+import React, { useMemo } from "react";
 import "./CourseCard.css";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { normalizeStorageUrl } from "../../../utils/resolveApiOrigin";
+
+const VALID_ATTENDANCE_TYPES = ["online", "offline", "hybrid"];
+
+const resolveAttendanceTypes = (course) => {
+  if (Array.isArray(course?.attendance_types) && course.attendance_types.length > 0) {
+    return course.attendance_types
+      .map((type) => String(type).trim().toLowerCase())
+      .filter((type) => VALID_ATTENDANCE_TYPES.includes(type));
+  }
+
+  if (course?.attendance_type) {
+    const legacy = String(course.attendance_type).trim().toLowerCase();
+    return VALID_ATTENDANCE_TYPES.includes(legacy) ? [legacy] : [];
+  }
+
+  return [];
+};
 
 const CourseCard = ({ course }) => {
   const navigate = useNavigate();
@@ -13,11 +30,11 @@ const CourseCard = ({ course }) => {
   const { t } = useTranslation("courses");
 
   const tags = Array.isArray(course?.tags) ? course.tags : [];
+  const attendanceTypes = useMemo(() => resolveAttendanceTypes(course), [course]);
 
   return (
     <div className="course-card">
       <div className="course-img-wrapper">
-        {/* لما يكون عندنا صور الكورسات هنشيل courseThumb */}
         <img
           src={normalizeStorageUrl(course.image)}
           alt={course.title}
@@ -26,11 +43,18 @@ const CourseCard = ({ course }) => {
           height="200"
           loading="lazy"
         />
-        <span
-          className={`course-badge badge-${course.attendance_type.toLowerCase()}`}
-        >
-          {course.attendance_type}
-        </span>
+        {attendanceTypes.length > 0 && (
+          <div className="course-badges">
+            {attendanceTypes.map((type) => (
+              <span
+                key={type}
+                className={`course-badge badge-${type}`}
+              >
+                {t(`card.${type}`)}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="course-body">

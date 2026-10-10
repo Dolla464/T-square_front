@@ -1,0 +1,41 @@
+.exam-result-details-page {
+  padding-bottom: 1.5rem;
+}
+
+.exam-result-details-header {
+  margin-bottom: 1rem;
+}
+
+.exam-result-details-content {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  padding: 1rem;
+}
+
+.exam-result-details-intro {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.exam-result-details-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.35rem;
+}
+
+.exam-result-details-meta {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+.exam-result-details-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}

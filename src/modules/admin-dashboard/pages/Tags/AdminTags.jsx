@@ -4,14 +4,15 @@ import { useTranslation } from "react-i18next";
 import { useAdminTags } from "../../hooks/useAdminTags";
 import { showDeleteConfirm } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
 const defaultForm = { name: "" };
 
 function AdminTags() {
   const { tags, loading, submitting, fetchTags, addTag, editTag, removeTag } =
     useAdminTags();
-  const { i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const { t, i18n } = useTranslation("adminDashboard");
+  const isArabic = isArabicLocale(i18n.language);
 
   const [showModal, setShowModal] = useState(false);
   const [editingTag, setEditingTag] = useState(null);
@@ -78,23 +79,19 @@ function AdminTags() {
     });
   };
 
+  const tagCountKey =
+    tags.length === 1 ? "tags_page.tag_count_one" : "tags_page.tag_count_other";
+
   return (
     <div className="admin-content-page">
       {/* ── Header ── */}
       <div className="ac-header d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="ac-title">{isArabic ? "التاجات" : "Site Tags"}</h2>
-          <p className="ac-subtitle text-muted mb-0">
-            {isArabic
-              ? "إدارة جميع التاجات المستخدمة في الموقع"
-              : "Manage all tags used across the platform"}
-          </p>
+          <h2 className="ac-title">{t("tags_page.title")}</h2>
         </div>
         <button className="btn btn-danger ac-add-btn" onClick={openAddModal}>
           <i className="bi bi-plus-lg me-0 me-md-1"></i>
-          <span className="d-none d-md-inline">
-            {isArabic ? "إضافة تاج" : "Add Tag"}
-          </span>
+          <span className="d-none d-md-inline">{t("tags_page.add_tag")}</span>
         </button>
       </div>
 
@@ -118,31 +115,27 @@ function AdminTags() {
                       ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
                       : "border-light bg-light text-muted"
                   }`}
-                  placeholder={isArabic ? "بحث عن تاج..." : "Search tags..."}
+                  placeholder={t("tags_page.search_placeholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   style={{ zIndex: 1, position: "relative" }}
                 />
               </div>
               <span className="badge bg-danger-subtle text-danger fs-6 px-3 py-2 rounded-pill">
-                {isArabic ? `${tags.length} تاج` : `${tags.length} tag${tags.length !== 1 ? "s" : ""}`}
+                {t(tagCountKey, { count: tags.length })}
               </span>
             </div>
 
             {/* Table */}
             <div className="table-responsive">
-              <table className="table ac-table mb-0 align-middle" dir="ltr">
+              <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
                 <thead>
                   <tr>
                     <th style={{ width: "60px" }}>#</th>
-                    <th>{isArabic ? "اسم التاج" : "Tag Name"}</th>
-                    <th className="text-center">{isArabic ? "الـ Slug" : "Slug"}</th>
-                    <th className="text-center">
-                      {isArabic ? "تاريخ الإنشاء" : "Created At"}
-                    </th>
-                    <th className="text-center">
-                      {isArabic ? "الإجراءات" : "Actions"}
-                    </th>
+                    <th>{t("tags_page.col_name")}</th>
+                    <th className="text-center">{t("tags_page.col_slug")}</th>
+                    <th className="text-center">{t("tags_page.col_created_at")}</th>
+                    <th className="text-center">{t("tags_page.col_actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -177,14 +170,14 @@ function AdminTags() {
                           <div className="d-flex justify-content-center gap-2">
                             <button
                               className="btn btn-sm ac-btn-edit border-0"
-                              title={isArabic ? "تعديل" : "Edit"}
+                              title={t("tags_page.edit")}
                               onClick={() => openEditModal(tag)}
                             >
                               <i className="bi bi-pencil-square fs-6"></i>
                             </button>
                             <button
                               className="btn btn-sm ac-btn-deleteTable border-0"
-                              title={isArabic ? "حذف" : "Delete"}
+                              title={t("tags_page.delete")}
                               onClick={() => handleDelete(tag)}
                             >
                               <i className="bi bi-trash3 fs-6"></i>
@@ -197,7 +190,7 @@ function AdminTags() {
                     <tr>
                       <td colSpan={5} className="text-center py-5 text-muted">
                         <i className="bi bi-tags fs-1 d-block mb-2 opacity-25"></i>
-                        {isArabic ? "لا توجد تاجات" : "No tags found"}
+                        {t("tags_page.no_tags")}
                       </td>
                     </tr>
                   )}
@@ -218,13 +211,7 @@ function AdminTags() {
         <Modal.Header closeButton className="border-0 pb-0">
           <Modal.Title className="fw-bold fs-5">
             <i className="bi bi-tags me-2 text-danger"></i>
-            {editingTag
-              ? isArabic
-                ? "تعديل التاج"
-                : "Edit Tag"
-              : isArabic
-              ? "إضافة تاج جديد"
-              : "Add New Tag"}
+            {editingTag ? t("tags_page.modal_edit") : t("tags_page.modal_add")}
           </Modal.Title>
         </Modal.Header>
 
@@ -232,16 +219,14 @@ function AdminTags() {
           <form id="tag-form" onSubmit={handleSubmit}>
             <div className="mb-3">
               <label className="form-label fw-bold text-dark">
-                {isArabic ? "اسم التاج" : "Tag Name"}
+                {t("tags_page.name_label")}
                 <span className="text-danger ms-1">*</span>
               </label>
               <input
                 ref={nameInputRef}
                 type="text"
                 className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                placeholder={
-                  isArabic ? "مثال: JavaScript" : "e.g. JavaScript"
-                }
+                placeholder={t("tags_page.name_placeholder")}
                 value={formData.name}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
@@ -249,11 +234,6 @@ function AdminTags() {
                 required
                 maxLength={100}
               />
-              <div className="form-text text-muted">
-                {isArabic
-                  ? "سيتم توليد الـ slug تلقائياً"
-                  : "The slug will be generated automatically"}
-              </div>
             </div>
           </form>
         </Modal.Body>
@@ -265,7 +245,7 @@ function AdminTags() {
             onClick={closeModal}
             disabled={submitting}
           >
-            {isArabic ? "إلغاء" : "Cancel"}
+            {t("tags_page.cancel")}
           </button>
           <button
             type="submit"
@@ -279,12 +259,12 @@ function AdminTags() {
                   className="spinner-border spinner-border-sm me-2"
                   role="status"
                 ></span>
-                {isArabic ? "جارٍ الحفظ..." : "Saving..."}
+                {t("tags_page.saving")}
               </>
             ) : editingTag ? (
-              isArabic ? "حفظ التغييرات" : "Save Changes"
+              t("tags_page.save_changes")
             ) : (
-              isArabic ? "إضافة" : "Add Tag"
+              t("tags_page.add_tag")
             )}
           </button>
         </Modal.Footer>

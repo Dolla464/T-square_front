@@ -3,8 +3,9 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import toast from 'react-hot-toast';
+import { toastSuccess, toastError } from '../../components/shared/Toaster/toaster';
 import { resendVerificationNotification } from '../../services/register';
+import '../../modules/student-dashboard/styles/dashboardShared.css';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -15,9 +16,9 @@ const StudentDashboard = () => {
     try {
       setIsResending(true);
       await resendVerificationNotification();
-      toast.success(t("verification_link_sent") || "تم إرسال رابط تفعيل جديد إلى بريدك الإلكتروني.");
+      toastSuccess(t("verification_link_sent") || "تم إرسال رابط تفعيل جديد إلى بريدك الإلكتروني.");
     } catch (error) {
-      toast.error(
+      toastError(
         error.response?.data?.message || 
         t("resend_failed") || 
         "حدث خطأ أثناء محاولة إرسال الرابط. يرجى المحاولة لاحقاً."
@@ -53,8 +54,7 @@ const StudentDashboard = () => {
             <p className="fs-5">{t("not_activated_msg")}</p>
             
             <Button 
-              variant="outline-danger" 
-              className="mt-2 fw-bold"
+              className="mt-2 activation-resend-btn"
               onClick={handleResend}
               disabled={isResending}
             >

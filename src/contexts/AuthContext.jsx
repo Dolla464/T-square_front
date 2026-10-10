@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useMemo,
   useCallback,
+  useRef,
 } from "react";
 import axiosClient, { initCsrf, resetSessionExpiredHandled } from "../api/axios";
 import { clearStoredActivityLogToken } from "../modules/admin-dashboard/services/activityLogService";
@@ -23,6 +24,7 @@ export const AuthProvider = ({ children }) => {
   const [authInitializing, setAuthInitializing] = useState(true);
   const [userSynced, setUserSynced] = useState(false);
   const [isMaintenance, setIsMaintenance] = useState(false);
+  const loggingOutRef = useRef(false);
 
   const clearLegacyAuthStorage = useCallback(() => {
     localStorage.removeItem("token");
@@ -67,6 +69,10 @@ export const AuthProvider = ({ children }) => {
 
   const syncUserFromServer = useCallback(async () => {
     const serverUser = await fetchCurrentUser();
+    if (loggingOutRef.current) {
+      return null;
+    }
+
     if (!serverUser?.role) {
       throw new Error("Invalid user payload from server");
     }
@@ -158,6 +164,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(
     async (responseData) => {
+      loggingOutRef.current = false;
       clearLegacyAuthStorage();
       resetSessionExpiredHandled();
 
@@ -203,22 +210,19 @@ export const AuthProvider = ({ children }) => {
   );
 
   const logout = useCallback(async () => {
+    loggingOutRef.current = true;
+    clearSessionLocally();
+    clearStoredActivityLogToken();
+    resetSessionExpiredHandled();
+    setAuthInitializing(false);
+
     try {
       await initCsrf();
       await axiosClient.post("/logout");
     } catch (e) {
       console.error("Server-side logout failed:", e);
-    } finally {
-      setUser(null);
-      setUserProfile(null);
-      setUserSynced(true);
-      setAuthInitializing(false);
-      clearLegacyAuthStorage();
-      clearSensitiveSessionData();
-      clearStoredActivityLogToken();
-      sessionStorage.removeItem("user");
     }
-  }, [clearLegacyAuthStorage, clearSensitiveSessionData]);
+  }, [clearSessionLocally]);
 
   useEffect(() => {
     if (!user?.role) {

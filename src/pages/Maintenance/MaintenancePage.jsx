@@ -11,11 +11,13 @@ import tsquareLogo from "../../assets/logo-dark.webp";
 import "../Login/Login.css";
 import "../NotFound/NotFoundPage.css";
 import "./MaintenancePage.css";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 const MaintenancePage = () => {
   const { checkMaintenanceStatus } = useAuth();
   const { t, i18n } = useTranslation("common");
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const redirectToHome = useCallback(() => {

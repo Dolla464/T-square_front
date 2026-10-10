@@ -7,11 +7,13 @@ import CourseCard from "../../components/shared/CourseCard/CourseCard";
 import { useCourses } from "../../hooks/useCourses";
 import "./AllCourses.css";
 import i18n from "../../i18n";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function AllCourses() {
   // تعريف الـ Hook بتاع الترجمة
   const { t } = useTranslation(["courses", "navbar", "testimonials"]);
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
 
   const {
     courses,

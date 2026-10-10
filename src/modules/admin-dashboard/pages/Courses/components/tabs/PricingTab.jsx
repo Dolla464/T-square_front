@@ -1,20 +1,17 @@
-function PricingTab({ formData, handleChange, isReadOnly, isArabic, t }) {
+function PricingTab({ formData, handleChange, isReadOnly, t }) {
   const isFree = formData.is_free;
 
   return (
     <>
       {isFree && (
         <p className="text-danger small mb-3">
-          {isArabic
-            ? "الكورس مجاني — حقول السعر غير مطلوبة."
-            : "This course is free — pricing fields are not required."}
+          {t("courses_page.free_course_pricing_hint")}
         </p>
       )}
 
-      {/* Original price */}
       <div className="mb-4">
         <label className="form-label fw-bold text-dark">
-          {isArabic ? "سعر الكورس" : "Course price"}
+          {t("courses_page.course_price")}
         </label>
         <div className="input-group">
           <span className="input-group-text bg-white border-end-0 text-muted">$</span>
@@ -30,7 +27,6 @@ function PricingTab({ formData, handleChange, isReadOnly, isArabic, t }) {
         </div>
       </div>
 
-      {/* Discount price */}
       <div className="mb-4">
         <label className="form-label fw-bold text-dark">
           {t("content.form.fields.discount_price")}

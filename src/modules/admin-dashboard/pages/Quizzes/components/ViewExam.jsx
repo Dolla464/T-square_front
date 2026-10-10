@@ -10,12 +10,14 @@ import {
     showDeleteConfirm,
 } from "../../../../../components/shared/ConfirmDialog/confirmDialog";
 import "../../../components/shared/AdminContentPage/AdminContentPage.css";
+import { isArabicLocale } from "../../../../../utils/isArabicLocale";
+
 
 function ViewExam() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { t, i18n } = useTranslation(["adminDashboard"]);
-    const isArabic = i18n.language?.startsWith("ar");
+    const isArabic = isArabicLocale(i18n.language);
     const {
         loading,
         getQuestionsForExam,
@@ -79,13 +81,11 @@ function ViewExam() {
 
     const handleRestore = async (questionId, questionText) => {
         const ok = await showConfirmCustom({
-            title: isArabic ? "استعادة السؤال" : "Restore Question",
-            message: isArabic
-                ? `هل أنت متأكد من استعادة السؤال (${questionText}) إلى قائمة أسئلة الاختبار؟`
-                : `Are you sure you want to restore the question "${questionText}" to the quiz?`,
+            title: t("quizzes_page.restore_question_title"),
+            message: t("quizzes_page.restore_question_message", { text: questionText }),
             icon: "question",
             variant: "primary",
-            confirmText: isArabic ? "استعادة" : "Restore",
+            confirmText: t("quizzes_page.restore"),
         });
 
         if (ok) {
@@ -98,13 +98,11 @@ function ViewExam() {
 
     const handleForceDelete = async (questionId, questionText) => {
         const ok = await showConfirmCustom({
-            title: isArabic ? "حذف نهائي للسؤال" : "Permanently Delete Question",
-            message: isArabic
-                ? `هل أنت متأكد من حذف السؤال (${questionText}) نهائياً؟ لا يمكن استعادة هذا السؤال بعد الحذف.`
-                : `Are you sure you want to permanently delete the question "${questionText}"? This action cannot be undone.`,
+            title: t("quizzes_page.force_delete_question_title"),
+            message: t("quizzes_page.force_delete_question_message", { text: questionText }),
             icon: "warning",
             variant: "danger",
-            confirmText: isArabic ? "حذف نهائي" : "Delete Permanently",
+            confirmText: t("quizzes_page.force_delete"),
         });
 
         if (ok) {
@@ -143,7 +141,7 @@ function ViewExam() {
                         >
                             <i className="bi bi-plus-lg me-0 me-md-1"></i>
                             <span className="d-none d-md-inline">
-                                {isArabic ? "إضافة سؤال جديد" : "Add Question"}
+                                {t("quizzes_page.add_question")}
                             </span>
                         </button>
                     )}
@@ -156,8 +154,8 @@ function ViewExam() {
                         <i className={`bi ${showTrash ? "bi-arrow-left" : "bi-trash"} me-0 me-md-2`}></i>
                         <span className="d-none d-md-inline">
                             {showTrash
-                                ? t("quizzes_page.back_to_active", isArabic ? "العودة للأسئلة النشطة" : "Back to active")
-                                : t("quizzes_page.trash", isArabic ? "سلة المحذوفات" : "Trash")}
+                                ? t("quizzes_page.back_to_questions")
+                                : t("quizzes_page.trash")}
                         </span>
                     </button>
                 </div>
@@ -184,12 +182,12 @@ function ViewExam() {
                                 </div>
                                 <div>
                                     <h5 className="fw-bold mb-0 text-dark">
-                                        {quiz?.title}{showTrash ? ` - ${isArabic ? "سلة المحذوفات" : "Trash"}` : ""}
+                                        {quiz?.title}{showTrash ? ` - ${t("quizzes_page.trash")}` : ""}
                                     </h5>
                                     <p className="text-muted small mb-0">
                                         {showTrash
-                                            ? (isArabic ? "قائمة بالأسئلة المحذوفة مؤقتاً" : "List of temporarily deleted questions")
-                                            : (isArabic ? "قائمة بالأسئلة لهذا الاختبار" : "List of questions for this quiz")}
+                                            ? t("quizzes_page.deleted_questions_subtitle")
+                                            : t("quizzes_page.questions_subtitle")}
                                     </p>
                                 </div>
                             </div>
@@ -198,7 +196,7 @@ function ViewExam() {
                                 <div
                                     className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm gap-2"
                                     style={{ minWidth: "40px", height: "40px" }}
-                                    title={isArabic ? "الدرجة الكلية" : "Total Marks"}
+                                    title={t("quizzes_page.total_marks")}
                                 >
                                     <i className="bi bi-award-fill text-white"></i>
                                     <span className="fw-bold text-white">
@@ -210,7 +208,7 @@ function ViewExam() {
                                 <div
                                     className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm gap-2"
                                     style={{ minWidth: "40px", height: "40px" }}
-                                    title={isArabic ? "الحد الأقصى للمحاولات" : "Max Attempts"}
+                                    title={t("quizzes_page.max_attempts_label")}
                                 >
                                     <i className="bi bi-arrow-repeat text-white"></i>
                                     <span className="fw-bold text-white">
@@ -222,7 +220,7 @@ function ViewExam() {
                                 <div
                                     className="bg-danger rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm gap-2"
                                     style={{ minWidth: "40px", height: "40px" }}
-                                    title={isArabic ? "المدة" : "Duration"}
+                                    title={t("quizzes_page.duration_label")}
                                 >
                                     <i className="bi bi-clock-fill text-white"></i>
                                     <span className="fw-bold text-white">
@@ -233,21 +231,21 @@ function ViewExam() {
                         </div>
 
                         <div className="table-responsive">
-                            <table className={`table ac-table mb-0 align-middle${showTrash ? " table-secondary" : ""}`}>
+                            <table className={`table ac-table mb-0 align-middle${showTrash ? " table-secondary" : ""}`} dir={isArabic ? "rtl" : "ltr"}>
                                 <thead style={{
                                     borderBottom: "1px solid rgba(0,0,0,0.03)",
                                 }}>
                                     <tr>
-                                        <th style={{ width: "35%" }}>{isArabic ? "السؤال" : "Question"}</th>
+                                        <th style={{ width: "35%" }}>{t("quizzes_page.table_question")}</th>
                                         {!showTrash ? (
                                             <>
-                                                <th className="text-center" style={{ width: "30%" }}>{isArabic ? "الإجابات" : "Answers"}</th>
-                                                <th className="text-center" style={{ width: "8%" }}>{isArabic ? "درجة السؤال" : "Question mark"}</th>
+                                                <th className="text-center" style={{ width: "30%" }}>{t("quizzes_page.table_answers")}</th>
+                                                <th className="text-center" style={{ width: "8%" }}>{t("quizzes_page.table_question_mark")}</th>
                                             </>
                                         ) : (
-                                            <th className="text-center">{isArabic ? "تاريخ الحذف" : "Deleted at"}</th>
+                                            <th className="text-center">{t("quizzes_page.table_deleted_at")}</th>
                                         )}
-                                        <th className="text-center" style={{ width: "7%" }}>{isArabic ? "الإجراءات" : "Actions"}</th>
+                                        <th className="text-center" style={{ width: "7%" }}>{t("quizzes_page.table_actions")}</th>
 
                                     </tr>
                                 </thead>
@@ -291,7 +289,7 @@ function ViewExam() {
                                                             <>
                                                                 <button
                                                                     className="btn btn-sm ac-btn-view border-0"
-                                                                    title={isArabic ? "استعادة" : "Restore question"}
+                                                                    title={t("quizzes_page.restore_question")}
                                                                     onClick={() => handleRestore(question.id, question.question_text)}
                                                                 >
                                                                     <i className="bi bi-arrow-counterclockwise fs-6"></i>
@@ -299,7 +297,7 @@ function ViewExam() {
 
                                                                 <button
                                                                     className="btn btn-sm ac-btn-deleteTable border-0"
-                                                                    title={isArabic ? "حذف نهائي" : "Permanent Delete"}
+                                                                    title={t("quizzes_page.permanent_delete_question")}
                                                                     onClick={() => handleForceDelete(question.id, question.question_text)}
                                                                 >
                                                                     <i className="bi bi-trash-fill fs-6"></i>
@@ -309,14 +307,14 @@ function ViewExam() {
                                                             <>
                                                                 <button
                                                                     className="btn btn-sm ac-btn-edit border-0"
-                                                                    title={isArabic ? "تعديل" : "Edit question"}
+                                                                    title={t("quizzes_page.edit_question")}
                                                                     onClick={() => handleEdit(question.id)}
                                                                 >
                                                                     <i className="bi bi-pencil-square fs-6"></i>
                                                                 </button>
                                                                 <button
                                                                     className="btn btn-sm ac-btn-deleteTable border-0"
-                                                                    title={isArabic ? "نقل إلى المهملات" : "Move to trash"}
+                                                                    title={t("quizzes_page.move_to_trash")}
                                                                     onClick={() => handleDelete(question.id, question.question_text)}
                                                                 >
                                                                     <i className="bi bi-trash fs-6"></i>
@@ -331,8 +329,8 @@ function ViewExam() {
                                         <tr>
                                             <td colSpan={showTrash ? 3 : 4} className="text-center py-4 text-muted">
                                                 {showTrash
-                                                    ? (isArabic ? "لا توجد أسئلة محذوفة" : "No deleted questions found")
-                                                    : (isArabic ? "لا توجد أسئلة في هذا الاختبار" : "No questions in this exam")}
+                                                    ? t("quizzes_page.no_deleted_questions")
+                                                    : t("quizzes_page.no_questions")}
                                             </td>
                                         </tr>
                                     )}

@@ -2,27 +2,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { registerService } from '../services/register';
 import { useAuth } from '../contexts/AuthContext';
-import { toastAccountCreated } from '../components/shared/Toaster/toaster';
+import { toastAccountCreated, toastError } from '../components/shared/Toaster/toaster';
+import { isArabicLocale } from "../utils/isArabicLocale";
+
 
 export const useRegister = () => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMsg, setSuccessMsg] = useState(null);
 
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const executeRegister = async (userData) => {
     setLoading(true);
-    setError(null);
-    setSuccessMsg(null);
     try {
       const response = await registerService(userData);
 
-      const responseData = response.data;
-      setSuccessMsg(responseData.message || response.data.message || 'Registration successful.');
-
-      // عرض إشعار إنشاء الحساب بنجاح
       toastAccountCreated();
 
       // التوجيه إلى صفحة تسجيل الدخول بدلاً من الدخول التلقائي
@@ -40,19 +34,20 @@ export const useRegister = () => {
           errorMessage.includes('students_phone_unique') ||
           errorMessage.includes('Integrity constraint violation'))
       ) {
-        const isArabic = document.documentElement.lang === 'ar' ||
-          localStorage.getItem('i18nextLng')?.startsWith('ar');
+        const isArabic =
+          isArabicLocale(document.documentElement.lang) ||
+          isArabicLocale(localStorage.getItem("i18nextLng"));
         errorMessage = isArabic
           ? 'عذراً، رقم الهاتف هذا مستخدم بالفعل من قبل حساب آخر!'
           : 'Sorry, this phone number is already registered by another account!';
       }
 
-      setError(errorMessage);
+      toastError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  return { executeRegister, loading, error, successMsg };
+  return { executeRegister, loading };
 };

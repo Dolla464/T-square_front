@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getTestimonials } from "../services/testimonials";
 import { cache } from "../utils/cache";
+import { toastError } from "../components/shared/Toaster/toaster";
 
 const CACHE_KEY = "testimonials_featured_v3";
 const LEGACY_CACHE_KEYS = [
@@ -54,6 +55,9 @@ export const useTestimonials = ({ enabled = true } = {}) => {
         setTestimonials(list);
       } catch (err) {
         setError(err);
+        toastError(
+          err?.response?.data?.message || "Failed to load testimonials.",
+        );
       } finally {
         setLoading(false);
       }

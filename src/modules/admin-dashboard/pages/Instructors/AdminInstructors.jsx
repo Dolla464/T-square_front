@@ -11,8 +11,10 @@ import {
   hasRealAvatar,
   resolveAvatarUrl,
 } from "../../../../utils/avatar";
-// import { toastSuccess } from "../../../../components/shared/Toaster/toaster";
+import { toastWarning } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 const defaultFormData = {
   full_name: "",
@@ -50,7 +52,7 @@ function AdminInstructors() {
   } = useInstructors();
 
   const { t, i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
 
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -277,7 +279,7 @@ function AdminInstructors() {
 
     // التحقق الأساسي من صحة البيانات قبل الإرسال (Frontend Validation)
     if (formData.full_name.length < 10) {
-      alert(
+      toastWarning(
         isArabic
           ? "يجب أن يكون الاسم الكامل 10 أحرف على الأقل"
           : "Full name must be at least 10 characters",
@@ -286,7 +288,7 @@ function AdminInstructors() {
     }
 
     if (!editingItem && formData.password.length < 8) {
-      alert(
+      toastWarning(
         isArabic
           ? "يجب أن تكون كلمة المرور 8 أحرف على الأقل"
           : "Password must be at least 8 characters",
@@ -295,7 +297,7 @@ function AdminInstructors() {
     }
 
     if (!editingItem && formData.password !== formData.password_confirmation) {
-      alert(
+      toastWarning(
         isArabic
           ? "تأكيد كلمة المرور غير متطابق"
           : "Password confirmation does not match",
@@ -305,7 +307,7 @@ function AdminInstructors() {
 
     if (editingItem && formData.password) {
       if (formData.password.length < 8) {
-        alert(
+        toastWarning(
           isArabic
             ? "يجب أن تكون كلمة المرور 8 أحرف على الأقل"
             : "Password must be at least 8 characters",
@@ -314,7 +316,7 @@ function AdminInstructors() {
       }
 
       if (formData.password !== formData.password_confirmation) {
-        alert(
+        toastWarning(
           isArabic
             ? "تأكيد كلمة المرور غير متطابق"
             : "Password confirmation does not match",
@@ -324,7 +326,7 @@ function AdminInstructors() {
     }
 
     if (formData.bio.length < 20) {
-      alert(
+      toastWarning(
         isArabic
           ? "يجب أن تكون النبذة التعريفية 20 حرفاً على الأقل"
           : "Biography must be at least 20 characters",
@@ -448,15 +450,15 @@ function AdminInstructors() {
                   </div>
                 </div>
                 <div className="table-responsive">
-                  <table className="table ac-table mb-0 align-middle" dir="ltr">
+                  <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
                     <thead>
                       <tr>
                         <th className="text-center">
-                          {isArabic ? "الصورة" : "Image"}
+                          {t("instructors_page.table_image")}
                         </th>
                         <th>{t("instructors_page.table_name")}</th>
                         <th className="text-center">
-                          {isArabic ? "التخصص" : "Field"}
+                          {t("instructors_page.table_field")}
                         </th>
                         <th className="text-center">
                           {t("instructors_page.table_email")}
@@ -806,7 +808,7 @@ function AdminInstructors() {
                 />
                 {!viewingItem && (
                   <small className="text-muted">
-                    {isArabic ? "الأدنى 10 أحرف" : "Min 10 characters"}
+                    {t("instructors_page.min_10_chars")}
                   </small>
                 )}
               </div>
@@ -833,15 +835,13 @@ function AdminInstructors() {
                   className={`mb-3 mb-md-0 ${editingItem && !viewingItem ? "col-12" : "col-md-6"}`}
                 >
                   <label className="form-label fw-bold text-dark">
-                    {isArabic ? "التخصص" : "Field/Specialty"}
+                    {t("instructors_page.field_label")}
                   </label>
                   <input
                     type="text"
                     name="field"
                     className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    placeholder={
-                      isArabic ? "مثال: هندسة معمارية" : "e.g. Architecture"
-                    }
+                    placeholder={t("instructors_page.field_placeholder")}
                     value={formData.field}
                     onChange={handleChange}
                     disabled={!!viewingItem}
@@ -851,7 +851,7 @@ function AdminInstructors() {
                   className={`col-md-6 ${editingItem && !viewingItem ? "d-none" : ""}`}
                 >
                   <label className="form-label fw-bold text-dark">
-                    {isArabic ? "الجنس" : "Gender"}
+                    {t("profile_page.gender")}
                   </label>
                   <select
                     name="gender"
@@ -860,9 +860,9 @@ function AdminInstructors() {
                     onChange={handleChange}
                     disabled={!!viewingItem}
                   >
-                    <option value="male">{isArabic ? "ذكر" : "Male"}</option>
+                    <option value="male">{t("profile_page.male")}</option>
                     <option value="female">
-                      {isArabic ? "أنثى" : "Female"}
+                      {t("profile_page.female")}
                     </option>
                   </select>
                 </div>
@@ -908,9 +908,7 @@ function AdminInstructors() {
                     <small className="text-muted">
                       {editingItem
                         ? t("instructors_page.password_optional_hint")
-                        : isArabic
-                          ? "الأدنى 8 أحرف"
-                          : "Min 8 characters"}
+                        : t("instructors_page.min_8_chars")}
                     </small>
                   </div>
                   <div className="col-md-6">
@@ -936,7 +934,7 @@ function AdminInstructors() {
                 <div className="row mb-4">
                   <div className="col-md-12">
                     <label className="form-label fw-bold text-dark">
-                      {isArabic ? "تاريخ الانضمام" : "Joined At"}
+                      {t("instructors_page.joined_at")}
                     </label>
                     <input
                       type="text"
@@ -951,24 +949,20 @@ function AdminInstructors() {
               {/* النبذة التعريفية */}
               <div className="mb-4">
                 <label className="form-label fw-bold text-dark">
-                  {isArabic ? "النبذة التعريفية" : "Biography"}
+                  {t("instructors_page.bio_label")}
                 </label>
                 <textarea
                   name="bio"
                   rows="4"
                   className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                  placeholder={
-                    isArabic
-                      ? "اكتب نبذة عن المحاضر..."
-                      : "Tell us about the instructor..."
-                  }
+                  placeholder={t("instructors_page.bio_placeholder")}
                   value={formData.bio}
                   onChange={handleChange}
                   disabled={!!viewingItem}
                 ></textarea>
                 {!viewingItem && (
                   <small className="text-muted">
-                    {isArabic ? "الأدنى 20 حرفاً" : "Min 20 characters"}
+                    {t("instructors_page.min_20_chars")}
                   </small>
                 )}
               </div>
@@ -1022,7 +1016,7 @@ function AdminInstructors() {
               {/* الحالة */}
               <div className="mb-4">
                 <label className="form-label fw-bold text-dark">
-                  {isArabic ? "الحالة" : "Status"}
+                  {t("instructors_page.table_status")}
                 </label>
                 <select
                   name="status"

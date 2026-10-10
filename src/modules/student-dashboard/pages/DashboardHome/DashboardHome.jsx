@@ -7,10 +7,12 @@ import DashboardItemsSection from "../../components/DashboardItemsSection";
 import { Spinner } from "react-bootstrap";
 
 import "../../styles/dashboardShared.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 function DashboardHome() {
   const { t, i18n } = useTranslation("studentDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
   const { user } = useAuth();
   const { stats, enrolledCourses, loading } = getStudentCourses();
   const [search, setSearch] = useState("");

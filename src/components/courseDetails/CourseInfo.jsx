@@ -1,10 +1,17 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { resolveCourseAttendanceTypes } from "../../utils/attendanceTypes";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 const CourseInfo = ({ course }) => {
-  const { t, i18n } = useTranslation("coursesDetails");
-  const isArabic = i18n?.language === "ar";
+  const { t, i18n } = useTranslation(["coursesDetails", "courses"]);
+  const isArabic = isArabicLocale(i18n?.language);
+  const attendanceTypes = useMemo(
+    () => resolveCourseAttendanceTypes(course),
+    [course],
+  );
 
   return (
     <div className="text-center text-lg-end" dir={isArabic ? "rtl" : "ltr"}>
@@ -29,6 +36,18 @@ const CourseInfo = ({ course }) => {
       <div className="text-end">
         <h1 className="fw-bold mb-2">{course.title}</h1>
         <p className="text-muted mb-4 fs-5">{course.short_description}</p>
+        {attendanceTypes.length > 0 && (
+          <div className="d-flex flex-wrap gap-2 justify-content-center justify-content-lg-start mb-3">
+            <span className="text-muted small align-self-center">
+              {t("coursesDetails:attendance_types_label")}:
+            </span>
+            {attendanceTypes.map((type) => (
+              <span key={type} className={`course-badge badge-${type}`}>
+                {t(`courses:card.${type}`)}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mb-4">

@@ -6,10 +6,12 @@ import {
   submitCourseReview,
 } from "../services/dashboardService";
 import { toastError, toastSuccess } from "../../../components/shared/Toaster/toaster";
+import { isArabicLocale } from "../../../utils/isArabicLocale";
+
 
 export const useLeaveReview = (courseId) => {
   const navigate = useNavigate();
-  const isArabic = i18next.language === "ar";
+  const isArabic = isArabicLocale(i18next.language);
 
   const [eligibility, setEligibility] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -33,6 +35,7 @@ export const useLeaveReview = (courseId) => {
         err?.response?.data?.message ||
         (isArabic ? "تعذر تحميل بيانات التقييم" : "Failed to load review data");
       setError(message);
+      toastError(message);
     } finally {
       setLoading(false);
     }

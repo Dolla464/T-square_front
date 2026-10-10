@@ -1,4 +1,4 @@
-import { Container, Card, Form, Button, Alert, Spinner } from "react-bootstrap";
+import { Container, Card, Form, Button, Spinner } from "react-bootstrap";
 import { Link, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import tsquareLogo from "../../assets/logo-dark.webp"; 
@@ -6,17 +6,17 @@ import "../../pages/Update_Password/UpdatePassword.css";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updatePasswordSchema } from "../../utils/validationSchemas";
-import { useState } from "react";
-import toast from "react-hot-toast";
+import { toastSuccess } from "../../components/shared/Toaster/toaster";
 import { useResetPassword } from "../../hooks/useResetPassword";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function UpdatePassword() {
   const { t, i18n } = useTranslation("auth");
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
   const [searchParams] = useSearchParams();
   const { token } = useParams();
   const navigate = useNavigate();
-  const [apiError, setApiError] = useState(null);
   const { executeResetPassword, loading } = useResetPassword();
 
   const {
@@ -33,7 +33,6 @@ function UpdatePassword() {
   });
 
   const onSubmit = async (data) => {
-    setApiError(null);
     try {
       const email = searchParams.get("email") || "";
       await executeResetPassword({
@@ -42,17 +41,10 @@ function UpdatePassword() {
         password: data.password,
         password_confirmation: data.password_confirmation,
       });
-      toast.success(isArabic ? "تم تحديث كلمة المرور بنجاح" : "Password updated successfully");
+      toastSuccess(t("update_password.success_toast"));
       navigate("/login");
-    } catch (err) {
-      const responseData = err.response?.data;
-      let errorMsg = responseData?.message || responseData?.error || (isArabic ? "فشل تحديث كلمة المرور" : "Failed to update password");
-      if (responseData?.errors) {
-        const firstErrorKey = Object.keys(responseData.errors)[0];
-        const firstError = responseData.errors[firstErrorKey];
-        errorMsg = Array.isArray(firstError) ? firstError[0] : firstError;
-      }
-      setApiError(errorMsg);
+    } catch {
+      // Error toast handled in useResetPassword
     }
   };
 
@@ -67,7 +59,7 @@ function UpdatePassword() {
                 src={tsquareLogo}
                 alt="T-Square Logo"
                 className="update-logo mb-3"
-                title="Back to Home"
+                title={t("back_to_home")}
               />
             </Link>
 
@@ -75,8 +67,6 @@ function UpdatePassword() {
             <Card.Title className="fw-bold fs-4 mb-4 text-dark update-title">
               {t("update_password.create_password")}
             </Card.Title>
-
-            {apiError && <Alert variant="danger">{apiError}</Alert>}
 
             <Form onSubmit={handleSubmit(onSubmit)}>
               {/* حقل الإيميل */}

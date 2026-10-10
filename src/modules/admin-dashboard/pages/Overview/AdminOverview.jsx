@@ -1,5 +1,5 @@
 import React from "react";
-import { Spinner, Alert } from "react-bootstrap";
+import { Spinner } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
@@ -25,6 +25,8 @@ import {
   useAdminTopCourses,
 } from "../../hooks/useAdminDashboard";
 import { viewModeBtnClass } from "../../components/shared/adminUiStyles";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 ChartJS.register(
   CategoryScale,
@@ -54,20 +56,26 @@ function getInitials(name = "") {
     .join("");
 }
 
-function formatRelativeTime(dateStr, isArabic) {
+function formatRelativeTime(dateStr, isArabic, t) {
   if (!dateStr) return "";
   const diffMs = Date.now() - new Date(dateStr).getTime();
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
 
   if (diffHours < 1) {
     const diffMins = Math.max(1, Math.floor(diffMs / (1000 * 60)));
-    return isArabic ? `منذ ${diffMins} دقيقة` : `${diffMins}m ago`;
+    return isArabic
+      ? t("relativeTime.minutesAgoAr", { count: diffMins })
+      : t("relativeTime.minutesAgo", { count: diffMins });
   }
   if (diffHours < 24) {
-    return isArabic ? `منذ ${diffHours} ساعة` : `${diffHours}h ago`;
+    return isArabic
+      ? t("relativeTime.hoursAgoAr", { count: diffHours })
+      : t("relativeTime.hoursAgo", { count: diffHours });
   }
   const diffDays = Math.floor(diffHours / 24);
-  return isArabic ? `منذ ${diffDays} يوم` : `${diffDays}d ago`;
+  return isArabic
+    ? t("relativeTime.daysAgoAr", { count: diffDays })
+    : t("relativeTime.daysAgo", { count: diffDays });
 }
 
 function formatCurrency(amount, isArabic) {
@@ -115,7 +123,7 @@ function StatCardSkeleton() {
 
 function AdminOverview() {
   const { t, i18n } = useTranslation("adminDashboard", { keyPrefix: "overview" });
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
   const navigate = useNavigate();
 
   const [revenueTimeframe, setRevenueTimeframe] = React.useState("month");
@@ -136,7 +144,7 @@ function AdminOverview() {
     labels: revenueLabels,
     datasets: [
       {
-        label: isArabic ? "الإيرادات" : "Revenue",
+        label: t("revenue"),
         data: revenueValues,
         borderColor: "#be1522",
         backgroundColor: "rgba(190, 21, 34, 0.05)",
@@ -173,13 +181,13 @@ function AdminOverview() {
   const salesMax = Math.max(...salesValues, 1);
   const salesLabels = salesChart?.labels?.length
     ? salesChart.labels
-    : [isArabic ? "لا توجد بيانات" : "No data"];
+    : [t("noData")];
 
   const salesData = {
     labels: salesLabels,
     datasets: [
       {
-        label: isArabic ? "المبيعات" : "Sales",
+        label: t("sales"),
         data: salesValues.length ? salesValues : [0],
         backgroundColor: "#be1522",
         borderRadius: 6,
@@ -207,15 +215,8 @@ function AdminOverview() {
     },
   };
 
-  const statusLabel = (status) => {
-    const map = {
-      completed: isArabic ? "مكتمل" : "completed",
-      pending: isArabic ? "معلق" : "pending",
-      cancelled: isArabic ? "ملغي" : "cancelled",
-      refunded: isArabic ? "مسترد" : "refunded",
-    };
-    return map[status] ?? status;
-  };
+  const statusLabel = (status) =>
+    t(`orderStatus.${status}`, status);
 
   const statusBadgeClass = (status) => {
     if (status === "completed") return "bg-success-subtle text-success";
@@ -232,12 +233,6 @@ function AdminOverview() {
           <p className="ac-subtitle text-muted mb-0">{t("subtitle")}</p>
         </div>
       </div>
-
-      {statsError && (
-        <Alert variant="danger" className="mb-4">
-          {statsError}
-        </Alert>
-      )}
 
       <div className="row g-3 mb-4">
         {statsLoading ? (
@@ -403,7 +398,7 @@ function AdminOverview() {
             {enrollmentsLoading ? (
               <div className="text-center py-4"><Spinner animation="border" size="sm" variant="danger" /></div>
             ) : !recentEnrollments?.length ? (
-              <p className="text-muted text-center mb-0">{isArabic ? "لا توجد اشتراكات" : "No enrollments yet"}</p>
+              <p className="text-muted text-center mb-0">{t("noEnrollmentsYet")}</p>
             ) : (
               <div className="d-flex flex-column gap-3">
                 {recentEnrollments.map((item, index) => {
@@ -430,7 +425,7 @@ function AdminOverview() {
                         </div>
                       </div>
                       <span className="text-muted small" style={{ fontSize: "0.78rem", whiteSpace: "nowrap" }}>
-                        {formatRelativeTime(item.created_at, isArabic)}
+                        {formatRelativeTime(item.created_at, isArabic, t)}
                       </span>
                     </div>
                   );
@@ -455,7 +450,7 @@ function AdminOverview() {
             {ordersLoading ? (
               <div className="text-center py-4"><Spinner animation="border" size="sm" variant="danger" /></div>
             ) : !recentOrders?.length ? (
-              <p className="text-muted text-center mb-0">{isArabic ? "لا توجد طلبات" : "No orders yet"}</p>
+              <p className="text-muted text-center mb-0">{t("noOrdersYet")}</p>
             ) : (
               <div className="d-flex flex-column gap-3">
                 {recentOrders.map((order) => (
@@ -496,10 +491,10 @@ function AdminOverview() {
             {topCoursesLoading ? (
               <div className="text-center py-4"><Spinner animation="border" size="sm" variant="danger" /></div>
             ) : !topCourses?.length ? (
-              <p className="text-muted text-center mb-0">{isArabic ? "لا توجد كورسات" : "No courses yet"}</p>
+              <p className="text-muted text-center mb-0">{t("noCoursesYet")}</p>
             ) : (
               <div className="table-responsive">
-                <table className="table align-middle mb-0" style={{ borderCollapse: "separate", borderSpacing: "0" }}>
+                <table className="table align-middle mb-0" style={{ borderCollapse: "separate", borderSpacing: "0" }} dir={isArabic ? "rtl" : "ltr"}>
                   <thead>
                     <tr className="text-muted" style={{ fontSize: "0.78rem", fontWeight: "600" }}>
                       <th className="border-bottom-0 pb-3 ps-0">{t("course")}</th>
@@ -517,9 +512,9 @@ function AdminOverview() {
                             {course.title}
                           </td>
                           <td className={`text-muted py-3 ${isLast ? "border-bottom-0" : ""}`} style={{ fontSize: "0.88rem" }}>
-                            {isArabic
-                              ? `${formatNumber(course.students_count, isArabic)} طالب`
-                              : `${formatNumber(course.students_count, isArabic)} students`}
+                            {t("studentsCount", {
+                              count: formatNumber(course.students_count, isArabic),
+                            })}
                           </td>
                           <td className={`py-3 ${isLast ? "border-bottom-0" : ""}`} style={{ fontSize: "0.88rem" }}>
                             <span style={{ color: "#ffc107" }} className="me-1">★</span>

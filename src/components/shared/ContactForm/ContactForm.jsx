@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Form, Alert } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { useContact } from "../../../hooks/useContact";
 import "./ContactForm.css";
 import i18n from "../../../i18n";
 import { useAuth } from "../../../contexts/AuthContext";
+import { isArabicLocale } from "../../../utils/isArabicLocale";
+
 
 function ContactForm({ title, subtitle, onSubmit, submitText, externalLoading }) {
   const { t } = useTranslation(["contact"]);
-  const { submitContact, loading: hookLoading, error, success } = useContact();
-  //const isArabic = i18n.language === "ar";
+  const { submitContact, loading: hookLoading } = useContact();
+  //const isArabic = isArabicLocale(i18n.language);
   const loading = externalLoading || hookLoading;
 
   const { user } = useAuth();
@@ -68,9 +70,6 @@ function ContactForm({ title, subtitle, onSubmit, submitText, externalLoading })
           {subtitle && <p className="text-muted mb-4">{subtitle}</p>}
         </div>
       )}
-
-      {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
-      {success && <Alert variant="success" className="mb-4">{success}</Alert>}
 
       {/* Reusable Form */}
       <Form onSubmit={handleSubmit}>

@@ -9,6 +9,8 @@ import StudentCourseAttendanceModal from "./StudentCourseAttendanceModal";
 import { parseApiDateOnly } from "../../../../utils/formatDateTime";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import "./AttendanceMatrix.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 const STATUS_CONFIG = {
   present: {
@@ -113,7 +115,7 @@ function AdminStudentAttendance({
   useAttendanceHook = useAdminAttendance,
 }) {
   const { t, i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
 
   const {
     selectionGroups,
@@ -257,7 +259,7 @@ function AdminStudentAttendance({
       </div>
 
       <div className="ac-table-card">
-        <div className="ac-rounded-table p-3 p-md-0">
+        <div className="ac-rounded-table p-3 p-md-0" dir={isArabic ? "rtl" : "ltr"}>
           <div className="ac-filters-bar d-flex flex-column gap-3 mb-3">
             <div className="d-flex flex-column flex-md-row align-items-end gap-3 flex-wrap">
               {/* Select Group */}
@@ -366,7 +368,7 @@ function AdminStudentAttendance({
                 matrixSessions.length > 0 &&
                 matrixStudents.length > 0 && (
                   <div className="attendance-matrix-wrap">
-                    <table className="table ac-table mb-0 align-middle attendance-matrix-table">
+                    <table className="table ac-table mb-0 align-middle attendance-matrix-table" dir={isArabic ? "rtl" : "ltr"}>
                       <thead>
                         <tr>
                           <th className="matrix-sticky-col matrix-sticky-col-1">#</th>
@@ -569,7 +571,7 @@ function AdminStudentAttendance({
                 </div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table ac-table mb-0 align-middle">
+                  <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
                     <thead>
                       <tr>
                         <th style={{ width: 60 }}>#</th>

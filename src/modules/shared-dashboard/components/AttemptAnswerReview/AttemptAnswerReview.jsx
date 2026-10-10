@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { formatExamScore } from "../../utils/formatExamScore";
 import QuestionContent from "../QuestionContent/QuestionContent";
 import "../QuestionContent/questionContent.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
 const CHOICE_STATE_LABELS = {
   correct: "correct_answer",
@@ -63,7 +64,7 @@ function AttemptAnswerReview({
   showQuestionTiming = false,
 }) {
   const { t, i18n } = useTranslation("studentDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
 
   if (!review) return null;
 
@@ -248,7 +249,9 @@ function AttemptAnswerReview({
                         <span className="option-letter" aria-hidden="true">
                           {letter}
                         </span>
-                        <span className="option-text">{choice.choice_text}</span>
+                        <span dir="auto" className="option-text">
+                          {choice.choice_text}
+                        </span>
                         {choice.state === "correct" ||
                         choice.state === "correct_selected" ? (
                           <i

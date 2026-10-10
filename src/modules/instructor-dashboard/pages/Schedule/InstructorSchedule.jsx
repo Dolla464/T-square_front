@@ -4,7 +4,6 @@ import {
   Card,
   Badge,
   Spinner,
-  Alert,
   Form,
   Row,
   Col,
@@ -239,14 +238,7 @@ function InstructorSchedule() {
               </div>
             )}
 
-            {error && !loading && (
-              <Alert variant="danger" className="mb-0">
-                <i className="bi bi-exclamation-triangle me-2"></i>
-                {error}
-              </Alert>
-            )}
-
-            {!loading && !error && schedule && (
+            {!loading && schedule && (
               <>
                 {sortedDates.length === 0 ? (
                   <EmptyState date={selectedDate} />

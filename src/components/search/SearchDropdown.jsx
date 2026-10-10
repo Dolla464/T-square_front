@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import { fetchUserCourses } from "../../api/courses";
 import axios from "axios";
 import "./SearchDropdown.css";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 const STATIC_PAGES = [
   { key: "home", path: "/", icon: "bi-house-door", labelAr: "الرئيسية", labelEn: "Home" },
@@ -23,7 +25,7 @@ const STATIC_PAGES = [
 function SearchDropdown({ isDarkMode, Tbtn }) {
   const { t, i18n } = useTranslation(["navbar", "common"]);
   const navigate = useNavigate();
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);

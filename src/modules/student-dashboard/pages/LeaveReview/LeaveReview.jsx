@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import i18next from "i18next";
+import { useTranslation } from "react-i18next";
 import { Spinner } from "react-bootstrap";
 import { useLeaveReview } from "../../hooks/useLeaveReview";
 import {
@@ -10,20 +10,23 @@ import {
   SHARED_QUESTION_IDS,
 } from "./reviewQuestions";
 import "./LeaveReview.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
-const RATING_SCALE = [
-  { stars: 1, en: "Very Poor", ar: "سيء جداً" },
-  { stars: 2, en: "Poor", ar: "سيء" },
-  { stars: 3, en: "Fair", ar: "مقبول" },
-  { stars: 4, en: "Good", ar: "جيد" },
-  { stars: 5, en: "Excellent", ar: "ممتاز" },
+
+const RATING_KEYS = [
+  { stars: 1, key: "very_poor" },
+  { stars: 2, key: "poor" },
+  { stars: 3, key: "fair" },
+  { stars: 4, key: "good" },
+  { stars: 5, key: "excellent" },
 ];
 
 function LeaveReview() {
   const { courseId } = useParams();
-  const isArabic = i18next.language === "ar";
+  const { t, i18n } = useTranslation("studentDashboard");
+  const isArabic = isArabicLocale(i18n.language);
 
-  const { eligibility, loading, submitting, error, submitReview } =
+  const { eligibility, loading, submitting, submitReview } =
     useLeaveReview(courseId);
 
   const [ratings, setRatings] = useState({});
@@ -98,11 +101,11 @@ function LeaveReview() {
 
   const getRatingLabel = useCallback(
     (starCount) => {
-      const level = RATING_SCALE.find((item) => item.stars === starCount);
+      const level = RATING_KEYS.find((item) => item.stars === starCount);
       if (!level) return "";
-      return isArabic ? level.ar : level.en;
+      return t(`leave_review.rating.${level.key}`);
     },
-    [isArabic]
+    [t]
   );
 
   const renderStars = (questionId, currentRating, onRatingChange, namePrefix = "") => {
@@ -133,14 +136,14 @@ function LeaveReview() {
 
   const renderScaleLegend = () => (
     <div className="lr-scale-hint">
-      {RATING_SCALE.map(({ stars, en, ar }) => (
+      {RATING_KEYS.map(({ stars, key }) => (
         <span key={stars} className="lr-scale-item">
           <span className="lr-scale-stars" aria-hidden="true">
             {Array.from({ length: stars }, (_, i) => (
               <i key={i} className="bi bi-star-fill" />
             ))}
           </span>
-          <span className="lr-scale-label">{isArabic ? ar : en}</span>
+          <span className="lr-scale-label">{t(`leave_review.rating.${key}`)}</span>
         </span>
       ))}
     </div>
@@ -194,12 +197,10 @@ function LeaveReview() {
       <div className="lr-card lr-instructor-review-card">
         <h2 className="lr-section-title">
           <i className={`bi ${INSTRUCTOR_REVIEW_GROUP.icon}`}></i>
-          {isArabic
-            ? instructors.length > 1
-              ? "المجموعة 3: المحاضرون"
-              : INSTRUCTOR_REVIEW_GROUP.titleAr
-            : instructors.length > 1
-              ? "Group 3: Instructors"
+          {instructors.length > 1
+            ? t("leave_review.instructors_group")
+            : isArabic
+              ? INSTRUCTOR_REVIEW_GROUP.titleAr
               : INSTRUCTOR_REVIEW_GROUP.titleEn}
         </h2>
         {renderScaleLegend()}
@@ -211,7 +212,7 @@ function LeaveReview() {
           >
             <h3 className="lr-instructor-block-title">
               <i className="bi bi-person-badge"></i>
-              {isArabic ? "تقييم المحاضر:" : "Rate instructor:"}{" "}
+              {t("leave_review.rate_instructor")}{" "}
               <span>{instructor.full_name || instructor.name}</span>
             </h3>
             <div className="lr-questions-list">
@@ -252,7 +253,7 @@ function LeaveReview() {
     <div className="lr-page" dir={isArabic ? "rtl" : "ltr"}>
       <Helmet>
         <title>
-          {isArabic ? "اترك تقييمك | T-Square" : "Leave Your Review | T-Square"}
+          {t("leave_review.page_title")}
         </title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
@@ -264,28 +265,18 @@ function LeaveReview() {
             <i
               className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
             ></i>
-            {isArabic ? "العودة للكورس" : "Back to Course"}
+            {t("leave_review.back_to_course")}
           </button>
           <h1 className="lr-hero-title">
-            {isArabic
-              ? "تقييم الكورس والمحاضرين والسنتر"
-              : "Course, Instructors & Center Review"}
+            {t("leave_review.hero_title")}
           </h1>
           <p className="lr-hero-sub">
-            {isArabic
-              ? "ملاحظاتك تساعدنا على تحسين محتوى الكورسات، أداء المحاضرين، وتجربة السنتر والمنصة بشكل عام. بعد إرسال التقييم ستصبح شهادتك متاحة للتحميل."
-              : "Your feedback helps us improve course content, instructor performance, and the overall center and platform experience. After submitting your review, your certificate will become available."}
+            {t("leave_review.hero_sub")}
           </p>
         </div>
       </section>
 
       <div className="container-fluid px-3 px-lg-4 mt-4">
-        {error && (
-          <div className="alert alert-danger" role="alert">
-            {error}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="lr-body">
           <div className="lr-columns-grid">
             {SHARED_REVIEW_GROUPS.map(renderQuestionGroup)}
@@ -295,17 +286,13 @@ function LeaveReview() {
           <div className="lr-card lr-overall-comment">
             <div className="lr-form-group">
               <label className="lr-label" htmlFor="overall-review-text">
-                {isArabic ? "تعليقات إضافية" : "Additional Comments"}
+                {t("leave_review.additional_comments")}
               </label>
               <textarea
                 id="overall-review-text"
                 className="lr-textarea"
                 rows={4}
-                placeholder={
-                  isArabic
-                    ? "اكتب أي ملاحظات إضافية هنا..."
-                    : "Write any additional feedback here..."
-                }
+                placeholder={t("leave_review.comments_placeholder")}
                 value={overallComment}
                 onChange={(e) => setOverallComment(e.target.value)}
                 required
@@ -321,12 +308,8 @@ function LeaveReview() {
             >
               <i className="bi bi-send-fill"></i>
               {submitting
-                ? isArabic
-                  ? "جاري الإرسال..."
-                  : "Submitting..."
-                : isArabic
-                  ? "إرسال التقييمات"
-                  : "Submit Reviews"}
+                ? t("leave_review.submitting")
+                : t("leave_review.submit")}
             </button>
             <button
               type="button"
@@ -334,7 +317,7 @@ function LeaveReview() {
               className="lr-btn-cancel"
               disabled={submitting}
             >
-              {isArabic ? "إلغاء" : "Cancel"}
+              {t("leave_review.cancel")}
             </button>
           </div>
         </form>

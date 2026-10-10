@@ -3,6 +3,8 @@ import { Container, Button, Row, Col } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import "./Hero.css";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 // ذاكرة تخزين مؤقتة على مستوى الموديول للاحتفاظ بحالة الصور المحملة ومنع الـ Shimmer من العمل عند تكرار الدخول
 const loadedImagesCache = new Set();
@@ -18,7 +20,7 @@ function isHeroImageLoaded(url) {
 
 function Hero({ heroImage, heroSettings }) {
   const { t, i18n } = useTranslation(["home", "common"]);
-  const isAr = i18n.language === "ar";
+  const isAr = isArabicLocale(i18n.language);
   const isArabic = isAr;
   const imgRef = useRef(null);
 

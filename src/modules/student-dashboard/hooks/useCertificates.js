@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { isArabicLocale } from "../../../utils/isArabicLocale";
+
 import {
   toastSuccess,
   toastError,
@@ -29,7 +31,7 @@ const resolveBlobError = async (err, fallback) => {
 
 export const useCertificates = () => {
   const { i18n } = useTranslation("studentDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
 
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);

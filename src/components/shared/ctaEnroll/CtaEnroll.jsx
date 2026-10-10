@@ -3,9 +3,11 @@ import { Container } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext.jsx";
 import i18n from "../../../i18n.js";
+import { isArabicLocale } from "../../../utils/isArabicLocale";
+
 function CtaEnroll() {
   const { user } = useAuth();
-  const isArabic = i18n.language == "ar";
+  const isArabic = isArabicLocale(i18n.language);
   return (
     <div className="cta-journey-section text-center text-white py-5 mt-5">
       <Container className="py-5 position-relative z-1">

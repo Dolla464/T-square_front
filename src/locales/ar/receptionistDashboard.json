@@ -10,6 +10,10 @@
     "Notification": "الإشعارات"
   },
   "topbar": {
-    "role": "موظف استقبال"
+    "role": "موظف استقبال",
+    "welcome_back": "مرحباً {{name}}"
+  },
+  "orders_page": {
+    "create_title": "إنشاء طلب"
   }
 }

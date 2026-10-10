@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+
 import { Helmet } from "react-helmet-async";
 import { toastCustom } from "../../../../components/shared/Toaster/toaster";
 import { showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
@@ -30,13 +31,12 @@ import {
 import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
 import "../../../shared-dashboard/components/QuestionContent/questionContent.css";
 import "../../styles/dashboardShared.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
-const confirmLeaveExam = (isArabic) =>
+const confirmLeaveExam = (t) =>
   showConfirmCustom({
-    title: isArabic ? "إنهاء الامتحان" : "Leave Exam",
-    message: isArabic
-      ? "سيتم إرسال إجاباتك الحالية وإنهاء المحاولة. هل تريد المتابعة؟"
-      : "Your current answers will be submitted and the attempt will end. Continue?",
+    title: t("quiz_exam.leave_exam_title"),
+    message: t("quiz_exam.leave_exam_message"),
     icon: "warning",
     variant: "danger",
   });
@@ -255,7 +255,7 @@ function QuizExamPage() {
   const attemptFinalizedRef = useRef(false);
   const navigationInFlightRef = useRef(false);
   const { i18n, t } = useTranslation("studentDashboard");
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
 
   const {
     exam,
@@ -676,16 +676,12 @@ function QuizExamPage() {
           const toastConfig =
             toastVariant === "timeout"
               ? {
-                  message: isArabic
-                    ? "انتهى الوقت المخصص للاختبار! تم إرسال إجاباتك تلقائياً."
-                    : "Exam duration has ended! Your answers were submitted automatically.",
+                  message: t("quiz_exam.timeout_toast"),
                   type: "warning",
                   bsIcon: "bi-clock-history",
                 }
               : {
-                  message: isArabic
-                    ? "تم إنهاء المحاولة وإرسال إجاباتك."
-                    : "Your attempt has been submitted.",
+                  message: t("quiz_exam.submitted_toast"),
                   type: "success",
                   bsIcon: "bi-check2-circle",
                 };
@@ -704,9 +700,7 @@ function QuizExamPage() {
 
         hasAutoSubmittedRef.current = false;
         toastCustom({
-          message: isArabic
-            ? "حدث خطأ أثناء إرسال الإجابات"
-            : "Failed to submit exam",
+          message: t("quiz_exam.submit_error"),
           type: "error",
           bsIcon: "bi-x-circle",
           duration: 5000,
@@ -717,7 +711,7 @@ function QuizExamPage() {
     [
       applySubmitResult,
       flushQuestionTime,
-      isArabic,
+      t,
       saveAnswer,
       submitExam,
       syncClosedAttempt,
@@ -747,9 +741,7 @@ function QuizExamPage() {
         hasAutoSubmittedRef.current = true;
         applySubmitResult(attemptId, data.results);
         toastCustom({
-          message: isArabic
-            ? "انتهى الوقت المخصص للاختبار! تم إرسال إجاباتك تلقائياً."
-            : "Exam duration has ended! Your answers were submitted automatically.",
+          message: t("quiz_exam.timeout_toast"),
           type: "warning",
           bsIcon: "bi-clock-history",
           duration: 5000,
@@ -766,7 +758,7 @@ function QuizExamPage() {
   }, [
     applySubmitResult,
     handleAutoSubmit,
-    isArabic,
+    t,
     showResult,
     syncClosedAttempt,
     syncExamTime,
@@ -793,7 +785,7 @@ function QuizExamPage() {
 
     leaveDialogOpenRef.current = true;
 
-    confirmLeaveExam(isArabic).then(async (confirmed) => {
+    confirmLeaveExam(t).then(async (confirmed) => {
       leaveDialogOpenRef.current = false;
 
       if (confirmed) {
@@ -809,18 +801,18 @@ function QuizExamPage() {
         blocker.reset();
       }
     });
-  }, [blocker, isArabic]);
+  }, [blocker, t]);
 
   const handleExit = useCallback(() => {
     navigate("/student/quizzes", { state: { refreshQuizzes: true } });
   }, [navigate]);
 
   const handleExitClick = useCallback(async () => {
-    const confirmed = await confirmLeaveExam(isArabic);
+    const confirmed = await confirmLeaveExam(t);
     if (confirmed) {
       await finalizeAttempt({ showToast: false });
     }
-  }, [finalizeAttempt, isArabic]);
+  }, [finalizeAttempt, t]);
 
   const handleAnswerChange = useCallback(
     (value) => {
@@ -860,9 +852,7 @@ function QuizExamPage() {
     ) {
       if (!exam?.attempt_id) {
         toastCustom({
-          message: isArabic
-            ? "الاختبار لم يُبدأ بعد، انتظر قليلاً"
-            : "Exam not ready yet, please wait",
+          message: t("quiz_exam.not_ready"),
           type: "error",
           bsIcon: "bi-x-circle",
           duration: 3000,
@@ -919,9 +909,7 @@ function QuizExamPage() {
         } else {
           hasAutoSubmittedRef.current = false;
           toastCustom({
-            message: isArabic
-              ? "تعذر قراءة نتيجة الامتحان"
-              : "Could not read exam result",
+            message: t("quiz_exam.result_read_error"),
             type: "error",
             bsIcon: "bi-x-circle",
             duration: 3000,
@@ -932,9 +920,7 @@ function QuizExamPage() {
         const recovered = await syncClosedAttempt(exam.attempt_id);
         if (!recovered) {
           toastCustom({
-            message: isArabic
-              ? "حدث خطأ أثناء إرسال الإجابات"
-              : "Failed to submit exam",
+            message: t("quiz_exam.submit_error"),
             type: "error",
             bsIcon: "bi-x-circle",
             duration: 3000,
@@ -962,7 +948,7 @@ function QuizExamPage() {
     currentQuestion,
     exam?.attempt_id,
     flushQuestionTime,
-    isArabic,
+    t,
     isLastQuestion,
     persistCurrentAnswer,
     quizId,
@@ -1059,12 +1045,8 @@ function QuizExamPage() {
     const isFailed = isAttemptFailed(scoreResult?.status);
     toastCustom({
       message: isFailed
-        ? isArabic
-          ? "لم تجتز الاختبار، حاول مرة أخرى"
-          : "You did not pass. Better luck next time!"
-        : isArabic
-          ? "مبروك! اجتزت الاختبار بنجاح"
-          : "Congratulations! You passed the exam!",
+        ? t("quiz_exam.finish_failed_toast")
+        : t("quiz_exam.finish_passed_toast"),
       type: isFailed ? "error" : "success",
       bsIcon: isFailed ? "bi-x-circle" : "bi-check2-circle",
       duration: 4000,
@@ -1083,7 +1065,7 @@ function QuizExamPage() {
     }
 
     handleExit();
-  }, [scoreResult, courseEnrollmentStatus, isArabic, handleExit, navigate]);
+  }, [scoreResult, courseEnrollmentStatus, t, handleExit, navigate]);
 
   if ((isInitializing || loading) && !showResult) {
     return (
@@ -1112,13 +1094,11 @@ function QuizExamPage() {
             <h5>
               {serverErrorMessage
                 ? serverErrorMessage
-                : isArabic
-                  ? "الكويز غير موجود أو حدث خطأ"
-                  : "Quiz not found or error occurred"}
+                : t("quiz_exam.not_found")}
             </h5>
             <button className="btn-continue" onClick={handleExit}>
-              <i className="bi bi-arrow-left me-1"></i>
-              {isArabic ? "العودة" : "Back"}
+              <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"} me-1`}></i>
+              {t("quiz_exam.back")}
             </button>
           </div>
         </div>
@@ -1136,13 +1116,11 @@ function QuizExamPage() {
               style={{ color: "#f59e0b" }}
             ></i>
             <h5>
-              {isArabic
-                ? "لا توجد أسئلة في هذا الامتحان حالياً. تواصل مع الإدارة."
-                : "This exam has no questions yet. Please contact the administrator."}
+              {t("quiz_exam.no_questions")}
             </h5>
             <button className="btn-continue" onClick={handleExit}>
-              <i className="bi bi-arrow-left me-1"></i>
-              {isArabic ? "العودة" : "Back"}
+              <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"} me-1`}></i>
+              {t("quiz_exam.back")}
             </button>
           </div>
         </div>
@@ -1180,12 +1158,8 @@ function QuizExamPage() {
         >
           <h4 className="result-title">
             {pendingGrading
-              ? isArabic
-                ? "تم إرسال إجاباتك"
-                : "Submission Received"
-              : isArabic
-                ? "نتيجتك"
-                : "Your Result"}
+              ? t("quiz_exam.submission_received")
+              : t("quiz_exam.your_result")}
           </h4>
 
           {pendingGrading ? (
@@ -1195,18 +1169,14 @@ function QuizExamPage() {
                 style={{ fontSize: "3rem", color: "#f59e0b" }}
               />
               <p className="mt-3 mb-2 fw-semibold">
-                {isArabic
-                  ? "تم تسليم الامتحان بنجاح. بعض الأسئلة المقالية تحتاج تصحيحاً يدوياً من المدرّس."
-                  : "Your exam was submitted successfully. Essay questions are awaiting instructor grading."}
+                {t("quiz_exam.pending_grading_message")}
               </p>
               <p className="text-muted mb-0">
-                {isArabic
-                  ? "ستصلك إشعار عند اعتماد النتيجة النهائية."
-                  : "You will be notified when your final result is ready."}
+                {t("quiz_exam.pending_grading_notify")}
               </p>
               {scoreResult?.score != null ? (
                 <p className="mt-3 mb-0">
-                  {isArabic ? "الدرجة الحالية (جزئية):" : "Current partial score:"}{" "}
+                  {t("quiz_exam.partial_score")}{" "}
                   <strong>
                     {formatExamScore(scoreResult.score)} /{" "}
                     {formatExamScore(scoreResult.total_marks)}
@@ -1287,15 +1257,9 @@ function QuizExamPage() {
               >
                 {isFailed
                   ? scoreResult?.status === "timed_out"
-                    ? isArabic
-                      ? "انتهى الوقت — لم تجتز الحد الأدنى"
-                      : "Time expired — Below passing mark"
-                    : isArabic
-                      ? "رسبت - لم تجتز الحد الأدنى"
-                      : "Failed — Below passing mark"
-                  : isArabic
-                    ? "مبروك! تجاوزت الحد الأدنى"
-                    : "Passed — Above passing mark"}
+                    ? t("quiz_exam.timed_out_failed")
+                    : t("quiz_exam.failed")
+                  : t("quiz_exam.passed")}
               </p>
 
               {finalExamPassedPendingEnrollment ? (
@@ -1382,7 +1346,7 @@ function QuizExamPage() {
             <i
               className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"}`}
             ></i>
-            {isArabic ? "خروج" : "Exit"}
+            {t("quiz_exam.exit")}
           </button>
           {exam &&
             exam.started_at &&
@@ -1405,8 +1369,8 @@ function QuizExamPage() {
 
         <div className="quiz-progress">
           <span>
-            {isArabic ? "سؤال" : "Question"} {currentIndex + 1}{" "}
-            {isArabic ? "من" : "of"} {totalQuestions}
+            {t("quiz_exam.question")} {currentIndex + 1}{" "}
+            {t("quiz_exam.of_label")} {totalQuestions}
           </span>
           <div className="progress-bar-wrap">
             <div
@@ -1425,18 +1389,14 @@ function QuizExamPage() {
         {isEssayQuestion(currentQuestion) ? (
           <div className="quiz-essay-answer mb-4">
             <label className="form-label fw-semibold">
-              {isArabic ? "إجابتك" : "Your Answer"}
+              {t("quiz_exam.your_answer")}
             </label>
             <textarea
               className="form-control"
               rows={8}
               value={selectedAnswer ?? ""}
               onChange={(e) => handleAnswerChange(e.target.value)}
-              placeholder={
-                isArabic
-                  ? "اكتب إجابتك هنا (اختياري)..."
-                  : "Write your answer here (optional)..."
-              }
+              placeholder={t("quiz_exam.answer_placeholder")}
               disabled={isInteractionLocked}
             />
           </div>
@@ -1451,7 +1411,9 @@ function QuizExamPage() {
                 <span className="option-letter">
                   {String.fromCharCode(65 + idx)}{" "}
                 </span>
-                <span className="option-text">{choice.choice_text}</span>
+                <span dir="auto" className="option-text">
+                  {choice.choice_text}
+                </span>
               </button>
             ))}
           </div>
@@ -1467,7 +1429,7 @@ function QuizExamPage() {
               <i
                 className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"} ${isArabic ? "ms-2" : "me-2"}`}
               ></i>
-              {isArabic ? "السابق" : "Previous"}
+              {t("quiz_exam.previous")}
             </button>
           )}
           <button
@@ -1487,12 +1449,8 @@ function QuizExamPage() {
               ></span>
             ) : null}
             {isLastQuestion
-              ? isArabic
-                ? "إنهاء"
-                : "Finish"
-              : isArabic
-                ? "التالي"
-                : "Next"}
+              ? t("quiz_exam.finish")
+              : t("quiz_exam.next")}
             <i
               className={`bi ${isLastQuestion ? "bi-check2-all" : "bi-arrow-right"} ms-2`}
             ></i>

@@ -3,17 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { formatDateTime } from "../../../utils/formatDateTime";
 import { useNotifications } from "../../../hooks/useNotifications";
 import NotificationDetails from "../../shared-dashboard/components/NotificationDetails/NotificationDetails";
+import { isArabicLocale } from "../../../utils/isArabicLocale";
+
 import {
   NOTIFICATION_ICON_MAP,
   getNotificationTarget,
+  resolveNotificationCopy,
 } from "../../../utils/notifications";
 
 function NotificationCard({ notification }) {
   const { t, i18n } = useTranslation("studentDashboard");
   const navigate = useNavigate();
   const { markAsRead } = useNotifications();
-  const isArabic = i18n.language?.startsWith("ar");
-  const { id, type, title, message, icon, created_at, is_read } = notification;
+  const isArabic = isArabicLocale(i18n.language);
+  const { id, type, icon, created_at, is_read } = notification;
+  const { title, message } = resolveNotificationCopy(notification, t);
 
   const formattedDate = formatDateTime(
     created_at,
@@ -48,7 +52,7 @@ function NotificationCard({ notification }) {
 
   return (
     <div
-      className={`notification-card ${is_read ? "" : "notification-unread"} ${target ? "notification-clickable" : ""}`}
+      className={`notification-card ${is_read ? "" : "notification-unread"} ${target ? "notification-clickable" : ""} ${type === "enrollment_pending" ? "notification-pending" : ""}`}
       onClick={handleCardClick}
       dir="ltr"
       style={target ? { cursor: "pointer" } : undefined}
