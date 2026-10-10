@@ -5,10 +5,11 @@ import { Spinner, Table } from "react-bootstrap";
 import { useExamGrading } from "../../hooks/useExamGrading";
 import { formatExamScore } from "../../../shared-dashboard/utils/formatExamScore";
 import "../../../admin-dashboard/components/shared/AdminContentPage/AdminContentPage.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
 function InstructorExamGrading() {
-  const { i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language === "ar";
+  const { t, i18n } = useTranslation("instructorDashboard");
+  const isArabic = isArabicLocale(i18n.language);
   const { pendingAttempts, loadingList, loadPendingAttempts } = useExamGrading();
 
   useEffect(() => {
@@ -20,12 +21,10 @@ function InstructorExamGrading() {
       <div className="ac-header d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="ac-title">
-            {isArabic ? "تصحيح الامتحانات" : "Exam Grading"}
+            {t("exam_grading_page.title")}
           </h2>
           <p className="ac-subtitle text-muted mb-0">
-            {isArabic
-              ? "محاولات تحتوي على أسئلة مقالية بانتظار التصحيح"
-              : "Attempts with essay answers awaiting your grading"}
+            {t("exam_grading_page.subtitle")}
           </p>
         </div>
         <button
@@ -35,7 +34,7 @@ function InstructorExamGrading() {
           disabled={loadingList}
         >
           <i className="bi bi-arrow-clockwise me-1" />
-          {isArabic ? "تحديث" : "Refresh"}
+          {t("exam_grading_page.refresh")}
         </button>
       </div>
 
@@ -48,19 +47,17 @@ function InstructorExamGrading() {
           ) : pendingAttempts.length === 0 ? (
             <div className="text-center py-5 text-muted">
               <i className="bi bi-check2-circle fs-1 d-block mb-3" />
-              {isArabic
-                ? "لا توجد محاولات بانتظار التصحيح حالياً"
-                : "No attempts are pending grading"}
+              {t("exam_grading_page.noPending")}
             </div>
           ) : (
-            <Table responsive hover className="mb-0 align-middle">
+            <Table responsive hover className="mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
               <thead>
                 <tr>
-                  <th>{isArabic ? "الطالب" : "Student"}</th>
-                  <th>{isArabic ? "الامتحان" : "Exam"}</th>
-                  <th>{isArabic ? "الكورس" : "Course"}</th>
-                  <th>{isArabic ? "الدرجة الجزئية" : "Partial Score"}</th>
-                  <th>{isArabic ? "تاريخ التسليم" : "Submitted At"}</th>
+                  <th>{t("exam_grading_page.student")}</th>
+                  <th>{t("exam_grading_page.exam")}</th>
+                  <th>{t("exam_grading_page.course")}</th>
+                  <th>{t("exam_grading_page.partialScore")}</th>
+                  <th>{t("exam_grading_page.submittedAt")}</th>
                   <th />
                 </tr>
               </thead>
@@ -80,7 +77,7 @@ function InstructorExamGrading() {
                         to={`/instructor/exam-grading/${item.attempt_id}`}
                         className="btn btn-sm btn-danger"
                       >
-                        {isArabic ? "تصحيح" : "Grade"}
+                        {t("exam_grading_page.grade")}
                       </Link>
                     </td>
                   </tr>

@@ -7,6 +7,8 @@ import "./AllSolutions.css";
 import i18n from "../../i18n";
 import { useSolutions } from "../../hooks/useSolutions";
 import TestimonialsSection from "../shared/TestimonialsSection/TestimonialsSection";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function AllSolutions() {
   const navigate = useNavigate();
@@ -14,7 +16,7 @@ function AllSolutions() {
     navigate("/contact");
   }, [navigate]);
   const { t } = useTranslation(["solutions", "navbar", "testimonials"]);
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
   const { solutions, loading, error } = useSolutions();
 
   return (

@@ -4,10 +4,12 @@ import { Modal, Spinner } from "react-bootstrap";
 import { FaPlay } from "react-icons/fa";
 import { useRef } from "react";
 import VideoPreviewModal from "../../components/layout/VideoPreviewModal";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 const CourseVideos = ({ course }) => {
   const { t, i18n } = useTranslation("coursesDetails");
-  const isArabic = i18n?.language === "ar";
+  const isArabic = isArabicLocale(i18n?.language);
 
   // استخراج قائمة فيديوهات المعاينة من بيانات الكورس
   const previews = course?.previews;

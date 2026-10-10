@@ -8,10 +8,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { updatePasswordSchema } from "../../utils/validationSchemas";
 import { toastSuccess } from "../../components/shared/Toaster/toaster";
 import { useResetPassword } from "../../hooks/useResetPassword";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function UpdatePassword() {
   const { t, i18n } = useTranslation("auth");
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
   const [searchParams] = useSearchParams();
   const { token } = useParams();
   const navigate = useNavigate();
@@ -39,7 +41,7 @@ function UpdatePassword() {
         password: data.password,
         password_confirmation: data.password_confirmation,
       });
-      toastSuccess(isArabic ? "تم تحديث كلمة المرور بنجاح" : "Password updated successfully");
+      toastSuccess(t("update_password.success_toast"));
       navigate("/login");
     } catch {
       // Error toast handled in useResetPassword
@@ -57,7 +59,7 @@ function UpdatePassword() {
                 src={tsquareLogo}
                 alt="T-Square Logo"
                 className="update-logo mb-3"
-                title="Back to Home"
+                title={t("back_to_home")}
               />
             </Link>
 

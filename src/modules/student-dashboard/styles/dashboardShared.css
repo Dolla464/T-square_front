@@ -293,7 +293,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  background-color: #fff;
+  background-image: url("../../../assets/quiz.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .quiz-card-icon {
@@ -729,6 +733,11 @@
   letter-spacing: 1px;
 }
 
+[dir="rtl"] .result-title {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 /* Circular Progress */
 .result-circle-wrap {
   position: relative;
@@ -1048,6 +1057,15 @@
   border: 1px solid rgba(34, 197, 94, 0.25);
 }
 
+.notification-pending {
+  border-inline-start: 4px solid #f59e0b;
+}
+
+.notification-pending.notification-unread {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
 .notification-icon-wrap {
   width: 36px;
   height: 36px;
@@ -1233,6 +1251,11 @@
   letter-spacing: 0.5px;
   margin-bottom: 8px;
   font-weight: 600;
+}
+
+[dir="rtl"] .quiz-modal-gauge-title {
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .quiz-modal-gauge-wrapper {

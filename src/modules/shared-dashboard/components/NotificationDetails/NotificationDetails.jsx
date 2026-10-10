@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { getNotificationDetailItems } from "../../../../utils/notifications";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
 const DETAIL_ICONS = {
   course: "bi-book",
@@ -19,7 +20,7 @@ const DETAIL_ICONS = {
 
 function NotificationDetails({ notification, variant, maxItems }) {
   const { t, i18n } = useTranslation("studentDashboard");
-  const locale = i18n.language?.startsWith("ar") ? "ar-EG" : "en-GB";
+  const locale = isArabicLocale(i18n.language) ? "ar-EG" : "en-GB";
   const items = getNotificationDetailItems(notification, t, locale);
   const visibleItems =
     typeof maxItems === "number" ? items.slice(0, maxItems) : items;

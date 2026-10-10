@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import "./AdminContentPage.css";
 import { useTags } from "../../../hooks/useTags";
+import { isArabicLocale } from "../../../../../utils/isArabicLocale";
+
 
 function AdminContentForm({
   type,
@@ -11,7 +13,7 @@ function AdminContentForm({
   isReadOnly = false,
 }) {
   const { t, i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
 
   const [formData, setFormData] = useState({
     title: "",

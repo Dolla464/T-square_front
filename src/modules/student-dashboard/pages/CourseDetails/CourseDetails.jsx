@@ -7,9 +7,13 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import "./CourseDetails.css";
 import { useCourseDetails } from "../../hooks/useCousrsesDetails";
 import ForbiddenAccess from "../../../../components/shared/ForbiddenAccess";
+import PendingEnrollmentBanner from "./PendingEnrollmentBanner";
 import { getCourseInstructors } from "../../../../utils/courseInstructors";
 import { Spinner } from "react-bootstrap";
 import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
+import { getAttendanceTypeLabel } from "../../../../utils/attendanceTypes";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 /* ── دوال مساعدة ──────────────────────────────────────── */
 const getLevelIcon = (level) => {
@@ -21,23 +25,19 @@ const getLevelIcon = (level) => {
   return map[level] || "bi-bar-chart";
 };
 
-const getLevelLabel = (level, isArabic) => {
-  const map = {
-    beginner: { ar: "مبتدئ", en: "Beginner" },
-    intermediate: { ar: "متوسط", en: "Intermediate" },
-    advanced: { ar: "متقدم", en: "Advanced" },
-  };
-  return map[level]?.[isArabic ? "ar" : "en"] ?? level;
+const STATUS_CLS = {
+  in_progress: "cd-status-progress",
+  completed: "cd-status-done",
+  not_started: "cd-status-idle",
+  pending_payment: "cd-status-pending",
 };
 
-const getStatusLabel = (status) => {
-  const map = {
-    in_progress: { ar: "جاري التعلم", en: "In Progress", cls: "cd-status-progress" },
-    completed: { ar: "مكتمل", en: "Completed", cls: "cd-status-done" },
-    not_started: { ar: "لم يبدأ", en: "Not Started", cls: "cd-status-idle" },
-  };
-  return map[status] ?? { ar: status, en: status, cls: "cd-status-idle" };
-};
+const getLevelLabel = (level, t) => t(`course.level.${level}`, level);
+
+const getStatusLabel = (status, t) => ({
+  label: t(`course.status.${status}`, status),
+  cls: STATUS_CLS[status] ?? "cd-status-idle",
+});
 
 const formatDuration = (seconds) => {
   const total = Number(seconds);
@@ -49,6 +49,8 @@ const formatDuration = (seconds) => {
 
 const lessonHasVideo = (lesson) =>
   Boolean(lesson?.has_video || lesson?.video_source_type === "google_drive");
+
+const isSessionGatedAttendance = (attendanceType) => attendanceType !== "online";
 
 /* ════════════════════════════════════════════
    Lightbox — مشغّل فيديو مدمج
@@ -98,7 +100,7 @@ function CourseDetails() {
 
   const { courseId } = useParams();
   const { t } = useTranslation("studentDashboard");
-  const isArabic = i18next.language === "ar";
+  const isArabic = isArabicLocale(i18next.language);
 
   const previewsSectionRef = useRef(null);
 
@@ -127,7 +129,7 @@ function CourseDetails() {
   if (forbidden) {
     return (
       <div className="cd-page">
-        <ForbiddenAccess backTo="/student/dashboard" backLabel={isArabic ? "العودة للوحة الطالب" : "Back to dashboard"} />
+        <ForbiddenAccess backTo="/student/dashboard" backLabel={t("course.back_to_dashboard")} />
       </div>
     );
   }
@@ -138,8 +140,8 @@ function CourseDetails() {
         <i className="bi bi-exclamation-triangle-fill"></i>
         <p>
           {notFound
-            ? (isArabic ? "الكورس غير موجود" : "Course not found")
-            : error || (isArabic ? "تعذّر تحميل الكورس" : "Failed to load course")}
+            ? t("course.course_not_found")
+            : error || t("course.failed_to_load")}
         </p>
       </div>
     );
@@ -152,14 +154,27 @@ function CourseDetails() {
     duration_hours, duration_weeks,
     avg_rating, total_reviews, total_students,
     category, tags, learnings, previews, lessons,
-    enrollment,
+    enrollment, access_status, whatsapp_link,
   } = courseData;
 
   const instructors = getCourseInstructors(courseData);
+  const isPendingPayment =
+    access_status === "pending_payment" || enrollment?.status === "pending_payment";
 
-  const statusInfo = getStatusLabel(enrollment?.status, isArabic);
+  const statusInfo = getStatusLabel(
+    isPendingPayment ? "pending_payment" : enrollment?.status,
+    t,
+  );
   const langFlag = language === "ar" ? "ar" : language === "en" ? "en" : "🌐";
   const isCompleted = enrollment?.status === "completed";
+  const isSessionGated = isSessionGatedAttendance(enrollment?.attendance_type);
+  const showLessonsWaitingGroup =
+    !isPendingPayment && isSessionGated && !enrollment?.group_id;
+  const showLessonsWaitingSession =
+    !isPendingPayment &&
+    isSessionGated &&
+    enrollment?.group_id &&
+    (!lessons || lessons.length === 0);
   const hasReview = enrollment?.has_review === true;
   const certificateAvailable = enrollment?.certificate_available === true;
   const reviewStatus = enrollment?.review_status;
@@ -174,12 +189,12 @@ function CourseDetails() {
   const getReviewStatusMessage = () => {
     if (!hasReview) return null;
     if (reviewStatus === "accepted") {
-      return isArabic ? "تم قبول تقييمك" : "Your review has been accepted";
+      return t("course.review_accepted");
     }
     if (reviewStatus === "rejected") {
-      return isArabic ? "تم رفض تقييمك" : "Your review was rejected";
+      return t("course.review_rejected");
     }
-    return isArabic ? "تم إرسال تقييمك وهو قيد المراجعة" : "Your review has been submitted and is pending approval";
+    return t("course.review_pending");
   };
 
   return (
@@ -212,40 +227,60 @@ function CourseDetails() {
                 <span className="cd-chip cd-chip-cat">{category.name}</span>
               )}
               <span className={`cd-chip ${statusInfo.cls}`}>
-                {isArabic ? statusInfo.ar : statusInfo.en}
+                {statusInfo.label}
               </span>
             </div>
 
             <p className="cd-hero-sub">{short_description || description}</p>
 
+            {!isPendingPayment && (
             <ul className="cd-meta-row">
+              {duration_hours != null && (
               <li>
                 <i className="bi bi-clock-fill"></i> {duration_hours}{" "}
-                {isArabic ? "ساعة" : "hrs"}
+                {t("course.hrs")}
               </li>
+              )}
+              {duration_weeks != null && (
               <li>
                 <i className="bi bi-calendar3"></i> {duration_weeks}{" "}
-                {isArabic ? "أسبوع" : "wks"}
+                {t("course.wks")}
               </li>
+              )}
+              {level && (
               <li>
                 <i className={`bi ${getLevelIcon(level)}`}></i>{" "}
-                {getLevelLabel(level, isArabic)}
+                {getLevelLabel(level, t)}
               </li>
+              )}
+              {language && (
               <li>
-                <span className="cd-lang-flag">{langFlag}</span>{" "}
+                <span className="cd-lang-flag"></span>{" "}
                 {language?.toUpperCase()}
               </li>
+              )}
+              {total_students != null && (
               <li>
                 <i className="bi bi-people-fill"></i>{" "}
                 {total_students?.toLocaleString()}
               </li>
+              )}
+              {!isPendingPayment && (
+              <li>
+                <i className="bi bi-mortarboard-fill"></i>{" "}
+                {getAttendanceTypeLabel(enrollment?.attendance_type, t)}
+              </li>
+              )}
+              {avg_rating != null && (
               <li>
                 <i className="bi bi-star-fill cd-star"></i>
-                {Number(avg_rating).toFixed(1)} ({total_reviews})
+                {Number(avg_rating).toFixed(1)} ({total_reviews ?? 0})
               </li>
+              )}
             </ul>
+            )}
 
-            {tags?.length > 0 && (
+            {!isPendingPayment && tags?.length > 0 && (
               <div className="cd-tags">
                 {tags.map((tag) => (
                   <span key={tag.id} className="cd-tag">
@@ -262,7 +297,7 @@ function CourseDetails() {
                   className="cd-btn-certificate"
                 >
                   <i className="bi bi-file-earmark-pdf me-1"></i>
-                  {isArabic ? "عرض الشهادة" : "View Certificate"}
+                  {t("course.view_certificate")}
                 </button>
               )}
               {isCompleted && !hasReview && (
@@ -271,7 +306,7 @@ function CourseDetails() {
                   className="cd-btn-certificate"
                 >
                   <i className="bi bi-file-earmark-text me-1"></i>
-                  {isArabic ? "اترك تقييم" : "Leave Review"}
+                  {t("course.leave_review_btn")}
                 </button>
               )}
               {isCompleted && hasReview && (
@@ -280,10 +315,10 @@ function CourseDetails() {
                   {getReviewStatusMessage()}
                 </span>
               )}
-              {previews?.length > 0 && (
+              {!isPendingPayment && previews?.length > 0 && (
                 <button onClick={scrollToPreviews} className="cd-btn-ghost">
                   <i className="bi bi-collection-play"></i>
-                  {isArabic ? "معاينة الكورس" : "Preview"}
+                  {t("course.preview")}
                 </button>
               )}
             </div>
@@ -304,25 +339,34 @@ function CourseDetails() {
         </div>
       </section>
 
+      {isPendingPayment && (
+        <div className="cd-body cd-body-pending">
+          <PendingEnrollmentBanner
+            courseTitle={title}
+            whatsappLink={whatsapp_link}
+          />
+        </div>
+      )}
+
       {/* ══════════════════ BODY ══════════════════ */}
       <div className="cd-body">
         {/* ── عن الكورس ── */}
-        {description && (
+        {!isPendingPayment && description && (
           <section className="cd-card cd-description">
             <h2 className="cd-section-title">
               <i className="bi bi-file-text-fill"></i>
-              {isArabic ? "عن الكورس" : "About this Course"}
+              {t("course.about_course")}
             </h2>
             <p className="cd-desc-body">{description}</p>
           </section>
         )}
 
         {/* ── ما ستتعلمه ── */}
-        {learnings?.length > 0 && (
+        {!isPendingPayment && learnings?.length > 0 && (
           <section className="cd-card cd-learnings">
             <h2 className="cd-section-title">
               <i className="bi bi-lightbulb-fill"></i>
-              {isArabic ? "ماذا ستتعلم" : "What You'll Learn"}
+              {t("course.what_you_learn")}
             </h2>
             <ul className="cd-learnings-list">
               {learnings.map((item, i) => (
@@ -337,12 +381,37 @@ function CourseDetails() {
           </section>
         )}
 
+        {/* ── دروس الكورس: حالات الانتظار ── */}
+        {showLessonsWaitingGroup && (
+          <section className="cd-card cd-lessons cd-lessons--empty">
+            <h2 className="cd-section-title">
+              <i className="bi bi-play-btn-fill"></i>
+              {t("course.lessons_section_title")}
+            </h2>
+            <p className="cd-lessons-empty-message mb-0">
+              {t("course.lessons_waiting_group")}
+            </p>
+          </section>
+        )}
+
+        {showLessonsWaitingSession && (
+          <section className="cd-card cd-lessons cd-lessons--empty">
+            <h2 className="cd-section-title">
+              <i className="bi bi-play-btn-fill"></i>
+              {t("course.lessons_section_title")}
+            </h2>
+            <p className="cd-lessons-empty-message mb-0">
+              {t("course.lessons_waiting_session")}
+            </p>
+          </section>
+        )}
+
         {/* ── دروس الكورس ── */}
-        {lessons?.length > 0 && (
+        {!isPendingPayment && lessons?.length > 0 && (
           <section className="cd-card cd-lessons">
             <h2 className="cd-section-title">
               <i className="bi bi-play-btn-fill"></i>
-              {isArabic ? "دروس الكورس" : "Course Lessons"}
+              {t("course.lessons_section_title")}
             </h2>
             <div className="cd-lessons-grid">
               {lessons.map((lesson) => {
@@ -375,12 +444,12 @@ function CourseDetails() {
                           {duration ? (
                             <span className="cd-lesson-duration">
                               <i className="bi bi-clock"></i>
-                              {duration} {isArabic ? "دقيقة" : "min"}
+                              {duration} {t("course.min")}
                             </span>
                           ) : hasVideo ? (
                             <span className="cd-lesson-badge">
                               <i className="bi bi-camera-video"></i>
-                              {isArabic ? "فيديو متاح" : "Video available"}
+                              {t("course.video_available")}
                             </span>
                           ) : null}
                         </div>
@@ -392,7 +461,7 @@ function CourseDetails() {
                             onClick={(e) => e.stopPropagation()}
                           >
                             <i className="bi bi-play-circle-fill"></i>
-                            {isArabic ? "مشاهدة الدرس" : "Watch Lesson"}
+                            {t("course.watch_lesson")}
                           </Link>
                         )}
                       </div>
@@ -405,11 +474,11 @@ function CourseDetails() {
         )}
 
         {/* ── معاينة الفيديو — lightbox ── */}
-        {previews?.length > 0 && (
+        {!isPendingPayment && previews?.length > 0 && (
           <section ref={previewsSectionRef} className="cd-card cd-previews">
             <h2 className="cd-section-title">
               <i className="bi bi-collection-play-fill"></i>
-              {isArabic ? "معاينة الكورس" : "Course Preview"}
+              {t("course.course_preview")}
             </h2>
             <div className="cd-preview-list">
               {previews.map((pv) => (
@@ -427,7 +496,7 @@ function CourseDetails() {
                       <span className="cd-preview-dur">
                         {Math.floor(pv.duration_seconds / 60)}:
                         {String(pv.duration_seconds % 60).padStart(2, "0")}{" "}
-                        {isArabic ? "دقيقة" : "min"}
+                        {t("course.min")}
                       </span>
                     )}
                   </div>
@@ -443,13 +512,9 @@ function CourseDetails() {
           <section className="cd-instructors-section">
             <h2 className="cd-section-title">
               <i className="bi bi-person-badge-fill"></i>
-              {isArabic
-                ? instructors.length > 1
-                  ? "عن المدربين"
-                  : "عن المدرب"
-                : instructors.length > 1
-                  ? "About the Instructors"
-                  : "About the Instructor"}
+              {instructors.length > 1
+                ? t("course.about_instructors")
+                : t("course.about_the_instructor")}
             </h2>
 
             <div className="cd-instructors-grid">
@@ -500,7 +565,7 @@ function CourseDetails() {
                               rel="noreferrer"
                               className="cd-instructor-whatsapp"
                             >
-                              {isArabic ? "تواصل عبر واتساب" : "Chat on WhatsApp"}
+                              {t("course.chat_whatsapp")}
                             </a>
                           </p>
                         </>
@@ -510,7 +575,7 @@ function CourseDetails() {
                         <div className="cd-instructor-bio-wrap">
                           <p className="cd-instructor-bio-label">
                             <i className="bi bi-file-person-fill cd-instructor-key-icon"></i>
-                            {isArabic ? "نبذة تعريفية" : "Bio"}
+                            {t("course.bio")}
                           </p>
                           <p className="cd-instructor-bio">{instructorItem.bio}</p>
                         </div>

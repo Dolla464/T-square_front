@@ -17,6 +17,8 @@ import {
 import "../../../../shared-dashboard/components/QuestionContent/questionContent.css";
 import "../../../../shared-dashboard/components/QuestionEditorFields/questionEditorFields.css";
 import "../../../../student-dashboard/styles/dashboardShared.css";
+import { isArabicLocale } from "../../../../../utils/isArabicLocale";
+
 
 /**
  * EditExam — Admin exam question editor & creator
@@ -28,8 +30,8 @@ function EditExam() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { i18n } = useTranslation(["adminDashboard"]);
-  const isArabic = i18n.language?.startsWith("ar");
+  const { t, i18n } = useTranslation(["adminDashboard"]);
+  const isArabic = isArabicLocale(i18n.language);
   const { getQuestionById, getQuizById, createQuestion, updateQuestion, uploadQuestionImage, loading } = useQuizzes();
 
   const isAdd = id === "new";
@@ -190,7 +192,7 @@ function EditExam() {
     const activeExamId = resolveActiveExamId();
     if (!activeExamId) {
       toastError(
-        isArabic ? "تعذر تحديد الاختبار. ارجع وحاول مرة أخرى." : "Could not resolve the exam. Go back and try again.",
+        t("quizzes_page.exam_resolve_error"),
       );
       return;
     }
@@ -216,7 +218,7 @@ function EditExam() {
     const activeExamId = resolveActiveExamId();
     if (!activeExamId) {
       toastError(
-        isArabic ? "تعذر تحديد الاختبار. ارجع وحاول مرة أخرى." : "Could not resolve the exam. Go back and try again.",
+        t("quizzes_page.exam_resolve_error"),
       );
       return;
     }
@@ -256,14 +258,12 @@ function EditExam() {
 
   const handleExitWithoutSaving = async () => {
     const confirmed = await showConfirmCustom({
-      title: isArabic ? "خروج دون حفظ" : "Exit without saving",
-      message: isArabic
-        ? "لم يتم حفظ السؤال. هل تريد الخروج وفقدان التغييرات؟"
-        : "This question has not been saved. Exit and discard your changes?",
+      title: t("quizzes_page.exit_without_saving_title"),
+      message: t("quizzes_page.exit_without_saving_message"),
       icon: "warning",
       variant: "danger",
-      confirmText: isArabic ? "نعم، اخرج" : "Yes, exit",
-      cancelText: isArabic ? "إلغاء" : "Cancel",
+      confirmText: t("quizzes_page.exit_confirm"),
+      cancelText: t("quizzes_page.cancel"),
     });
 
     if (confirmed) {
@@ -286,10 +286,10 @@ function EditExam() {
         <div className="quiz-exam-container">
           <div className="quiz-exam-placeholder">
             <i className="bi bi-exclamation-circle placeholder-icon"></i>
-            <h5>{isArabic ? "الاختبار غير موجود" : "Exam not found"}</h5>
+            <h5>{t("quizzes_page.exam_not_found")}</h5>
             <button type="button" className="btn-continue" onClick={() => navigate("/admin/quizzes")}>
               <i className="bi bi-arrow-left me-1"></i>
-              {isArabic ? "العودة" : "Back"}
+              {t("quizzes_page.back")}
             </button>
           </div>
         </div>
@@ -310,8 +310,8 @@ function EditExam() {
             <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"} fs-4 text-dark`}></i>
             <span className="ms-2 me-2 fs-5 fw-bold text-dark">
               {isEdit
-                ? (isArabic ? `تعديل سؤال - ${exam.title}` : `Edit Question - ${exam.title}`)
-                : (isArabic ? `إضافة سؤال جديد - ${exam.title}` : `Add New Question - ${exam.title}`)}
+                ? t("quizzes_page.edit_question_title", { title: exam.title })
+                : t("quizzes_page.add_question_title", { title: exam.title })}
             </span>
           </button>
         </div>
@@ -325,7 +325,7 @@ function EditExam() {
           {!isEdit && (
             <div className="quiz-progress mb-4">
               <span className="fw-bold text-secondary">
-                {isArabic ? "إضافة سؤال جديد للاختبار" : "Adding new question to exam"}
+                {t("quizzes_page.adding_question_hint")}
               </span>
             </div>
           )}
@@ -377,7 +377,7 @@ function EditExam() {
                     fontSize: "0.95rem",
                     color: choice.is_correct ? "#fff" : "#333",
                   }}
-                  placeholder={`${isArabic ? "الإجابة" : "Answer"} ${String.fromCharCode(65 + idx)}`}
+                  placeholder={`${t("quizzes_page.answer_placeholder")} ${String.fromCharCode(65 + idx)}`}
                   value={choice.choice_text}
                   onChange={(e) => handleChoiceTextChange(idx, e.target.value)}
                 />
@@ -415,7 +415,7 @@ function EditExam() {
                   style={{ fontSize: "0.9rem" }}
                 >
                   <i className="bi bi-x-circle me-1"></i>
-                  {isArabic ? "خروج دون حفظ" : "Exit without saving"}
+                  {t("quizzes_page.exit_without_saving")}
                 </button>
 
                 <div className="d-flex gap-2">
@@ -431,7 +431,7 @@ function EditExam() {
                     ) : (
                       <i className="bi bi-check2-circle"></i>
                     )}
-                    {isArabic ? "حفظ وإنهاء" : "Save and Exit"}
+                    {t("quizzes_page.save_and_exit")}
                   </button>
 
                   <button
@@ -453,7 +453,7 @@ function EditExam() {
                       <i className={`bi ${isArabic ? "bi-arrow-left" : "bi-arrow-right"}`}></i>
                     )}
                     <span>
-                      {isArabic ? "حفظ وإضافة سؤال آخر" : "Save and add another question"}
+                      {t("quizzes_page.save_and_add_another")}
                     </span>
                   </button>
                 </div>
@@ -478,7 +478,7 @@ function EditExam() {
                   <i className="bi bi-check2-all"></i>
                 )}
                 <span>
-                  {isArabic ? "حفظ" : "Save"}
+                  {t("quizzes_page.save")}
                 </span>
               </button>
             )}

@@ -140,3 +140,11 @@
 .notifications-nav-dropdown .dropdown-menu .dropdown-item:not(.notifications-item-unread):hover {
   background-color: rgba(190, 22, 34, 0.05);
 }
+
+.notifications-nav-dropdown .dropdown-menu .dropdown-item.notifications-item-pending {
+  border-inline-start: 3px solid #f59e0b;
+}
+
+.notifications-nav-dropdown .dropdown-menu .dropdown-item.notifications-item-pending.notifications-item-unread {
+  background-color: rgba(245, 158, 11, 0.12);
+}

@@ -1,0 +1,12 @@
+/**
+ * RTL-safe typography overrides for user-facing labels/headings.
+ * English LTR rules remain unchanged in component stylesheets.
+ */
+[dir="rtl"] .attendance-hero-label,
+[dir="rtl"] .cd-instructor-bio-label,
+[dir="rtl"] .faq-header span,
+[dir="rtl"] .hero-mock-live-badge,
+[dir="rtl"] .hero-lang-section-title {
+  text-transform: none;
+  letter-spacing: normal;
+}

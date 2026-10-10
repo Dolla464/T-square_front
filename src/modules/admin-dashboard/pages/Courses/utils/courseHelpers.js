@@ -206,6 +206,48 @@ export const normalizeCurriculum = (rawCurriculum) => {
   }));
 };
 
+// ─── Attendance types ────────────────────────────────────────────────────────
+
+export const VALID_ATTENDANCE_TYPES = ["online", "offline", "hybrid"];
+
+export const normalizeAttendanceTypes = (value, fallback = ["online"]) => {
+  if (Array.isArray(value) && value.length > 0) {
+    return [
+      ...new Set(
+        value
+          .map((type) => String(type).trim().toLowerCase())
+          .filter((type) => VALID_ATTENDANCE_TYPES.includes(type)),
+      ),
+    ];
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const normalized = value.trim().toLowerCase();
+    if (VALID_ATTENDANCE_TYPES.includes(normalized)) {
+      return [normalized];
+    }
+  }
+
+  return [...fallback];
+};
+
+export const validateAttendanceTypes = (types) => {
+  if (!Array.isArray(types) || types.length === 0) {
+    return "attendance_types_required";
+  }
+
+  const normalized = normalizeAttendanceTypes(types, []);
+  if (normalized.length === 0) {
+    return "attendance_types_invalid";
+  }
+
+  if (normalized.length !== types.length) {
+    return "attendance_types_invalid";
+  }
+
+  return null;
+};
+
 // ─── Map API response → form shape ───────────────────────────────────────────
 
 export const mapItemToFormData = (item) => ({
@@ -225,7 +267,7 @@ export const mapItemToFormData = (item) => ({
         : [],
   level: item.level || "beginner",
   language: item.language || "Arabic",
-  attendance_type: item.attendance_type || "online",
+  attendance_types: normalizeAttendanceTypes(item.attendance_types ?? item.attendance_type),
   price: item.price || "",
   price_before: item.price_before || "",
   discount_price: item.discount_price || "",
@@ -261,7 +303,7 @@ export const defaultFormData = {
   instructor_ids: [],
   level: "beginner",
   language: "Arabic",
-  attendance_type: "online",
+  attendance_types: ["online"],
   price: "",
   price_before: "",
   discount_price: "",

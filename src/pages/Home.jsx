@@ -10,13 +10,15 @@ import FAQ from "../components/home/FAQ";
 import { useHomePage } from "../hooks/useHomePage";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
+import { isArabicLocale } from "../utils/isArabicLocale";
+
 
 const Home = () => {
   const { hero, about, discovery, courses, testimonials, loading, error } =
     useHomePage();
   const homeFetchPending = loading && !error;
   const { i18n } = useTranslation("common");
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
 
   return (
     <>

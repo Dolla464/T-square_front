@@ -117,9 +117,12 @@ function SecureVideoPlayer({
           onUnavailableRef.current?.();
         }
 
+        const serverMessage = requestError?.response?.data?.message;
         reportPlaybackError(
           setError,
-          resolvePlaybackError(httpStatus, isArabic),
+          typeof serverMessage === "string" && serverMessage.trim() !== ""
+            ? serverMessage
+            : resolvePlaybackError(httpStatus, isArabic),
         );
         setStatus("error");
       }
@@ -195,9 +198,12 @@ function SecureVideoPlayer({
         } else if (httpStatus === 422) {
           onUnavailableRef.current?.();
         }
+        const serverMessage = requestError?.response?.data?.message;
         reportPlaybackError(
           setError,
-          resolvePlaybackError(httpStatus, isArabic),
+          typeof serverMessage === "string" && serverMessage.trim() !== ""
+            ? serverMessage
+            : resolvePlaybackError(httpStatus, isArabic),
         );
         setStatus("error");
       } finally {

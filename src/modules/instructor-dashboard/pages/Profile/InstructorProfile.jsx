@@ -22,11 +22,11 @@ import {
 } from "../../../../utils/avatar";
 import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
 import { getApiErrorMessage } from "../../../../utils/apiErrors";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
 function InstructorProfile() {
   const { t, i18n } = useTranslation("adminDashboard");
   const { user, userProfile, updateUser } = useAuth();
-  const isArabic = i18n.language === "ar";
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -99,9 +99,7 @@ function InstructorProfile() {
       const updatedData = res?.data?.data || res?.data;
 
       setImageError(false);
-      toastSuccess(
-        isArabic ? "تم تحديث الصورة بنجاح" : "Photo updated successfully",
-      );
+      toastSuccess(t("profile_page.photo_updated"));
 
       if (updateUser && updatedData) {
         updateUser(updatedData);
@@ -109,10 +107,7 @@ function InstructorProfile() {
     } catch (error) {
       console.error("Upload Error:", error);
       toastError(
-        getApiErrorMessage(
-          error,
-          isArabic ? "فشل رفع الصورة" : "Failed to upload photo",
-        ),
+        getApiErrorMessage(error, t("profile_page.photo_upload_failed")),
       );
     } finally {
       setSaveLoading(false);
@@ -126,17 +121,13 @@ function InstructorProfile() {
 
   const handleUpdateInformation = async () => {
     if (phone && phone.replace(/\D/g, "").length < 10) {
-      toastError(
-        isArabic
-          ? "رقم الهاتف يجب أن يكون 10 أرقام على الأقل"
-          : "Phone number must be at least 10 digits",
-      );
+      toastError(t("profile_page.phone_min_digits"));
       return;
     }
 
     const ok = await showConfirmCustom({
-      title: isArabic ? "تحديث البيانات" : "Update Information",
-      message: isArabic ? "هل أنت متأكد؟" : "Are you sure?",
+      title: t("profile_page.confirm_update_title"),
+      message: t("profile_page.confirm_update_message"),
       icon: "question",
       variant: "danger",
     });
@@ -157,7 +148,7 @@ function InstructorProfile() {
         facebook_url: facebookUrl,
       });
       const updatedData = res?.data?.data || res?.data;
-      toastSuccess(isArabic ? "تم التحديث بنجاح" : "Updated successfully");
+      toastSuccess(t("profile_page.update_success"));
       setIsInfoUpdated(false);
       if (updateUser) updateUser(updatedData);
     } catch (error) {
@@ -176,7 +167,7 @@ function InstructorProfile() {
         password: newPwd,
         password_confirmation: confirmPwd,
       });
-      toastSuccess(isArabic ? "تم تغيير كلمة المرور" : "Password updated");
+      toastSuccess(t("profile_page.password_updated"));
       setCurrentPwd("");
       setNewPwd("");
       setConfirmPwd("");
@@ -190,7 +181,7 @@ function InstructorProfile() {
   if (profileLoading) {
     return (
       <div className="dash-profile p-5 text-center">
-        {isArabic ? "جاري التحميل..." : "Loading..."}
+        {t("profile_page.loading")}
       </div>
     );
   }
@@ -454,7 +445,10 @@ function InstructorProfile() {
                   const lang = e.target.value;
                   i18n.changeLanguage(lang);
                   localStorage.setItem("i18nextLng", lang);
-                  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+                  document.documentElement.dir = isArabicLocale(lang)
+                    ? "rtl"
+                    : "ltr";
+                  document.documentElement.lang = lang;
                 }}
               >
                 <option value="en">English (US)</option>

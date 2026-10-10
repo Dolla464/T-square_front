@@ -8,10 +8,12 @@ import { useCertificates } from "../../hooks/useCertificates";
 import { useGroups } from "../../hooks/useGroups";
 import { showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import "../Reviews/review.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 function AdminCertificates() {
-  const { i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const { t, i18n } = useTranslation("adminDashboard");
+  const isArabic = isArabicLocale(i18n.language);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -114,16 +116,17 @@ function AdminCertificates() {
     await downloadCertificate(id, certificateNum || "certificate");
   };
 
+  const statusLabel = (status) => {
+    if (status === "issued") return t("certificates_page.status_issued");
+    if (status === "pending") return t("certificates_page.status_pending");
+    return t("certificates_page.status_revoked");
+  };
+
   return (
     <div className="admin-content-page position-relative">
       <div className="ac-header d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="ac-title">{isArabic ? "الشهادات" : "Certificates"}</h2>
-          <p className="ac-subtitle text-muted mb-0">
-            {isArabic
-              ? "إدارة ومراجعة شهادات الطلاب"
-              : "Manage and review student certificates"}
-          </p>
+          <h2 className="ac-title">{t("certificates_page.title")}</h2>
         </div>
       </div>
 
@@ -140,7 +143,7 @@ function AdminCertificates() {
                 <i className="bi bi-mortarboard fs-5"></i>
               </div>
               <span className="fw-semibold text-muted" style={{ fontSize: "0.85rem" }}>
-                {isArabic ? "هذا الشهر" : "This month"}
+                {t("certificates_page.this_month")}
               </span>
             </div>
             <div>
@@ -148,7 +151,7 @@ function AdminCertificates() {
                 {stats?.issued ?? 0}
               </h3>
               <span className="text-muted" style={{ fontSize: "0.82rem" }}>
-                {isArabic ? "إجمالي الشهادات" : "Total Issued Certificates"}
+                {t("certificates_page.total_issued")}
               </span>
             </div>
           </div>
@@ -165,7 +168,7 @@ function AdminCertificates() {
                 <i className="bi bi-clock-history fs-5"></i>
               </div>
               <span className="fw-semibold text-warning" style={{ fontSize: "0.85rem" }}>
-                {isArabic ? "قيد الانتظار" : "Pending"}
+                {t("certificates_page.pending_label")}
               </span>
             </div>
             <div>
@@ -173,7 +176,7 @@ function AdminCertificates() {
                 {stats?.pending ?? 0}
               </h3>
               <span className="text-muted" style={{ fontSize: "0.82rem" }}>
-                {isArabic ? "الشهادات المعلقة" : "Pending Certificates"}
+                {t("certificates_page.pending_certificates")}
               </span>
             </div>
           </div>
@@ -190,7 +193,7 @@ function AdminCertificates() {
                 <i className="bi bi-shield-x fs-5"></i>
               </div>
               <span className="fw-semibold text-danger" style={{ fontSize: "0.85rem" }}>
-                {isArabic ? "الملغاة" : "Revoked"}
+                {t("certificates_page.revoked_label")}
               </span>
             </div>
             <div>
@@ -198,7 +201,7 @@ function AdminCertificates() {
                 {stats?.revoked ?? 0}
               </h3>
               <span className="text-muted" style={{ fontSize: "0.82rem" }}>
-                {isArabic ? "الملغاة" : "Revoked Certificates"}
+                {t("certificates_page.revoked_certificates")}
               </span>
             </div>
           </div>
@@ -223,9 +226,7 @@ function AdminCertificates() {
                     ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium"
                     : "border-light bg-light text-muted"
                 }`}
-                placeholder={
-                  isArabic ? "بحث في الشهادات..." : "Search certificates..."
-                }
+                placeholder={t("certificates_page.search_placeholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -245,7 +246,7 @@ function AdminCertificates() {
                 style={{ minWidth: "150px" }}
               >
                 <option value="all">
-                  {isArabic ? "جميع المجموعات" : "All Groups"}
+                  {t("certificates_page.all_groups")}
                 </option>
                 {selectionGroups &&
                   selectionGroups.map((group) => (
@@ -269,32 +270,32 @@ function AdminCertificates() {
                 style={{ minWidth: "150px" }}
               >
                 <option value="all">
-                  {isArabic ? "جميع الحالات" : "All Status"}
+                  {t("certificates_page.all_statuses")}
                 </option>
-                <option value="issued">{isArabic ? "اصدر" : "Issued"}</option>
+                <option value="issued">{t("certificates_page.status_issued")}</option>
                 <option value="pending">
-                  {isArabic ? "المنتظرة" : "Pending"}
+                  {t("certificates_page.status_pending")}
                 </option>
                 <option value="revoked">
-                  {isArabic ? "الملغاة" : "Revoked"}
+                  {t("certificates_page.status_revoked")}
                 </option>
               </select>
             </div>
           </div>
 
           <div className="table-responsive">
-            <table className="table ac-table mb-0 align-middle" dir="ltr">
+            <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
               <thead className="ac-table">
                 <tr className="text-muted">
-                  <th>{isArabic ? "رقم الشهادة" : "Certificate ID"}</th>
-                  <th>{isArabic ? "اسم الطالب" : "Student name"}</th>
-                  <th>{isArabic ? "عنوان الكورس" : "Course title"}</th>
-                  <th>{isArabic ? "تاريخ الاصدار" : "Date issued"}</th>
+                  <th>{t("certificates_page.col_id")}</th>
+                  <th>{t("certificates_page.col_student")}</th>
+                  <th>{t("certificates_page.col_course")}</th>
+                  <th>{t("certificates_page.col_date")}</th>
                   <th className="text-center">
-                    {isArabic ? "الحالة" : "Status"}
+                    {t("certificates_page.col_status")}
                   </th>
                   <th className="text-center">
-                    {isArabic ? "إجراءات" : "Actions"}
+                    {t("certificates_page.col_actions")}
                   </th>
                 </tr>
               </thead>
@@ -351,17 +352,7 @@ function AdminCertificates() {
                                   : "bi-shield-exclamation"
                             } me-1`}
                           ></i>
-                          {item.status === "issued"
-                            ? isArabic
-                              ? "مُصْدَر"
-                              : "Issued"
-                            : item.status === "pending"
-                              ? isArabic
-                                ? "قيد الانتظار"
-                                : "Pending"
-                              : isArabic
-                                ? "ملغى"
-                                : "Revoked"}
+                          {statusLabel(item.status)}
                         </span>
                       </td>
                       <td className="text-center">
@@ -375,7 +366,7 @@ function AdminCertificates() {
                           </button>
                           <button
                             className="btn btn-sm ac-btn-deleteTable border-0"
-                            title="Download"
+                            title={t("certificates_page.download")}
                             onClick={() =>
                               handleDownload(item.id, item.certificate_num)
                             }
@@ -392,7 +383,7 @@ function AdminCertificates() {
                       colSpan="6"
                       className="text-center py-4 text-secondary fw-bold"
                     >
-                      {isArabic ? "لا توجد بيانات" : "No data found"}
+                      {t("certificates_page.no_data")}
                     </td>
                   </tr>
                 )}
@@ -411,7 +402,7 @@ function AdminCertificates() {
       <DetailModal
         show={showViewModal}
         onHide={() => setShowViewModal(false)}
-        title={isArabic ? "تفاصيل الشهادة" : "Certificate Details"}
+        title={t("certificates_page.details_title")}
         size="lg"
         dir={isArabic ? "rtl" : "ltr"}
       >
@@ -429,9 +420,7 @@ function AdminCertificates() {
                       role="status"
                     ></div>
                     <p className="mt-2 text-muted">
-                      {isArabic
-                        ? "جاري تحميل المعاينة..."
-                        : "Loading preview..."}
+                      Loading preview...
                     </p>
                   </div>
                 ) : previewUrl ? (
@@ -448,9 +437,7 @@ function AdminCertificates() {
                     style={{ height: "350px" }}
                   >
                     <p className="mb-0 text-muted">
-                      {isArabic
-                        ? "تعذر تحميل المعاينة"
-                        : "Could not load preview"}
+                      Could not load preview
                     </p>
                   </div>
                 )}
@@ -459,7 +446,7 @@ function AdminCertificates() {
               <div className="cert-info-list p-3 bg-light rounded-3">
                 <div className="info-item d-flex justify-content-between mb-2">
                   <span className="text-muted">
-                    {isArabic ? "اسم الطالب:" : "Student Name:"}
+                    {t("certificates_page.student_name")}
                   </span>
                   <span className="fw-medium">
                     {selectedCert.student?.full_name ?? "N/A"}
@@ -467,7 +454,7 @@ function AdminCertificates() {
                 </div>
                 <div className="info-item d-flex justify-content-between mb-2">
                   <span className="text-muted">
-                    {isArabic ? "اسم الكورس:" : "Course Title:"}
+                    {t("certificates_page.course_title")}
                   </span>
                   <span className="fw-medium">
                     {isArabic
@@ -482,7 +469,7 @@ function AdminCertificates() {
                 </div>
                 <div className="info-item d-flex justify-content-between mb-2">
                   <span className="text-muted">
-                    {isArabic ? "رقم الشهادة:" : "Certificate ID:"}
+                    {t("certificates_page.certificate_id")}
                   </span>
                   <span className="fw-medium">
                     {selectedCert.certificate_num ?? "N/A"}
@@ -490,7 +477,7 @@ function AdminCertificates() {
                 </div>
                 <div className="info-item d-flex justify-content-between">
                   <span className="text-muted">
-                    {isArabic ? "تاريخ الإصدار:" : "Issued At:"}
+                    {t("certificates_page.issued_at")}
                   </span>
                   <span className="fw-medium">
                     {selectedCert.issued_at
@@ -515,7 +502,7 @@ function AdminCertificates() {
                 ) : (
                   <>
                     <i className="bi bi-download me-1"></i>
-                    {isArabic ? "تحميل " : "Download "}
+                    {t("certificates_page.download")}
                   </>
                 )}
               </button>

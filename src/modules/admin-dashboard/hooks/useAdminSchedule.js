@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { toastSuccess, toastError } from "../../../components/shared/Toaster/toaster";
 import {
   getScheduleSessions,
@@ -55,6 +56,8 @@ const buildApiParams = (filters, viewMode) => {
 };
 
 export const useAdminSchedule = () => {
+  const { t } = useTranslation("adminDashboard");
+
   // ── Data state ────────────────────────────────────────────────────────────
   const [sessions, setSessions] = useState([]);
   const [pagination, setPagination] = useState(null);
@@ -98,13 +101,13 @@ export const useAdminSchedule = () => {
       setSessions(Array.isArray(res?.data) ? res.data : []);
       setPagination(res?.pagination ?? null);
     } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to load schedule.";
+      const msg = err?.response?.data?.message || t("schedule_page.toast_load_failed");
       setError(msg);
       toastError(msg);
     } finally {
       setLoading(false);
     }
-  }, [filters, viewMode]);
+  }, [filters, viewMode, t]);
 
   // ── Initial load + re-fetch when filters change ───────────────────────────
   useEffect(() => {
@@ -202,16 +205,16 @@ export const useAdminSchedule = () => {
     setActionLoading(true);
     try {
       await apiReschedule(sessionId, data);
-      toastSuccess("Session rescheduled successfully. Notifications sent.");
+      toastSuccess(t("schedule_page.toast_reschedule_success"));
       closeRescheduleModal();
       fetchSessions();
     } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to reschedule session.";
+      const msg = err?.response?.data?.message || t("schedule_page.toast_reschedule_failed");
       toastError(msg);
     } finally {
       setActionLoading(false);
     }
-  }, [closeRescheduleModal, fetchSessions]);
+  }, [closeRescheduleModal, fetchSessions, t]);
 
   // ── Cancel ────────────────────────────────────────────────────────────────
   const openCancelModal = useCallback((session) => {
@@ -226,16 +229,16 @@ export const useAdminSchedule = () => {
     setActionLoading(true);
     try {
       await apiCancel(sessionId, reason);
-      toastSuccess("Session cancelled. Notifications sent.");
+      toastSuccess(t("schedule_page.toast_cancel_success"));
       closeCancelModal();
       fetchSessions();
     } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to cancel session.";
+      const msg = err?.response?.data?.message || t("schedule_page.toast_cancel_failed");
       toastError(msg);
     } finally {
       setActionLoading(false);
     }
-  }, [closeCancelModal, fetchSessions]);
+  }, [closeCancelModal, fetchSessions, t]);
 
   // ── Export ────────────────────────────────────────────────────────────────
   const handleExport = useCallback(async (format) => {
@@ -248,9 +251,9 @@ export const useAdminSchedule = () => {
     try {
       await apiExport(exportFilters, format);
     } catch {
-      toastError("Export failed. Please try again.");
+      toastError(t("schedule_page.toast_export_failed"));
     }
-  }, [filters, viewMode]);
+  }, [filters, viewMode, t]);
 
   const weekBounds =
     viewMode === "week" && filters.date_from && filters.date_to

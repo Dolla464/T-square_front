@@ -2,6 +2,8 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import DashboardCard from "./DashboardCard";
 import QuizCard from "./QuizCard";
+import { isArabicLocale } from "../../../utils/isArabicLocale";
+
 
 /**
  * مكون مشترك لعرض قسم الكورسات أو الكويزات
@@ -22,7 +24,7 @@ function DashboardItemsSection({
   emptyIcon = "bi-search",
 }) {
   const { i18n } = useTranslation();
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
 
   return (
     <>

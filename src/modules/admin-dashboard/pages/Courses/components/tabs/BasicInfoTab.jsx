@@ -16,10 +16,22 @@ function BasicInfoTab({
   availableTags,
   viewingItem,
   isReadOnly,
-  isArabic,
   t,
 }) {
   const selectedInstructorIds = formData.instructor_ids || [];
+  const selectedAttendanceTypes = formData.attendance_types || [];
+  const attendanceOptions = ["online", "offline", "hybrid"];
+
+  const toggleAttendanceType = (type) => {
+    const exists = selectedAttendanceTypes.includes(type);
+    const nextTypes = exists
+      ? selectedAttendanceTypes.filter((value) => value !== type)
+      : [...selectedAttendanceTypes, type];
+
+    if (nextTypes.length === 0) return;
+
+    setFormData((prev) => ({ ...prev, attendance_types: nextTypes }));
+  };
 
   const toggleInstructor = (instructorId) => {
     const id = Number(instructorId);
@@ -89,7 +101,7 @@ function BasicInfoTab({
           >
             {formData.title || (
               <span className="text-muted">
-                {isArabic ? "بدون عنوان" : "No title"}
+                {t("courses_page.no_title")}
               </span>
             )}
           </p>
@@ -108,14 +120,14 @@ function BasicInfoTab({
       {/* Short description */}
       <div className="mb-4">
         <label className="form-label fw-bold text-dark">
-          {isArabic ? "وصف قصير" : "Short Description"}
+          {t("courses_page.short_description")}
         </label>
         <textarea
           name="short_description"
           className="form-control ac-form-textarea p-3 bg-light border-0 rounded-3"
           rows="2"
           placeholder={
-            isArabic ? "وصف مختصر للكورس" : "Brief course description"
+            t("courses_page.short_description_placeholder")
           }
           value={formData.short_description || ""}
           onChange={handleChange}
@@ -199,32 +211,68 @@ function BasicInfoTab({
         </div>
       </div>
 
-      {/* Attendance Type */}
-      <div className="row mb-4">
-        <div className="col-md-6 mb-3">
-          <label className="form-label fw-bold text-dark">
-            {isArabic ? "نوع الحضور" : "Attendance Type"}
-          </label>
-          <select
-            className="form-control ac-form-input p-3 bg-light border-0 rounded-3 text-muted"
-            name="attendance_type"
-            value={formData.attendance_type || "online"}
-            onChange={handleChange}
-            disabled={isReadOnly}
+      {/* Attendance Types */}
+      <div className="mb-4">
+        <label className="form-label fw-bold text-dark">
+          {t("content.form.fields.attendance_types")}
+        </label>
+
+        {isReadOnly ? (
+          <div className="d-flex flex-wrap gap-2 pt-2">
+            {selectedAttendanceTypes.length > 0 ? (
+              selectedAttendanceTypes.map((type) => (
+                <span
+                  key={type}
+                  className="badge bg-danger text-white px-3 py-2 rounded-pill fw-medium"
+                >
+                  {t(`content.form.fields.attendance_type_${type}`)}
+                </span>
+              ))
+            ) : (
+              <span className="text-muted small">
+                {t("content.form.fields.attendance_types_empty")}
+              </span>
+            )}
+          </div>
+        ) : (
+          <div
+            className="ac-tags-selection-box p-3 bg-light border rounded-3"
+            style={{ maxHeight: "200px", overflowY: "auto" }}
           >
-            <option value="online">{isArabic ? "أونلاين" : "Online"}</option>
-            <option value="offline">{isArabic ? "أوفلاين" : "Offline"}</option>
-            <option value="hybrid">
-              {isArabic ? "هجين (Hybrid)" : "Hybrid"}
-            </option>
-          </select>
-        </div>
+            <div className="row g-2">
+              {attendanceOptions.map((type) => {
+                const isChecked = selectedAttendanceTypes.includes(type);
+
+                return (
+                  <div key={type} className="col-md-4 col-6">
+                    <div
+                      className={`ac-tag-option p-2 rounded-3 border bg-white cursor-pointer d-flex align-items-center gap-2 ${isChecked ? "checked" : ""}`}
+                      onClick={() => toggleAttendanceType(type)}
+                    >
+                      <input
+                        type="checkbox"
+                        className="form-check-input mt-0 cursor-pointer"
+                        checked={isChecked}
+                        onChange={() => {}}
+                      />
+                      <span
+                        className={`small fw-medium ${isChecked ? "text-light" : "text-dark"}`}
+                      >
+                        {t(`content.form.fields.attendance_type_${type}`)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Instructors */}
       <div className="mb-4">
         <label className="form-label fw-bold text-dark">
-          {isArabic ? "المدربون" : "Instructors"}
+          {t("courses_page.instructors")}
         </label>
 
         {isReadOnly ? (
@@ -240,7 +288,7 @@ function BasicInfoTab({
               ))
             ) : (
               <span className="text-muted small">
-                {isArabic ? "بدون مدربين" : "No instructors assigned"}
+                {t("courses_page.no_instructors")}
               </span>
             )}
           </div>
@@ -282,7 +330,7 @@ function BasicInfoTab({
             {selectedInstructorIds.length > 1 && (
               <div className="mt-3">
                 <small className="text-muted d-block mb-2">
-                  {isArabic ? "ترتيب العرض" : "Display order"}
+                  {t("courses_page.display_order")}
                 </small>
                 <div className="d-flex flex-wrap gap-2 align-items-center">
                   {selectedInstructorIds.map((id, index) => (
@@ -299,7 +347,7 @@ function BasicInfoTab({
                           className="btn btn-outline-secondary btn-sm"
                           onClick={() => moveInstructor(index, -1)}
                           disabled={index === 0}
-                          title={isArabic ? "تحريك لأعلى" : "Move up"}
+                          title={t("courses_page.move_up")}
                         >
                           ↑
                         </button>
@@ -310,7 +358,7 @@ function BasicInfoTab({
                           disabled={
                             index === selectedInstructorIds.length - 1
                           }
-                          title={isArabic ? "تحريك لأسفل" : "Move down"}
+                          title={t("courses_page.move_down")}
                         >
                           ↓
                         </button>
@@ -394,7 +442,7 @@ function BasicInfoTab({
       <div className="mb-4">
         <div className="d-flex justify-content-between align-items-center mb-2">
           <label className="form-label fw-bold text-dark mb-0">
-            {isArabic ? "ماذا سيتعلم الطالب؟" : "What student will learn"}
+            {t("courses_page.what_student_will_learn")}
           </label>
           {!isReadOnly && (
             <button
@@ -416,11 +464,7 @@ function BasicInfoTab({
                   <input
                     type="text"
                     className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                    placeholder={
-                      isArabic
-                        ? "مثال: تعلم أساسيات البرمجة"
-                        : "e.g. Learn the basics of programming"
-                    }
+                    placeholder={t("courses_page.learning_placeholder")}
                     value={learning || ""}
                     onChange={(e) =>
                       handleLearningChange(index, e.target.value)
@@ -517,7 +561,7 @@ function BasicInfoTab({
       {!isReadOnly && (
         <div className="mb-4">
           <label className="form-label fw-bold text-dark">
-            {isArabic ? "صورة الغلاف (Cover Image)" : "Cover Image"}
+            {t("courses_page.cover_image")}
           </label>
           <input
             type="file"
@@ -539,14 +583,10 @@ function BasicInfoTab({
             >
               <i className="bi bi-cloud-arrow-up fs-1 mb-2 text-secondary"></i>
               <p className="mb-1">
-                {isArabic
-                  ? "اضغط لرفع صورة الغلاف"
-                  : "Click to upload cover image"}
+                {t("courses_page.cover_upload_hint")}
               </p>
               <small>
-                {isArabic
-                  ? "PNG, JPG أو WEBP (يفضل مقاس كبير)"
-                  : "PNG, JPG or WEBP (Large size recommended)"}
+                {t("courses_page.cover_upload_subhint")}
               </small>
             </label>
           ) : (

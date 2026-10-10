@@ -1,7 +1,7 @@
 function LessonsTab({
   courseId,
   isReadOnly,
-  isArabic,
+  t,
   lessons,
   loading,
   saving,
@@ -14,9 +14,7 @@ function LessonsTab({
     return (
       <div className="ac-tab-content">
         <div className="alert alert-info">
-          {isArabic
-            ? "احفظ الكورس أولًا ثم أضف الدروس الخاصة بالمحتوى المحمي."
-            : "Save the course first, then add private content lessons."}
+          {t("courses_page.save_course_first_lessons")}
         </div>
       </div>
     );
@@ -26,32 +24,26 @@ function LessonsTab({
     <div className="ac-tab-content">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h5 className="fw-bold mb-1">{isArabic ? "دروس الكورس" : "Course Lessons"}</h5>
-          <p className="text-muted mb-0">
-            {isArabic
-              ? "هذه الدروس خاصة بالطلاب المسجلين فقط، ومختلفة عن فيديوهات المعاينة العامة."
-              : "These lessons are private for enrolled students and separate from public preview videos."}
-          </p>
+          <h5 className="fw-bold mb-1">{t("courses_page.course_lessons")}</h5>
+          <p className="text-muted mb-0">{t("courses_page.course_lessons_hint")}</p>
         </div>
         {!isReadOnly && (
           <button type="button" className="btn btn-danger" onClick={onAddLesson}>
-            {isArabic ? "إضافة درس" : "Add Lesson"}
+            {t("courses_page.add_lesson")}
           </button>
         )}
       </div>
 
       {loading ? (
-        <div className="text-center py-4 text-muted">{isArabic ? "جاري التحميل..." : "Loading..."}</div>
+        <div className="text-center py-4 text-muted">{t("courses_page.loading")}</div>
       ) : lessons.length === 0 ? (
-        <div className="alert alert-light border">
-          {isArabic ? "لا توجد دروس بعد." : "No lessons yet."}
-        </div>
+        <div className="alert alert-light border">{t("courses_page.no_lessons_yet")}</div>
       ) : (
         lessons.map((lesson, index) => (
           <div key={lesson.id || `draft-${index}`} className="border rounded-4 p-4 mb-4 bg-light">
             <div className="row g-3">
               <div className="col-md-8">
-                <label className="form-label fw-bold">{isArabic ? "عنوان الدرس" : "Lesson Title"}</label>
+                <label className="form-label fw-bold">{t("courses_page.lesson_title")}</label>
                 <input
                   type="text"
                   className="form-control ac-form-input p-3 bg-white border-0 rounded-3"
@@ -61,7 +53,7 @@ function LessonsTab({
                 />
               </div>
               <div className="col-md-4">
-                <label className="form-label fw-bold">{isArabic ? "الترتيب" : "Sort Order"}</label>
+                <label className="form-label fw-bold">{t("courses_page.sort_order")}</label>
                 <input
                   type="number"
                   min="0"
@@ -72,7 +64,7 @@ function LessonsTab({
                 />
               </div>
               <div className="col-12">
-                <label className="form-label fw-bold">{isArabic ? "الوصف" : "Description"}</label>
+                <label className="form-label fw-bold">{t("courses_page.description")}</label>
                 <textarea
                   className="form-control ac-form-input p-3 bg-white border-0 rounded-3"
                   rows={3}
@@ -82,7 +74,7 @@ function LessonsTab({
                 />
               </div>
               <div className="col-md-6">
-                <label className="form-label fw-bold">{isArabic ? "مصدر الفيديو" : "Video Source"}</label>
+                <label className="form-label fw-bold">{t("courses_page.video_source")}</label>
                 <div className="d-flex gap-3">
                   <label className="d-flex align-items-center gap-2">
                     <input
@@ -92,7 +84,7 @@ function LessonsTab({
                       onChange={() => onUpdateLesson(index, "video_source_type", "none")}
                       disabled={isReadOnly}
                     />
-                    {isArabic ? "بدون" : "None"}
+                    {t("courses_page.video_source_none")}
                   </label>
                   <label className="d-flex align-items-center gap-2">
                     <input
@@ -115,13 +107,13 @@ function LessonsTab({
                     onChange={(e) => onUpdateLesson(index, "is_active", e.target.checked)}
                     disabled={isReadOnly}
                   />
-                  <label className="form-check-label">{isArabic ? "نشط" : "Active"}</label>
+                  <label className="form-check-label">{t("courses_page.active")}</label>
                 </div>
               </div>
               {lesson.video_source_type === "google_drive" && (
                 <div className="col-12">
                   <label className="form-label fw-bold">
-                    {isArabic ? "رابط فيديو Google Drive" : "Google Drive Video URL"}
+                    {t("courses_page.google_drive_video_url")}
                   </label>
                   <input
                     type="url"
@@ -152,7 +144,7 @@ function LessonsTab({
                   disabled={saving}
                   onClick={() => onSaveLesson(lesson, index)}
                 >
-                  {saving ? (isArabic ? "جاري الحفظ..." : "Saving...") : isArabic ? "حفظ الدرس" : "Save Lesson"}
+                  {saving ? t("courses_page.saving") : t("courses_page.save_lesson")}
                 </button>
                 {lesson.id && (
                   <button
@@ -161,7 +153,7 @@ function LessonsTab({
                     disabled={saving}
                     onClick={() => onRemoveLesson(lesson.id)}
                   >
-                    {isArabic ? "حذف" : "Delete"}
+                    {t("courses_page.delete")}
                   </button>
                 )}
               </div>

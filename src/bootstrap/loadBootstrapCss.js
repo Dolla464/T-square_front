@@ -1,3 +1,5 @@
+import { isArabicLocale } from "../utils/isArabicLocale.js";
+
 let loadedDirection = null;
 
 export function getPreferredBootstrapDirection() {
@@ -6,7 +8,7 @@ export function getPreferredBootstrapDirection() {
   }
 
   const lang = localStorage.getItem("i18nextLng") || "en";
-  return lang.toLowerCase().startsWith("ar") ? "rtl" : "ltr";
+  return isArabicLocale(lang) ? "rtl" : "ltr";
 }
 
 export function ensureBootstrapCssLoaded(

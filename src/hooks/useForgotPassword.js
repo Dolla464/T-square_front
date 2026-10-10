@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { forgotPasswordService } from '../services/forgotPassword';
+import { isArabicLocale } from "../utils/isArabicLocale";
+
 import {
   toastSuccess,
   toastError,
@@ -14,8 +16,8 @@ export const useForgotPassword = () => {
     try {
       await forgotPasswordService(email);
       const isArabic =
-        document.documentElement.lang === 'ar' ||
-        localStorage.getItem('i18nextLng')?.startsWith('ar');
+        isArabicLocale(document.documentElement.lang) ||
+        isArabicLocale(localStorage.getItem("i18nextLng"));
       toastSuccess(
         isArabic
           ? 'تم إرسال رابط إعادة تعيين كلمة المرور بنجاح. يرجى التحقق من بريدك الإلكتروني (بما في ذلك البريد العشوائي).'
@@ -26,8 +28,8 @@ export const useForgotPassword = () => {
       const responseData = err.response?.data;
       const message = responseData?.message || responseData?.error || '';
       const isArabic =
-        document.documentElement.lang === 'ar' ||
-        localStorage.getItem('i18nextLng')?.startsWith('ar');
+        isArabicLocale(document.documentElement.lang) ||
+        isArabicLocale(localStorage.getItem("i18nextLng"));
 
       const isThrottle = 
         message.toLowerCase().includes('wait') ||

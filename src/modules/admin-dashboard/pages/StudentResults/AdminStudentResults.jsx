@@ -16,6 +16,7 @@ import StudentExamResultsModal from "./StudentExamResultsModal";
 import { formatExamScore, formatExamScorePair } from "../../../shared-dashboard/utils/formatExamScore";
 import { readStudentResultsFilters } from "../../../shared-dashboard/utils/studentResultsUrlState";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
 function ResultStatusBadge({ student, t }) {
   if (!student.has_attempts) {
@@ -43,7 +44,8 @@ function ResultStatusBadge({ student, t }) {
 }
 
 function AdminStudentResults() {
-  const { t } = useTranslation("adminDashboard");
+  const { t, i18n } = useTranslation("adminDashboard");
+  const isArabic = isArabicLocale(i18n.language);
   const [searchParams] = useSearchParams();
   const restoredFromUrl = useRef(false);
   const pendingStudentId = useRef("");
@@ -172,7 +174,7 @@ function AdminStudentResults() {
       </div>
 
       <div className="ac-table-card">
-        <div className="ac-rounded-table p-3 p-md-0">
+        <div className="ac-rounded-table p-3 p-md-0" dir={isArabic ? "rtl" : "ltr"}>
           <div className="ac-filters-bar d-flex flex-column gap-3 mb-3">
             <div className="d-flex flex-column flex-md-row align-items-end gap-3 flex-wrap">
               {/* Select Group */}
@@ -325,7 +327,7 @@ function AdminStudentResults() {
                 </div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table ac-table mb-0 align-middle">
+                  <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
                     <thead>
                       <tr>
                         <th style={{ width: 60 }}>#</th>

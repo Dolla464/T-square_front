@@ -9,12 +9,13 @@ import { formatExamScore } from "../../../shared-dashboard/utils/formatExamScore
 import { toastError } from "../../../../components/shared/Toaster/toaster";
 import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
 import "../../../admin-dashboard/components/shared/AdminContentPage/AdminContentPage.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
 function GradeAttemptPage() {
   const { attemptId } = useParams();
   const navigate = useNavigate();
-  const { i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language === "ar";
+  const { t, i18n } = useTranslation("instructorDashboard");
+  const isArabic = isArabicLocale(i18n.language);
 
   const {
     loadingAttempt,
@@ -93,11 +94,7 @@ function GradeAttemptPage() {
     );
 
     if (invalid || answers.length === 0) {
-      toastError(
-        isArabic
-          ? "يرجى إدخال درجة صحيحة لكل إجابة مقالية"
-          : "Please enter a valid mark for each essay answer",
-      );
+      toastError(t("exam_grading_page.invalidMarks"));
       return;
     }
 
@@ -121,12 +118,10 @@ function GradeAttemptPage() {
     return (
       <div className="admin-content-page">
         <div className="alert alert-warning">
-          {isArabic
-            ? "تعذر تحميل المحاولة أو أنها ليست بانتظار التصحيح."
-            : "Could not load this attempt or it is not awaiting grading."}
+          {t("exam_grading_page.loadError")}
         </div>
         <Link to="/instructor/exam-grading" className="btn btn-outline-secondary">
-          {isArabic ? "العودة" : "Back"}
+          {t("exam_grading_page.back")}
         </Link>
       </div>
     );
@@ -140,11 +135,11 @@ function GradeAttemptPage() {
           className="text-decoration-none text-muted small d-inline-block mb-2"
         >
           <i className={`bi ${isArabic ? "bi-arrow-right" : "bi-arrow-left"} me-1`} />
-          {isArabic ? "العودة إلى قائمة التصحيح" : "Back to grading queue"}
+          {t("exam_grading_page.backToQueue")}
         </Link>
         <h2 className="ac-title mb-1">{review.exam_title}</h2>
         <p className="ac-subtitle text-muted mb-0">
-          {isArabic ? "الدرجة الحالية:" : "Current score:"}{" "}
+          {t("exam_grading_page.currentScore")}{" "}
           <strong>
             {formatExamScore(review.score ?? 0)} /{" "}
             {formatExamScore(review.attempt_max_marks ?? review.total_marks ?? 0)}
@@ -175,7 +170,7 @@ function GradeAttemptPage() {
           ) : (
             <i className="bi bi-check2-all me-2" />
           )}
-          {isArabic ? "اعتماد التصحيح" : "Finalize Grading"}
+          {t("exam_grading_page.finalizeGrading")}
         </button>
       </div>
     </div>

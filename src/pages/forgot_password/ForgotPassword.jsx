@@ -7,10 +7,12 @@ import { useForgotPassword } from "../../hooks/useForgotPassword";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forgotPasswordSchema } from "../../utils/validationSchemas";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function ForgotPassword() {
   const { t, i18n } = useTranslation("auth");
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
 
   const {
     register,
@@ -46,7 +48,7 @@ function ForgotPassword() {
                 src={tsquareLogo}
                 alt="T-Square Logo"
                 className="forgot-logo mb-3"
-                title="Back to Home"
+                title={t("back_to_home")}
               />
             </Link>
 
@@ -90,7 +92,7 @@ function ForgotPassword() {
               
               <div className="mt-3">
                 <Link to="/login" className="text-muted text-decoration-none small">
-                  {isArabic ? "العودة لتسجيل الدخول" : "Back to Login"}
+                  {t("forgot_form.back_to_login")}
                 </Link>
               </div>
             </Form>

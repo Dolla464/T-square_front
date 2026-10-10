@@ -1,11 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { useQuizzes } from "../../hooks/useQuizzes";
 import StatCard from "../../components/StatCard";
 import DashboardItemsSection from "../../components/DashboardItemsSection";
 import "../../styles/dashboardShared.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
 /**
  * صفحة الاختبارات - DashboardQuizzes
@@ -13,7 +15,7 @@ import "../../styles/dashboardShared.css";
  */
 function DashboardQuizzes() {
   const { t, i18n } = useTranslation("studentDashboard");
-  const isArabic = i18n.language == "ar";
+  const isArabic = isArabicLocale(i18n.language);
   const { user } = useAuth();
   const location = useLocation();
   const { quizzes, stats, loading, refetch } = useQuizzes();

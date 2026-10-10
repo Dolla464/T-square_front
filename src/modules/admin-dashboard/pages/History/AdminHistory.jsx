@@ -9,6 +9,7 @@ import { useActivityLogs } from "../../hooks/useActivityLogs";
 import { getStoredActivityLogToken } from "../../services/activityLogService";
 import { toastError } from "../../../../components/shared/Toaster/toaster";
 import "./activityHistory.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
 const METHOD_STYLES = {
   GET: { bg: "#f1f3f4", color: "#5f6368" },
@@ -28,7 +29,7 @@ const ROLE_STYLES = {
 
 function AdminHistory() {
   const { t, i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
   const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -438,7 +439,7 @@ function AdminHistory() {
 
           <div className="history-table-scroll d-none d-xl-block">
             <div className="history-table-wrap">
-            <table className="table ac-table mb-0 align-middle history-table" dir="ltr">
+            <table className="table ac-table mb-0 align-middle history-table" dir={isArabic ? "rtl" : "ltr"}>
               <thead>
                 <tr className="text-muted">
                   <th className="history-col-datetime">{t("history.columns.datetime", "Date / Time")}</th>

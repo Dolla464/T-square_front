@@ -7,13 +7,16 @@ import NotificationDetails from "../../modules/shared-dashboard/components/Notif
 import {
   getNotificationsPagePath,
   getNotificationTarget,
+  resolveNotificationCopy,
 } from "../../utils/notifications";
 import "./NotificationsDropdown.css";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function NotificationsDropdown({ Tbtn = "" }) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation("studentDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
   const locale = isArabic ? "ar-EG" : "en-GB";
   const [show, setShow] = useState(false);
   const {
@@ -101,22 +104,25 @@ function NotificationsDropdown({ Tbtn = "" }) {
 
         {!isLoading && notifications.length > 0 && (
           <div className="py-2 notifications-dropdown-list">
-            {notifications.map((notification) => (
+            {notifications.map((notification) => {
+              const copy = resolveNotificationCopy(notification, t);
+
+              return (
               <NavDropdown.Item
                 key={notification.id}
                 as="button"
                 className={`border-0 rounded-0 px-3 py-2 ${
                   notification.is_read ? "" : "notifications-item-unread"
-                }`}
+                } ${notification.type === "enrollment_pending" ? "notifications-item-pending" : ""}`}
                 onClick={() => handleNotificationClick(notification)}
               >
                 <div className="d-flex justify-content-between align-items-start gap-2">
                   <div className="flex-grow-1 text-start notifications-item-body">
                     <div className="fw-semibold small">
-                      {notification.title}
+                      {copy.title}
                     </div>
                     <div className="small text-muted">
-                      {notification.message}
+                      {copy.message}
                     </div>
                     <NotificationDetails
                       notification={notification}
@@ -135,7 +141,8 @@ function NotificationsDropdown({ Tbtn = "" }) {
                   )}
                 </div>
               </NavDropdown.Item>
-            ))}
+            );
+            })}
           </div>
         )}
     </NavDropdown>

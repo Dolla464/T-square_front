@@ -5,6 +5,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { toastWelcome, toastError } from '../components/shared/Toaster/toaster';
 import { getRouteByRole } from '../config/routes';
 import { safeReturnUrl } from '../utils/safeReturnUrl';
+import { isArabicLocale } from "../utils/isArabicLocale";
+
 
 export const useLogin = () => {
   const [loading, setLoading] = useState(false);
@@ -41,8 +43,8 @@ export const useLogin = () => {
       return actualData;
     } catch (err) {
       const isArabic =
-        document.documentElement.lang === 'ar' ||
-        localStorage.getItem('i18nextLng')?.startsWith('ar');
+        isArabicLocale(document.documentElement.lang) ||
+        isArabicLocale(localStorage.getItem("i18nextLng"));
       const errorMessage =
         err.response?.data?.message ||
         (isArabic

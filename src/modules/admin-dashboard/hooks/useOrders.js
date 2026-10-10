@@ -47,13 +47,19 @@ export const useOrders = () => {
     }
   };
 
-  const updateOrderStatus = async (id, status) => {
+  const updateOrderStatus = async (id, payload) => {
     try {
-      await updatePaymentOrdersById(id, { status });
+      await updatePaymentOrdersById(id, payload);
       toastSuccess("Order status updated successfully.");
       return true;
     } catch (err) {
-      toastError(err?.response?.data?.message || "Failed to update order status.");
+      const errors = err?.response?.data?.errors;
+      if (errors) {
+        const firstMessage = Object.values(errors).flat()[0];
+        toastError(firstMessage || err?.response?.data?.message || "Failed to update order status.");
+      } else {
+        toastError(err?.response?.data?.message || "Failed to update order status.");
+      }
       return false;
     }
   };

@@ -16,6 +16,8 @@ import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useAdminAttendance } from "../../hooks/useAdminAttendance";
 import ExportBar from "../../components/shared/ExportBar";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 import {
   buildAttendanceChartData,
   buildAttendanceChartOptions,
@@ -74,7 +76,7 @@ function StudentCourseAttendanceModal({
   useAttendanceHook = useAdminAttendance,
 }) {
   const { t, i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
 
   const {
     studentCourseAttendance,

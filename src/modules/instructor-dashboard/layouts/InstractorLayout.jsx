@@ -2,10 +2,10 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import DashboardSharedLayout from "../../shared-dashboard/components/DashboardLayout/DashboardSharedLayout";
 import { useLocation } from "react-router-dom";
-import i18next from "i18next";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useUnreadCount } from "../../../hooks/useNotifications";
 import { formatNotificationBadge } from "../../../utils/notifications";
+
 
 const INSTRUCTOR_NAV = [
   { key: "dashboard", path: "/instructor", icon: "bi-grid-1x2", end: true },
@@ -21,12 +21,12 @@ const INSTRUCTOR_NAV = [
       {
         key: "attendance",
         path: "/instructor/attendance",
-        icon: "bi-person-check-fill",
+        icon: "bi-qr-code-scan",
       },
       {
         key: "studentResults",
         path: "/instructor/student-results",
-        icon: "bi-bar-chart-line",
+        icon: "bi-bar-chart-line-fill",
       },
     ],
   },
@@ -39,11 +39,11 @@ const INSTRUCTOR_NAV = [
         path: "/instructor/exam-activation",
         icon: "bi-toggle-on",
       },
-      { key: "quizzes", path: "/instructor/quizzes", icon: "bi-chat-right-quote" },
+      { key: "quizzes", path: "/instructor/quizzes", icon: "bi-journal-text" },
       {
         key: "examGrading",
         path: "/instructor/exam-grading",
-        icon: "bi-pencil-square",
+        icon: "bi-check2-square",
       },
     ],
   },
@@ -56,39 +56,33 @@ const INSTRUCTOR_NAV = [
 ];
 
 function InstructorLayout() {
-  useTranslation("adminDashboard");
+  const { t } = useTranslation("adminDashboard");
   const location = useLocation();
   const { user } = useAuth();
   const { unreadCount } = useUnreadCount();
-  const isArabic = i18next.language === "ar";
-
-  const HomePageTitle = useMemo(
-    () => (isArabic ? `مرحبا ${user?.name}` : `Welcome Back ${user?.name}`),
-    [isArabic, user?.name],
-  );
 
   const getPageTitle = (path) => {
     if (path.startsWith("/instructor/exam-grading")) {
-      return isArabic ? "تصحيح الامتحانات" : "Exam Grading";
+      return t("sidebar.examGrading");
     }
 
     switch (path) {
       case "/instructor":
-        return HomePageTitle;
+        return t("topbar.welcome_back", { name: user?.name });
       case "/instructor/attendance":
-        return isArabic ? "الحضور والغياب" : "Attendance";
+        return t("sidebar.attendance");
       case "/instructor/schedule":
-        return isArabic ? "الجدول الزمني" : "My Schedule";
+        return t("sidebar.schedule");
       case "/instructor/student-results":
-        return isArabic ? "نتائج الطلاب" : "Students Results";
+        return t("sidebar.studentResults");
       case "/instructor/exam-activation":
-        return isArabic ? "تفعيل الامتحانات" : "Exam Activation";
+        return t("sidebar.examActivation");
       case "/instructor/quizzes":
-        return isArabic ? "الاختبارات" : "Quizzes";
+        return t("sidebar.quizzes");
       case "/instructor/notifications":
-        return isArabic ? "الإشعارات" : "Notifications";
+        return t("sidebar.Notification");
       case "/instructor/profile":
-        return isArabic ? "الملف الشخصي" : "Profile & Settings";
+        return t("profile_page.title");
       default:
         return "";
     }
@@ -96,7 +90,7 @@ function InstructorLayout() {
 
   const pageTitle = useMemo(
     () => getPageTitle(location.pathname),
-    [location.pathname, HomePageTitle], // eslint-disable-line react-hooks/exhaustive-deps
+    [location.pathname, t, user?.name],
   );
 
   const navItems = useMemo(
@@ -117,7 +111,7 @@ function InstructorLayout() {
       translationNs="adminDashboard"
       topbarCenter={null}
       pageTitle={pageTitle}
-      userRoleName={isArabic ? "مدرب" : "Instructor"}
+      userRoleName={t("history.roles.instructor")}
     />
   );
 }

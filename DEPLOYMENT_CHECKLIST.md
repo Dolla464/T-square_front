@@ -1,63 +1,133 @@
-# خطوات النشر المطلوبة يدوياً
+# Frontend CI/CD — Deployment Checklist
 
 ---
 
-## الخطوة 1 — إضافة SSH Keys على السيرفر
+## Production directory
 
-افتح terminal على جهازك المحلي ونفذ:
+```text
+/www/wwwroot/tsquarecenter.com
+```
+
+This directory contains the frontend **source repository** and Node build tooling. The production server performs the Vite production build using the server-side `.env.production` file.
+
+```text
+The production server performs the Vite production build.
+```
+
+Do not copy GitHub secrets into `.env` or `.env.production` on the server. Environment configuration remains server-side.
+
+---
+
+## GitHub Secrets
+
+Add these in **Settings → Secrets and variables → Actions → New repository secret**.
+
+Document names only — never commit secret values.
+
+| Name | Purpose |
+|---|---|
+| `SSH_HOST` | Production server host/IP for SSH deploy |
+| `SSH_USERNAME` | SSH user (for example `root`) |
+| `SSH_PRIVATE_KEY` | Private deploy key (full key contents) |
+| `SSH_PORT` | SSH port (for example `22`) |
+
+`VITE_API_URL` is **not** injected during GitHub Actions in this workflow. Production build reads server-side environment files.
+
+---
+
+## Branch behavior
+
+| Event | quality-check | deploy | lighthouse |
+|---|---|---|---|
+| push to `main` | yes | yes | yes |
+| push to `develop` | yes | no | no |
+| pull_request to `main` or `develop` | yes | no | no |
+
+Only **push to `main`** deploys to production.
+
+---
+
+## CI/CD flow
+
+### Quality checks (all supported triggers)
+
+```text
+checkout
+→ setup Node 22
+→ npm ci
+→ npm run lint            (non-blocking)
+→ npx vitest run          (non-blocking)
+→ npm audit --audit-level=high   (non-blocking)
+```
+
+Non-blocking policy:
+
+- Lint failures emit a GitHub warning and do not fail the job.
+- Test failures emit a GitHub warning and do not fail the job.
+- npm audit high-severity findings emit a GitHub warning and do not fail the job.
+
+The quality job does **not** run `npm run build` and does **not** upload artifacts.
+
+### Production deployment (`main` push only)
+
+```text
+push to main
+     ↓
+quality-check
+     ↓
+SSH to aaPanel
+     ↓
+cd /www/wwwroot/tsquarecenter.com
+git fetch origin
+git reset --hard origin/main
+npm ci
+npm run build
+     ↓
+curl verify https://tsquarecenter.com/
+     ↓
+Lighthouse on https://tsquarecenter.com
+```
+
+There is **no** artifact upload/download and **no** SCP-based `dist/` deployment.
+
+---
+
+## One-time server setup
+
+### 1. SSH deploy key on the server
+
+Generate a key locally:
 
 ```bash
 ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/tsquare_deploy
 ```
 
-ده هيعمل ملفين:
-- `~/.ssh/tsquare_deploy` ← المفتاح الخاص (Private Key) — هيتحط في GitHub
-- `~/.ssh/tsquare_deploy.pub` ← المفتاح العام (Public Key) — هيتحط في السيرفر
-
----
-
-## الخطوة 2 — إضافة المفتاح العام في السيرفر (aaPanel)
-
-اتصل بالسيرفر:
+Add the public key to the server:
 
 ```bash
-ssh root@IP_السيرفر
-```
-
-ثم:
-
-```bash
+ssh root@YOUR_SERVER_IP
 cat >> ~/.ssh/authorized_keys << 'EOF'
-[الصق هنا محتوى ملف tsquare_deploy.pub]
+[paste tsquare_deploy.pub contents here]
 EOF
 chmod 600 ~/.ssh/authorized_keys
 ```
 
----
+Add the private key to GitHub secret `SSH_PRIVATE_KEY`.
 
-## الخطوة 3 — إضافة GitHub Secrets
+### 2. Clone the frontend repo on the server
 
-روح على الـ repo في GitHub:
-**Settings → Secrets and variables → Actions → New repository secret**
+Ensure the production directory is a git checkout of the frontend repository:
 
-أضف الـ 5 secrets دول:
+```bash
+cd /www/wwwroot
+git clone <frontend-repo-url> tsquarecenter.com
+```
 
-| الاسم | القيمة |
-|---|---|
-| `VITE_API_URL` | `https://api.tsquarecenter.com/api` |
-| `SSH_HOST` | IP السيرفر (مثال: `123.456.78.90`) |
-| `SSH_USERNAME` | `root` |
-| `SSH_PRIVATE_KEY` | محتوى ملف `~/.ssh/tsquare_deploy` كاملاً (يبدأ بـ `-----BEGIN OPENSSH PRIVATE KEY-----`) |
-| `SSH_PORT` | `22` |
+Ensure `.env.production` exists on the server with the correct production API URL.
 
----
+### 3. Nginx SPA fallback (one-time manual setup)
 
-## الخطوة 4 — إعداد Nginx في aaPanel
-
-1. افتح aaPanel
-2. روح على **Website** ← اختار `tsquarecenter.com`
-3. اضغط **Config** أو **Nginx Config**
-4. جوه الـ `server { }` block، أضف:
+In aaPanel, for site `tsquarecenter.com`, ensure Nginx includes:
 
 ```nginx
 location / {
@@ -65,60 +135,26 @@ location / {
 }
 ```
 
-5. اضغط **Save** ثم **Reload Nginx**
-
-> هذا الإعداد ضروري لأن React Router يعمل client-side، وبدونه أي رابط مباشر غير الـ home page سيرجع 404.
+Save and reload Nginx once during initial setup. The GitHub Actions deploy job does **not** reload Nginx on each deploy.
 
 ---
 
-## الخطوة 5 — التأكد من مسار الموقع في aaPanel
+## First pipeline run
 
-تأكد أن الـ Document Root للموقع `tsquarecenter.com` هو:
-
-```
-/www/wwwroot/tsquarecenter.com
-```
-
-GitHub Actions هيرفع ملفات الـ `dist/` لهذا المسار مباشرةً.
-
----
-
-## كيف يعمل الـ CI/CD بعد الإعداد
-
-```
-push to main
-     ↓
-quality-check job
-  ├── npm install
-  ├── npm run lint
-  └── npm run build (مع VITE_API_URL من Secrets)
-     ↓
-deploy job
-  └── رفع dist/ للسيرفر عبر SCP
-     ↓
-lighthouse job
-  └── فحص أداء https://tsquarecenter.com
-```
-
----
-
-## الخطوة 6 — أول push للتجربة
-
-بعد ما تخلص الخطوات فوق، ادفع أي تغيير صغير على الـ `main` branch:
+After secrets and server setup are complete, push to `main`:
 
 ```bash
-git add .
-git commit -m "test: trigger CI/CD pipeline"
 git push origin main
 ```
 
-ثم راقب الـ Actions من: **GitHub repo → Actions tab**
+Monitor: **GitHub repo → Actions tab**
 
 ---
 
-## في حالة وجود مشكلة في الاتصال SSH
+## SSH troubleshooting
 
-تأكد من:
-- [ ] Port 22 مفتوح في الـ Firewall على السيرفر
-- [ ] `authorized_keys` فيه المفتاح الصح
-- [ ] صلاحيات الملف: `chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys`
+- [ ] Port 22 is open in the server firewall
+- [ ] `authorized_keys` contains the correct public key
+- [ ] Permissions: `chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys`
+- [ ] Production directory is a valid git repo with `origin` pointing to GitHub
+- [ ] Server Node.js version supports the project (Node 22 recommended)

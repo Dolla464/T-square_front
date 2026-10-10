@@ -51,8 +51,11 @@ import arorderPayments from "./locales/ar/orderPayments.json";
 import arAdminReviews from "./locales/ar/AdminReviews.json";
 import enReceptionistDashboard from "./locales/en/receptionistDashboard.json";
 import arReceptionistDashboard from "./locales/ar/receptionistDashboard.json";
+import enInstructorDashboard from "./locales/en/instructorDashboard.json";
+import arInstructorDashboard from "./locales/ar/instructorDashboard.json";
+import { isArabicLocale } from "./utils/isArabicLocale.js";
 
-i18n
+export const i18nReady = i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
@@ -81,6 +84,7 @@ i18n
         orderPayments: enorderPayments,
         AdminReviews: enAdminReviews,
         receptionistDashboard: enReceptionistDashboard,
+        instructorDashboard: enInstructorDashboard,
       },
       ar: {
         navbar: arNavbar,
@@ -106,6 +110,7 @@ i18n
         orderPayments: arorderPayments,
         AdminReviews: arAdminReviews,
         receptionistDashboard: arReceptionistDashboard,
+        instructorDashboard: arInstructorDashboard,
       },
     },
 
@@ -134,6 +139,7 @@ i18n
       "orderPayments",
       "AdminReviews",
       "receptionistDashboard",
+      "instructorDashboard",
     ],
     defaultNS: "common",
 
@@ -143,9 +149,12 @@ i18n
   });
 
 /**
- * دالة مساعدة موحدة للتأكد من اللغة الحالية
- * تدعم حالات مثل ar أو ar-SA
+ * Arabic locale helper using the current i18n language unless overridden.
  */
-export const isArabic = () => i18n.language && i18n.language.startsWith("ar");
+export function isArabic(language) {
+  return isArabicLocale(language ?? i18n.language);
+}
+
+export { isArabicLocale };
 
 export default i18n;

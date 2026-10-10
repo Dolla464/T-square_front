@@ -3,36 +3,37 @@ import { Spinner } from "react-bootstrap";
 import "./AdminContentPage.css";
 import { useState, useMemo } from "react";
 import React from "react";
+import { isArabicLocale } from "../../../../../utils/isArabicLocale";
 
-const AdminContentTableRow = React.memo(({ item, onView, onEdit, onDelete }) => {
+const AdminContentTableRow = React.memo(({ item, onView, onEdit, onDelete, t }) => {
   return (
     <tr>
       <td className="fw-medium text-dark">
-        {item.name || item.title || "Untitled"}
+        {item.name || item.title || t("content.untitled")}
       </td>
       <td className="text-secondary ac-truncate-text">
-        {item.description || "N/A"}
+        {item.description || t("content.not_available")}
       </td>
       <td className="text-center">
         <div className="d-flex justify-content-center gap-2">
           <button
             className="btn btn-sm ac-btn-view border-0"
             onClick={() => onView(item)}
-            title="View"
+            title={t("courses_page.view")}
           >
             <i className="bi bi-eye fs-6"></i>
           </button>
           <button
             className="btn btn-sm ac-btn-edit border-0"
             onClick={() => onEdit(item)}
-            title="Edit"
+            title={t("courses_page.edit")}
           >
             <i className="bi bi-pencil-square fs-6"></i>
           </button>
           <button
             className="btn btn-sm ac-btn-deleteTable border-0"
             onClick={() => onDelete(item.id)}
-            title="Delete"
+            title={t("courses_page.delete")}
           >
             <i className="bi bi-trash fs-6"></i>
           </button>
@@ -43,7 +44,8 @@ const AdminContentTableRow = React.memo(({ item, onView, onEdit, onDelete }) => 
 });
 
 function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
-  const { t } = useTranslation("adminDashboard");
+  const { t, i18n } = useTranslation("adminDashboard");
+  const isArabic = isArabicLocale(i18n.language);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
 
@@ -68,7 +70,7 @@ function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
 
   return (
    
-        <div className="ac-rounded-table p-3 p-md-0" dir="ltr">
+        <div className="ac-rounded-table p-3 p-md-0" dir={isArabic ? "rtl" : "ltr"}>
 
           <div className="ac-filters-bar d-flex align-items-center mb-3">
             <div className="ac-search-input-wrapper position-relative">
@@ -86,7 +88,7 @@ function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
             </div>
           </div>
           <div className="table-responsive">
-            <table className="table ac-table mb-0 align-middle">
+            <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
               <thead>
                 <tr>
                   <th>{t("content.table.solution")}</th>
@@ -99,7 +101,7 @@ function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
                   <tr>
                     <td colSpan={11} className="text-center py-5">
                       <div className="spinner-border text-danger" role="status">
-                        <span className="visually-hidden">Loading...</span>
+                        <span className="visually-hidden">{t("categories_page.loading")}</span>
                       </div>
                     </td>
                   </tr>
@@ -111,12 +113,13 @@ function AdminContentTable({ data, loading, onView, onEdit, onDelete }) {
                       onView={onView}
                       onEdit={onEdit}
                       onDelete={onDelete}
+                      t={t}
                     />
                   ))
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center py-4 text-muted">
-                      No data available.
+                      {t("content.no_data")}
                     </td>
                   </tr>
                 )}

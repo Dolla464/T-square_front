@@ -226,6 +226,8 @@ export function getNotificationDetailItems(notification, t, locale) {
 
   if (
     type === "enrollment" ||
+    type === "enrollment_pending" ||
+    type === "enrollment_confirmed" ||
     type === "certificate" ||
     type === "course_review_required"
   ) {
@@ -234,6 +236,24 @@ export function getNotificationDetailItems(notification, t, locale) {
       label: t("notifications.details.course"),
       value: notification.course_title,
     });
+
+    if (type === "enrollment_pending") {
+      pushDetailItem(items, {
+        key: "status",
+        label: t("notifications.details.status"),
+        value: t("notifications.details.status_pending_payment"),
+        variant: "awaiting_grading",
+      });
+    }
+
+    if (type === "enrollment_confirmed") {
+      pushDetailItem(items, {
+        key: "status",
+        label: t("notifications.details.status"),
+        value: t("notifications.details.status_confirmed"),
+        variant: "passed",
+      });
+    }
   }
 
   if (type === "exam_result") {
@@ -443,8 +463,36 @@ export const getNotificationsPagePath = (userRole) => {
   return "/student/notifications";
 };
 
+const I18N_NOTIFICATION_TYPES = new Set([
+  "enrollment_pending",
+  "enrollment_confirmed",
+]);
+
+export function resolveNotificationCopy(notification, t) {
+  const type = notification?.type ?? notification?.data?.type;
+  const courseTitle =
+    notification?.course_title ??
+    notification?.data?.course_title ??
+    "";
+
+  if (typeof t === "function" && I18N_NOTIFICATION_TYPES.has(type)) {
+    const interpolation = { course: courseTitle };
+    return {
+      title: t(`notifications.types.${type}.title`, interpolation),
+      message: t(`notifications.types.${type}.message`, interpolation),
+    };
+  }
+
+  return {
+    title: notification?.title ?? "Notification",
+    message: notification?.message ?? "",
+  };
+}
+
 export const NOTIFICATION_ICON_MAP = {
   enrollment: "bi-book",
+  enrollment_pending: "bi-hourglass-split",
+  enrollment_confirmed: "bi-check-circle",
   instructor_new_enrollment: "bi-person-plus",
   exam_result: "bi-patch-check",
   certificate: "bi-award",
@@ -538,11 +586,17 @@ export const getNotificationTarget = (notification, userRole) => {
       return "/student/certificates";
     case "session_activated":
     case "session_rescheduled":
-    case "session_cancelled":
-      return "/student/attendance";
+    case "session_cancelled": {
+      const sessionId = pickNotificationNumericField(notification, "session_id");
+      return sessionId
+        ? `/student/attendance?session=${sessionId}`
+        : "/student/attendance";
+    }
     case "exam_result":
-      return "/student/quizzes";
+      return "/student/exam-results";
     case "enrollment":
+    case "enrollment_pending":
+    case "enrollment_confirmed":
       return courseId ? `/student/course/${courseId}` : "/student/dashboard";
     default:
       return null;

@@ -7,10 +7,12 @@ import { useRegister } from "../../hooks/useRegister";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema } from "../../utils/validationSchemas";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function SignupPage() {
   const { t, i18n } = useTranslation("auth");
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
   
   const {
     register,
@@ -49,7 +51,7 @@ function SignupPage() {
                 src={tsquareLogo}
                 alt="T-Square Logo"
                 className="signup-logo mb-3"
-                title="Back to Home"
+                title={t("back_to_home")}
               />
             </Link>
 
@@ -134,11 +136,11 @@ function SignupPage() {
               {/* حقل تأكيد الباسورد */}
               <Form.Group className="mb-4 signup-form-group">
                 <Form.Label className="signup-label">
-                  {isArabic ? "تأكيد كلمة المرور" : "Confirm Password"}
+                  {t("signup_form.confirm_password_label")}
                 </Form.Label>
                 <Form.Control
                   type="password"
-                  placeholder={isArabic ? "أعد إدخال كلمة المرور" : "Confirm your password"}
+                  placeholder={t("signup_form.confirm_password_placeholder")}
                   className={`signup-input ${errors.password_confirmation ? "is-invalid" : ""}`}
                   {...register("password_confirmation")}
                 />

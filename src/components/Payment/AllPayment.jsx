@@ -13,6 +13,8 @@ import { formatCoursePrice } from "../../utils/coursePrice";
 import { openExternalUrl } from "../../utils/openExternalUrl";
 import { formatInstructorNames, getCourseInstructors } from "../../utils/courseInstructors";
 import LoadingSpiner from "../../LoadingSpiner";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function AllPayment() {
   const { slug } = useParams();
@@ -20,7 +22,7 @@ function AllPayment() {
   const isAlreadyEnrolled = location.state?.isEnrolled || false;
   const { courseData, loading, error } = useCourseSlug(slug);
   const { t } = useTranslation(["payment", "navbar", "courses"]);
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
   const { user } = useAuth();
   const { createEnrollment } = usePayment();
 

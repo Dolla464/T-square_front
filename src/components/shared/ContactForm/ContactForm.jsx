@@ -5,11 +5,13 @@ import { useContact } from "../../../hooks/useContact";
 import "./ContactForm.css";
 import i18n from "../../../i18n";
 import { useAuth } from "../../../contexts/AuthContext";
+import { isArabicLocale } from "../../../utils/isArabicLocale";
+
 
 function ContactForm({ title, subtitle, onSubmit, submitText, externalLoading }) {
   const { t } = useTranslation(["contact"]);
   const { submitContact, loading: hookLoading } = useContact();
-  //const isArabic = i18n.language === "ar";
+  //const isArabic = isArabicLocale(i18n.language);
   const loading = externalLoading || hookLoading;
 
   const { user } = useAuth();

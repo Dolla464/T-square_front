@@ -1,10 +1,33 @@
 {
   "welcome": "Welcome back, {{name}} ",
+  "attendance_type": {
+    "online": "Online",
+    "offline": "Offline",
+    "hybrid": "Hybrid",
+    "not_assigned": "Not assigned yet"
+  },
+  "topbar": {
+    "role": "Student",
+    "welcome_back": "Welcome Back {{name}}"
+  },
+  "page_titles": {
+    "answer_review": "Answer Review",
+    "quiz_exam": "Quiz Exam",
+    "exam_result_details": "Exam Result Details",
+    "attendance_today": "Today",
+    "attendance_schedule": "Schedule",
+    "attendance_history": "My Record",
+    "my_profile": "My Profile"
+  },
   "sidebar": {
     "dashboard": "Dashboard",
     "quiz": "Quiz",
+    "examResults": "Exam Results",
     "certificates": "Certificates",
     "attendance": "Attendance",
+    "attendanceToday": "Check In",
+    "attendanceSchedule": "Class Schedule",
+    "attendanceHistory": "My Attendance",
     "notifications": "Notifications",
     "profile": "Profile",
     "myLearning": "My Learning"
@@ -38,7 +61,15 @@
   "certificates_page": {
     "title": "My Certificates",
     "download_pdf": "Download PDF",
-    "completed_on": "Completed: {{date}}"
+    "completed_on": "Completed: {{date}}",
+    "not_available": "N/A",
+    "modal_title": "Certificate Details",
+    "loading_preview": "Loading preview...",
+    "preview_error": "Could not load preview",
+    "student_name": "Student Name:",
+    "course_title_label": "Course Title:",
+    "certificate_id": "Certificate ID:",
+    "issued_at": "Issued At:"
   },
   "profile_page": {
     "title": "Profile & Settings",
@@ -77,12 +108,21 @@
     "address": "Address",
     "address_placeholder": "Enter address",
     "notes": "Notes",
-    "notes_placeholder": "Enter notes"
+    "notes_placeholder": "Enter notes",
+    "loading": "Loading...",
+    "photo_updated": "Photo updated successfully",
+    "photo_upload_failed": "Failed to upload photo",
+    "phone_min_digits": "Phone number must be at least 10 digits",
+    "age_range": "Age must be a number between 1 and 120",
+    "national_id_length": "National ID must be exactly 14 digits",
+    "confirm_update_title": "Update Information",
+    "confirm_update_message": "Are you sure?",
+    "update_success": "Updated successfully",
+    "password_updated": "Password updated"
   },
-  "quizzes": {      
-      "continue": "Enter the quiz",
-      "pending": "Soon",
-
+  "quizzes": {
+    "continue": "Enter the quiz",
+    "pending": "Soon",
     "title": "My Quizzes",
     "placeholder": "Quizzes list will be available soon.",
     "page_title": "{{name}}'s Quizzes",
@@ -103,11 +143,48 @@
     "continue_learning": "Continue Learning",
     "complete": "Complete",
     "lessons": "Lessons",
+    "lessons_section_title": "Course Lessons",
     "hours": "hours",
     "students": "Students",
     "of": "of",
     "lessons_lowercase": "lessons",
-    "about_instructor": "About Your Instructor"
+    "about_instructor": "About Your Instructor",
+    "lessons_waiting_group": "Lessons will appear once your learning group is assigned.",
+    "lessons_waiting_session": "No lessons are available yet. Lessons unlock after your scheduled sessions.",
+    "lesson_not_yet_available": "This lesson is not available yet.",
+    "lesson_not_found": "Lesson not found",
+    "back_to_dashboard": "Back to dashboard",
+    "course_not_found": "Course not found",
+    "failed_to_load": "Failed to load course",
+    "about_course": "About this Course",
+    "what_you_learn": "What You will Learn",
+    "preview": "Preview",
+    "course_preview": "Course Preview",
+    "view_certificate": "View Certificate",
+    "leave_review_btn": "Leave Review",
+    "review_accepted": "Your review has been accepted",
+    "review_rejected": "Your review was rejected",
+    "review_pending": "Your review has been submitted and is pending approval",
+    "hrs": "hrs",
+    "wks": "wks",
+    "min": "min",
+    "video_available": "Video available",
+    "watch_lesson": "Watch Lesson",
+    "bio": "Bio",
+    "chat_whatsapp": "Chat on WhatsApp",
+    "about_instructors": "About the Instructors",
+    "about_the_instructor": "About the Instructor",
+    "level": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "status": {
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "not_started": "Not Started",
+      "pending_payment": "Pending Payment"
+    }
   },
   "quiz_results": {
     "title": "Quiz Results Details",
@@ -129,7 +206,66 @@
     "enrollment_pending": "Course enrollment: Not completed yet",
     "enrollment_pending_hint": "Your course will be marked completed when your learning group closes. You will then be asked to leave a review.",
     "leave_review_for_certificate": "Leave Review to Get Certificate",
-    "exit": "Exit"
+    "exit": "Exit",
+    "leave_exam_title": "Leave Exam",
+    "leave_exam_message": "Your current answers will be submitted and the attempt will end. Continue?",
+    "timeout_toast": "Exam duration has ended! Your answers were submitted automatically.",
+    "submitted_toast": "Your attempt has been submitted.",
+    "submit_error": "Failed to submit exam",
+    "not_ready": "Exam not ready yet, please wait",
+    "result_read_error": "Could not read exam result",
+    "not_found": "Quiz not found or error occurred",
+    "no_questions": "This exam has no questions yet. Please contact the administrator.",
+    "submission_received": "Submission Received",
+    "your_result": "Your Result",
+    "pending_grading_message": "Your exam was submitted successfully. Essay questions are awaiting instructor grading.",
+    "pending_grading_notify": "You will be notified when your final result is ready.",
+    "partial_score": "Current partial score:",
+    "timed_out_failed": "Time expired — Below passing mark",
+    "failed": "Failed — Below passing mark",
+    "passed": "Passed — Above passing mark",
+    "finish_failed_toast": "You did not pass. Better luck next time!",
+    "finish_passed_toast": "Congratulations! You passed the exam!",
+    "question": "Question",
+    "of_label": "of",
+    "your_answer": "Your Answer",
+    "answer_placeholder": "Write your answer here (optional)...",
+    "previous": "Previous",
+    "next": "Next",
+    "finish": "Finish",
+    "back": "Back"
+  },
+  "exam_results": {
+    "page_title": "{{name}}'s Exam Results",
+    "section_title": "Your Exam Results",
+    "empty": "You don't have any exam results yet.",
+    "empty_cta": "Go to Quiz",
+    "no_matches": "No matching results found.",
+    "search_placeholder": "Search by exam or course...",
+    "show_details": "Show Details",
+    "hide_details": "Hide Details",
+    "detail_title": "Exam Result Details",
+    "back_to_list": "Back to Exam Results",
+    "not_found": "This exam result could not be found.",
+    "attempts_count": "{{count}} attempt(s)",
+    "stats": {
+      "total": "Total Results",
+      "passed": "Passed",
+      "failed": "Failed",
+      "under_grading": "Under Grading"
+    },
+    "filters": {
+      "all": "All",
+      "passed": "Passed",
+      "failed": "Failed",
+      "under_grading": "Under Grading"
+    },
+    "status": {
+      "passed": "Passed",
+      "failed": "Failed",
+      "in_progress": "In Progress",
+      "attempted": "Attempted"
+    }
   },
   "attempt_review": {
     "region_label": "Attempt answer review",
@@ -137,6 +273,7 @@
     "open_full_page": "Open Full Page",
     "back_to_results": "Back to Results",
     "back_to_quizzes": "Back to Quizzes",
+    "back_to_exam_results": "Back to Exam Results",
     "review_loading": "Loading answer review...",
     "review_error": "Unable to load answer review.",
     "question_num": "Question {{num}}",
@@ -185,6 +322,16 @@
     "loading": "Loading...",
     "loadError": "Unable to load notifications right now.",
     "go": "Go",
+    "types": {
+      "enrollment_pending": {
+        "title": "Enrollment Pending",
+        "message": "Your enrollment request for \"{{course}}\" is pending approval and payment confirmation."
+      },
+      "enrollment_confirmed": {
+        "title": "Enrollment Activated",
+        "message": "You can now access \"{{course}}\" and start learning."
+      }
+    },
     "details": {
       "course": "Course",
       "group": "Group",
@@ -201,12 +348,44 @@
       "newSchedule": "New schedule",
       "status_passed": "Passed",
       "status_failed": "Failed",
-      "status_awaiting_grading": "Awaiting grading"
+      "status_awaiting_grading": "Awaiting grading",
+      "status_pending_payment": "Pending payment",
+      "status_confirmed": "Confirmed"
     }
+  },
+  "course_pending": {
+    "banner_title": "Enrollment Pending",
+    "banner_message": "Your enrollment is pending until payment is confirmed and approved. You can follow up with us on WhatsApp.",
+    "whatsapp_button": "Contact us on WhatsApp"
   },
   "attendance": {
     "title": "My Attendance",
     "refresh": "Refresh",
+    "nav": {
+      "today": "Today",
+      "schedule": "Schedule",
+      "history": "My Record"
+    },
+    "heroSession": "Current Session",
+    "readyToCheckIn": "You can check in now.",
+    "checkInNow": "Check In Now",
+    "closeCheckIn": "Close",
+    "useScanInstead": "Scan instructor QR instead",
+    "useShowQrInstead": "Show my QR instead",
+    "moreSessionsToday": "{{count}} more session(s) today",
+    "viewMyRecord": "View my attendance record",
+    "scheduleSubtitle": "Upcoming sessions for the next 30 days",
+    "scheduleSectionCount": "{{count}} session(s)",
+    "historySubtitle": "Track your attendance progress by group",
+    "retryCamera": "Try again",
+    "cameraPermissionDenied": "Camera permission denied. Please allow camera access in your browser settings.",
+    "cameraUnavailable": "Could not open camera. Make sure it is not in use by another app and try again.",
+    "stats": {
+      "attendanceRate": "Attendance Rate",
+      "presentSessions": "Present",
+      "absentSessions": "Absent",
+      "totalSessions": "Total Sessions"
+    },
     "tabs": {
       "today": "Today",
       "schedule": "Schedule",
@@ -218,6 +397,9 @@
     "selectSession": "Select a session to view your QR code.",
     "alreadyMarked": "Your attendance has been recorded for this session.",
     "sessionNotActive": "This session is not active yet.",
+    "sessionUpcoming": "This session has not started yet.",
+    "sessionCancelled": "This session was cancelled.",
+    "sessionEndedAbsent": "This session has ended and you were marked absent.",
     "qrNotAvailable": "QR code is not available outside the attendance window.",
     "qrWindow": "Available from {{start}} to {{end}}",
     "qrHint": "Show this code to the scanner to register your attendance.",
@@ -257,6 +439,40 @@
       "active": "Active",
       "completed": "Completed",
       "cancelled": "Cancelled"
+    },
+    "room_prefix": "Room",
+    "today_label": "Today",
+    "statusLabels": {
+      "present": "Present",
+      "absent": "Absent",
+      "late": "Late",
+      "not_marked": "Not Marked"
+    },
+    "scheduleGroups": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "thisWeek": "This Week",
+      "later": "Later"
+    }
+  },
+  "leave_review": {
+    "page_title": "Leave Your Review | T-Square",
+    "back_to_course": "Back to Course",
+    "hero_title": "Course, Instructors and Center Review",
+    "hero_sub": "Your feedback helps us improve course content, instructor performance, and the overall center and platform experience. After submitting your review, your certificate will become available.",
+    "additional_comments": "Additional Comments",
+    "comments_placeholder": "Write any additional feedback here...",
+    "submitting": "Submitting...",
+    "submit": "Submit Reviews",
+    "cancel": "Cancel",
+    "rate_instructor": "Rate instructor:",
+    "instructors_group": "Group 3: Instructors",
+    "rating": {
+      "very_poor": "Very Poor",
+      "poor": "Poor",
+      "fair": "Fair",
+      "good": "Good",
+      "excellent": "Excellent"
     }
   }
 }

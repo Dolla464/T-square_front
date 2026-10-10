@@ -5,6 +5,7 @@ import { useCategories } from "../../hooks/useCategories";
 import { showConfirmCustom } from "../../../../components/shared/ConfirmDialog/confirmDialog";
 import { toastError } from "../../../../components/shared/Toaster/toaster";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
 const defaultFormData = {
   name: "",
@@ -13,7 +14,13 @@ const defaultFormData = {
   status: "active",
 };
 
-function StatusBadge({ status, onClick, isArabic }) {
+function StatusBadge({ status, onClick }) {
+  const { t } = useTranslation("adminDashboard");
+  const label =
+    status === "hidden"
+      ? t("categories_page.status_hidden")
+      : t("categories_page.status_active");
+
   return (
     <span
       className={`badge rounded-pill ${status === "active" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"}`}
@@ -23,9 +30,7 @@ function StatusBadge({ status, onClick, isArabic }) {
       <i
         className={`bi ${status === "hidden" ? "bi-shield-exclamation" : "bi-patch-check-fill"} me-1`}
       ></i>
-      {status === "hidden"
-        ? isArabic ? "غير نشط" : "Hidden"
-        : isArabic ? "نشط" : "Active"}
+      {label}
     </span>
   );
 }
@@ -44,8 +49,8 @@ function AdminCategories() {
     updateCategory,
   } = useCategories();
 
-  const { i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const { t, i18n } = useTranslation("adminDashboard");
+  const isArabic = isArabicLocale(i18n.language);
 
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -144,11 +149,16 @@ function AdminCategories() {
     }));
   };
 
+  const getStatusLabel = (status) =>
+    status === "hidden"
+      ? t("categories_page.status_hidden")
+      : t("categories_page.status_active");
+
   const handleSubmitWrapper = async (e) => {
     e.preventDefault();
 
     if (!formData.name) {
-      toastError(isArabic ? "يجب إدخال اسم التصنيف" : "Category name is required");
+      toastError(t("categories_page.name_required"));
       return;
     }
 
@@ -175,25 +185,22 @@ function AdminCategories() {
       refreshChildren();
       getCategoriesTree();
       handleBack();
-    } catch (err) {
+    } catch {
       // Error handled in hook
     }
   };
 
   const handleStatusChange = async (id, currentStatus, isParent = false) => {
     const updatedStatus = currentStatus === "active" ? "hidden" : "active";
+    const statusLabel = getStatusLabel(updatedStatus);
 
     const confirmed = await showConfirmCustom({
-      title: isArabic ? "تغيير الحالة" : "Change Category Status",
-      message: isArabic
-        ? isParent
-          ? `هل أنت متأكد من تغيير حالة القسم الرئيسي إلى "${updatedStatus}"؟ سيتم تطبيق نفس الحالة على جميع الأقسام الفرعية.`
-          : `هل أنت متأكد من تغيير حالة التصنيف إلى "${updatedStatus}"`
-        : isParent
-          ? `Are you sure you want to change the parent category status to "${updatedStatus}"? All sub-categories will be updated too.`
-          : `Are you sure you want to change status to "${updatedStatus}"`,
-      confirmText: isArabic ? "نعم" : "Yes",
-      cancelText: isArabic ? "لا" : "No",
+      title: t("categories_page.change_status_title"),
+      message: isParent
+        ? t("categories_page.change_status_parent_message", { status: statusLabel })
+        : t("categories_page.change_status_message", { status: statusLabel }),
+      confirmText: t("categories_page.yes"),
+      cancelText: t("categories_page.no"),
     });
 
     if (confirmed) {
@@ -203,7 +210,7 @@ function AdminCategories() {
         if (isParent) {
           getCategoriesTree();
         }
-      } catch (error) {
+      } catch {
         // Error handled in hook
       }
     }
@@ -217,7 +224,7 @@ function AdminCategories() {
     <div className="d-flex justify-content-center gap-2">
       <button
         className="btn btn-sm ac-btn-view border-0"
-        title="View"
+        title={t("categories_page.view")}
         onClick={(e) => {
           e.stopPropagation();
           handleView(id);
@@ -227,7 +234,7 @@ function AdminCategories() {
       </button>
       <button
         className="btn btn-sm ac-btn-edit border-0"
-        title="Edit"
+        title={t("categories_page.edit")}
         onClick={(e) => {
           e.stopPropagation();
           handleEdit(id);
@@ -244,13 +251,9 @@ function AdminCategories() {
         <>
           <div className="ac-header d-flex justify-content-between align-items-center mb-4">
             <div>
-              <h2 className="ac-title">
-                {isArabic ? "التصنيفات" : "Categories"}
-              </h2>
+              <h2 className="ac-title">{t("categories_page.title")}</h2>
               <p className="ac-subtitle text-muted mb-0">
-                {isArabic
-                  ? "إدارة جميع التصنيفات"
-                  : "Manage all categories"}
+                {t("categories_page.subtitle")}
               </p>
             </div>
             <button
@@ -259,35 +262,34 @@ function AdminCategories() {
             >
               <i className="bi bi-plus-lg me-0 me-md-1"></i>
               <span className="d-none d-md-inline">
-                {isArabic ? "إضافة تصنيف" : "Add Category"}
+                {t("categories_page.add_category")}
               </span>
             </button>
           </div>
 
-          {/* Parent Categories Table */}
           <div className="ac-table-card mb-4">
             <div className="ac-table-container">
               <div className="ac-rounded-table p-3 p-md-0">
                 <h6 className="ac-subtitle fw-semibold mb-3 px-3 pt-3">
-                  {isArabic ? "الأقسام الرئيسية" : "Parent Categories"}
+                  {t("categories_page.parent_categories")}
                 </h6>
                 <div className="table-responsive">
-                  <table className="table ac-table mb-0 align-middle" dir="ltr">
+                  <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
                     <thead>
                       <tr>
                         <th style={{ width: "60px" }}>#</th>
-                        <th>{isArabic ? "اسم التصنيف" : "Category Name"}</th>
+                        <th>{t("categories_page.col_name")}</th>
                         <th className="text-center">
-                          {isArabic ? "عدد الأبناء" : "Sub-Categories"}
+                          {t("categories_page.col_sub_count")}
                         </th>
                         <th className="text-center">
-                          {isArabic ? "الحالة" : "Status"}
+                          {t("categories_page.col_status")}
                         </th>
                         <th className="text-center">
-                          {isArabic ? "تاريخ الإنشاء" : "Created At"}
+                          {t("categories_page.col_created_at")}
                         </th>
                         <th className="text-center">
-                          {isArabic ? "الإجراءات" : "Actions"}
+                          {t("categories_page.col_actions")}
                         </th>
                       </tr>
                     </thead>
@@ -296,7 +298,7 @@ function AdminCategories() {
                         <tr>
                           <td colSpan={6} className="text-center py-5">
                             <div className="spinner-border text-danger" role="status">
-                              <span className="visually-hidden">Loading...</span>
+                              <span className="visually-hidden">{t("categories_page.loading")}</span>
                             </div>
                           </td>
                         </tr>
@@ -322,7 +324,6 @@ function AdminCategories() {
                             <td className="text-center">
                               <StatusBadge
                                 status={item.status || "active"}
-                                isArabic={isArabic}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleStatusChange(item.id, item.status || "active", true);
@@ -340,7 +341,7 @@ function AdminCategories() {
                       ) : (
                         <tr>
                           <td colSpan={6} className="text-center py-4 text-muted">
-                            {isArabic ? "لا يوجد أقسام رئيسية" : "No parent categories found"}
+                            {t("categories_page.no_parent_categories")}
                           </td>
                         </tr>
                       )}
@@ -351,19 +352,14 @@ function AdminCategories() {
             </div>
           </div>
 
-          {/* Children Categories Table */}
           <div className="ac-table-card">
             <div className="ac-table-container">
               <div className="ac-rounded-table p-3 p-md-0">
                 <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3 px-3 pt-3">
                   <h6 className="ac-subtitle fw-semibold mb-0">
                     {selectedParentName
-                      ? isArabic
-                        ? `الأقسام الفرعية: ${selectedParentName}`
-                        : `Sub-Categories: ${selectedParentName}`
-                      : isArabic
-                        ? "كل الأقسام الفرعية"
-                        : "All Sub-Categories"}
+                      ? t("categories_page.sub_categories_named", { name: selectedParentName })
+                      : t("categories_page.sub_categories_all")}
                   </h6>
                   <div className="ac-search-input-wrapper position-relative" style={{ width: "100%", maxWidth: "320px" }}>
                     <i
@@ -373,11 +369,7 @@ function AdminCategories() {
                     <input
                       type="text"
                       className={`form-control ac-search-input ps-5 py-2 border-2 rounded-3 shadow-sm transition-all ${searchTerm ? "border-danger bg-danger-subtle text-danger-emphasis fw-medium" : "border-light bg-light text-muted"}`}
-                      placeholder={
-                        isArabic
-                          ? "بحث عن تصنيف..."
-                          : "Search for category..."
-                      }
+                      placeholder={t("categories_page.search_placeholder")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       style={{ zIndex: 1, position: "relative" }}
@@ -386,22 +378,22 @@ function AdminCategories() {
                 </div>
 
                 <div className="table-responsive">
-                  <table className="table ac-table mb-0 align-middle" dir="ltr">
+                  <table className="table ac-table mb-0 align-middle" dir={isArabic ? "rtl" : "ltr"}>
                     <thead>
                       <tr>
                         <th style={{ width: "60px" }}>#</th>
-                        <th>{isArabic ? "اسم التصنيف" : "Category Name"}</th>
+                        <th>{t("categories_page.col_name")}</th>
                         <th className="text-center">
-                          {isArabic ? "التصنيف الأب" : "Parent"}
+                          {t("categories_page.col_parent")}
                         </th>
                         <th className="text-center">
-                          {isArabic ? "الحالة" : "Status"}
+                          {t("categories_page.col_status")}
                         </th>
                         <th className="text-center">
-                          {isArabic ? "تاريخ الإنشاء" : "Created At"}
+                          {t("categories_page.col_created_at")}
                         </th>
                         <th className="text-center">
-                          {isArabic ? "الإجراءات" : "Actions"}
+                          {t("categories_page.col_actions")}
                         </th>
                       </tr>
                     </thead>
@@ -410,7 +402,7 @@ function AdminCategories() {
                         <tr>
                           <td colSpan={6} className="text-center py-5">
                             <div className="spinner-border text-danger" role="status">
-                              <span className="visually-hidden">Loading...</span>
+                              <span className="visually-hidden">{t("categories_page.loading")}</span>
                             </div>
                           </td>
                         </tr>
@@ -425,7 +417,6 @@ function AdminCategories() {
                             <td className="text-center">
                               <StatusBadge
                                 status={item.status || "active"}
-                                isArabic={isArabic}
                                 onClick={() => handleStatusChange(item.id, item.status || "hidden")}
                               />
                             </td>
@@ -440,7 +431,7 @@ function AdminCategories() {
                       ) : (
                         <tr>
                           <td colSpan={6} className="text-center py-4 text-muted">
-                            {isArabic ? "لا يوجد تصنيفات" : "No categories found"}
+                            {t("categories_page.no_categories")}
                           </td>
                         </tr>
                       )}
@@ -464,16 +455,10 @@ function AdminCategories() {
               ></i>
               <span className="ms-2 me-2 fs-5 fw-bold text-dark">
                 {viewingItem
-                  ? isArabic
-                    ? "عرض بيانات التصنيف"
-                    : "View Category"
+                  ? t("categories_page.view_category")
                   : editingItem
-                    ? isArabic
-                      ? "تعديل بيانات التصنيف"
-                      : "Edit Category"
-                    : isArabic
-                      ? "إضافة تصنيف جديد"
-                      : "Add New Category"}
+                    ? t("categories_page.edit_category")
+                    : t("categories_page.add_new_category")}
               </span>
             </button>
           </div>
@@ -482,15 +467,13 @@ function AdminCategories() {
             <div className="ac-tab-content basic-info">
               <div className="mb-4">
                 <label className="form-label fw-bold text-dark">
-                  {isArabic ? "اسم التصنيف" : "Category Name"}
+                  {t("categories_page.name_label")}
                 </label>
                 <input
                   type="text"
                   name="name"
                   className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                  placeholder={
-                    isArabic ? "أدخل اسم التصنيف" : "Enter category name"
-                  }
+                  placeholder={t("categories_page.name_placeholder")}
                   value={formData.name || ""}
                   onChange={handleChange}
                   disabled={!!viewingItem}
@@ -506,12 +489,10 @@ function AdminCategories() {
                     style={{ cursor: viewingItem ? "default" : "pointer" }}
                   >
                     <strong className="d-block mb-1">
-                      {isArabic ? "تصنيف رئيسي" : "Main Category"}
+                      {t("categories_page.main_category")}
                     </strong>
                     <small className="text-muted">
-                      {isArabic
-                        ? "اجعل هذا تصنيفاً رئيسياً (لا يتبع أي تصنيف آخر)"
-                        : "Make this a main category (does not belong to any other category)"}
+                      {t("categories_page.main_category_hint")}
                     </small>
                   </label>
                 </div>
@@ -538,7 +519,7 @@ function AdminCategories() {
                 {!isMainCategory && (
                   <div className="col-md-6 mb-3 mb-md-0">
                     <label className="form-label fw-bold text-dark">
-                      {isArabic ? "التصنيف الأب" : "Parent Category"}
+                      {t("categories_page.parent_category")}
                     </label>
                     <select
                       name="parent_id"
@@ -549,7 +530,7 @@ function AdminCategories() {
                       required
                     >
                       <option value="">
-                        {isArabic ? "اختر التصنيف الأب" : "Select parent category"}
+                        {t("categories_page.select_parent")}
                       </option>
                       {treeCategories.map((cat) => (
                         <option key={cat.id} value={cat.id} disabled={editingItem === cat.id}>
@@ -563,7 +544,7 @@ function AdminCategories() {
                 {editingItem && (
                   <div className={isMainCategory ? "col-md-12" : "col-md-6"}>
                     <label className="form-label fw-bold text-dark">
-                      {isArabic ? "الحالة" : "Status"}
+                      {t("categories_page.col_status")}
                     </label>
                     <select
                       name="status"
@@ -572,8 +553,8 @@ function AdminCategories() {
                       onChange={handleChange}
                       disabled={!!viewingItem}
                     >
-                      <option value="active">{isArabic ? "نشط" : "Active"}</option>
-                      <option value="hidden">{isArabic ? "مخفي" : "Hidden"}</option>
+                      <option value="active">{t("categories_page.status_active")}</option>
+                      <option value="hidden">{t("categories_page.status_hidden")}</option>
                     </select>
                   </div>
                 )}
@@ -581,14 +562,12 @@ function AdminCategories() {
 
               <div className="mb-4">
                 <label className="form-label fw-bold text-dark">
-                  {isArabic ? "الوصف" : "Description"}
+                  {t("categories_page.description")}
                 </label>
                 <textarea
                   name="description"
                   className="form-control ac-form-input p-3 bg-light border-0 rounded-3"
-                  placeholder={
-                    isArabic ? "أدخل وصف التصنيف..." : "Enter category description..."
-                  }
+                  placeholder={t("categories_page.description_placeholder")}
                   value={formData.description || ""}
                   onChange={handleChange}
                   disabled={!!viewingItem}
@@ -606,12 +585,10 @@ function AdminCategories() {
                   >
                     {loading ? (
                       <div className="spinner-border spinner-border-sm text-light" role="status">
-                        <span className="visually-hidden">Loading...</span>
+                        <span className="visually-hidden">{t("categories_page.loading")}</span>
                       </div>
-                    ) : isArabic ? (
-                      "حفظ التغييرات"
                     ) : (
-                      "Save Changes"
+                      t("categories_page.save_changes")
                     )}
                   </button>
                 </div>

@@ -6,10 +6,20 @@ import { getStudents as defaultGetStudents } from "../../services/studentsServic
 import { getCourses as defaultGetCourses } from "../../services/coursesServices";
 import { selectClass, dateInputClass } from "../../components/shared/adminUiStyles";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
 const parseListResponse = (res) => {
   const list = res?.data;
   return Array.isArray(list) ? list : [];
+};
+
+const VALID_ATTENDANCE_TYPES = ["online", "offline", "hybrid"];
+
+const normalizeCourseAttendanceTypes = (course) => {
+  if (!Array.isArray(course?.attendance_types)) return [];
+  return course.attendance_types
+    .map((type) => String(type).trim().toLowerCase())
+    .filter((type) => VALID_ATTENDANCE_TYPES.includes(type));
 };
 
 function AdminCreateOrder({
@@ -19,7 +29,7 @@ function AdminCreateOrder({
   basePath = "/admin",
 }) {
   const { t, i18n } = useTranslation("orderPayments");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
   const navigate = useNavigate();
   const { createOrder } = useOrdersHook();
 
@@ -39,6 +49,7 @@ function AdminCreateOrder({
   const [formData, setFormData] = useState({
     student_id: "",
     course_id: "",
+    attendance_type: "",
     billing_name: "",
     billing_email: "",
     billing_phone: "",
@@ -134,8 +145,15 @@ function AdminCreateOrder({
   const handleCourseChange = (e) => {
     const id = e.target.value;
     const course = displayCourses.find((c) => String(c.id) === id) || null;
+    const supportedTypes = normalizeCourseAttendanceTypes(course);
     setSelectedCourse(course);
-    setFormData((prev) => ({ ...prev, course_id: id }));
+    setFormData((prev) => ({
+      ...prev,
+      course_id: id,
+      attendance_type: supportedTypes.includes(prev.attendance_type)
+        ? prev.attendance_type
+        : "",
+    }));
   };
 
   const handleChange = (e) => {
@@ -145,13 +163,14 @@ function AdminCreateOrder({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.student_id || !formData.course_id) return;
+    if (!formData.student_id || !formData.course_id || !formData.attendance_type) return;
 
     setSubmitting(true);
     try {
       await createOrder({
         student_id: Number(formData.student_id),
         course_id: Number(formData.course_id),
+        attendance_type: formData.attendance_type,
         billing_name: formData.billing_name || undefined,
         billing_email: formData.billing_email || undefined,
         billing_phone: formData.billing_phone || undefined,
@@ -176,6 +195,11 @@ function AdminCreateOrder({
   const showCoursesHint =
     coursesPagination?.total > displayCourses.length && !debouncedCourseSearch.trim();
 
+  const courseAttendanceTypes = useMemo(
+    () => normalizeCourseAttendanceTypes(selectedCourse),
+    [selectedCourse],
+  );
+
   return (
     <div className="admin-content-page">
       <div className="ac-form-container">
@@ -195,7 +219,12 @@ function AdminCreateOrder({
             className="btn btn-danger px-4 ac-publish-btn"
             type="button"
             onClick={handleSubmit}
-            disabled={submitting || !formData.student_id || !formData.course_id}
+            disabled={
+              submitting ||
+              !formData.student_id ||
+              !formData.course_id ||
+              !formData.attendance_type
+            }
           >
             {submitting ? (
               <>
@@ -311,6 +340,30 @@ function AdminCreateOrder({
               </div>
 
             </div>
+
+            {selectedCourse && courseAttendanceTypes.length > 0 && (
+              <div className="row g-4 mb-2">
+                <div className="col-md-6">
+                  <label className="form-label fw-bold text-dark">
+                    {t("attendanceType")} <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    name="attendance_type"
+                    className={`p-3 ${selectClass(!!formData.attendance_type)}`}
+                    value={formData.attendance_type}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">{t("selectAttendanceType")}</option>
+                    {courseAttendanceTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {t(`attendanceTypes.${type}`)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
 
             {/* Course price preview */}
             {selectedCourse && (

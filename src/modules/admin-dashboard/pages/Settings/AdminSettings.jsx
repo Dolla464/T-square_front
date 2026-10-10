@@ -9,10 +9,12 @@ import { useAdminSettings } from "../../hooks/useAdminSettings";
 // استيراد ملف التنسيق المخصص والمدعوم بالتعليقات العربية للمطورين
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import "./settings.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 function AdminSettings() {
   const { t, i18n } = useTranslation("adminDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
 
   // استدعاء الهوك المخصص لإدارة حالة الميديا والاتصال بالـ APIs المحددة
   const {
@@ -127,21 +129,15 @@ function AdminSettings() {
 
     // فحص حجم الملف بحد أقصى 3 ميجابايت
     if (file.size > 3 * 1024 * 1024) {
-      toastError(
-        isArabic
-          ? "عذراً، حجم الصورة يتجاوز الحد الأقصى المسموح به وهو 3 ميجابايت!"
-          : "Sorry, the image size exceeds the maximum limit of 3MB!",
-      );
+      toastError(t("settings_page.image_size_limit"));
       if (heroInputRef.current) heroInputRef.current.value = "";
       return;
     }
 
     // إظهار نافذة التأكيد المخصصة للاستبدال
     const confirmed = await showConfirmCustom({
-      title: isArabic ? "استبدال صورة الهيرو" : "Replace Hero Image",
-      message: isArabic
-        ? "هل أنت متأكد من استبدال صورة خلفية الهيرو الحالية بالصورة الجديدة؟"
-        : "Are you sure you want to replace the current hero background image with the new one?",
+      title: t("settings_page.replace_hero_title"),
+      message: t("settings_page.replace_hero_message"),
       icon: "warning",
       variant: "danger",
     });
@@ -216,10 +212,8 @@ function AdminSettings() {
 
       // إظهار نافذة التأكيد المخصصة للاستبدال الكامل
       const confirmed = await showConfirmCustom({
-        title: isArabic ? "استبدال صور القسم" : "Replace Section Images",
-        message: isArabic
-          ? "هل أنت متأكد من حذف واستبدال جميع الصور الحالية بالصور الجديدة؟"
-          : "Are you sure you want to delete and replace all current images with the new ones?",
+        title: t("settings_page.replace_section_title"),
+        message: t("settings_page.replace_section_message"),
         icon: "warning",
         variant: "danger",
       });
@@ -231,10 +225,8 @@ function AdminSettings() {
 
     // إظهار نافذة التأكيد المخصصة للاستبدال الكامل
     const confirmed = await showConfirmCustom({
-      title: isArabic ? "استبدال صور القسم" : "Replace Section Images",
-      message: isArabic
-        ? "هل أنت متأكد من حذف واستبدال جميع الصور الحالية بالصور الجديدة؟"
-        : "Are you sure you want to delete and replace all current images with the new ones?",
+      title: t("settings_page.replace_section_title"),
+      message: t("settings_page.replace_section_message"),
       icon: "warning",
       variant: "danger",
     });
@@ -316,10 +308,8 @@ function AdminSettings() {
 
       // إظهار نافذة التأكيد المخصصة للاستبدال الكامل
       const confirmed = await showConfirmCustom({
-        title: isArabic ? "استبدال صور المعرض" : "Replace Gallery Images",
-        message: isArabic
-          ? "هل أنت متأكد من حذف واستبدال جميع صور المعرض الحالية بالصور الجديدة؟"
-          : "Are you sure you want to delete and replace all current gallery images with the new ones?",
+        title: t("settings_page.replace_gallery_title"),
+        message: t("settings_page.replace_gallery_message"),
         icon: "warning",
         variant: "danger",
       });
@@ -373,7 +363,7 @@ function AdminSettings() {
       <div className="ac-header d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="ac-title">
-            {isArabic ? "إعدادات المنصة" : "Platform Settings"}
+            {t("settings_page.title")}
           </h2>
           <p className="ac-subtitle text-muted mb-0">
             {isArabic
@@ -389,7 +379,7 @@ function AdminSettings() {
             <span className="visually-hidden">Loading...</span>
           </div>
           <p className="mt-2 text-muted fw-semibold">
-            {isArabic ? "جاري تحميل البيانات..." : "Loading content..."}
+            {t("settings_page.loading")}
           </p>
         </div>
       )}
@@ -417,7 +407,7 @@ function AdminSettings() {
                       onClick={handleCancelGeneral}
                     >
                       <i className="bi bi-arrow-counterclockwise me-1"></i>
-                      {isArabic ? "تراجع" : "Undo"}
+                      {t("settings_page.undo")}
                     </button>
 
                     {/* زر حفظ التغييرات (Save) */}
@@ -427,7 +417,7 @@ function AdminSettings() {
                       onClick={handleSaveGeneral}
                     >
                       <i className="bi bi-check-lg me-1"></i>
-                      {isArabic ? "حفظ التغييرات" : "Save Changes"}
+                      {t("settings_page.save_changes")}
                     </button>
                   </>
                 ) : (
@@ -438,7 +428,7 @@ function AdminSettings() {
                     onClick={() => setIsEditingGeneral(true)}
                   >
                     <i className="bi bi-pencil me-1"></i>
-                    {isArabic ? "تعديل" : "Edit"}
+                    {t("settings_page.edit")}
                   </button>
                 )}
               </div>
@@ -448,7 +438,7 @@ function AdminSettings() {
               {/* Platform Name */}
               <div className="general-settings-row">
                 <span className="general-settings-label">
-                  {isArabic ? "Platform Name" : "Platform Name"}
+                  {t("settings_page.platform_name")}
                 </span>
                 {isEditingGeneral ? (
                   <input
@@ -472,7 +462,7 @@ function AdminSettings() {
               {/* Support Email */}
               <div className="general-settings-row">
                 <span className="general-settings-label">
-                  {isArabic ? "Support Email" : "Support Email"}
+                  {t("settings_page.support_email")}
                 </span>
                 {isEditingGeneral ? (
                   <input
@@ -496,7 +486,7 @@ function AdminSettings() {
               {/* Support Whatsapp */}
               <div className="general-settings-row">
                 <span className="general-settings-label">
-                  {isArabic ? "Support Whatsapp" : "Support Whatsapp"}
+                  {t("settings_page.support_whatsapp")}
                 </span>
                 {isEditingGeneral ? (
                   <input
@@ -520,7 +510,7 @@ function AdminSettings() {
               {/* Facebook URL */}
               <div className="general-settings-row">
                 <span className="general-settings-label">
-                  {isArabic ? "Facebook URL" : "Facebook URL"}
+                  {t("settings_page.facebook_url")}
                 </span>
                 {isEditingGeneral ? (
                   <input
@@ -544,7 +534,7 @@ function AdminSettings() {
               {/* Instagram URL */}
               <div className="general-settings-row">
                 <span className="general-settings-label">
-                  {isArabic ? "Instagram URL" : "Instagram URL"}
+                  {t("settings_page.instagram_url")}
                 </span>
                 {isEditingGeneral ? (
                   <input
@@ -568,7 +558,7 @@ function AdminSettings() {
               {/* LinkedIn URL */}
               <div className="general-settings-row">
                 <span className="general-settings-label">
-                  {isArabic ? "LinkedIn URL" : "LinkedIn URL"}
+                  {t("settings_page.linkedin_url")}
                 </span>
                 {isEditingGeneral ? (
                   <input
@@ -694,7 +684,7 @@ function AdminSettings() {
                   <div className="hero-live-toolbar">
                     <div className="hero-mock-live-badge">
                       <span className="live-dot"></span>
-                      {isArabic ? "معاينة مباشرة" : "Live Preview"}
+                      {t("settings_page.live_preview")}
                     </div>
 
                     <div className="hero-live-tools">
@@ -708,7 +698,7 @@ function AdminSettings() {
                         </button>
                         <button
                           type="button"
-                          className={`hero-mock-lang-btn${heroPreviewLang === "ar" ? " active" : ""}`}
+                          className={`hero-mock-lang-btn${isArabicLocale(heroPreviewLang) ? " active" : ""}`}
                           onClick={() => setHeroPreviewLang("ar")}
                         >
                           AR
@@ -726,7 +716,7 @@ function AdminSettings() {
                       <label
                         htmlFor="heroUploadInput"
                         className="hero-compact-upload"
-                        title={isArabic ? "تغيير الخلفية" : "Change background"}
+                        title={t("settings_page.change_background")}
                         style={{
                           cursor: uploading ? "not-allowed" : "pointer",
                         }}
@@ -739,14 +729,14 @@ function AdminSettings() {
                   {/* overlaid hero text */}
                   <div
                     className="hero-live-content"
-                    dir={heroPreviewLang === "ar" ? "rtl" : "ltr"}
+                    dir={isArabicLocale(heroPreviewLang) ? "rtl" : "ltr"}
                   >
                     <h2 className="hero-live-title">
                       {localGeneralSettings[
                         `hero_title_${heroPreviewLang}`
                       ] || (
                         <span className="hero-live-placeholder">
-                          {heroPreviewLang === "ar"
+                          {isArabicLocale(heroPreviewLang)
                             ? "عنوان الهيرو"
                             : "Hero Title"}
                         </span>
@@ -768,7 +758,7 @@ function AdminSettings() {
                         `hero_subtitle_${heroPreviewLang}`
                       ] || (
                         <span className="hero-live-placeholder">
-                          {heroPreviewLang === "ar"
+                          {isArabicLocale(heroPreviewLang)
                             ? "النص الوصفي للهيرو يظهر هنا"
                             : "Hero subtitle text appears here"}
                         </span>
@@ -806,7 +796,7 @@ function AdminSettings() {
                     <div className="d-flex flex-column gap-2">
                       <div>
                         <label className="hero-field-label">
-                          {isArabic ? "العنوان الرئيسي" : "Main Title"}
+                          {t("settings_page.main_title")}
                         </label>
                         <input
                           type="text"
@@ -823,9 +813,9 @@ function AdminSettings() {
                       </div>
                       <div>
                         <label className="hero-field-label">
-                          {isArabic ? "النص المميز" : "Highlighted Text"}
+                          {t("settings_page.highlighted_text")}
                           <span className="hero-highlight-badge">
-                            {isArabic ? "ملون" : "Colored"}
+                            {t("settings_page.colored")}
                           </span>
                         </label>
                         <input
@@ -843,7 +833,7 @@ function AdminSettings() {
                       </div>
                       <div>
                         <label className="hero-field-label">
-                          {isArabic ? "النص الوصفي" : "Subtitle"}
+                          {t("settings_page.subtitle")}
                         </label>
                         <textarea
                           rows={2}
@@ -933,7 +923,7 @@ function AdminSettings() {
                 disabled={uploading}
               >
                 <i className="bi bi-arrow-counterclockwise me-1"></i>
-                {isArabic ? "تراجع" : "Reset"}
+                {t("settings_page.reset")}
               </button>
               <button
                 type="button"
@@ -942,7 +932,7 @@ function AdminSettings() {
                 disabled={uploading}
               >
                 <i className="bi bi-check-lg me-1"></i>
-                {isArabic ? "حفظ التغييرات" : "Save Changes"}
+                {t("settings_page.save_changes")}
               </button>
             </div>
           </div>
@@ -961,7 +951,7 @@ function AdminSettings() {
                 </span>
               </div>
               <span className="capacity-badge ">
-                {aboutImages.length} / 3 {isArabic ? "صور" : "Images"}
+                {t("settings_page.images_count", { count: aboutImages.length })}
               </span>
             </div>
             <div className="settings-title-divider"></div>
@@ -991,7 +981,7 @@ function AdminSettings() {
                         checked={aboutAction === "append"}
                         onChange={() => setAboutAction("append")}
                       />
-                      <span>{isArabic ? "إضافة وإلحاق (Append)" : "Append & Add"}</span>
+                      <span>{t("settings_page.append_add")}</span>
                     </label> */}
                     <label className="action-radio-label">
                       <input
@@ -1002,7 +992,7 @@ function AdminSettings() {
                         onChange={() => setAboutAction("replace")}
                       />
                       <span>
-                        {isArabic ? "مسح واستبدال (Replace)" : "Replace All"}
+                        {t("settings_page.replace_all")}
                       </span>
                     </label>
                   </div>
@@ -1054,7 +1044,7 @@ function AdminSettings() {
                             );
                             setLightboxIndex(index);
                           }}
-                          title={isArabic ? "عرض كبر" : "Zoom View"}
+                          title={t("settings_page.zoom_view")}
                         >
                           <i className="bi bi-eye-fill text-danger fs-5"></i>
                         </button>
@@ -1076,7 +1066,7 @@ function AdminSettings() {
                                 : `Image #${index + 1}`,
                             );
                           }}
-                          title={isArabic ? "حذف الصورة" : "Delete Image"}
+                          title={t("settings_page.delete_image")}
                         >
                           <i className="bi bi-trash-fill text-danger fs-5"></i>
                         </button> */}
@@ -1104,7 +1094,7 @@ function AdminSettings() {
                   className="btn settings-btn-primary text-white px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2"
                 >
                   <i className="bi bi-plus-lg"></i>
-                  {isArabic ? "صور الاستبدال" : "Replacement Images"}
+                  {t("settings_page.replacement_images")}
                 </label>
                 <span className="text-muted small ms-2 pe-none">
                   (
@@ -1133,7 +1123,7 @@ function AdminSettings() {
               <span
                 className={`capacity-badge ${discoveryMedia.length >= 30 ? "danger" : discoveryMedia.length >= 25 ? "warning" : ""}`}
               >
-                {discoveryMedia.length} / 30 {isArabic ? "صورة" : "Photos"}
+                {t("settings_page.photos_count", { count: discoveryMedia.length })}
               </span>
             </div>
             <div className="settings-title-divider"></div>
@@ -1164,7 +1154,7 @@ function AdminSettings() {
                         onChange={() => setDiscoveryAction("append")}
                       />
                       <span>
-                        {isArabic ? "إضافة وإلحاق (Append)" : "Append & Add"}
+                        {t("settings_page.append_add")}
                       </span>
                     </label>
                     <label className="action-radio-label">
@@ -1176,7 +1166,7 @@ function AdminSettings() {
                         onChange={() => setDiscoveryAction("replace")}
                       />
                       <span>
-                        {isArabic ? "مسح واستبدال (Replace)" : "Replace All"}
+                        {t("settings_page.replace_all")}
                       </span>
                     </label>
                   </div>
@@ -1232,7 +1222,7 @@ function AdminSettings() {
                                 setLightboxSlides(discoveryPhotos);
                                 setLightboxIndex(index);
                               }}
-                              title={isArabic ? "عرض كبر" : "Zoom View"}
+                              title={t("settings_page.zoom_view")}
                             >
                               <i className="bi bi-eye-fill text-danger fs-5"></i>
                             </button>
@@ -1254,7 +1244,7 @@ function AdminSettings() {
                                     : `Gallery photo #${index + 1}`,
                                 );
                               }}
-                              title={isArabic ? "حذف الصورة" : "Delete Image"}
+                              title={t("settings_page.delete_image")}
                             >
                               <i className="bi bi-trash-fill text-danger fs-5"></i>
                             </button>
@@ -1283,7 +1273,7 @@ function AdminSettings() {
                   className="btn settings-btn-primary text-white px-4 py-2.5 rounded-3 fw-bold d-inline-flex align-items-center gap-2"
                 >
                   <i className="bi bi-plus-lg"></i>
-                  {isArabic ? "رفع وسائط المعرض" : "Upload Gallery Media"}
+                  {t("settings_page.upload_gallery_media")}
                 </label>
                 <span className="text-muted small ms-2 pe-none">
                   (
@@ -1330,7 +1320,7 @@ function AdminSettings() {
               <span className="visually-hidden">Loading...</span>
             </div>
             <h5 className="fw-bold text-dark mb-1">
-              {isArabic ? "جاري رفع الملفات..." : "Uploading files..."}
+              {t("settings_page.uploading_files")}
             </h5>
             <p className="text-muted small mb-0">
               {isArabic

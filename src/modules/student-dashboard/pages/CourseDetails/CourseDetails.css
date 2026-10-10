@@ -124,6 +124,73 @@
   color: #fff;
 }
 
+.cd-status-pending {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.cd-body-pending {
+  padding-top: 0;
+}
+
+.cd-pending-banner {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin: 0 auto 24px;
+  max-width: 1100px;
+  padding: 20px 24px;
+  border-radius: var(--cd-radius);
+  border: 1px solid #fcd34d;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  box-shadow: var(--cd-shadow);
+}
+
+.cd-pending-banner-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f59e0b;
+  color: #fff;
+  flex-shrink: 0;
+  font-size: 1.35rem;
+}
+
+.cd-pending-banner-title {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.cd-pending-banner-message {
+  margin: 0 0 16px;
+  color: #78350f;
+  line-height: 1.6;
+}
+
+.cd-pending-whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: #25d366;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.cd-pending-whatsapp-btn:hover {
+  background-color: #1da851;
+}
+
 /* ── عنوان Hero ── */
 .cd-hero-title {
   font-size: 2rem;

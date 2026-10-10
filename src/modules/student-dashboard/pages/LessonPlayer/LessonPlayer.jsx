@@ -5,11 +5,14 @@ import { useTranslation } from "react-i18next";
 import SecureVideoPlayer from "../../../../components/shared/SecureVideoPlayer/SecureVideoPlayer";
 import { useCourseDetails } from "../../hooks/useCousrsesDetails";
 import "./LessonPlayer.css";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
+const isSessionGatedAttendance = (attendanceType) => attendanceType !== "online";
 
 function LessonPlayer() {
   const { courseId, lessonId } = useParams();
-  const { i18n } = useTranslation("studentDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const { t, i18n } = useTranslation("studentDashboard");
+  const isArabic = isArabicLocale(i18n.language);
 
   const { courseData, loading, error } = useCourseDetails(courseId);
 
@@ -37,11 +40,14 @@ function LessonPlayer() {
   const lesson = courseData.lessons?.find((item) => String(item.id) === String(lessonId));
 
   if (!lesson) {
+    const sessionGated = isSessionGatedAttendance(courseData.enrollment?.attendance_type);
+    const unavailableMessage = sessionGated
+      ? t("course.lesson_not_yet_available")
+      : t("course.lesson_not_found");
+
     return (
       <div className="lesson-player-page lesson-player-page--error" dir={isArabic ? "rtl" : "ltr"}>
-        <div className="alert alert-danger mb-0">
-          {isArabic ? "الدرس غير موجود" : "Lesson not found"}
-        </div>
+        <div className="alert alert-warning mb-0">{unavailableMessage}</div>
       </div>
     );
   }

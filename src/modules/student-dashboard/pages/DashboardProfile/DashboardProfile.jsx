@@ -22,11 +22,12 @@ import {
 } from "../../../../utils/avatar";
 import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
 import { getApiErrorMessage } from "../../../../utils/apiErrors";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 function DashboardProfile() {
   const { t, i18n } = useTranslation("studentDashboard");
   const { user, userProfile, updateUser } = useAuth();
-  const isArabic = i18n.language === "ar";
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -108,9 +109,7 @@ function DashboardProfile() {
 
       setImageError(false);
 
-      toastSuccess(
-        isArabic ? "تم تحديث الصورة بنجاح" : "Photo updated successfully",
-      );
+      toastSuccess(t("profile_page.photo_updated"));
 
       if (updateUser && updatedData) {
         updateUser(updatedData);
@@ -118,10 +117,7 @@ function DashboardProfile() {
     } catch (error) {
       console.error("Upload Error:", error);
       toastError(
-        getApiErrorMessage(
-          error,
-          isArabic ? "فشل رفع الصورة" : "Failed to upload photo",
-        ),
+        getApiErrorMessage(error, t("profile_page.photo_upload_failed")),
       );
     } finally {
       setSaveLoading(false);
@@ -135,22 +131,14 @@ function DashboardProfile() {
 
   const handleUpdateInformation = async () => {
     if (phone && phone.replace(/\D/g, "").length < 10) {
-      toastError(
-        isArabic
-          ? "رقم الهاتف يجب أن يكون 10 أرقام على الأقل"
-          : "Phone number must be at least 10 digits",
-      );
+      toastError(t("profile_page.phone_min_digits"));
       return;
     }
 
     if (age !== "") {
       const ageValue = Number(age);
       if (!Number.isInteger(ageValue) || ageValue < 1 || ageValue > 120) {
-        toastError(
-          isArabic
-            ? "السن يجب أن يكون رقماً بين 1 و 120"
-            : "Age must be a number between 1 and 120",
-        );
+        toastError(t("profile_page.age_range"));
         return;
       }
     }
@@ -158,18 +146,14 @@ function DashboardProfile() {
     if (nationalId) {
       const normalizedNationalId = String(nationalId).replace(/\D/g, "");
       if (normalizedNationalId.length !== 14) {
-        toastError(
-          isArabic
-            ? "الرقم القومي يجب أن يكون 14 رقمًا"
-            : "National ID must be exactly 14 digits",
-        );
+        toastError(t("profile_page.national_id_length"));
         return;
       }
     }
 
     const ok = await showConfirmCustom({
-      title: isArabic ? "تحديث البيانات" : "Update Information",
-      message: isArabic ? "هل أنت متأكد؟" : "Are you sure?",
+      title: t("profile_page.confirm_update_title"),
+      message: t("profile_page.confirm_update_message"),
       icon: "question",
       variant: "danger",
     });
@@ -189,7 +173,7 @@ function DashboardProfile() {
         notes,
       });
       const updatedData = res?.data?.data || res?.data;
-      toastSuccess(isArabic ? "تم التحديث بنجاح" : "Updated successfully");
+      toastSuccess(t("profile_page.update_success"));
       setIsInfoUpdated(false);
       if (updateUser) updateUser(updatedData);
     } catch (error) {
@@ -208,7 +192,7 @@ function DashboardProfile() {
         password: newPwd,
         password_confirmation: confirmPwd,
       });
-      toastSuccess(isArabic ? "تم تغيير كلمة المرور" : "Password updated");
+      toastSuccess(t("profile_page.password_updated"));
       setCurrentPwd("");
       setNewPwd("");
       setConfirmPwd("");
@@ -224,10 +208,10 @@ function DashboardProfile() {
       <div className="dash-profile dash-profile-loading">
         <div className="spinner-border text-danger" role="status">
           <span className="visually-hidden">
-            {isArabic ? "جاري التحميل..." : "Loading..."}
+            {t("profile_page.loading")}
           </span>
         </div>
-        <span>{isArabic ? "جاري التحميل..." : "Loading..."}</span>
+        <span>{t("profile_page.loading")}</span>
       </div>
     );
   }
@@ -510,7 +494,10 @@ function DashboardProfile() {
                   const lang = e.target.value;
                   i18n.changeLanguage(lang);
                   localStorage.setItem("i18nextLng", lang);
-                  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+                  document.documentElement.dir = isArabicLocale(lang)
+                    ? "rtl"
+                    : "ltr";
+                  document.documentElement.lang = lang;
                 }}
               >
                 <option value="en">English (US)</option>

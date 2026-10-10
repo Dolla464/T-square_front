@@ -6,10 +6,12 @@ import "./DashboardCertificates.css";
 import StatCard from "../../components/StatCard";
 
 import { getStudentCourses } from "../../hooks/useCourses";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
+
 
 function DashboardCertificates() {
   const { t, i18n } = useTranslation("studentDashboard");
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
 
   const {
     certificates,
@@ -168,7 +170,7 @@ function DashboardCertificates() {
                 {/* تفاصيل */}
                 <div className="cert-card-body">
                   <h6 className="cert-course-title">
-                    {cert?.course_title ?? (isArabic ? "غير متاح" : "N/A")}
+                    {cert?.course_title ?? t("certificates_page.not_available")}
                   </h6>
                   <p className="cert-date">
                     {t("certificates_page.completed_on", {
@@ -208,7 +210,7 @@ function DashboardCertificates() {
           <DetailModal
             show={showModal}
             onHide={() => setShowModal(false)}
-            title={isArabic ? "تفاصيل الشهادة" : "Certificate Details"}
+            title={t("certificates_page.modal_title")}
             dir={isArabic ? "rtl" : "ltr"}
           >
               {selectedCert && (
@@ -225,9 +227,7 @@ function DashboardCertificates() {
                           role="status"
                         ></div>
                         <p className="mt-2 text-muted">
-                          {isArabic
-                            ? "جاري تحميل المعاينة..."
-                            : "Loading preview..."}
+                          {t("certificates_page.loading_preview")}
                         </p>
                       </div>
                     ) : previewUrl ? (
@@ -244,9 +244,7 @@ function DashboardCertificates() {
                         style={{ height: "350px" }}
                       >
                         <p className="mb-0 text-muted">
-                          {isArabic
-                            ? "تعذر تحميل المعاينة"
-                            : "Could not load preview"}
+                          {t("certificates_page.preview_error")}
                         </p>
                       </div>
                     )}
@@ -255,7 +253,7 @@ function DashboardCertificates() {
                   <div className="cert-info-list p-3 bg-light rounded-3">
                     <div className="info-item d-flex justify-content-between mb-2">
                       <span className="text-muted">
-                        {isArabic ? "اسم الطالب:" : "Student Name:"}
+                        {t("certificates_page.student_name")}
                       </span>
                       <span className="fw-medium">
                         {selectedCert?.student_name ?? "N/A"}
@@ -263,7 +261,7 @@ function DashboardCertificates() {
                     </div>
                     <div className="info-item d-flex justify-content-between mb-2">
                       <span className="text-muted">
-                        {isArabic ? "اسم الكورس:" : "Course Title:"}
+                        {t("certificates_page.course_title_label")}
                       </span>
                       <span className="fw-medium ">
                         {selectedCert?.course_title ?? "N/A"}
@@ -271,7 +269,7 @@ function DashboardCertificates() {
                     </div>
                     <div className="info-item d-flex justify-content-between mb-2">
                       <span className="text-muted">
-                        {isArabic ? "رقم الشهادة:" : "Certificate ID:"}
+                        {t("certificates_page.certificate_id")}
                       </span>
                       <span className="fw-medium">
                         {selectedCert?.certificate_num ?? "N/A"}
@@ -279,7 +277,7 @@ function DashboardCertificates() {
                     </div>
                     <div className="info-item d-flex justify-content-between">
                       <span className="text-muted">
-                        {isArabic ? "تاريخ الإصدار:" : "Issued At:"}
+                        {t("certificates_page.issued_at")}
                       </span>
                       <span className="fw-medium">
                         {selectedCert?.issued_at

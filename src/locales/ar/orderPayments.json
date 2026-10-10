@@ -14,6 +14,8 @@
   "search": "ابحث عن الطلاب...",
   "allStudents": "كل الطلاب",
   "allPayments": "كل المدفوعات",
+  "allAttendanceTypes": "كل أنواع الحضور",
+  "attendanceTypeUnassigned": "غير محدد",
   "dateFrom": "تاريخ البداية",
   "dateTo": "تاريخ النهاية",
   "selectedPeriod": "الفترة المحددة",
@@ -64,5 +66,33 @@
 
   "deleteOrderTitle": "تأكيد حذف الطلب",
   "deleteOrderMessage": "هل أنت متأكد من حذف طلب \"{{name}}\"؟ سيتم إلغاء تسجيل الطالب في الكورس وإزالته من المجموعة. الشهادات ونتائج الامتحانات السابقة ستبقى محفوظة. لا يمكن التراجع.",
-  "deleteOrderConfirm": "نعم، احذف الطلب"
+  "deleteOrderConfirm": "نعم، احذف الطلب",
+
+  "attendanceType": "نوع الحضور",
+  "selectAttendanceType": "اختر نوع الحضور...",
+  "attendanceTypeRequired": "يرجى اختيار نوع الحضور.",
+  "attendanceTypeUnavailable": "لا توجد أنواع حضور متاحة لهذا الكورس.",
+  "selectAttendanceTypeHint": "اختر طريقة حضور الطالب في هذا الكورس.",
+  "attendanceTypes": {
+    "online": "أونلاين",
+    "offline": "أوفلاين",
+    "hybrid": "هجين"
+  },
+
+  "changeStatusTitle": "تغيير حالة الطلب",
+  "changeStatusMessage": "هل تريد تغيير حالة هذا الطلب من \"{{from}}\" إلى \"{{to}}\"؟",
+  "changeStatusMessageWithAttendance": "هل تريد تغيير حالة هذا الطلب من \"{{from}}\" إلى \"{{to}}\" بنوع حضور \"{{attendanceType}}\"؟",
+  "changeStatusConfirm": "موافق",
+  "changeStatusCancel": "تراجع",
+
+  "actions": "الإجراءات",
+  "viewDetails": "عرض التفاصيل",
+  "delete": "حذف",
+  "noOrders": "لا توجد طلبات دفع",
+  "orderDetails": "تفاصيل الطلب",
+  "orderIdLabel": "رقم الطلب:",
+  "studentName": "اسم الطالب:",
+  "email": "البريد الإلكتروني:",
+  "close": "إغلاق",
+  "thisOrder": "هذا الطلب"
 }

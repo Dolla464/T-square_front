@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import DashboardSharedLayout from "../../shared-dashboard/components/DashboardLayout/DashboardSharedLayout";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useLocation } from "react-router-dom";
-import i18next from "i18next";
 import { useUnreadCount } from "../../../hooks/useNotifications";
 import { formatNotificationBadge } from "../../../utils/notifications";
+import { getStudentCourses } from "../hooks/useCourses";
+import { shouldShowStudentAttendanceNav } from "../../../utils/attendanceTypes";
 
 const STUDENT_NAV = [
   {
@@ -15,14 +17,38 @@ const STUDENT_NAV = [
   },
   {
     key: "attendance",
-    path: "/student/attendance",
     icon: "bi-calendar-check",
+    children: [
+      {
+        key: "attendanceToday",
+        path: "/student/attendance",
+        icon: "bi-check-circle-fill",
+        end: true,
+      },
+      {
+        key: "attendanceSchedule",
+        path: "/student/attendance/schedule",
+        icon: "bi-calendar-week",
+        end: true,
+      },
+      {
+        key: "attendanceHistory",
+        path: "/student/attendance/history",
+        icon: "bi-bar-chart-line",
+        end: true,
+      },
+    ],
   },
   {
     key: "myLearning",
     icon: "bi-book",
     children: [
       { key: "quiz", path: "/student/quizzes", icon: "bi-pencil-square" },
+      {
+        key: "examResults",
+        path: "/student/exam-results",
+        icon: "bi-bar-chart-line-fill",
+      },
       { key: "certificates", path: "/student/certificates", icon: "bi-award-fill" },
     ],
   },
@@ -35,14 +61,25 @@ const STUDENT_NAV = [
 ];
 
 function DashboardLayout() {
+  const { t } = useTranslation("studentDashboard");
   const { user } = useAuth();
   const location = useLocation();
-  const isArabic = i18next.language === "ar";
   const { unreadCount } = useUnreadCount();
+  const { enrolledCourses, loading } = getStudentCourses();
+
+  const showAttendanceNav = useMemo(() => {
+    if (loading) {
+      return true;
+    }
+
+    return shouldShowStudentAttendanceNav(enrolledCourses);
+  }, [enrolledCourses, loading]);
 
   if (!user) return null;
 
-  const navItems = STUDENT_NAV.map((item) => {
+  const navItems = STUDENT_NAV.filter(
+    (item) => item.key !== "attendance" || showAttendanceNav,
+  ).map((item) => {
     const badge = formatNotificationBadge(unreadCount);
     if (item.key === "notifications" && badge != null) {
       return { ...item, badge };
@@ -50,40 +87,36 @@ function DashboardLayout() {
     return item;
   });
 
-  const HomePageTitle =
-    user.role === "student"
-      ? isArabic
-        ? `مرحبا ${user.name}`
-        : `Welcome Back ${user.name}`
-      : user.role === "instructor"
-        ? isArabic
-          ? `مرحبا ${user.name}`
-          : `Welcome Back ${user.name}`
-        : isArabic
-          ? `مرحبا ${user.name}`
-          : `Welcome Back ${user.name}`;
-
   const getPageTitle = (path) => {
     if (path.includes("/attempts/") && path.endsWith("/review")) {
-      return isArabic ? "مراجعة الإجابات" : "Answer Review";
+      return t("page_titles.answer_review");
     }
     if (path.startsWith("/student/quizzes/")) {
-      return isArabic ? "اختبار الكويز" : "Quiz Exam";
+      return t("page_titles.quiz_exam");
+    }
+    if (path.startsWith("/student/exam-results/") && path !== "/student/exam-results") {
+      return t("page_titles.exam_result_details");
     }
     switch (path) {
       case "/student":
       case "/student/dashboard":
-        return HomePageTitle;
+        return t("topbar.welcome_back", { name: user.name });
       case "/student/quizzes":
-        return isArabic ? "الأختبارات" : "Quizzes";
+        return t("sidebar.quiz");
+      case "/student/exam-results":
+        return t("sidebar.examResults");
       case "/student/attendance":
-        return isArabic ? "الحضور" : "Attendance";
+        return t("page_titles.attendance_today");
+      case "/student/attendance/schedule":
+        return t("page_titles.attendance_schedule");
+      case "/student/attendance/history":
+        return t("page_titles.attendance_history");
       case "/student/certificates":
-        return isArabic ? "الشهادات" : "Certificates";
+        return t("sidebar.certificates");
       case "/student/notifications":
-        return isArabic ? "الإشعارات" : "Notifications";
+        return t("sidebar.notifications");
       case "/student/profile":
-        return isArabic ? "الملف الشخصي" : "My Profile";
+        return t("page_titles.my_profile");
       default:
         return "";
     }
@@ -95,7 +128,7 @@ function DashboardLayout() {
     <DashboardSharedLayout
       navItems={navItems}
       translationNs="studentDashboard"
-      userRoleName="Student"
+      userRoleName={t("topbar.role")}
       pageTitle={pageTitle}
     />
   );

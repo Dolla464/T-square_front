@@ -1,0 +1,19 @@
+.quiz-result-card-icon-wrapper {
+  background-image: url("../../../../assets/Results.webp");
+}
+
+.exam-results-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.exam-results-empty-icon {
+  font-size: 2.5rem;
+  color: #be1522;
+  opacity: 0.45;
+  display: block;
+  margin-bottom: 1rem;
+}

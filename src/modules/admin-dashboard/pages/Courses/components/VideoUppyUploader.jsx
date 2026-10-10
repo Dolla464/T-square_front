@@ -15,7 +15,7 @@ function VideoUppyUploader({
   previewIndex,
   formData,
   isReadOnly,
-  isArabic,
+  t,
   ensureCourseDraft,
   onDraftCreated,
   getAbortController,
@@ -33,8 +33,8 @@ function VideoUppyUploader({
     courseId,
     previewIndex,
     formData,
-    isArabic,
     lessonKey,
+    t,
     ensureCourseDraft,
     onDraftCreated,
     getAbortController,
@@ -115,7 +115,7 @@ function VideoUppyUploader({
         let resolvedCourseId = ctx.courseId;
 
         if (!resolvedCourseId) {
-          const draft = await ctx.ensureCourseDraft(ctx.formData, null, ctx.isArabic);
+          const draft = await ctx.ensureCourseDraft(ctx.formData, null);
           resolvedCourseId = draft?.id ?? draft;
           ctx.onDraftCreated?.(draft);
         }
@@ -132,9 +132,10 @@ function VideoUppyUploader({
             ctx.onUploadStateChange?.({
               isUploading: true,
               status: "uploading",
-              retryMessage: ctx.isArabic
-                ? `إعادة المحاولة ${attempt}/3 للجزء ${chunkIndex + 1}`
-                : `Retry ${attempt}/3 for chunk ${chunkIndex + 1}`,
+              retryMessage: ctx.t("courses_page.upload_retry", {
+                attempt,
+                chunk: chunkIndex + 1,
+              }),
             });
           },
         });
@@ -256,10 +257,10 @@ function VideoUppyUploader({
       >
         <i className="bi bi-cloud-arrow-up-fill video-upload-icon" aria-hidden="true" />
         <span className="video-upload-title">
-          {isArabic ? "اضغط لرفع فيديو" : "Click to upload video"}
+          {t("courses_page.upload_video_hint")}
         </span>
         <span className="video-upload-hint">
-          {isArabic ? "MP4, WebM, MOV — حتى 500MB" : "MP4, WebM, MOV — up to 500MB"}
+          {t("courses_page.upload_video_subhint")}
         </span>
       </button>
 

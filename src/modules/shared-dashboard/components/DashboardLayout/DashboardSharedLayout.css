@@ -291,23 +291,22 @@ body.dashboard-active {
 .sidebar-subnav {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  padding: 4px 8px 4px 14px;
+  gap: 2px;
+  padding: 4px 0 4px 8px;
   margin-top: 2px;
   margin-bottom: 4px;
-  margin-inline-start: 14px;
+  margin-inline-start: 10px;
   border-inline-start: 2px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  background-color: rgb(48, 48, 48);
 }
 
 .sidebar-sublink {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 9px 12px 9px 14px;
+  gap: 10px;
+  padding: 9px 12px;
   border-radius: 8px;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 500;
   color: #9ca3af;
   transition:
@@ -316,25 +315,30 @@ body.dashboard-active {
   white-space: nowrap;
 }
 
+.sidebar-sublink .sidebar-link-icon {
+  font-size: 1.1rem;
+  width: 18px;
+}
+
 .sidebar-sublink:hover {
   background: rgba(255, 255, 255, 0.06);
   color: #fff;
 }
 
 .sidebar-sublink-active {
-  background-color: #be1522 !important;
+  background-color: rgba(190, 21, 34, 0.52) !important;
   color: #fff !important;
-  font-size: 1rem !important;
-  font-weight: 600;
+  font-size: 0.96rem !important;
+  font-weight: 500;
 }
 
 .sidebar-sublink-active:hover {
-  background-color: #be1522 !important;
+  background-color: rgba(190, 21, 34, 0.62) !important;
   color: #fff !important;
 }
 
-.sidebar-sublink-label {
-  padding-inline-start: 4px;
+.sidebar-sublink-active .sidebar-link-icon {
+  color: #fff;
 }
 
 /* ══════════════ Main Area ══════════════ */

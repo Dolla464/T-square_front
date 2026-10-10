@@ -26,6 +26,7 @@ import {
   getProfileDisplayName,
 } from "../../../../utils/avatar";
 import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
+import { isArabicLocale } from "../../../../utils/isArabicLocale";
 
 const SIDEBAR_STORAGE_KEY = "dashboard-sidebar-expanded";
 
@@ -47,7 +48,7 @@ function DashboardSharedLayout({
     return saved === null ? true : saved === "true";
   });
   const [expandedGroups, setExpandedGroups] = useState(() => new Set());
-  const isArabic = i18n.language?.startsWith("ar");
+  const isArabic = isArabicLocale(i18n.language);
 
   const setSidebarExpandedPersisted = useCallback((next) => {
     setSidebarExpanded((prev) => {
@@ -72,16 +73,18 @@ function DashboardSharedLayout({
   }, [collapseSidebar]);
 
   const isChildPathActive = useCallback(
-    (childPath) => {
+    (childPath, end = false) => {
       if (!childPath) return false;
       if (location.pathname === childPath) return true;
+      if (end) return false;
       return location.pathname.startsWith(`${childPath}/`);
     },
     [location.pathname],
   );
 
   const isGroupChildActive = useCallback(
-    (children) => children?.some((child) => isChildPathActive(child.path)),
+    (children) =>
+      children?.some((child) => isChildPathActive(child.path, child.end)),
     [isChildPathActive],
   );
 
@@ -255,13 +258,18 @@ function DashboardSharedLayout({
                             to={child.path}
                             end={child.end}
                             className={({ isActive }) =>
-                              `sidebar-sublink text-decoration-none d-flex align-items-center justify-content-between ${isActive || isChildPathActive(child.path) ? "sidebar-sublink-active" : ""}`
+                              `sidebar-sublink text-decoration-none d-flex align-items-center justify-content-between ${isActive || isChildPathActive(child.path, child.end) ? "sidebar-sublink-active" : ""}`
                             }
                             onClick={closeSidebarOnMobile}
                           >
-                            <span className="sidebar-sublink-label">
-                              {t(`${translationNs}:sidebar.${child.key}`)}
-                            </span>
+                            <div className="d-flex align-items-center">
+                              <i
+                                className={`bi ${child.icon ?? "bi-circle"} sidebar-link-icon`}
+                              ></i>
+                              <span className="px-3 sidebar-link-label">
+                                {t(`${translationNs}:sidebar.${child.key}`)}
+                              </span>
+                            </div>
                             {child.badge && (
                               <span className="badge bg-danger rounded-pill ms-2">
                                 {child.badge}

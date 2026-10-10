@@ -1,10 +1,33 @@
 {
   "welcome": "مرحباً بعودتك، {{name}} ",
+  "attendance_type": {
+    "online": "أونلاين",
+    "offline": "حضوري",
+    "hybrid": "مختلط",
+    "not_assigned": "لم يُحدَّد بعد"
+  },
+  "topbar": {
+    "role": "Student",
+    "welcome_back": "مرحباً {{name}}"
+  },
+  "page_titles": {
+    "answer_review": "مراجعة الإجابات",
+    "quiz_exam": "اختبار الكويز",
+    "exam_result_details": "تفاصيل نتيجة الامتحان",
+    "attendance_today": "اليوم",
+    "attendance_schedule": "الجدول",
+    "attendance_history": "سجلي",
+    "my_profile": "الملف الشخصي"
+  },
   "sidebar": {
     "dashboard": "لوحة التحكم",
     "quiz": "الاختبارات",
+    "examResults": "نتائج الامتحانات",
     "certificates": "الشهادات",
     "attendance": "الحضور",
+    "attendanceToday": "تسجيل الحضور",
+    "attendanceSchedule": "جدول الحصص",
+    "attendanceHistory": "حضوري",
     "notifications": "الإشعارات",
     "profile": "الملف الشخصي",
     "myLearning": "تعلّمي"
@@ -37,7 +60,15 @@
   "certificates_page": {
     "title": "شهاداتي",
     "download_pdf": "تحميل PDF",
-    "completed_on": "اكتمل في: {{date}}"
+    "completed_on": "اكتمل في: {{date}}",
+    "not_available": "غير متاح",
+    "modal_title": "تفاصيل الشهادة",
+    "loading_preview": "جاري تحميل المعاينة...",
+    "preview_error": "تعذر تحميل المعاينة",
+    "student_name": "اسم الطالب:",
+    "course_title_label": "اسم الكورس:",
+    "certificate_id": "رقم الشهادة:",
+    "issued_at": "تاريخ الإصدار:"
   },
   "profile_page": {
     "title": "الملف الشخصي والإعدادات",
@@ -76,12 +107,21 @@
     "address": "العنوان",
     "address_placeholder": "اكتب العنوان",
     "notes": "ملاحظات",
-    "notes_placeholder": "اكتب الملاحظات"
+    "notes_placeholder": "اكتب الملاحظات",
+    "loading": "جاري التحميل...",
+    "photo_updated": "تم تحديث الصورة بنجاح",
+    "photo_upload_failed": "فشل رفع الصورة",
+    "phone_min_digits": "رقم الهاتف يجب أن يكون 10 أرقام على الأقل",
+    "age_range": "السن يجب أن يكون رقماً بين 1 و 120",
+    "national_id_length": "الرقم القومي يجب أن يكون 14 رقمًا",
+    "confirm_update_title": "تحديث البيانات",
+    "confirm_update_message": "هل أنت متأكد؟",
+    "update_success": "تم التحديث بنجاح",
+    "password_updated": "تم تغيير كلمة المرور"
   },
   "quizzes": {
-        "continue": "الدخول للاختبار",
-      "pending": "قريباً",
-
+    "continue": "الدخول للاختبار",
+    "pending": "قريباً",
     "title": "اختباراتي",
     "placeholder": "قائمة الاختبارات ستكون متاحة قريباً.",
     "page_title": "كويزات {{name}}",
@@ -102,11 +142,48 @@
     "continue_learning": "متابعة التعلم",
     "complete": "مكتمل",
     "lessons": "درس",
+    "lessons_section_title": "دروس الكورس",
     "hours": "ساعة",
     "students": "طالب",
     "of": "من",
     "lessons_lowercase": "درس",
-    "about_instructor": "عن المدرب"
+    "about_instructor": "عن المدرب",
+    "lessons_waiting_group": "ستظهر الدروس بعد تحديد مجموعتك الدراسية.",
+    "lessons_waiting_session": "لا توجد دروس متاحة بعد. تُفتح الدروس بعد جلساتك المجدولة.",
+    "lesson_not_yet_available": "هذا الدرس غير متاح بعد.",
+    "lesson_not_found": "الدرس غير موجود",
+    "back_to_dashboard": "العودة للوحة الطالب",
+    "course_not_found": "الكورس غير موجود",
+    "failed_to_load": "تعذّر تحميل الكورس",
+    "about_course": "عن الكورس",
+    "what_you_learn": "ماذا ستتعلم",
+    "preview": "معاينة الكورس",
+    "course_preview": "معاينة الكورس",
+    "view_certificate": "عرض الشهادة",
+    "leave_review_btn": "اترك تقييم",
+    "review_accepted": "تم قبول تقييمك",
+    "review_rejected": "تم رفض تقييمك",
+    "review_pending": "تم إرسال تقييمك وهو قيد المراجعة",
+    "hrs": "ساعة",
+    "wks": "أسبوع",
+    "min": "دقيقة",
+    "video_available": "فيديو متاح",
+    "watch_lesson": "مشاهدة الدرس",
+    "bio": "نبذة تعريفية",
+    "chat_whatsapp": "تواصل عبر واتساب",
+    "about_instructors": "عن المدربين",
+    "about_the_instructor": "عن المدرب",
+    "level": {
+      "beginner": "مبتدئ",
+      "intermediate": "متوسط",
+      "advanced": "متقدم"
+    },
+    "status": {
+      "in_progress": "جاري التعلم",
+      "completed": "مكتمل",
+      "not_started": "لم يبدأ",
+      "pending_payment": "بانتظار السداد"
+    }
   },
   "quiz_results": {
     "title": "تفاصيل نتائج الكويز",
@@ -128,7 +205,66 @@
     "enrollment_pending": "إكمال المقرر: لم يكتمل بعد",
     "enrollment_pending_hint": "سيُعلَّم المقرر كمكتمل عند إغلاق مجموعتك الدراسية، ثم يُطلب منك ترك تقييم.",
     "leave_review_for_certificate": "اترك تقييم للحصول على الشهادة",
-    "exit": "خروج"
+    "exit": "خروج",
+    "leave_exam_title": "إنهاء الامتحان",
+    "leave_exam_message": "سيتم إرسال إجاباتك الحالية وإنهاء المحاولة. هل تريد المتابعة؟",
+    "timeout_toast": "انتهى الوقت المخصص للاختبار! تم إرسال إجاباتك تلقائياً.",
+    "submitted_toast": "تم إنهاء المحاولة وإرسال إجاباتك.",
+    "submit_error": "حدث خطأ أثناء إرسال الإجابات",
+    "not_ready": "الاختبار لم يُبدأ بعد، انتظر قليلاً",
+    "result_read_error": "تعذر قراءة نتيجة الامتحان",
+    "not_found": "الكويز غير موجود أو حدث خطأ",
+    "no_questions": "لا توجد أسئلة في هذا الامتحان حالياً. تواصل مع الإدارة.",
+    "submission_received": "تم إرسال إجاباتك",
+    "your_result": "نتيجتك",
+    "pending_grading_message": "تم تسليم الامتحان بنجاح. بعض الأسئلة المقالية تحتاج تصحيحاً يدوياً من المدرّس.",
+    "pending_grading_notify": "ستصلك إشعار عند اعتماد النتيجة النهائية.",
+    "partial_score": "الدرجة الحالية (جزئية):",
+    "timed_out_failed": "انتهى الوقت — لم تجتز الحد الأدنى",
+    "failed": "رسبت - لم تجتز الحد الأدنى",
+    "passed": "مبروك! تجاوزت الحد الأدنى",
+    "finish_failed_toast": "لم تجتز الاختبار، حاول مرة أخرى",
+    "finish_passed_toast": "مبروك! اجتزت الاختبار بنجاح",
+    "question": "سؤال",
+    "of_label": "من",
+    "your_answer": "إجابتك",
+    "answer_placeholder": "اكتب إجابتك هنا (اختياري)...",
+    "previous": "السابق",
+    "next": "التالي",
+    "finish": "إنهاء",
+    "back": "العودة"
+  },
+  "exam_results": {
+    "page_title": "نتائج امتحانات {{name}}",
+    "section_title": "نتائج امتحاناتك",
+    "empty": "لا توجد نتائج امتحانات بعد.",
+    "empty_cta": "الذهاب للاختبارات",
+    "no_matches": "لا توجد نتائج مطابقة.",
+    "search_placeholder": "ابحث باسم الامتحان أو المقرر...",
+    "show_details": "عرض التفاصيل",
+    "hide_details": "إخفاء التفاصيل",
+    "detail_title": "تفاصيل نتيجة الامتحان",
+    "back_to_list": "العودة لنتائج الامتحانات",
+    "not_found": "تعذر العثور على نتيجة هذا الامتحان.",
+    "attempts_count": "{{count}} محاولة",
+    "stats": {
+      "total": "إجمالي النتائج",
+      "passed": "ناجح",
+      "failed": "راسب",
+      "under_grading": "تحت التقييم"
+    },
+    "filters": {
+      "all": "الكل",
+      "passed": "ناجح",
+      "failed": "راسب",
+      "under_grading": "تحت التقييم"
+    },
+    "status": {
+      "passed": "ناجح",
+      "failed": "راسب",
+      "in_progress": "جاري",
+      "attempted": "تمت المحاولة"
+    }
   },
   "attempt_review": {
     "region_label": "مراجعة إجابات المحاولة",
@@ -136,6 +272,7 @@
     "open_full_page": "فتح في صفحة كاملة",
     "back_to_results": "العودة للنتائج",
     "back_to_quizzes": "العودة للاختبارات",
+    "back_to_exam_results": "العودة لنتائج الامتحانات",
     "review_loading": "جاري تحميل مراجعة الإجابات...",
     "review_error": "تعذر تحميل مراجعة الإجابات.",
     "question_num": "سؤال {{num}}",
@@ -184,6 +321,16 @@
     "loading": "جاري التحميل...",
     "loadError": "تعذر تحميل الإشعارات حالياً.",
     "go": "ذهاب",
+    "types": {
+      "enrollment_pending": {
+        "title": "اشتراكك معلّق",
+        "message": "تم استلام طلب اشتراكك في \"{{course}}\". سيتم تفعيل الاشتراك بعد الموافقة وسداد الرسوم."
+      },
+      "enrollment_confirmed": {
+        "title": "تم تفعيل اشتراكك",
+        "message": "يمكنك الآن متابعة كورس \"{{course}}\" والبدء في التعلم."
+      }
+    },
     "details": {
       "course": "الدورة",
       "group": "المجموعة",
@@ -200,12 +347,44 @@
       "newSchedule": "الموعد الجديد",
       "status_passed": "ناجح",
       "status_failed": "راسب",
-      "status_awaiting_grading": "قيد التقييم"
+      "status_awaiting_grading": "قيد التقييم",
+      "status_pending_payment": "بانتظار السداد",
+      "status_confirmed": "مؤكد"
     }
+  },
+  "course_pending": {
+    "banner_title": "الاشتراك معلّق",
+    "banner_message": "اشتراكك معلّق لحين سداد الرسوم والموافقة. يمكنك المتابعة معنا عبر واتساب.",
+    "whatsapp_button": "تواصل معنا عبر واتساب"
   },
   "attendance": {
     "title": "حضوري",
     "refresh": "تحديث",
+    "nav": {
+      "today": "اليوم",
+      "schedule": "الجدول",
+      "history": "سجلي"
+    },
+    "heroSession": "الجلسة الحالية",
+    "readyToCheckIn": "يمكنك تسجيل الحضور الآن.",
+    "checkInNow": "سجّل حضورك الآن",
+    "closeCheckIn": "إغلاق",
+    "useScanInstead": "امسح رمز المدرب بدلاً من ذلك",
+    "useShowQrInstead": "اعرض رمزي بدلاً من ذلك",
+    "moreSessionsToday": "{{count}} جلسة أخرى اليوم",
+    "viewMyRecord": "عرض سجل حضوري",
+    "scheduleSubtitle": "الجلسات القادمة خلال 30 يوماً",
+    "scheduleSectionCount": "{{count}} جلسة",
+    "historySubtitle": "تابع نسبة حضورك حسب المجموعة",
+    "retryCamera": "إعادة المحاولة",
+    "cameraPermissionDenied": "تم رفض إذن الكاميرا. يرجى السماح بالوصول إليها من إعدادات المتصفح.",
+    "cameraUnavailable": "تعذّر فتح الكاميرا. تأكد أنها غير مستخدمة من تطبيق آخر وأعد المحاولة.",
+    "stats": {
+      "attendanceRate": "نسبة الحضور",
+      "presentSessions": "حاضر",
+      "absentSessions": "غائب",
+      "totalSessions": "إجمالي الجلسات"
+    },
     "tabs": {
       "today": "اليوم",
       "schedule": "الجدول",
@@ -217,6 +396,9 @@
     "selectSession": "اختر جلسة لعرض رمز QR.",
     "alreadyMarked": "تم تسجيل حضورك في هذه الجلسة.",
     "sessionNotActive": "هذه الجلسة غير نشطة بعد.",
+    "sessionUpcoming": "لم تبدأ هذه الجلسة بعد.",
+    "sessionCancelled": "تم إلغاء هذه الجلسة.",
+    "sessionEndedAbsent": "انتهت هذه الجلسة وتم تسجيلك غائباً.",
     "qrNotAvailable": "رمز QR غير متاح خارج نافذة الحضور.",
     "qrWindow": "متاح من {{start}} إلى {{end}}",
     "qrHint": "اعرض هذا الرمز على السكانر لتسجيل حضورك.",
@@ -256,6 +438,40 @@
       "active": "نشطة",
       "completed": "منتهية",
       "cancelled": "ملغاة"
+    },
+    "room_prefix": "قاعة",
+    "today_label": "اليوم",
+    "statusLabels": {
+      "present": "حاضر",
+      "absent": "غائب",
+      "late": "متأخر",
+      "not_marked": "لم يسجَّل"
+    },
+    "scheduleGroups": {
+      "today": "اليوم",
+      "tomorrow": "غداً",
+      "thisWeek": "هذا الأسبوع",
+      "later": "لاحقاً"
+    }
+  },
+  "leave_review": {
+    "page_title": "اترك تقييمك | T-Square",
+    "back_to_course": "العودة للكورس",
+    "hero_title": "تقييم الكورس والمحاضرين والسنتر",
+    "hero_sub": "ملاحظاتك تساعدنا على تحسين محتوى الكورسات، أداء المحاضرين، وتجربة السنتر والمنصة بشكل عام. بعد إرسال التقييم ستصبح شهادتك متاحة للتحميل.",
+    "additional_comments": "تعليقات إضافية",
+    "comments_placeholder": "اكتب أي ملاحظات إضافية هنا...",
+    "submitting": "جاري الإرسال...",
+    "submit": "إرسال التقييمات",
+    "cancel": "إلغاء",
+    "rate_instructor": "تقييم المحاضر:",
+    "instructors_group": "المجموعة 3: المحاضرون",
+    "rating": {
+      "very_poor": "سيء جداً",
+      "poor": "سيء",
+      "fair": "مقبول",
+      "good": "جيد",
+      "excellent": "ممتاز"
     }
   }
 }

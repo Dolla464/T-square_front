@@ -20,11 +20,13 @@ import { loginSchema } from "../../utils/validationSchemas";
 import { useAuth } from "../../contexts/AuthContext";
 import { getRouteByRole } from "../../config/routes";
 import { toastWarning } from "../../components/shared/Toaster/toaster";
+import { isArabicLocale } from "../../utils/isArabicLocale";
+
 
 function LoginPage() {
   const { t, i18n } = useTranslation("auth");
   const { t: tCommon } = useTranslation("common");
-  const isArabic = i18n.language === "ar";
+  const isArabic = isArabicLocale(i18n.language);
   const location = useLocation();
   const sessionExpired = location.state?.sessionExpired === true;
   const { user } = useAuth();
@@ -72,9 +74,7 @@ function LoginPage() {
   return (
     <div className="login-wrapper" dir={isArabic ? "rtl" : "ltr"}>
       <Helmet>
-        <title>
-          {isArabic ? "تسجيل الدخول - T-Square" : "Login - T-Square"}
-        </title>
+        <title>{t("page_title_login")}</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <Container className="d-flex justify-content-center align-items-center h-100">
@@ -86,7 +86,7 @@ function LoginPage() {
                 src={tsquareLogo}
                 alt="T-Square Logo"
                 className="login-logo mb-3"
-                title="Back to Home"
+                title={t("back_to_home")}
               />
             </Link>
 
