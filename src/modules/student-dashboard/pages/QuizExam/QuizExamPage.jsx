@@ -28,6 +28,7 @@ import {
   logTimerRender,
   observeEndTimeCalculation,
 } from "../../utils/examTimerDiagnostic";
+import { trackExamJourneyEvent } from "../../utils/examJourneyLog";
 import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
 import "../../../shared-dashboard/components/QuestionContent/questionContent.css";
 import "../../styles/dashboardShared.css";
@@ -302,6 +303,30 @@ function QuizExamPage() {
     attemptId: exam?.attempt_id,
     enabled: isExamInProgress,
   });
+
+  useEffect(() => {
+    if (!exam?.attempt_id || exam?.status !== "ongoing") {
+      return;
+    }
+
+    trackExamJourneyEvent("PAGE_MOUNT", { quiz_id: quizId });
+  }, [exam?.attempt_id, exam?.status, quizId]);
+
+  useEffect(() => {
+    if (!isExamInProgress) {
+      return undefined;
+    }
+
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        trackExamJourneyEvent("VISIBILITY_HIDDEN");
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [isExamInProgress]);
 
   const currentIndexRef = useRef(currentIndex);
   currentIndexRef.current = currentIndex;
