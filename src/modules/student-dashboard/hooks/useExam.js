@@ -12,6 +12,12 @@ import {
   logStartResponse,
   logTimeStatusResponse,
 } from "../utils/examTimerDiagnostic";
+import {
+  bindExamJourneyAttempt,
+  clearExamJourneyAttempt,
+  flushExamJourneyEvents,
+  trackExamJourneyEvent,
+} from "../utils/examJourneyLog";
 
 export const mapExamResults = (results) => {
   if (!results) return null;
@@ -47,6 +53,7 @@ export const useExam = (examId) => {
     setSubmitting(false);
     setIsSavingAnswer(false);
     saveInFlightRef.current.clear();
+    clearExamJourneyAttempt();
   }, [examId]);
 
   const startExam = useCallback(async () => {
@@ -54,11 +61,17 @@ export const useExam = (examId) => {
       setLoading(true);
       setError(null);
       setExam(null);
+      trackExamJourneyEvent("START_API_CALL", { exam_id: examId });
       const res = await startExamApi(examId);
       logStartResponse(res.data?.data ?? res.data);
-      setExam(res.data.data);
+      const data = res.data.data;
+      bindExamJourneyAttempt(data?.attempt_id);
+      setExam(data);
     } catch (err) {
       console.error(err);
+      trackExamJourneyEvent("START_API_FAIL", {
+        status: err.response?.status ?? "unknown",
+      });
       setError(err);
     } finally {
       setLoading(false);
@@ -188,6 +201,7 @@ export const useExam = (examId) => {
 
     try {
       setSubmitting(true);
+      trackExamJourneyEvent("SUBMIT_CLICK", { attempt_id: attemptId });
 
       const res = await submitExamApi(attemptId);
 
@@ -206,6 +220,7 @@ export const useExam = (examId) => {
       console.error("Submit failed:", err);
       throw err;
     } finally {
+      await flushExamJourneyEvents();
       setSubmitting(false);
     }
   }, [recoverClosedAttempt]);

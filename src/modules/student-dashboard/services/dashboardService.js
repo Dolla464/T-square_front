@@ -112,6 +112,9 @@ export const getExamTimeStatus = (attemptId) =>
 export const recordIntegrityEvents = (attemptId, events) =>
   axiosClient.post(`/exams/attempts/${attemptId}/integrity-events`, { events });
 
+export const recordExamJourneyEvents = (attemptId, events) =>
+  axiosClient.post(`/exams/attempts/${attemptId}/journey-events`, { events });
+
 /**
  * جلب بيانات ملف الطالب الشخصية
  */
