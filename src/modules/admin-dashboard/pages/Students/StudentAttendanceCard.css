@@ -1,0 +1,54 @@
+@media print {
+  /*
+   * Scoped to when the one-time QR modal is open (:has print root).
+   * Does not alter print layout on other admin pages.
+   */
+  body:has(#attendance-card-print-root) #root {
+    visibility: hidden !important;
+  }
+
+  body:has(#attendance-card-print-root) .modal-backdrop {
+    display: none !important;
+  }
+
+  .attendance-card-panel,
+  .attendance-card-onetime-modal .no-print {
+    display: none !important;
+  }
+
+  .attendance-card-onetime-modal .modal-dialog {
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .attendance-card-onetime-modal .modal-content {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .attendance-card-onetime-modal .modal-body {
+    padding: 0 !important;
+  }
+
+  #attendance-card-print-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 12mm;
+    box-sizing: border-box;
+    visibility: visible !important;
+  }
+
+  #attendance-card-print-root,
+  #attendance-card-print-root * {
+    visibility: visible !important;
+  }
+
+  .attendance-card-qr-frame {
+    box-shadow: none !important;
+    border: 2px solid #000 !important;
+    page-break-inside: avoid;
+  }
+}

@@ -103,4 +103,11 @@ export const updateStudentCourseStatus = (studentId, courseId, isCompleted) => {
     `/admin/students/${studentId}/courses/${courseId}/status`,
        { is_completed: isCompleted},
   );
-}
+};
+
+export {
+  fetchStudentAttendanceCard,
+  issueStudentAttendanceCard,
+  reissueStudentAttendanceCard,
+  revokeStudentAttendanceCard,
+} from "./studentAttendanceCardService";
