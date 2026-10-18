@@ -1,6 +1,23 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 
+/** CSP host sources cannot contain underscores (e.g. t-square_back.test). */
+function cspOriginFromUrl(rawUrl) {
+  if (!rawUrl) {
+    return null;
+  }
+
+  try {
+    const url = new URL(rawUrl, "http://localhost");
+    if (url.hostname.includes("_")) {
+      return `${url.protocol}//127.0.0.1${url.port ? `:${url.port}` : ""}`;
+    }
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
 function buildApiOrigin(mode) {
   const env = loadEnv(mode, process.cwd(), "");
 
@@ -77,18 +94,15 @@ function buildConnectSrc(mode) {
     "wss:",
   ]);
 
-  const apiOrigin = buildApiOrigin(mode);
+  const apiOrigin = cspOriginFromUrl(buildApiOrigin(mode));
   if (apiOrigin) {
     sources.add(apiOrigin);
   }
 
   const env = loadEnv(mode, process.cwd(), "");
-  if (env.VITE_DEV_API_PROXY) {
-    try {
-      sources.add(new URL(env.VITE_DEV_API_PROXY).origin);
-    } catch {
-      // ignore invalid VITE_DEV_API_PROXY
-    }
+  const proxyOrigin = cspOriginFromUrl(env.VITE_DEV_API_PROXY);
+  if (proxyOrigin) {
+    sources.add(proxyOrigin);
   }
 
   if (env.VITE_REVERB_HOST) {
@@ -104,17 +118,14 @@ function buildImgSrc(mode) {
   const env = loadEnv(mode, process.cwd(), "");
   const sources = new Set(["http://localhost:*", "http://127.0.0.1:*"]);
 
-  const apiOrigin = buildApiOrigin(mode);
+  const apiOrigin = cspOriginFromUrl(buildApiOrigin(mode));
   if (apiOrigin) {
     sources.add(apiOrigin);
   }
 
-  if (env.VITE_DEV_API_PROXY) {
-    try {
-      sources.add(new URL(env.VITE_DEV_API_PROXY).origin);
-    } catch {
-      // ignore invalid VITE_DEV_API_PROXY
-    }
+  const proxyOrigin = cspOriginFromUrl(env.VITE_DEV_API_PROXY);
+  if (proxyOrigin) {
+    sources.add(proxyOrigin);
   }
 
   return [...sources].join(" ");
@@ -124,17 +135,14 @@ function buildMediaSrc(mode) {
   const env = loadEnv(mode, process.cwd(), "");
   const sources = new Set(["'self'", "blob:", "http://localhost:*", "http://127.0.0.1:*"]);
 
-  const apiOrigin = buildApiOrigin(mode);
+  const apiOrigin = cspOriginFromUrl(buildApiOrigin(mode));
   if (apiOrigin) {
     sources.add(apiOrigin);
   }
 
-  if (env.VITE_DEV_API_PROXY) {
-    try {
-      sources.add(new URL(env.VITE_DEV_API_PROXY).origin);
-    } catch {
-      // ignore invalid VITE_DEV_API_PROXY
-    }
+  const proxyOrigin = cspOriginFromUrl(env.VITE_DEV_API_PROXY);
+  if (proxyOrigin) {
+    sources.add(proxyOrigin);
   }
 
   return [...sources].join(" ");
@@ -163,7 +171,7 @@ function injectCsp(mode) {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const devApiProxy = env.VITE_DEV_API_PROXY || "http://t-square-lms.test";
+  const devApiProxy = env.VITE_DEV_API_PROXY || "http://t-square_back.test";
 
   return {
   plugins: [react(), injectCsp(mode)],
@@ -221,16 +229,19 @@ export default defineConfig(({ mode }) => {
         target: devApiProxy,
         changeOrigin: true,
         secure: false,
+        cookieDomainRewrite: "localhost",
       },
       "/sanctum": {
         target: devApiProxy,
         changeOrigin: true,
         secure: false,
+        cookieDomainRewrite: "localhost",
       },
       "/storage": {
         target: devApiProxy,
         changeOrigin: true,
         secure: false,
+        cookieDomainRewrite: "localhost",
       },
     },
   },

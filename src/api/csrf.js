@@ -1,7 +1,6 @@
 import axios from "axios";
-import { resolveApiOrigin, resolveAxiosBaseUrl } from "../utils/resolveApiOrigin";
 
-export const resolveApiRoot = () => resolveApiOrigin();
+export const resolveApiRoot = () => window.location.origin;
 
 export async function initCsrf() {
   await axios.get(`${resolveApiRoot()}/sanctum/csrf-cookie`, {

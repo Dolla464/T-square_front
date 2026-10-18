@@ -27,6 +27,35 @@ export const getCompletedLearningGroupsSelection = () =>
 export const getLearningGroupById = (id) =>
   axiosClient.get(`/admin/learning-groups/${id}`).then((res) => res.data);
 
+/**
+ * Read-only preview for bulk permanent attendance cards (Phase 1).
+ */
+export const getGroupAttendanceCardsPreview = (groupId, { signal } = {}) =>
+  axiosClient
+    .get(`/admin/learning-groups/${groupId}/attendance-cards/preview`, {
+      signal,
+    })
+    .then((res) => res.data);
+
+export const postGroupAttendanceCardsBatch = (groupId, payload, { signal } = {}) =>
+  axiosClient
+    .post(`/admin/learning-groups/${groupId}/attendance-cards/batch`, payload, {
+      signal,
+    })
+    .then((res) => res.data);
+
+export const getGroupAttendanceCardsBatchStatus = (
+  groupId,
+  clientOperationId,
+  { signal } = {},
+) =>
+  axiosClient
+    .get(
+      `/admin/learning-groups/${groupId}/attendance-cards/batch/${clientOperationId}`,
+      { signal },
+    )
+    .then((res) => res.data);
+
 // ----------------------------------------------------------------------------
 // جلب الطلاب المتاحين (غير المسجلين) لمجموعة دراسية معينة
 // ----------------------------------------------------------------------------

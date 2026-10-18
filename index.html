@@ -39,6 +39,12 @@
         return host === "localhost" || host === "127.0.0.1";
       }
 
+      function isLocalDevBackendHost(hostname) {
+        if (!hostname) return false;
+        if (hostname === "localhost" || hostname === "127.0.0.1") return true;
+        return hostname.endsWith(".test") || hostname.endsWith(".local");
+      }
+
       function resolvePreloadUrl(url) {
         var normalized = normalizeHeroUrl(url);
         if (!normalized) return "";
@@ -50,7 +56,8 @@
           if (
             shouldRewriteStorageToSameOrigin() &&
             (path.indexOf("/storage/") === 0 || path.indexOf("/public/") === 0) &&
-            parsed.origin !== window.location.origin
+            parsed.origin !== window.location.origin &&
+            isLocalDevBackendHost(parsed.hostname)
           ) {
             return (
               window.location.origin +

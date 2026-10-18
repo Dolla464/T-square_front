@@ -1,0 +1,44 @@
+.group-attendance-cards-bulk-print {
+  display: none;
+}
+
+@media print {
+  body:has(#group-attendance-cards-bulk-print-root) #root {
+    visibility: hidden !important;
+  }
+
+  .group-attendance-cards-bulk-no-print {
+    display: none !important;
+  }
+
+  #group-attendance-cards-bulk-print-root {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    visibility: visible !important;
+  }
+
+  #group-attendance-cards-bulk-print-root,
+  #group-attendance-cards-bulk-print-root * {
+    visibility: visible !important;
+  }
+
+  .group-attendance-card-sheet {
+    page-break-after: always;
+    padding: 12mm;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .group-attendance-card-sheet:last-child {
+    page-break-after: auto;
+  }
+
+  .attendance-card-qr-frame {
+    box-shadow: none !important;
+    border: 2px solid #000 !important;
+    page-break-inside: avoid;
+  }
+}
