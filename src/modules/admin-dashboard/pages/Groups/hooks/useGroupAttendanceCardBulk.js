@@ -1,9 +1,9 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   getGroupAttendanceCardsBatchStatus,
   postGroupAttendanceCardsBatch,
 } from "../../../services/learningGroupServices";
-import { BULK_CARD_MODES } from "../components/GroupAttendanceCardsPreviewPanel";
+import { BULK_CARD_MODES } from "../bulkCardModes";
 
 /** UI states for bulk issuance (uncertain is client-only). */
 export const BULK_UI_STATES = {
@@ -35,9 +35,23 @@ function buildInitialCursor(snapshotCount, batchMax) {
   };
 }
 
+function mergeTokenMap(prev, students, forGroupId, activeGroupId) {
+  if (forGroupId !== activeGroupId) {
+    return prev;
+  }
+  let changed = false;
+  const next = new Map(prev);
+  students.forEach((row) => {
+    if (row.plain_text_token && row.student_id) {
+      next.set(row.student_id, row.plain_text_token);
+      changed = true;
+    }
+  });
+  return changed ? next : prev;
+}
+
 /**
  * In-memory token map only — never persisted to storage.
- * Clearing refs does not guarantee OS memory zeroization.
  */
 export function useGroupAttendanceCardBulk(groupId) {
   const [uiState, setUiState] = useState(BULK_UI_STATES.IDLE);
@@ -45,19 +59,23 @@ export function useGroupAttendanceCardBulk(groupId) {
   const [batchMeta, setBatchMeta] = useState(null);
   const [studentOutcomes, setStudentOutcomes] = useState([]);
   const [lastError, setLastError] = useState(null);
+  const [tokensByStudentId, setTokensByStudentId] = useState(() => new Map());
 
   const clientOperationIdRef = useRef(null);
-  const tokenByStudentIdRef = useRef(new Map());
   const executingRef = useRef(false);
   const groupIdRef = useRef(groupId);
-  groupIdRef.current = groupId;
+
+  useLayoutEffect(() => {
+    groupIdRef.current = groupId;
+  }, [groupId]);
 
   const clearTokens = useCallback(() => {
-    tokenByStudentIdRef.current = new Map();
+    setTokensByStudentId(new Map());
   }, []);
 
   const resetOperation = useCallback(() => {
     clientOperationIdRef.current = null;
+    executingRef.current = false;
     clearTokens();
     setOperationMeta(null);
     setBatchMeta(null);
@@ -65,6 +83,12 @@ export function useGroupAttendanceCardBulk(groupId) {
     setLastError(null);
     setUiState(BULK_UI_STATES.CLEARED);
   }, [clearTokens]);
+
+  useEffect(() => {
+    // Reset in-memory bulk state when the admin selects a different group.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset on groupId change
+    resetOperation();
+  }, [groupId, resetOperation]);
 
   const beginNewOperation = useCallback(() => {
     clientOperationIdRef.current = null;
@@ -74,20 +98,18 @@ export function useGroupAttendanceCardBulk(groupId) {
     setLastError(null);
   }, []);
 
-  const mergeBatchStudents = useCallback((students) => {
-    if (!Array.isArray(students)) {
+  const applyBatchStudents = useCallback((students, forGroupId) => {
+    if (!Array.isArray(students) || forGroupId !== groupIdRef.current) {
       return;
     }
     setStudentOutcomes((prev) => {
       const bySeq = new Map(prev.map((row) => [row.sequence, row]));
       students.forEach((row) => {
         bySeq.set(row.sequence, row);
-        if (row.plain_text_token && row.student_id) {
-          tokenByStudentIdRef.current.set(row.student_id, row.plain_text_token);
-        }
       });
       return Array.from(bySeq.values()).sort((a, b) => a.sequence - b.sequence);
     });
+    setTokensByStudentId((prev) => mergeTokenMap(prev, students, forGroupId, groupIdRef.current));
   }, []);
 
   const runBatch = useCallback(
@@ -125,13 +147,14 @@ export function useGroupAttendanceCardBulk(groupId) {
 
           const res = await postGroupAttendanceCardsBatch(forGroupId, payload);
           if (forGroupId !== groupIdRef.current) {
+            executingRef.current = false;
             return { ok: false, aborted: true };
           }
 
           const data = res?.data ?? res;
           setOperationMeta(data.operation ?? null);
           setBatchMeta(data.batch ?? null);
-          mergeBatchStudents(data.students ?? []);
+          applyBatchStudents(data.students ?? [], forGroupId);
 
           if (!data.batch?.has_more) {
             setUiState(BULK_UI_STATES.REVIEW);
@@ -146,7 +169,9 @@ export function useGroupAttendanceCardBulk(groupId) {
         }
 
         executingRef.current = false;
-        setUiState(BULK_UI_STATES.REVIEW);
+        if (forGroupId === groupIdRef.current) {
+          setUiState(BULK_UI_STATES.REVIEW);
+        }
         return { ok: true };
       } catch (err) {
         executingRef.current = false;
@@ -158,7 +183,7 @@ export function useGroupAttendanceCardBulk(groupId) {
         return { ok: false, uncertain: true, error: err };
       }
     },
-    [batchMeta, groupId, mergeBatchStudents],
+    [applyBatchStudents, batchMeta, groupId],
   );
 
   const recoverFromStatus = useCallback(async () => {
@@ -178,7 +203,13 @@ export function useGroupAttendanceCardBulk(groupId) {
       setOperationMeta(data.operation ?? null);
       setStudentOutcomes(
         Array.isArray(data.students)
-          ? [...data.students].sort((a, b) => a.sequence - b.sequence)
+          ? [...data.students]
+              .map((row) => {
+                const { plain_text_token, ...rest } = row;
+                void plain_text_token;
+                return rest;
+              })
+              .sort((a, b) => a.sequence - b.sequence)
           : [],
       );
       setUiState(BULK_UI_STATES.REVIEW);
@@ -211,8 +242,8 @@ export function useGroupAttendanceCardBulk(groupId) {
     batchMeta,
     studentOutcomes,
     lastError,
+    tokensByStudentId,
     clientOperationIdRef,
-    tokenByStudentIdRef,
     modeNeedsReissueConfirm,
     clearTokens,
     resetOperation,

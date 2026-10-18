@@ -188,6 +188,10 @@ const AdminStudentResults = lazy(
   () =>
     import("./modules/admin-dashboard/pages/StudentResults/AdminStudentResults"),
 );
+const AdminAttendanceQrCards = lazy(
+  () =>
+    import("./modules/admin-dashboard/pages/AttendanceQrCards/AdminAttendanceQrCards"),
+);
 const MaintenancePage = lazy(
   () => import("./pages/Maintenance/MaintenancePage"),
 );
@@ -484,6 +488,10 @@ function AppContent() {
                     <Route
                       path="student-results"
                       element={<AdminStudentResults />}
+                    />
+                    <Route
+                      path="attendance-qr-cards"
+                      element={<AdminAttendanceQrCards />}
                     />
                     <Route
                       path="student-results/:groupId/:studentId/exams/:examId/attempts/:attemptId/review"

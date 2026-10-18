@@ -18,7 +18,6 @@ import { getCourseInstructors } from "../../../../utils/courseInstructors";
 import "../../components/shared/AdminContentPage/AdminContentPage.css";
 import SessionStatusBadge from "../../../../components/shared/SessionStatusBadge/SessionStatusBadge";
 import { isArabicLocale } from "../../../../utils/isArabicLocale";
-import GroupAttendanceCardsPreviewPanel from "./components/GroupAttendanceCardsPreviewPanel";
 
 import {
   canSelectEnrollmentCompletedOption,
@@ -1760,13 +1759,6 @@ function AdminGroups({
                   </div>
                 </div>
               )}
-
-              {viewingItem ? (
-                <GroupAttendanceCardsPreviewPanel
-                  groupId={viewingItem}
-                  isArabic={isArabic}
-                />
-              ) : null}
 
               {/* ── Available Students Table ── */}
               {editingItem &&

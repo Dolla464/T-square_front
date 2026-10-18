@@ -1,15 +1,15 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import GroupAttendanceCardsPreviewPanel, {
-  BULK_CARD_MODES,
-} from "../GroupAttendanceCardsPreviewPanel";
+import { BULK_CARD_MODES } from "../../bulkCardModes";
+import GroupAttendanceCardsPreviewPanel from "../GroupAttendanceCardsPreviewPanel";
 
 const mockPreview = vi.fn();
+const mockPostBatch = vi.fn();
 
 vi.mock("../../../../services/learningGroupServices", () => ({
   getGroupAttendanceCardsPreview: (...args) => mockPreview(...args),
-  postGroupAttendanceCardsBatch: vi.fn(),
+  postGroupAttendanceCardsBatch: (...args) => mockPostBatch(...args),
   getGroupAttendanceCardsBatchStatus: vi.fn(),
 }));
 
@@ -71,7 +71,24 @@ const sampleData = {
 describe("GroupAttendanceCardsPreviewPanel", () => {
   beforeEach(() => {
     mockPreview.mockReset();
+    mockPostBatch.mockReset();
     mockPreview.mockResolvedValue(sampleData);
+  });
+
+  it("renders nothing without groupId then loads when groupId becomes available", async () => {
+    const { rerender, container } = render(
+      <GroupAttendanceCardsPreviewPanel groupId={null} isArabic={false} />,
+    );
+
+    expect(container.firstChild).toBeNull();
+    expect(mockPreview).not.toHaveBeenCalled();
+
+    rerender(<GroupAttendanceCardsPreviewPanel groupId={10} isArabic={false} />);
+
+    await waitFor(() =>
+      expect(mockPreview).toHaveBeenCalledWith(10, expect.objectContaining({ signal: expect.any(AbortSignal) })),
+    );
+    await waitFor(() => screen.getByText("Ali"));
   });
 
   it("loads preview for the selected group and shows default radio mode", async () => {
@@ -144,12 +161,12 @@ describe("GroupAttendanceCardsPreviewPanel", () => {
     });
 
     const { rerender } = render(
-      <GroupAttendanceCardsPreviewPanel groupId={10} isArabic={false} />,
+      <GroupAttendanceCardsPreviewPanel key={10} groupId={10} isArabic={false} />,
     );
 
     await waitFor(() => expect(resolvers[10]).toBeDefined());
 
-    rerender(<GroupAttendanceCardsPreviewPanel groupId={20} isArabic={false} />);
+    rerender(<GroupAttendanceCardsPreviewPanel key={20} groupId={20} isArabic={false} />);
 
     await waitFor(() => expect(resolvers[20]).toBeDefined());
 
@@ -214,12 +231,12 @@ describe("GroupAttendanceCardsPreviewPanel", () => {
     });
 
     const { rerender } = render(
-      <GroupAttendanceCardsPreviewPanel groupId={10} isArabic={false} />,
+      <GroupAttendanceCardsPreviewPanel key={10} groupId={10} isArabic={false} />,
     );
 
     await waitFor(() => expect(resolvers[10]).toBeDefined());
 
-    rerender(<GroupAttendanceCardsPreviewPanel groupId={20} isArabic={false} />);
+    rerender(<GroupAttendanceCardsPreviewPanel key={20} groupId={20} isArabic={false} />);
 
     await waitFor(() => expect(resolvers[20]).toBeDefined());
 
@@ -254,5 +271,111 @@ describe("GroupAttendanceCardsPreviewPanel", () => {
     expect(
       screen.queryByText("groups_page.attendance_cards_preview.load_failed"),
     ).not.toBeInTheDocument();
+  });
+
+  it("does not apply stale bulk batch results after switching groups mid-flight", async () => {
+    const user = userEvent.setup();
+    let resolveBatch;
+    mockPostBatch.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveBatch = resolve;
+        }),
+    );
+
+    const group10Preview = {
+      data: {
+        future_batch_max: 50,
+        counts: {
+          total_enrollments: 1,
+          eligible: 1,
+          excluded_online: 0,
+          with_active_card: 0,
+          without_active_card: 1,
+          inactive_students: 0,
+        },
+        students: [
+          {
+            student_id: 10,
+            full_name: "Group A Student",
+            student_status: "active",
+            enrollment: { is_completed: false },
+            has_active_card: false,
+          },
+        ],
+      },
+    };
+
+    const group20Preview = {
+      data: {
+        future_batch_max: 50,
+        counts: {
+          total_enrollments: 1,
+          eligible: 1,
+          excluded_online: 0,
+          with_active_card: 0,
+          without_active_card: 1,
+          inactive_students: 0,
+        },
+        students: [
+          {
+            student_id: 20,
+            full_name: "Group B Student",
+            student_status: "active",
+            enrollment: { is_completed: false },
+            has_active_card: false,
+          },
+        ],
+      },
+    };
+
+    mockPreview.mockImplementation((gid) => {
+      if (gid === 10) {
+        return Promise.resolve(group10Preview);
+      }
+      if (gid === 20) {
+        return Promise.resolve(group20Preview);
+      }
+      return Promise.resolve(sampleData);
+    });
+
+    const { rerender } = render(
+      <GroupAttendanceCardsPreviewPanel key={10} groupId={10} isArabic={false} />,
+    );
+
+    await waitFor(() => screen.getByText("Group A Student"));
+
+    await user.click(
+      screen.getByRole("button", { name: /groups_page.attendance_cards_bulk.execute_btn/i }),
+    );
+
+    expect(mockPostBatch).toHaveBeenCalledWith(10, expect.any(Object));
+
+    rerender(<GroupAttendanceCardsPreviewPanel key={20} groupId={20} isArabic={false} />);
+
+    await waitFor(() => screen.getByText("Group B Student"));
+
+    resolveBatch({
+      data: {
+        operation: { status: "completed", snapshot_count: 1 },
+        batch: { has_more: false, batch_index: 0 },
+        students: [
+          {
+            sequence: 0,
+            student_id: 10,
+            status: "success",
+            result_code: "ISSUED",
+            plain_text_token: "card_" + "f".repeat(64),
+            token_available: true,
+          },
+        ],
+      },
+    });
+
+    await waitFor(() => expect(mockPostBatch).toHaveBeenCalledTimes(1));
+
+    expect(screen.queryByText("Group A Student")).not.toBeInTheDocument();
+    expect(screen.getByText("Group B Student")).toBeInTheDocument();
+    expect(screen.queryByText("success")).not.toBeInTheDocument();
   });
 });

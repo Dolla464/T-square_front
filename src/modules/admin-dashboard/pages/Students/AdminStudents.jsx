@@ -15,7 +15,6 @@ import { useStudents } from "../../hooks/useStudents";
 import { openExternalUrl } from "../../../../utils/openExternalUrl";
 import ProfileAvatar from "../../../../components/shared/ProfileAvatar/ProfileAvatar";
 import { isArabicLocale } from "../../../../utils/isArabicLocale";
-import StudentAttendanceCardPanel from "./components/StudentAttendanceCardPanel";
 
 import {
   hasRealAvatar,
@@ -1472,15 +1471,6 @@ function AdminStudents({
                   </div>
                 )}
               </div>
-
-              {viewingItem ? (
-                <StudentAttendanceCardPanel
-                  key={viewingItem.id}
-                  studentId={viewingItem.id}
-                  studentName={formData.full_name}
-                  enrollmentNumber={formData.enrollment_number}
-                />
-              ) : null}
 
               {/* تفاصيل إضافية للعرض فقط */}
               {viewingItem && (

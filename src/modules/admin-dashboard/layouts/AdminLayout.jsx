@@ -56,6 +56,11 @@ const ADMIN_NAV = [
         path: "/admin/student-results",
         icon: "bi-bar-chart-line-fill",
       },
+      {
+        key: "attendanceQrCards",
+        path: "/admin/attendance-qr-cards",
+        icon: "bi-qr-code",
+      },
     ],
   },
   { key: "quizzes", path: "/admin/quizzes", icon: "bi-chat-right-quote" },
@@ -117,6 +122,8 @@ function AdminLayout() {
         return t("sidebar.attendanceDevices");
       case "/admin/student-results":
         return t("studentResults.title");
+      case "/admin/attendance-qr-cards":
+        return t("attendanceQrCardsPage.title");
       case "/admin/groups":
         return t("sidebar.learningGroups");
       case "/admin/courses":

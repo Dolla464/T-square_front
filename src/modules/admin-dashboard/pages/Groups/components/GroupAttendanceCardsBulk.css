@@ -1,22 +1,32 @@
-.group-attendance-cards-bulk-print {
+#group-attendance-cards-bulk-print-root {
   display: none;
 }
 
 @media print {
+  /*
+   * Bulk cards render via portal on document.body so Chrome can paginate
+   * (absolute + visibility:hidden #root collapses multi-page print to one sheet).
+   */
   body:has(#group-attendance-cards-bulk-print-root) #root {
-    visibility: hidden !important;
+    display: none !important;
   }
 
-  .group-attendance-cards-bulk-no-print {
+  body:has(#group-attendance-cards-bulk-print-root) .modal-backdrop {
     display: none !important;
+  }
+
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
   }
 
   #group-attendance-cards-bulk-print-root {
     display: block !important;
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+    position: static !important;
+    width: 100% !important;
     visibility: visible !important;
   }
 
@@ -27,6 +37,9 @@
 
   .group-attendance-card-sheet {
     page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
     padding: 12mm;
     text-align: center;
     box-sizing: border-box;
@@ -34,11 +47,13 @@
 
   .group-attendance-card-sheet:last-child {
     page-break-after: auto;
+    break-after: auto;
   }
 
   .attendance-card-qr-frame {
     box-shadow: none !important;
     border: 2px solid #000 !important;
     page-break-inside: avoid;
+    break-inside: avoid;
   }
 }

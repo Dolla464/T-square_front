@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Alert, Button, Form, Spinner } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { showConfirmCustom } from "../../../../../components/shared/ConfirmDialog/confirmDialog";
@@ -10,14 +10,9 @@ import {
   BULK_UI_STATES,
   useGroupAttendanceCardBulk,
 } from "../hooks/useGroupAttendanceCardBulk";
+import { BULK_CARD_MODES } from "../bulkCardModes";
 import GroupAttendanceCardsBulkPrint from "./GroupAttendanceCardsBulkPrint";
 import "./GroupAttendanceCardsBulk.css";
-
-export const BULK_CARD_MODES = {
-  ISSUE_NEW_ONLY: "issue_new_only",
-  REISSUE_ACTIVE_ONLY: "reissue_active_only",
-  ISSUE_ALL: "issue_all",
-};
 
 function GroupAttendanceCardsPreviewPanel({ groupId, isArabic }) {
   const { t } = useTranslation("adminDashboard");
@@ -32,6 +27,10 @@ function GroupAttendanceCardsPreviewPanel({ groupId, isArabic }) {
   const abortRef = useRef(null);
   const groupIdRef = useRef(groupId);
   const bulkNs = "groups_page.attendance_cards_bulk";
+  const tRef = useRef(t);
+  useLayoutEffect(() => {
+    tRef.current = t;
+  }, [t]);
 
   const {
     uiState,
@@ -40,7 +39,7 @@ function GroupAttendanceCardsPreviewPanel({ groupId, isArabic }) {
     batchMeta,
     studentOutcomes,
     lastError,
-    tokenByStudentIdRef,
+    tokensByStudentId,
     modeNeedsReissueConfirm,
     clearTokens,
     resetOperation,
@@ -49,13 +48,9 @@ function GroupAttendanceCardsPreviewPanel({ groupId, isArabic }) {
     recoverFromStatus,
   } = useGroupAttendanceCardBulk(groupId);
 
-  groupIdRef.current = groupId;
-
-  useEffect(() => {
-    resetOperation();
-    setSelectedPrintIds(new Set());
-    setMode(BULK_CARD_MODES.ISSUE_NEW_ONLY);
-  }, [groupId, resetOperation]);
+  useLayoutEffect(() => {
+    groupIdRef.current = groupId;
+  }, [groupId]);
 
   const loadPreview = useCallback(async () => {
     const forGroupId = groupId;
@@ -91,7 +86,7 @@ function GroupAttendanceCardsPreviewPanel({ groupId, isArabic }) {
       }
       setPreview(null);
       setLoadFailed(true);
-      toastError(getApiErrorMessage(err, t(`${ns}.load_failed`)));
+      toastError(getApiErrorMessage(err, tRef.current(`${ns}.load_failed`)));
     } finally {
       if (forGroupId === groupIdRef.current) {
         setLoading(false);
@@ -100,16 +95,16 @@ function GroupAttendanceCardsPreviewPanel({ groupId, isArabic }) {
   }, [groupId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch preview when groupId changes
     loadPreview();
     return () => abortRef.current?.abort();
   }, [loadPreview]);
 
-  if (!groupId) {
-    return null;
-  }
-
   const counts = preview?.counts ?? {};
-  const students = preview?.students ?? [];
+  const students = useMemo(
+    () => (groupId ? (preview?.students ?? []) : []),
+    [groupId, preview?.students],
+  );
   const batchMax = preview?.future_batch_max ?? 50;
   const inactiveCount = counts.inactive_students ?? 0;
   const isExecuting = uiState === BULK_UI_STATES.RUNNING_BATCH;
@@ -125,7 +120,7 @@ function GroupAttendanceCardsPreviewPanel({ groupId, isArabic }) {
       .filter((row) => row.status === "success")
       .map((row) => {
         const previewRow = previewStudentById.get(row.student_id);
-        const token = tokenByStudentIdRef.current.get(row.student_id) ?? null;
+        const token = tokensByStudentId.get(row.student_id) ?? null;
         return {
           ...row,
           full_name: previewRow?.full_name ?? `#${row.student_id}`,
@@ -133,7 +128,11 @@ function GroupAttendanceCardsPreviewPanel({ groupId, isArabic }) {
           token,
         };
       });
-  }, [previewStudentById, studentOutcomes, tokenByStudentIdRef, uiState]);
+  }, [previewStudentById, studentOutcomes, tokensByStudentId]);
+
+  if (!groupId) {
+    return null;
+  }
 
   const handleExecute = async () => {
     if (!preview || isExecuting) {
@@ -413,7 +412,7 @@ function GroupAttendanceCardsPreviewPanel({ groupId, isArabic }) {
                     <tbody>
                       {studentOutcomes.map((row) => {
                         const previewRow = previewStudentById.get(row.student_id);
-                        const hasToken = tokenByStudentIdRef.current.has(row.student_id);
+                        const hasToken = tokensByStudentId.has(row.student_id);
                         return (
                           <tr key={row.sequence}>
                             <td>{previewRow?.full_name ?? row.student_id}</td>

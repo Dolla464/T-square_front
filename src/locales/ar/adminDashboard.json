@@ -24,6 +24,7 @@
     "schedule": "جدول المواعيد",
     "studentAttendance": "حضور الطلاب",
     "studentResults": "نتائج الطلاب",
+    "attendanceQrCards": "بطاقات حضور QR",
     "examActivation": "تفعيل الامتحانات",
     "examGrading": "تصحيح الامتحانات",
     "profile": "الملف الشخصي",
@@ -701,6 +702,19 @@
     "statusNotMarked": "لم يسجَّل",
     "statusExcused": "معذور",
     "statusCancelled": "ملغاة"
+  },
+  "attendanceQrCardsPage": {
+    "title": "بطاقات حضور QR",
+    "subtitle": "إصدار بطاقات الحضور الدائمة وطباعة رموز QR حسب المجموعة أو طالب واحد",
+    "scope_group": "حسب المجموعة الدراسية",
+    "scope_student": "حسب الطالب",
+    "selectGroup": "اختر المجموعة",
+    "chooseGroup": "اختر مجموعة…",
+    "selectStudent": "اختر الطالب",
+    "chooseStudent": "اختر طالباً…",
+    "searchStudent": "بحث عن طلاب",
+    "searchStudentPlaceholder": "الاسم، البريد، أو رقم التسجيل…",
+    "searchStudentsHint": "{{count}} طالب يطابق البحث"
   },
   "studentResults": {
     "title": "نتائج الطلاب",

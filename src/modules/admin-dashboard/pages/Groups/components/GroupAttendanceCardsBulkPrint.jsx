@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
 import "./GroupAttendanceCardsBulk.css";
@@ -12,6 +14,11 @@ function GroupAttendanceCardsBulkPrint({
 }) {
   const { t } = useTranslation("adminDashboard");
   const ns = "groups_page.attendance_cards_bulk";
+  const [portalReady, setPortalReady] = useState(false);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   const printable = cards.filter((row) => {
     if (row.status !== "success" || !row.token) {
@@ -23,11 +30,11 @@ function GroupAttendanceCardsBulkPrint({
     return selectedStudentIds.has(row.student_id);
   });
 
-  if (printable.length === 0) {
+  if (printable.length === 0 || !portalReady) {
     return null;
   }
 
-  return (
+  return createPortal(
     <div
       id="group-attendance-cards-bulk-print-root"
       className="group-attendance-cards-bulk-print"
@@ -57,7 +64,8 @@ function GroupAttendanceCardsBulkPrint({
           </div>
         </article>
       ))}
-    </div>
+    </div>,
+    document.body,
   );
 }
 

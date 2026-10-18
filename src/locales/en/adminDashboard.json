@@ -24,6 +24,7 @@
     "schedule": "Schedule",
     "studentAttendance": "Students Attendance",
     "studentResults": "Students Results",
+    "attendanceQrCards": "Attendance QR Cards",
     "examActivation": "Exam Activation",
     "examGrading": "Exam Grading",
     "profile": "Profile",
@@ -701,6 +702,19 @@
     "statusNotMarked": "Not Marked",
     "statusExcused": "Excused",
     "statusCancelled": "Cancelled"
+  },
+  "attendanceQrCardsPage": {
+    "title": "Attendance QR Cards",
+    "subtitle": "Issue permanent attendance cards and print QR codes by group or individual student",
+    "scope_group": "By learning group",
+    "scope_student": "By student",
+    "selectGroup": "Select group",
+    "chooseGroup": "Choose a group…",
+    "selectStudent": "Select student",
+    "chooseStudent": "Choose a student…",
+    "searchStudent": "Search students",
+    "searchStudentPlaceholder": "Name, email, or enrollment number…",
+    "searchStudentsHint": "{{count}} students match your search"
   },
   "studentResults": {
     "title": "Students Results",
