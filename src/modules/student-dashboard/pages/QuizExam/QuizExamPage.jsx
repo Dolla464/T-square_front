@@ -21,13 +21,8 @@ import {
   markQuizAttemptCompleted,
   clearQuizAttemptCompleted,
 } from "../../utils/quizExamSession";
-import {
-  logEndTime,
-  logTimeLeft,
-  logTimerInput,
-  logTimerRender,
-  observeEndTimeCalculation,
-} from "../../utils/examTimerDiagnostic";
+import { getServerExpiryAction } from "../../utils/examTimerUtils";
+import QuizTimer from "./QuizTimer";
 import { trackExamJourneyEvent } from "../../utils/examJourneyLog";
 import "../../../shared-dashboard/components/AttemptAnswerReview/attemptReview.css";
 import "../../../shared-dashboard/components/QuestionContent/questionContent.css";
@@ -49,204 +44,6 @@ const isAwaitingGrading = (status) => status === "awaiting_grading";
 
 const isEssayQuestion = (question) => question?.type === "essay";
 
-const QuizTimer = React.memo(
-  ({
-    attemptId,
-    status,
-    isTimedOut,
-    deadlineAt,
-    startedAt,
-    durationMins,
-    remainingSeconds,
-    onTimeout,
-    onSync,
-    disabled,
-  }) => {
-  const [timeLeft, setTimeLeft] = useState(null);
-  const onTimeoutRef = useRef(onTimeout);
-  const hasLoggedRenderRef = useRef(false);
-  const prevRemainingSecondsRef = useRef(remainingSeconds);
-  onTimeoutRef.current = onTimeout;
-
-  useEffect(() => {
-    logTimerInput({
-      attemptId,
-      status,
-      isTimedOut,
-      deadlineAt,
-      startedAt,
-      durationMins,
-      remainingSeconds,
-    });
-  }, [
-    attemptId,
-    status,
-    isTimedOut,
-    deadlineAt,
-    startedAt,
-    durationMins,
-    remainingSeconds,
-  ]);
-
-  const getEndTimeMs = useCallback(() => {
-    if (deadlineAt) {
-      const deadlineMs = new Date(deadlineAt).getTime();
-      if (!Number.isNaN(deadlineMs)) {
-        return deadlineMs;
-      }
-    }
-
-    if (startedAt && durationMins > 0) {
-      const startMs = new Date(startedAt).getTime();
-      if (!Number.isNaN(startMs)) {
-        return startMs + durationMins * 60 * 1000;
-      }
-    }
-
-    return null;
-  }, [deadlineAt, startedAt, durationMins]);
-
-  useEffect(() => {
-    if (disabled) return;
-
-    const endTime = getEndTimeMs();
-    if (!endTime && typeof remainingSeconds !== "number") return;
-
-    const calculateTimeLeft = () => {
-      if (endTime) {
-        const difference = endTime - Date.now();
-        return difference <= 0 ? 0 : Math.floor(difference / 1000);
-      }
-
-      return Math.max(0, remainingSeconds);
-    };
-
-    const initialTime = calculateTimeLeft();
-    logEndTime(
-      observeEndTimeCalculation({
-        deadlineAt,
-        startedAt,
-        durationMins,
-        remainingSeconds,
-      }),
-    );
-    logTimeLeft({
-      source: "initialization",
-      timeLeft: initialTime,
-      remainingSeconds,
-      deadlineAt,
-      startedAt,
-      durationMins,
-      attemptId,
-      force: true,
-    });
-    setTimeLeft(initialTime);
-
-    if (initialTime <= 0) {
-      onTimeoutRef.current();
-      return;
-    }
-
-    const interval = setInterval(() => {
-      const remaining = calculateTimeLeft();
-      logTimeLeft({
-        source: "deadline_countdown",
-        timeLeft: remaining,
-        remainingSeconds,
-        deadlineAt,
-        startedAt,
-        durationMins,
-        attemptId,
-      });
-      setTimeLeft(remaining);
-      if (remaining <= 0) {
-        clearInterval(interval);
-        onTimeoutRef.current();
-      }
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [deadlineAt, startedAt, durationMins, disabled, getEndTimeMs, remainingSeconds]);
-
-  useEffect(() => {
-    if (typeof remainingSeconds !== "number" || disabled) {
-      return;
-    }
-
-    if (prevRemainingSecondsRef.current === remainingSeconds) {
-      return;
-    }
-
-    prevRemainingSecondsRef.current = remainingSeconds;
-
-    const snapped = Math.max(0, remainingSeconds);
-    logTimeLeft({
-      source: "remaining_seconds_sync",
-      timeLeft: snapped,
-      remainingSeconds,
-      deadlineAt,
-      startedAt,
-      durationMins,
-      attemptId,
-      force: true,
-    });
-    setTimeLeft(snapped);
-  }, [remainingSeconds, deadlineAt, startedAt, durationMins, attemptId, disabled]);
-
-  useEffect(() => {
-    if (!onSync || disabled) return undefined;
-
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        onSync();
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibility);
-    const interval = setInterval(onSync, 60000);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibility);
-      clearInterval(interval);
-    };
-  }, [onSync, disabled]);
-
-  useEffect(() => {
-    if (timeLeft === null) {
-      return;
-    }
-
-    const shouldLogRender =
-      !hasLoggedRenderRef.current ||
-      (typeof durationMins === "number" &&
-        durationMins > 0 &&
-        timeLeft > durationMins * 60);
-
-    if (shouldLogRender) {
-      logTimerRender({ timeLeft, attemptId });
-      hasLoggedRenderRef.current = true;
-    }
-  }, [timeLeft, durationMins, attemptId]);
-
-  if (timeLeft === null) return null;
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  return (
-    <div className={`quiz-timer-badge ${timeLeft < 60 ? "timer-warning" : ""}`}>
-      <i className="bi bi-clock me-1"></i>
-      <span>{formatTime(timeLeft)}</span>
-    </div>
-  );
-  },
-);
-
 function QuizExamPage() {
   const { quizId } = useParams();
   const navigate = useNavigate();
@@ -255,6 +52,9 @@ function QuizExamPage() {
   const leaveDialogOpenRef = useRef(false);
   const attemptFinalizedRef = useRef(false);
   const navigationInFlightRef = useRef(false);
+  const expiryVerificationRef = useRef(null);
+  const isInitializingRef = useRef(true);
+  const loadingRef = useRef(false);
   const { i18n, t } = useTranslation("studentDashboard");
   const isArabic = isArabicLocale(i18n.language);
 
@@ -269,6 +69,8 @@ function QuizExamPage() {
     isSavingAnswer,
     recoverClosedAttempt,
     syncExamTime,
+    waitForPendingSaves,
+    withAttemptFinalization,
   } = useExam(quizId);
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -282,6 +84,9 @@ function QuizExamPage() {
   const [attemptFinalized, setAttemptFinalized] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
 
+  isInitializingRef.current = isInitializing;
+  loadingRef.current = loading;
+
   const questions = exam?.questions || [];
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
@@ -292,12 +97,21 @@ function QuizExamPage() {
     hasAutoSubmittedRef.current ||
     isSavingAnswer;
   const shouldBlockNavigation =
-    Boolean(exam?.attempt_id) && !attemptFinalized;
+    Boolean(exam?.attempt_id) &&
+    !attemptFinalizedRef.current &&
+    !showResult;
+  const isExamContentReady =
+    !isInitializing &&
+    !loading &&
+    exam?.status === "ongoing" &&
+    questions.length > 0;
+
   const isExamInProgress =
     Boolean(exam?.attempt_id) &&
     exam?.status === "ongoing" &&
     !showResult &&
-    !attemptFinalized;
+    !attemptFinalized &&
+    isExamContentReady;
 
   useExamIntegrityMonitor({
     attemptId: exam?.attempt_id,
@@ -584,18 +398,23 @@ function QuizExamPage() {
     [quizId],
   );
 
-  const applySubmitResult = useCallback((attemptId, results) => {
-    sessionStorage.removeItem(`quiz_state_${quizId}`);
-    invalidateAttemptReview(attemptId);
-    markAttemptFinalized(attemptId);
-    setSubmittedAttemptId(attemptId);
-    setShowAnswerReview(false);
-    setScoreResult(mapExamResults(results));
-    setShowResult(true);
-  }, [quizId, markAttemptFinalized]);
+  const applySubmitResult = useCallback(
+    (attemptId, results, { showResultUi = true } = {}) => {
+      sessionStorage.removeItem(`quiz_state_${quizId}`);
+      invalidateAttemptReview(attemptId);
+      markAttemptFinalized(attemptId);
+      setSubmittedAttemptId(attemptId);
+      setShowAnswerReview(false);
+      setScoreResult(mapExamResults(results));
+      if (showResultUi) {
+        setShowResult(true);
+      }
+    },
+    [quizId, markAttemptFinalized],
+  );
 
   const syncClosedAttempt = useCallback(
-    async (attemptId) => {
+    async (attemptId, { showResultUi = true } = {}) => {
       if (!attemptId || attemptFinalizedRef.current) {
         return true;
       }
@@ -606,13 +425,14 @@ function QuizExamPage() {
       }
 
       hasAutoSubmittedRef.current = true;
-      applySubmitResult(attemptId, results);
+      applySubmitResult(attemptId, results, { showResultUi });
       return true;
     },
     [applySubmitResult, recoverClosedAttempt],
   );
 
   const persistCurrentAnswer = useCallback(async () => {
+    // submittingRef: skip only for concurrent callers; finalizeAttempt persists before submitExam.
     if (
       attemptFinalizedRef.current ||
       hasAutoSubmittedRef.current ||
@@ -642,6 +462,7 @@ function QuizExamPage() {
         curQuestion.id,
         selAnswer,
         isEssayQuestion(curQuestion) ? "essay" : "mcq",
+        { bypassFinalizeLock: true },
       );
       return true;
     } catch (err) {
@@ -655,7 +476,11 @@ function QuizExamPage() {
   const finalizeAttemptRef = useRef(null);
 
   const finalizeAttempt = useCallback(
-    async ({ showToast = true, toastVariant = "default" } = {}) => {
+    async ({
+      showToast = true,
+      toastVariant = "default",
+      showResultUi = true,
+    } = {}) => {
       const attemptId = examAttemptIdRef.current;
 
       if (
@@ -667,88 +492,171 @@ function QuizExamPage() {
         return false;
       }
 
-      flushQuestionTime();
-      hasAutoSubmittedRef.current = true;
-
-      try {
-        const curQuestion = currentQuestionRef.current;
-        const selAnswer = selectedAnswerRef.current;
-
-        if (curQuestion) {
-          const shouldSave =
-            isEssayQuestion(curQuestion)
-              ? String(selAnswer ?? "").trim()
-              : selAnswer !== null;
-          if (shouldSave) {
-          try {
-            await saveAnswer(
-              curQuestion.id,
-              selAnswer,
-              isEssayQuestion(curQuestion) ? "essay" : "mcq",
-            );
-          } catch (saveErr) {
-            if (saveErr.response?.status !== 403) {
-              throw saveErr;
-            }
-          }
-          }
-        }
-
-        const result = await submitExam(attemptId);
-        applySubmitResult(attemptId, result.results);
-
-        if (showToast) {
-          const toastConfig =
-            toastVariant === "timeout"
-              ? {
-                  message: t("quiz_exam.timeout_toast"),
-                  type: "warning",
-                  bsIcon: "bi-clock-history",
-                }
-              : {
-                  message: t("quiz_exam.submitted_toast"),
-                  type: "success",
-                  bsIcon: "bi-check2-circle",
-                };
-
-          toastCustom({ ...toastConfig, duration: 5000 });
-        }
-
-        return true;
-      } catch (err) {
-        if (attemptId) {
-          const recovered = await syncClosedAttempt(attemptId);
-          if (recovered) {
-            return true;
-          }
-        }
-
-        hasAutoSubmittedRef.current = false;
-        toastCustom({
-          message: t("quiz_exam.submit_error"),
-          type: "error",
-          bsIcon: "bi-x-circle",
-          duration: 5000,
-        });
+      if (isInitializingRef.current || loadingRef.current) {
         return false;
       }
+
+      return withAttemptFinalization(attemptId, async () => {
+        if (
+          hasAutoSubmittedRef.current ||
+          submittingRef.current ||
+          attemptFinalizedRef.current
+        ) {
+          return false;
+        }
+
+        flushQuestionTime();
+
+        try {
+          await waitForPendingSaves(attemptId);
+
+          const saved = await persistCurrentAnswer();
+          if (!saved) {
+            return false;
+          }
+
+          hasAutoSubmittedRef.current = true;
+
+          const result = await submitExam(attemptId);
+          applySubmitResult(attemptId, result.results, { showResultUi });
+
+          if (showToast) {
+            const toastConfig =
+              toastVariant === "timeout"
+                ? {
+                    message: t("quiz_exam.timeout_toast"),
+                    type: "warning",
+                    bsIcon: "bi-clock-history",
+                  }
+                : {
+                    message: t("quiz_exam.submitted_toast"),
+                    type: "success",
+                    bsIcon: "bi-check2-circle",
+                  };
+
+            toastCustom({ ...toastConfig, duration: 5000 });
+          }
+
+          return true;
+        } catch {
+          if (hasAutoSubmittedRef.current) {
+            if (attemptId) {
+              const recovered = await syncClosedAttempt(attemptId, {
+                showResultUi,
+              });
+              if (recovered) {
+                return true;
+              }
+            }
+
+            hasAutoSubmittedRef.current = false;
+            toastCustom({
+              message: t("quiz_exam.submit_error"),
+              type: "error",
+              bsIcon: "bi-x-circle",
+              duration: 5000,
+            });
+          }
+
+          return false;
+        }
+      });
     },
     [
       applySubmitResult,
       flushQuestionTime,
+      persistCurrentAnswer,
       t,
-      saveAnswer,
       submitExam,
       syncClosedAttempt,
+      waitForPendingSaves,
+      withAttemptFinalization,
     ],
   );
 
   finalizeAttemptRef.current = finalizeAttempt;
 
-  const handleAutoSubmit = useCallback(async () => {
-    if (hasAutoSubmittedRef.current || showResult) return;
-    await finalizeAttempt({ showToast: true, toastVariant: "timeout" });
-  }, [finalizeAttempt, showResult]);
+  const reconcileServerTimeStatus = useCallback(
+    async (attemptId, { source = "sync" } = {}) => {
+      if (
+        !attemptId ||
+        attemptFinalizedRef.current ||
+        showResult ||
+        hasAutoSubmittedRef.current
+      ) {
+        return "skipped";
+      }
+
+      if (expiryVerificationRef.current) {
+        return expiryVerificationRef.current;
+      }
+
+      const verification = (async () => {
+        trackExamJourneyEvent("TIMER_EXPIRY_CHECK", { source });
+
+        const data = await syncExamTime(attemptId);
+        if (!data) {
+          return "unknown";
+        }
+
+        const expiryAction = getServerExpiryAction(data);
+
+        if (expiryAction === "closed_with_results") {
+          hasAutoSubmittedRef.current = true;
+          applySubmitResult(attemptId, data.results);
+          toastCustom({
+            message: t("quiz_exam.timeout_toast"),
+            type: "warning",
+            bsIcon: "bi-clock-history",
+            duration: 5000,
+          });
+          return "closed_with_results";
+        }
+
+        if (expiryAction === "closed") {
+          await syncClosedAttempt(attemptId);
+          return "closed";
+        }
+
+        if (expiryAction === "expired") {
+          await finalizeAttempt({ showToast: true, toastVariant: "timeout" });
+          return "expired";
+        }
+
+        return "ongoing";
+      })();
+
+      expiryVerificationRef.current = verification.finally(() => {
+        expiryVerificationRef.current = null;
+      });
+
+      return expiryVerificationRef.current;
+    },
+    [
+      applySubmitResult,
+      finalizeAttempt,
+      showResult,
+      syncClosedAttempt,
+      syncExamTime,
+      t,
+    ],
+  );
+
+  const handleExpirySuspected = useCallback(
+    async ({ source } = {}) => {
+      if (hasAutoSubmittedRef.current || showResult) {
+        return;
+      }
+
+      const attemptId = examAttemptIdRef.current;
+      if (!attemptId) {
+        return;
+      }
+
+      await reconcileServerTimeStatus(attemptId, { source: source ?? "timer" });
+    },
+    [reconcileServerTimeStatus, showResult],
+  );
 
   const handleTimerSync = useCallback(async () => {
     const attemptId = examAttemptIdRef.current;
@@ -756,38 +664,8 @@ function QuizExamPage() {
       return;
     }
 
-    const data = await syncExamTime(attemptId);
-    if (!data) {
-      return;
-    }
-
-    if (data.status && data.status !== "ongoing") {
-      if (data.results) {
-        hasAutoSubmittedRef.current = true;
-        applySubmitResult(attemptId, data.results);
-        toastCustom({
-          message: t("quiz_exam.timeout_toast"),
-          type: "warning",
-          bsIcon: "bi-clock-history",
-          duration: 5000,
-        });
-      } else {
-        await syncClosedAttempt(attemptId);
-      }
-      return;
-    }
-
-    if (data.is_timed_out || data.remaining_seconds === 0) {
-      await handleAutoSubmit();
-    }
-  }, [
-    applySubmitResult,
-    handleAutoSubmit,
-    t,
-    showResult,
-    syncClosedAttempt,
-    syncExamTime,
-  ]);
+    await reconcileServerTimeStatus(attemptId, { source: "sync" });
+  }, [reconcileServerTimeStatus, showResult]);
 
   useEffect(() => {
     if (!shouldBlockNavigation) return;
@@ -814,8 +692,16 @@ function QuizExamPage() {
       leaveDialogOpenRef.current = false;
 
       if (confirmed) {
+        if (isInitializingRef.current || loadingRef.current) {
+          trackExamJourneyEvent("LEAVE_DURING_INIT", { quiz_id: quizId });
+          blocker.proceed();
+          return;
+        }
+
+        trackExamJourneyEvent("LEAVE_CONFIRMED", { quiz_id: quizId });
         const finalized = await finalizeAttemptRef.current?.({
           showToast: false,
+          showResultUi: false,
         });
         if (finalized) {
           blocker.proceed();
@@ -826,18 +712,15 @@ function QuizExamPage() {
         blocker.reset();
       }
     });
-  }, [blocker, t]);
+  }, [blocker.state, blocker.proceed, blocker.reset, quizId, t]);
 
   const handleExit = useCallback(() => {
     navigate("/student/quizzes", { state: { refreshQuizzes: true } });
   }, [navigate]);
 
-  const handleExitClick = useCallback(async () => {
-    const confirmed = await confirmLeaveExam(t);
-    if (confirmed) {
-      await finalizeAttempt({ showToast: false });
-    }
-  }, [finalizeAttempt, t]);
+  const handleExitClick = useCallback(() => {
+    navigate("/student/quizzes", { state: { refreshQuizzes: true } });
+  }, [navigate]);
 
   const handleAnswerChange = useCallback(
     (value) => {
@@ -890,7 +773,7 @@ function QuizExamPage() {
 
     let updatedAnswers = { ...answers };
 
-    if (currentQuestion) {
+    if (currentQuestion && !isLastQuestion) {
       const hasAnswer = isEssayQuestion(currentQuestion)
         ? String(selectedAnswer ?? "").trim()
         : selectedAnswer !== null;
@@ -914,73 +797,45 @@ function QuizExamPage() {
 
     const nextIndex = currentIndex + 1;
 
-    if (!isLastQuestion) {
-      sessionStorage.setItem(
-        `quiz_state_${quizId}`,
-        JSON.stringify({
-          savedIndex: nextIndex,
-          savedAnswers: updatedAnswers,
-          attemptId: exam?.attempt_id,
-        }),
-      );
+    if (isLastQuestion) {
+      await finalizeAttempt({ showToast: true, toastVariant: "default" });
+      return;
     }
 
-    if (isLastQuestion) {
-      hasAutoSubmittedRef.current = true;
-      try {
-        const result = await submitExam(exam.attempt_id);
-        if (result?.results) {
-          applySubmitResult(exam.attempt_id, result.results);
-        } else {
-          hasAutoSubmittedRef.current = false;
-          toastCustom({
-            message: t("quiz_exam.result_read_error"),
-            type: "error",
-            bsIcon: "bi-x-circle",
-            duration: 3000,
-          });
-        }
-      } catch (err) {
-        hasAutoSubmittedRef.current = false;
-        const recovered = await syncClosedAttempt(exam.attempt_id);
-        if (!recovered) {
-          toastCustom({
-            message: t("quiz_exam.submit_error"),
-            type: "error",
-            bsIcon: "bi-x-circle",
-            duration: 3000,
-          });
-        }
-      }
-    } else {
-      setCurrentIndex(nextIndex);
-      const nextQuestion = questions[nextIndex];
-      setSelectedAnswer(
-        nextQuestion
-          ? isEssayQuestion(nextQuestion)
-            ? updatedAnswers[nextQuestion.id] ?? ""
-            : updatedAnswers[nextQuestion.id] ?? null
-          : null,
-      );
-    }
+    sessionStorage.setItem(
+      `quiz_state_${quizId}`,
+      JSON.stringify({
+        savedIndex: nextIndex,
+        savedAnswers: updatedAnswers,
+        attemptId: exam?.attempt_id,
+      }),
+    );
+
+    setCurrentIndex(nextIndex);
+    const nextQuestion = questions[nextIndex];
+    setSelectedAnswer(
+      nextQuestion
+        ? isEssayQuestion(nextQuestion)
+          ? updatedAnswers[nextQuestion.id] ?? ""
+          : updatedAnswers[nextQuestion.id] ?? null
+        : null,
+    );
     } finally {
       navigationInFlightRef.current = false;
     }
   }, [
     answers,
-    applySubmitResult,
     currentIndex,
     currentQuestion,
     exam?.attempt_id,
+    finalizeAttempt,
     flushQuestionTime,
-    t,
     isLastQuestion,
     persistCurrentAnswer,
     quizId,
     questions,
     selectedAnswer,
-    submitExam,
-    syncClosedAttempt,
+    t,
   ]);
 
   const handlePrevious = useCallback(async () => {
@@ -1385,7 +1240,7 @@ function QuizExamPage() {
               startedAt={exam.started_at}
               durationMins={parseFloat(exam.duration)}
               remainingSeconds={exam.remaining_seconds}
-              onTimeout={handleAutoSubmit}
+              onExpirySuspected={handleExpirySuspected}
               onSync={handleTimerSync}
               disabled={showResult || submitting || attemptFinalized}
             />

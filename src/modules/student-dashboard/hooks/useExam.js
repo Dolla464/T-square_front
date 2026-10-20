@@ -44,6 +44,9 @@ export const useExam = (examId) => {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const saveInFlightRef = useRef(new Map());
+  const submitInFlightRef = useRef(null);
+  const finalizingAttemptIdRef = useRef(null);
+  const finalizeFlightRef = useRef(null);
   const [isSavingAnswer, setIsSavingAnswer] = useState(false);
 
   useEffect(() => {
@@ -53,8 +56,71 @@ export const useExam = (examId) => {
     setSubmitting(false);
     setIsSavingAnswer(false);
     saveInFlightRef.current.clear();
+    submitInFlightRef.current = null;
+    finalizingAttemptIdRef.current = null;
+    finalizeFlightRef.current = null;
     clearExamJourneyAttempt();
   }, [examId]);
+
+  const waitForPendingSaves = useCallback(async (attemptId) => {
+    if (!attemptId) {
+      return;
+    }
+
+    const prefix = `${attemptId}:`;
+    const pending = [...saveInFlightRef.current.entries()]
+      .filter(([key]) => key.startsWith(prefix))
+      .map(([, promise]) => promise);
+
+    if (pending.length === 0) {
+      return;
+    }
+
+    const results = await Promise.allSettled(pending);
+    const rejected = results.find((result) => result.status === "rejected");
+    if (rejected) {
+      throw rejected.reason;
+    }
+  }, []);
+
+  /**
+   * Serializes submit prep/submit for one attempt: blocks new saves, dedupes concurrent callers.
+   * Lock is released when the callback finishes (success or failure) so retries can save again.
+   * QuizExamPage holds one ongoing attempt_id at a time; a different attemptId waits for any
+   * in-flight finalization to finish, then starts its own flight (no shared Promise across ids).
+   */
+  const withAttemptFinalization = useCallback(async (attemptId, callback) => {
+    if (!attemptId) {
+      return callback();
+    }
+
+    if (finalizeFlightRef.current) {
+      if (finalizingAttemptIdRef.current === attemptId) {
+        return finalizeFlightRef.current;
+      }
+
+      try {
+        await finalizeFlightRef.current;
+      } catch {
+        // Previous finalization failed; start a new flight for this attempt.
+      }
+    }
+
+    const flight = (async () => {
+      finalizingAttemptIdRef.current = attemptId;
+      try {
+        return await callback();
+      } finally {
+        if (finalizingAttemptIdRef.current === attemptId) {
+          finalizingAttemptIdRef.current = null;
+        }
+        finalizeFlightRef.current = null;
+      }
+    })();
+
+    finalizeFlightRef.current = flight;
+    return flight;
+  }, []);
 
   const startExam = useCallback(async () => {
     try {
@@ -110,10 +176,28 @@ export const useExam = (examId) => {
     }
   }, []);
 
-  const saveAnswer = useCallback(async (questionId, answerValue, questionType = "mcq") => {
+  const saveAnswer = useCallback(async (
+    questionId,
+    answerValue,
+    questionType = "mcq",
+    options = {},
+  ) => {
     if (!exam?.attempt_id) {
       console.warn("saveAnswer skipped — attempt_id not available yet");
       return;
+    }
+
+    const { bypassFinalizeLock = false } = options;
+
+    if (
+      !bypassFinalizeLock &&
+      finalizingAttemptIdRef.current === exam.attempt_id
+    ) {
+      const blocked = Object.assign(
+        new Error("Answer save blocked during exam submission"),
+        { code: "SAVE_BLOCKED_DURING_FINALIZATION" },
+      );
+      return Promise.reject(blocked);
     }
 
     const key = `${exam.attempt_id}:${questionId}`;
@@ -199,30 +283,40 @@ export const useExam = (examId) => {
       throw new Error("Cannot submit: attempt_id is missing");
     }
 
-    try {
-      setSubmitting(true);
-      trackExamJourneyEvent("SUBMIT_CLICK", { attempt_id: attemptId });
-
-      const res = await submitExamApi(attemptId);
-
-      return {
-        ...res.data,
-        results: mapExamResults(res.data?.results),
-      };
-    } catch (err) {
-      if (err.response?.status === 403) {
-        const recovered = await recoverClosedAttempt(attemptId);
-        if (recovered) {
-          return { results: recovered };
-        }
-      }
-
-      console.error("Submit failed:", err);
-      throw err;
-    } finally {
-      await flushExamJourneyEvents();
-      setSubmitting(false);
+    if (submitInFlightRef.current) {
+      return submitInFlightRef.current;
     }
+
+    const request = (async () => {
+      try {
+        setSubmitting(true);
+        trackExamJourneyEvent("SUBMIT_CLICK", { attempt_id: attemptId });
+
+        const res = await submitExamApi(attemptId);
+
+        return {
+          ...res.data,
+          results: mapExamResults(res.data?.results),
+        };
+      } catch (err) {
+        if (err.response?.status === 403) {
+          const recovered = await recoverClosedAttempt(attemptId);
+          if (recovered) {
+            return { results: recovered };
+          }
+        }
+
+        console.error("Submit failed:", err);
+        throw err;
+      } finally {
+        await flushExamJourneyEvents();
+        setSubmitting(false);
+        submitInFlightRef.current = null;
+      }
+    })();
+
+    submitInFlightRef.current = request;
+    return request;
   }, [recoverClosedAttempt]);
 
   return {
@@ -236,5 +330,7 @@ export const useExam = (examId) => {
     isSavingAnswer,
     recoverClosedAttempt,
     syncExamTime,
+    waitForPendingSaves,
+    withAttemptFinalization,
   };
 };
