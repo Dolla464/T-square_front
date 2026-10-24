@@ -36,7 +36,6 @@ function Features() {
             lg={5}
             className="d-flex flex-column align-items-end mt-4"
             style={{ gap: "30px" }}
-            dir="ltr"
           >
             {featuresWithIcons.slice(0, 3).map((f, i) => (
               <div className={`feature-card ${i === 1 ? "ms-5" : ""}`} key={i}>
@@ -51,8 +50,12 @@ function Features() {
                   />
                 </div>
                 <div>
-                  <h5 className="feature-title">{f.title}</h5>
-                  <p className="feature-desc">{f.desc}</p>
+                  <h5 className="feature-title" dir="auto">
+                    {f.title}
+                  </h5>
+                  <p className="feature-desc" dir="auto">
+                    {f.desc}
+                  </p>
                 </div>
               </div>
             ))}
@@ -70,7 +73,6 @@ function Features() {
             lg={5}
             className="d-flex flex-column align-items-start mt-4"
             style={{ gap: "30px" }}
-            dir="ltr"
           >
             {featuresWithIcons.slice(3, 6).map((f, i) => (
               <div className={`feature-card ${i === 1 ? "me-5" : ""}`} key={i}>
@@ -85,8 +87,12 @@ function Features() {
                   />
                 </div>
                 <div>
-                  <h5 className="feature-title">{f.title}</h5>
-                  <p className="feature-desc">{f.desc}</p>
+                  <h5 className="feature-title" dir="auto">
+                    {f.title}
+                  </h5>
+                  <p className="feature-desc" dir="auto">
+                    {f.desc}
+                  </p>
                 </div>
               </div>
             ))}
@@ -99,7 +105,6 @@ function Features() {
             xs={12}
             className="d-flex flex-column align-items-stretch mt-4"
             style={{ gap: "20px" }}
-            dir="ltr"
           >
             {featuresWithIcons.map((f, i) => (
               <div className="feature-card" key={i}>
@@ -114,8 +119,12 @@ function Features() {
                   />
                 </div>
                 <div>
-                  <h5 className="feature-title">{f.title}</h5>
-                  <p className="feature-desc">{f.desc}</p>
+                  <h5 className="feature-title" dir="auto">
+                    {f.title}
+                  </h5>
+                  <p className="feature-desc" dir="auto">
+                    {f.desc}
+                  </p>
                 </div>
               </div>
             ))}

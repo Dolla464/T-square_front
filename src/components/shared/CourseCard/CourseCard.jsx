@@ -58,7 +58,7 @@ const CourseCard = ({ course }) => {
       </div>
 
       <div className="course-body">
-        <h3 className="course-title" dir="ltr">
+        <h3 className="course-title" dir="auto">
           {course.title}
         </h3>
         <div className="course-info">
@@ -71,13 +71,13 @@ const CourseCard = ({ course }) => {
             {course.duration_hours} {t("card.hours")}
           </span>
         </div>
-        <p className="course-desc" dir="ltr">
+        <p className="course-desc" dir="auto">
           {course.short_description}
         </p>
 
-        <div className="course-tags" dir="ltr">
+        <div className="course-tags">
           {tags.map((tag) => (
-            <span key={tag.id} className="tag">
+            <span key={tag.id} className="tag" dir="auto">
               {tag.name}
             </span>
           ))}

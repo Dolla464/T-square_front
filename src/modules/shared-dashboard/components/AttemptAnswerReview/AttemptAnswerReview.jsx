@@ -190,7 +190,11 @@ function AttemptAnswerReview({
                   </label>
                   <div className="p-3 bg-light rounded-3 border">
                     {question.answer_text?.trim() ? (
-                      <p className="mb-0" style={{ whiteSpace: "pre-wrap" }}>
+                      <p
+                        className="mb-0"
+                        dir="auto"
+                        style={{ whiteSpace: "pre-wrap" }}
+                      >
                         {question.answer_text}
                       </p>
                     ) : (

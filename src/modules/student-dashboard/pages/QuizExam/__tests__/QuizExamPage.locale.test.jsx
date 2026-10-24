@@ -54,6 +54,12 @@ vi.mock("../../../hooks/useExam", () => ({
     isSavingAnswer: false,
     recoverClosedAttempt: vi.fn(),
     syncExamTime: vi.fn(),
+    scheduleAutosave: vi.fn(),
+    flushAutosaves: vi.fn().mockResolvedValue(undefined),
+    flushAutosaveForQuestion: vi.fn().mockResolvedValue(undefined),
+    answerSaveByQuestion: {},
+    waitForPendingSaves: vi.fn().mockResolvedValue(undefined),
+    withAttemptFinalization: vi.fn((_id, cb) => cb()),
   }),
 }));
 

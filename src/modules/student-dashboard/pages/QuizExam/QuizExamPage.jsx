@@ -21,6 +21,13 @@ import {
   markQuizAttemptCompleted,
   clearQuizAttemptCompleted,
 } from "../../utils/quizExamSession";
+import {
+  buildQuizSessionPayload,
+  mergeExamAnswersForResume,
+  readQuizSession,
+  writeQuizSession,
+} from "../../utils/quizExamSessionState";
+import { ANSWER_SAVE_STATUS } from "../../hooks/examAnswerSaveConstants";
 import { getServerExpiryAction } from "../../utils/examTimerUtils";
 import QuizTimer from "./QuizTimer";
 import { trackExamJourneyEvent } from "../../utils/examJourneyLog";
@@ -55,6 +62,8 @@ function QuizExamPage() {
   const expiryVerificationRef = useRef(null);
   const isInitializingRef = useRef(true);
   const loadingRef = useRef(false);
+  const answerDraftsRef = useRef({});
+  const draftRevisionRef = useRef({});
   const { i18n, t } = useTranslation("studentDashboard");
   const isArabic = isArabicLocale(i18n.language);
 
@@ -66,11 +75,13 @@ function QuizExamPage() {
     saveAnswer,
     submitExam,
     submitting,
-    isSavingAnswer,
     recoverClosedAttempt,
     syncExamTime,
-    waitForPendingSaves,
     withAttemptFinalization,
+    scheduleAutosave,
+    flushAutosaves,
+    flushAutosaveForQuestion,
+    answerSaveByQuestion,
   } = useExam(quizId);
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -83,6 +94,7 @@ function QuizExamPage() {
   const [showAnswerReview, setShowAnswerReview] = useState(false);
   const [attemptFinalized, setAttemptFinalized] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [draftPersistTick, setDraftPersistTick] = useState(0);
 
   isInitializingRef.current = isInitializing;
   loadingRef.current = loading;
@@ -92,10 +104,7 @@ function QuizExamPage() {
   const totalQuestions = questions.length;
   const isLastQuestion = currentIndex === totalQuestions - 1;
   const isInteractionLocked =
-    submitting ||
-    attemptFinalized ||
-    hasAutoSubmittedRef.current ||
-    isSavingAnswer;
+    submitting || attemptFinalized || hasAutoSubmittedRef.current;
   const shouldBlockNavigation =
     Boolean(exam?.attempt_id) &&
     !attemptFinalizedRef.current &&
@@ -216,6 +225,8 @@ function QuizExamPage() {
     setAttemptFinalized(false);
     attemptFinalizedRef.current = false;
     hasAutoSubmittedRef.current = false;
+    answerDraftsRef.current = {};
+    draftRevisionRef.current = {};
     initRequestIdRef.current += 1;
     setIsInitializing(true);
   }, [quizId]);
@@ -336,47 +347,62 @@ function QuizExamPage() {
       attemptFinalizedRef.current = false;
     }
 
-    const apiAnswers =
-      exam.user_answers && typeof exam.user_answers === "object"
-        ? { ...exam.user_answers }
-        : {};
+    const session = readQuizSession(quizId);
+    const { answers: mergedAnswers, savedIndex } = mergeExamAnswersForResume({
+      apiAnswers: exam.user_answers,
+      session,
+      attemptId: exam.attempt_id,
+    });
 
-    const savedState = sessionStorage.getItem(`quiz_state_${quizId}`);
-    if (savedState) {
-      try {
-        const { savedIndex, savedAnswers, attemptId } = JSON.parse(savedState);
-        if (
-          attemptId === exam.attempt_id &&
-          typeof savedIndex === "number" &&
-          savedAnswers &&
-          typeof savedAnswers === "object" &&
-          !Array.isArray(savedAnswers)
-        ) {
-          setCurrentIndex(savedIndex);
-          setAnswers({ ...apiAnswers, ...savedAnswers });
-          return;
+    if (session?.v === 2 && session.drafts && session.attemptId === exam.attempt_id) {
+      answerDraftsRef.current = {};
+      for (const [questionKey, draft] of Object.entries(session.drafts)) {
+        if (!draft?.dirty) {
+          continue;
         }
-      } catch (e) {
-        console.error("Failed to load saved quiz state", e);
+        const qId = Number(questionKey);
+        const normalizedId = Number.isNaN(qId) ? questionKey : qId;
+        const revision =
+          typeof draft.revision === "number" ? draft.revision : 1;
+        answerDraftsRef.current[normalizedId] = {
+          value: draft.value,
+          revision,
+          dirty: true,
+        };
+        draftRevisionRef.current[normalizedId] = revision;
       }
+    } else {
+      answerDraftsRef.current = {};
+      draftRevisionRef.current = {};
     }
 
-    setCurrentIndex(0);
-    setAnswers(apiAnswers);
+    setCurrentIndex(savedIndex);
+    setAnswers(mergedAnswers);
   }, [quizId, exam, isInitializing, loading]);
 
   useEffect(() => {
     if (exam && exam.attempt_id && exam.status === "ongoing") {
-      sessionStorage.setItem(
-        `quiz_state_${quizId}`,
-        JSON.stringify({
-          savedIndex: currentIndex,
-          savedAnswers: answers,
+      const drafts = {};
+      for (const [questionId, draft] of Object.entries(answerDraftsRef.current)) {
+        if (draft?.dirty) {
+          drafts[questionId] = {
+            value: draft.value,
+            revision: draft.revision,
+            dirty: true,
+          };
+        }
+      }
+
+      writeQuizSession(
+        quizId,
+        buildQuizSessionPayload({
           attemptId: exam.attempt_id,
+          savedIndex: currentIndex,
+          drafts,
         }),
       );
     }
-  }, [currentIndex, answers, exam, quizId]);
+  }, [currentIndex, answers, exam, quizId, answerSaveByQuestion, draftPersistTick]);
 
   useEffect(() => {
     if (currentQuestion) {
@@ -388,6 +414,47 @@ function QuizExamPage() {
       );
     }
   }, [currentIndex, currentQuestion?.id, answers]);
+
+  useEffect(() => {
+    let anyCleared = false;
+
+    for (const [questionId, saveState] of Object.entries(
+      answerSaveByQuestion ?? {},
+    )) {
+      const qId = Number(questionId);
+      const normalizedId = Number.isNaN(qId) ? questionId : qId;
+      const draft = answerDraftsRef.current[normalizedId];
+      if (!draft?.dirty) {
+        continue;
+      }
+
+      if (
+        saveState?.status === ANSWER_SAVE_STATUS.SAVED &&
+        saveState.persistedRevision === draft.revision
+      ) {
+        answerDraftsRef.current[normalizedId] = {
+          ...draft,
+          dirty: false,
+        };
+        anyCleared = true;
+      }
+    }
+
+    if (anyCleared) {
+      setDraftPersistTick((tick) => tick + 1);
+    }
+  }, [answerSaveByQuestion]);
+
+  const markDraftDirty = useCallback((questionId, value) => {
+    const nextRevision = (draftRevisionRef.current[questionId] ?? 0) + 1;
+    draftRevisionRef.current[questionId] = nextRevision;
+    answerDraftsRef.current[questionId] = {
+      value,
+      revision: nextRevision,
+      dirty: true,
+    };
+    return nextRevision;
+  }, []);
 
   const markAttemptFinalized = useCallback(
     (attemptId) => {
@@ -449,6 +516,17 @@ function QuizExamPage() {
       return true;
     }
 
+    const flushOptions = { bypassFinalizeLock: true };
+
+    try {
+      await flushAutosaves(attemptId, {
+        ...flushOptions,
+        exceptQuestionId: curQuestion.id,
+      });
+    } catch {
+      return false;
+    }
+
     if (isEssayQuestion(curQuestion)) {
       if (!String(selAnswer ?? "").trim()) {
         return true;
@@ -458,11 +536,18 @@ function QuizExamPage() {
     }
 
     try {
+      const draft = answerDraftsRef.current[curQuestion.id];
+      const clientRevision =
+        draft?.revision ?? draftRevisionRef.current[curQuestion.id] ?? null;
+
       await saveAnswer(
         curQuestion.id,
         selAnswer,
         isEssayQuestion(curQuestion) ? "essay" : "mcq",
-        { bypassFinalizeLock: true },
+        {
+          bypassFinalizeLock: true,
+          ...(clientRevision != null ? { clientRevision } : {}),
+        },
       );
       return true;
     } catch (err) {
@@ -471,7 +556,7 @@ function QuizExamPage() {
       }
       return false;
     }
-  }, [saveAnswer, syncClosedAttempt]);
+  }, [flushAutosaves, saveAnswer, syncClosedAttempt]);
 
   const finalizeAttemptRef = useRef(null);
 
@@ -508,8 +593,6 @@ function QuizExamPage() {
         flushQuestionTime();
 
         try {
-          await waitForPendingSaves(attemptId);
-
           const saved = await persistCurrentAnswer();
           if (!saved) {
             return false;
@@ -569,12 +652,30 @@ function QuizExamPage() {
       t,
       submitExam,
       syncClosedAttempt,
-      waitForPendingSaves,
       withAttemptFinalization,
     ],
   );
 
   finalizeAttemptRef.current = finalizeAttempt;
+
+  const confirmAndLeaveExam = useCallback(async () => {
+    const confirmed = await confirmLeaveExam(t);
+    if (!confirmed) {
+      return "cancelled";
+    }
+
+    if (isInitializingRef.current || loadingRef.current) {
+      trackExamJourneyEvent("LEAVE_DURING_INIT", { quiz_id: quizId });
+      return "navigate";
+    }
+
+    trackExamJourneyEvent("LEAVE_CONFIRMED", { quiz_id: quizId });
+    const finalized = await finalizeAttemptRef.current?.({
+      showToast: false,
+      showResultUi: false,
+    });
+    return finalized ? "navigate" : "failed";
+  }, [quizId, t]);
 
   const reconcileServerTimeStatus = useCallback(
     async (attemptId, { source = "sync" } = {}) => {
@@ -688,61 +789,50 @@ function QuizExamPage() {
 
     leaveDialogOpenRef.current = true;
 
-    confirmLeaveExam(t).then(async (confirmed) => {
+    confirmAndLeaveExam().then((outcome) => {
       leaveDialogOpenRef.current = false;
 
-      if (confirmed) {
-        if (isInitializingRef.current || loadingRef.current) {
-          trackExamJourneyEvent("LEAVE_DURING_INIT", { quiz_id: quizId });
-          blocker.proceed();
-          return;
-        }
-
-        trackExamJourneyEvent("LEAVE_CONFIRMED", { quiz_id: quizId });
-        const finalized = await finalizeAttemptRef.current?.({
-          showToast: false,
-          showResultUi: false,
-        });
-        if (finalized) {
-          blocker.proceed();
-        } else {
-          blocker.reset();
-        }
+      if (outcome === "navigate") {
+        blocker.proceed();
       } else {
         blocker.reset();
       }
     });
-  }, [blocker.state, blocker.proceed, blocker.reset, quizId, t]);
+  }, [blocker.state, blocker.proceed, blocker.reset, confirmAndLeaveExam]);
 
   const handleExit = useCallback(() => {
     navigate("/student/quizzes", { state: { refreshQuizzes: true } });
   }, [navigate]);
 
   const handleExitClick = useCallback(() => {
-    navigate("/student/quizzes", { state: { refreshQuizzes: true } });
-  }, [navigate]);
+    if (!shouldBlockNavigation) {
+      handleExit();
+      return;
+    }
+
+    void confirmAndLeaveExam().then((outcome) => {
+      if (outcome === "navigate") {
+        handleExit();
+      }
+    });
+  }, [confirmAndLeaveExam, handleExit, shouldBlockNavigation]);
 
   const handleAnswerChange = useCallback(
     (value) => {
-      if (!currentQuestion) return;
+      if (!currentQuestion || !exam?.attempt_id) return;
 
+      const revision = markDraftDirty(currentQuestion.id, value);
       setSelectedAnswer(value);
-      setAnswers((prev) => {
-        const updatedAnswers = { ...prev, [currentQuestion.id]: value };
+      setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
 
-        sessionStorage.setItem(
-          `quiz_state_${quizId}`,
-          JSON.stringify({
-            savedIndex: currentIndex,
-            savedAnswers: updatedAnswers,
-            attemptId: exam?.attempt_id,
-          }),
-        );
-
-        return updatedAnswers;
-      });
+      scheduleAutosave(
+        currentQuestion.id,
+        value,
+        isEssayQuestion(currentQuestion) ? "essay" : "mcq",
+        revision,
+      );
     },
-    [currentIndex, currentQuestion, exam?.attempt_id, quizId],
+    [currentQuestion, exam?.attempt_id, markDraftDirty, scheduleAutosave],
   );
 
   const handleNext = useCallback(async () => {
@@ -801,15 +891,6 @@ function QuizExamPage() {
       await finalizeAttempt({ showToast: true, toastVariant: "default" });
       return;
     }
-
-    sessionStorage.setItem(
-      `quiz_state_${quizId}`,
-      JSON.stringify({
-        savedIndex: nextIndex,
-        savedAnswers: updatedAnswers,
-        attemptId: exam?.attempt_id,
-      }),
-    );
 
     setCurrentIndex(nextIndex);
     const nextQuestion = questions[nextIndex];
@@ -882,15 +963,6 @@ function QuizExamPage() {
     }
 
     const prevIndex = currentIndex - 1;
-
-    sessionStorage.setItem(
-      `quiz_state_${quizId}`,
-      JSON.stringify({
-        savedIndex: prevIndex,
-        savedAnswers: updatedAnswers,
-        attemptId: exam.attempt_id,
-      }),
-    );
 
     setCurrentIndex(prevIndex);
     const prevQuestion = questions[prevIndex];
@@ -1198,6 +1270,30 @@ function QuizExamPage() {
     );
   }
 
+  const currentSaveState = currentQuestion
+    ? answerSaveByQuestion[currentQuestion.id]
+    : null;
+
+  const answerSaveStatusMessage = (() => {
+    if (!currentSaveState?.status) {
+      return null;
+    }
+    if (currentSaveState.status === ANSWER_SAVE_STATUS.SAVING) {
+      return "Saving answer…";
+    }
+    if (currentSaveState.status === ANSWER_SAVE_STATUS.SAVED) {
+      const draft = answerDraftsRef.current[currentQuestion?.id];
+      if (draft?.dirty) {
+        return null;
+      }
+      return "Answer saved";
+    }
+    if (currentSaveState.status === ANSWER_SAVE_STATUS.ERROR) {
+      return "Save failed — try again";
+    }
+    return null;
+  })();
+
   if (!isExamInProgress && !showResult && !submitting) {
     return (
       <div className="quiz-exam-page">
@@ -1248,10 +1344,21 @@ function QuizExamPage() {
         </div>
 
         <div className="quiz-progress">
-          <span>
-            {t("quiz_exam.question")} {currentIndex + 1}{" "}
-            {t("quiz_exam.of_label")} {totalQuestions}
-          </span>
+          <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <span>
+              {t("quiz_exam.question")} {currentIndex + 1}{" "}
+              {t("quiz_exam.of_label")} {totalQuestions}
+            </span>
+            {answerSaveStatusMessage ? (
+              <span
+                className="small text-muted"
+                role="status"
+                aria-live="polite"
+              >
+                {answerSaveStatusMessage}
+              </span>
+            ) : null}
+          </div>
           <div className="progress-bar-wrap">
             <div
               className="progress-bar"
@@ -1274,8 +1381,12 @@ function QuizExamPage() {
             <textarea
               className="form-control"
               rows={8}
+              dir="auto"
               value={selectedAnswer ?? ""}
               onChange={(e) => handleAnswerChange(e.target.value)}
+              onBlur={() => {
+                void flushAutosaveForQuestion(currentQuestion.id);
+              }}
               placeholder={t("quiz_exam.answer_placeholder")}
               disabled={isInteractionLocked}
             />

@@ -54,20 +54,23 @@ function NotificationCard({ notification }) {
     <div
       className={`notification-card ${is_read ? "" : "notification-unread"} ${target ? "notification-clickable" : ""} ${type === "enrollment_pending" ? "notification-pending" : ""}`}
       onClick={handleCardClick}
-      dir="ltr"
       style={target ? { cursor: "pointer" } : undefined}
     >
       <div className="notification-icon-wrap">
         <i className={`bi ${iconClass}`} aria-hidden="true" />
       </div>
       <div className="notification-content">
-        <h4 className="notification-title">{title}</h4>
-        <p className="notification-message">{message}</p>
+        <h4 className="notification-title" dir="auto">
+          {title}
+        </h4>
+        <p className="notification-message" dir="auto">
+          {message}
+        </p>
         <NotificationDetails notification={notification} variant="card" />
       </div>
       <div className="notification-time-action">
         <div className="notification-time">
-          <span>{formattedDate}</span>
+          <span dir="ltr">{formattedDate}</span>
         </div>
         {target && (
           <button

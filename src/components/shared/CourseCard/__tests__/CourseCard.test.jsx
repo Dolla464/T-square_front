@@ -44,6 +44,30 @@ describe("CourseCard attendance badges", () => {
     expect(screen.getByText("card.hybrid")).toBeInTheDocument();
   });
 
+  it("uses dir=auto on title, description, and tags", () => {
+    render(
+      <CourseCard
+        course={{
+          ...baseCourse,
+          title: "كورس React المتقدم",
+          short_description: "تعلم React مع مشروع Full Stack",
+          tags: [{ id: 1, name: "برمجة" }],
+        }}
+      />,
+    );
+
+    expect(screen.getByText("كورس React المتقدم")).toHaveAttribute("dir", "auto");
+    expect(screen.getByText("تعلم React مع مشروع Full Stack")).toHaveAttribute(
+      "dir",
+      "auto",
+    );
+    expect(screen.getByText("برمجة")).toHaveAttribute("dir", "auto");
+    expect(screen.getByText("برمجة").closest(".course-tags")).not.toHaveAttribute(
+      "dir",
+      "ltr",
+    );
+  });
+
   it("does not throw when attendance_types is missing or null", () => {
     expect(() => render(<CourseCard course={baseCourse} />)).not.toThrow();
     expect(() =>

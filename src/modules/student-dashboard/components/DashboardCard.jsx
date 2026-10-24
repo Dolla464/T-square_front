@@ -112,40 +112,42 @@ function DashboardCard({ item, type, t }) {
         </div>
       )}
 
-      <div
-        className={`${isCourse ? "course-card-body" : "quiz-card-body"}`}
-        dir="ltr"
-      >
-        <h6 className={`${isCourse ? "course-card-title" : "quiz-card-title"}`}>
+      <div className={`${isCourse ? "course-card-body" : "quiz-card-body"}`}>
+        <h6
+          className={`${isCourse ? "course-card-title" : "quiz-card-title"}`}
+          dir="auto"
+        >
           {item.title}
         </h6>
 
         {isCourse ? (
           <p className="course-card-meta mb-2">
-            <span>{formatInstructorNames(getCourseInstructors(item))}</span>
+            <span dir="auto">
+              {formatInstructorNames(getCourseInstructors(item))}
+            </span>
           </p>
         ) : (
           <p className="quiz-card-meta">
-            <span>{item.courseName}</span>
+            <span dir="auto">{item.courseName}</span>
           </p>
         )}
 
         {isQuiz && (
-          <p className="quiz-card-meta" style={{ fontSize: "0.72rem" }}>
+          <p className="quiz-card-meta" style={{ fontSize: "0.72rem" }} dir="ltr">
             <i className="bi bi-alarm me-1"></i>
             {item.duration} mins
           </p>
         )}
 
         {isQuiz && (
-          <div className="quiz-score-meta">
+          <div className="quiz-score-meta" dir="ltr">
             <i className="bi bi-question-circle me-1"></i>
             {item.total_marks} marks
           </div>
         )}
 
         {isQuiz && isCompleted && item.score !== null && (
-          <div className="quiz-score-display">
+          <div className="quiz-score-display" dir="ltr">
             <span className={`score-badge ${getScoreClass(item.score)}`}>
               {item.score}%
             </span>

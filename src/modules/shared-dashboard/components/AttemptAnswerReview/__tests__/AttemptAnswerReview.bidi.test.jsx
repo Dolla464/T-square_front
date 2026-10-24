@@ -60,4 +60,28 @@ describe("AttemptAnswerReview bidi (dir=auto on option text)", () => {
     expect(region).toHaveAttribute("dir", "ltr");
     expect(region).not.toHaveAttribute("dir", "auto");
   });
+
+  it("sets dir=auto on essay answer text", () => {
+    const essayAnswer = "الإجابة تحتوي على كلمة API و123";
+    render(
+      <AttemptAnswerReview
+        review={{
+          summary: { correct: 0, incorrect: 0, unanswered: 0 },
+          questions: [
+            {
+              id: 9,
+              type: "essay",
+              result_status: "graded",
+              question_text: "Explain",
+              answer_text: essayAnswer,
+              marks: 5,
+              marks_earned: 3,
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByText(essayAnswer)).toHaveAttribute("dir", "auto");
+  });
 });

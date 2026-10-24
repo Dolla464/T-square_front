@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { MCQ_AUTOSAVE_DEBOUNCE_MS } from "../../../hooks/examAnswerSaveConstants";
 
 const {
   mockNavigate,
@@ -139,6 +140,48 @@ describe("QuizExamPage finish submit path", () => {
     expect(submitExamApi).toHaveBeenCalledTimes(1);
   });
 
+  it("finishes with pending debounce: saves Beta once before submit, no duplicate after timer", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup();
+
+    try {
+      render(<QuizExamPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Pick one")).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText("Alpha"));
+      await user.click(screen.getByText("Beta"));
+
+      expect(saveExamAnswer).not.toHaveBeenCalled();
+
+      await user.click(screen.getByRole("button", { name: /quiz_exam.finish/i }));
+
+      await waitFor(() => {
+        expect(submitExamApi).toHaveBeenCalledTimes(1);
+      });
+
+      expect(saveExamAnswer).toHaveBeenCalledTimes(1);
+      expect(saveExamAnswer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          attempt_id: 42,
+          question_id: 7,
+          choice_id: 102,
+        }),
+      );
+      expect(saveExamAnswer.mock.invocationCallOrder[0]).toBeLessThan(
+        submitExamApi.mock.invocationCallOrder[0],
+      );
+
+      await vi.advanceTimersByTimeAsync(MCQ_AUTOSAVE_DEBOUNCE_MS);
+
+      expect(saveExamAnswer).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("retries Finish after submit failure without duplicate concurrent submits", async () => {
     const user = userEvent.setup();
     const submitError = Object.assign(new Error("submit failed"), {
@@ -177,10 +220,12 @@ describe("QuizExamPage finish submit path", () => {
 
     expect(saveExamAnswer).toHaveBeenCalledTimes(1);
 
-    const storedAfterFail = JSON.parse(
-      sessionStorage.getItem("quiz_state_1") ?? "{}",
-    );
-    expect(storedAfterFail.savedAnswers?.[7]).toBe(101);
+    await waitFor(() => {
+      const storedAfterFail = JSON.parse(
+        sessionStorage.getItem("quiz_state_1") ?? "{}",
+      );
+      expect(storedAfterFail.drafts?.[7]?.dirty).not.toBe(true);
+    });
 
     await waitFor(() => {
       expect(finishButton).not.toBeDisabled();
